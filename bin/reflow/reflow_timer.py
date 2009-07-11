@@ -85,7 +85,7 @@ class TestReflowTime(unittest.TestCase):
 
       # Resize the window to something consistent.
       self.selenium.get_eval('this.browserbot.getCurrentWindow()' +
-                             '.resizeTo(800, 600)')
+                             '.resizeTo(1280, 1000)')
 
       if FLAGS['do_beacon'] == True:
         js_file = 'reflow_timer_callback.js'
