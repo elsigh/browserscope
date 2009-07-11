@@ -4,7 +4,7 @@ sys.path.append('/tmp')
 sys.path.append('/home/elsigh/src/google_appengine/')
 sys.path.append('/home/elsigh/src/google_appengine/lib')
 sys.path.append('/home/elsigh/src/google_appengine/lib/webob')
-sys.path.append('/home/elsigh/src/ua-profiler')
+sys.path.append('/home/elsigh/src/browserscope')
 
 from google.appengine.tools import bulkloader
 from controllers.reflows import ReflowTime

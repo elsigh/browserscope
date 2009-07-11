@@ -11,7 +11,7 @@ To get started, you'll need to first download the App Engine SDK at:
 http://code.google.com/appengine/downloads.html
 
 For local development, just startup the server:
-./pathto/google_appengine/dev_appserver.py --port=8080 ua-profiler
+./pathto/google_appengine/dev_appserver.py --port=8080 browserscope
 
 You should then be able to hit the local application at:
 http://localhost:8080/
