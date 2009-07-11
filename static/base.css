@@ -1,0 +1,392 @@
+/**
+  Copyright 2009 Google Inc.
+
+  Licensed under the Apache License, Version 2.0 (the 'License')
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+     http:#www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an 'AS IS' BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+ */
+
+body {
+  font: 87%/1.4 Arial, sans;
+}
+
+h3 {
+  margin: 2px 0;
+}
+
+a {
+ color:#00c;
+}
+a:active {
+ color: red;
+}
+a:visited {
+ color: #00c;
+}
+
+/** General styles **/
+.bs-compact {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bs-list-horz li {
+  float: left;
+}
+
+.bs-btn {
+  border: 1px solid #999;
+  padding: 2px 4px;
+  text-decoration: none;
+}
+.bs-btn:hover {
+  background: #eee;
+}
+h3 .bs-btn {
+  font-size: 80%;
+  font-style: normal;
+  margin: 0 0 0 1em;
+}
+
+p.bs-youcan {
+  width: 600px;
+}
+.bs-youcan dd {
+  margin-bottom: 1em;
+  width: 500px;
+  margin-left: 40px;
+}
+
+.bs-runtest {
+  font-size: 150%;
+  font-weight: bold;
+}
+
+a.bs-admin {
+  font-size: 80%;
+  color: darkred !important;
+}
+.bs-msg-c {
+  text-align: center;
+}
+.bs-msg {
+  background-color: #fffbe8;
+  border: 1px solid #fff1a9;
+  margin: 20px auto 0;
+  display: inline-block;
+  padding: 5px;
+}
+
+/** AllTests **/
+#bs-alltests dl {
+  margin-top: 2em;
+}
+#bs-alltests dd {
+  margin-top: 1em;
+}
+#bs-alltests .bs-btn {
+  font-weight: bold;
+  font-size: 150%;
+}
+
+/** TopNav **/
+#bs-nav {
+  background: #eee;
+  border: 1px solid #ddd;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+}
+#bs-nav h1 {
+  font-size: 1em;
+  margin: 0;
+  float: left;
+}
+#bs-nav h1 a {
+  text-decoration: none;
+  color: #000;
+}
+#bs-nav h1 a:hover {
+  text-decoration: underline;
+}
+#bs-nav .g-c {
+  padding: 3px 8px 0;
+}
+
+#bs-nav-cats {
+  float: left;
+  width: auto;
+  margin: 0 0 0 10px;
+}
+#bs-nav-cats a {
+  display: block;
+  line-height: 1;
+  padding: 1px 3px 3px;
+}
+#bs-nav-cats a:hover {
+  background: #ddd;
+}
+
+#bs-nav-cats li ul {
+  position: absolute;
+  padding-top: 2px;
+  display: none;
+  border: 1px solid #ddd;
+  border-top: 0;
+  background: #eee;
+  z-index: 2;
+  width: 5em;
+}
+#bs-nav-cats li:hover ul {
+  display: block;
+}
+#bs-nav-cats li {
+  padding-right: .4em;
+  margin-right: .4em;
+}
+#bs-nav-cats li a {
+  width: auto;
+  padding: 3px 5px;
+}
+#bs-nav-cats > li a {
+  padding-bottom: 7px;
+}
+
+#bs-nav-cats li li {
+  float: none;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+}
+#bs-nav-cats li li a {
+  line-height: 1.4;
+}
+
+/** Footer **/
+#bs-foot {
+  margin: 30px;
+  border-top: 1px solid #ccc;
+  padding-top: 6px;
+  font-size: 80%;
+  text-align: center;
+}
+
+/**
+ * g-section fundamentally has to clear floats. There are many ways to do this.
+ * This technique is nice because it doesn't rely on overflow: hidden, which
+ * has the potential to hide your content in situations where a fixed size
+ * node takes up too much space (like a big table, or a text input or image.
+ * Works in Webkit, IE8, and FF3.
+ */
+.g-section {
+  width: 100%;
+  vertical-align: top;
+  display: inline-block;
+}
+
+/**
+ * IE7-only hack. Nicely IE7 will clear floats with just block display
+ * and hasLayout.
+ */
+*:first-child+html .g-section {
+  display: block;
+}
+
+/**
+ * IE6 cannot hang with overflow: visible. If we use the IE7 display block
+ * trick in IE6 we get severe float drop in nested grids.
+ */
+* html .g-section {
+  overflow: hidden;
+}
+
+/* FF2 can't actually hang with overflow: visible. */
+@-moz-document url-prefix() {
+  .g-section {
+    overflow: hidden;
+  }
+}
+
+/**
+ * FF3 now needs to be reset after the previous block which affects it as well.
+ * We target the tt element in this hack because no one uses it.
+ */
+@-moz-document url-prefix() {
+  .g-section,tt:default {
+    overflow: visible;
+  }
+}
+
+/* Forces "hasLayout" fixing a gamut of bugs in <= IE7. */
+.g-section,
+.g-unit {
+  zoom: 1;
+}
+
+.g-tpl-50-50 .g-unit {
+  width: 49.999%;
+  float: left;
+  text-align: right;
+}
+.g-tpl-50-50 .g-first {
+  text-align: left;
+}
+
+
+/** Home Page **/
+
+#bs-home-recent {
+  float: right;
+  margin: 15px 40px 5px 5px;
+  border: 1px solid;
+  padding: 8px;
+  background: #111;
+  color: #eee;
+  width: 450px;
+  padding-top: 0;
+  font-family: Courier, mono;
+}
+#bs-home-recent h2 {
+  font-size: 1em;
+  margin: 0;
+}
+#bs-home-recent-tests {
+  border: 1px solid white;
+  width: 100%;
+}
+#bs-home-recent-tests td {
+  padding: 2px;
+}
+
+#bs-results-cats {
+  overflow: hidden;
+}
+#bs-results-cats li {
+  float: left;
+  margin-left: .8em;
+  background-color: #ddd;
+  -moz-border-radius-topright: 4px;
+  -moz-border-radius-topleft: 4px;
+  -webkit-border-top-right-radius: 4px;
+  -webkit-border-top-left-radius: 4px;
+}
+#bs-results-cats a {
+  display: block;
+  padding: 4px 15px;
+}
+#bs-results-cats a.bs-sel {
+  color: #000;
+  font-weight: bold;
+  text-decoration: none;
+}
+#bs-results-cats li:hover {
+  background: #ccc;
+}
+#bs-results-bycat {
+  border: 3px solid #ddd;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  padding: 5px 10px;
+}
+
+/**
+ * Results Table
+ */
+.rt-stats {
+  margin-bottom: 2em;
+  font-size: 90%;
+}
+.rt-stats .rt-v form {
+  padding: 3px 10px;
+}
+.rt-stats table {
+  border-width: 0;
+  empty-cells: show;
+  border: 1px solid #ccc;
+  border-top-width: 3px;
+}
+.rt-stats thead th a {
+  text-decoration: none;
+  color: #000;
+}
+.rt-stats thead th a:hover {
+  text-decoration: underline;
+}
+.rt-stats td {
+  border: 1px solid #ddd;
+  border-right-width: 0;
+}
+.rt-stats tbody:hover td {
+  opacity: .2;
+}
+.rt-stats tr:hover td {
+  opacity: 1;
+}
+.rt-stats thead td,
+.rt-stats th,
+.rt-stats tfoot,
+.rt-a {
+  font-weight: normal;
+  background-color: #eee;
+  padding: .4em .3em;
+  margin: 0;
+  border: 1px solid #ddd;
+}
+.rt-stats td.rt-a,
+.rt-stats th.rt-a {
+  background-color: #ccc;
+  white-space: nowrap;
+}
+
+.rt-stats tfoot em {
+  font-size: 70%;
+}
+
+.rt-ua td,
+.rt-res td,
+.rt-stats .rt-ua td.rt-a {
+  background-color: #eeeeff;
+}
+
+.rt-stats tbody td {
+  padding: .4em .3em .4em 1em;
+  background-image: url(/static/img/table_score_bg.png);
+  background-repeat: no-repeat;
+}
+.rt-stats tbody td.rt-tot {
+  background-image: none;
+}
+.rt-score-1,
+.rt-score-2,
+.rt-score-3,
+.rt-score-4,
+.rt-score-5 {
+  background-position: 0 -90px;
+}
+.rt-score-7 {
+  background-position: 0 -60px;
+}
+.rt-score-8 {
+  background-position: 0 -30px;
+}
+.rt-score-9,
+.rt-score-10 {
+  background-position: 0 0;
+}
+
+/** FAQ **/
+#bs-faq dt {
+  font-size: 130%;
+  font-weight: bold;
+}
+#bs-faq dd {
+  margin: .5em 0 1em .5em;
+}

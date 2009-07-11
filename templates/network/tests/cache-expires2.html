@@ -1,0 +1,36 @@
+{% extends "simple.html" %}
+
+{% block body %}
+
+<div id=results>&nbsp;</div>
+
+<script>
+var t_start = Number(new Date());
+
+function doTest() {
+	var t_end = Number(new Date());
+
+	if ( (t_end - t_start) < 4000 ) {
+		document.getElementById('results').innerHTML = "caching resources <i>does</i> work";
+		parent.saveResult('cacheexp', 1);
+	}
+	else {
+		document.getElementById('results').innerHTML = "caching resources <i>doesn't</i> work";
+		parent.saveResult('cacheexp', 0);
+	}
+}
+
+window.onload = doTest;
+</script>
+
+<p>
+This test determines if resources with a future Expires header date are cached by the browser.
+An image, a stylesheet, and an external script were downloaded in the previous page with an Expires date 30 days in the future.
+This page should load almost instantly if those are cached.
+
+<p>
+<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep=4&t={{ prevt }}'>
+<link type="text/css" rel="stylesheet" href="http://stevesouders.com/bin/resource.cgi?type=css&sleep=4&t={{ prevt }}">
+<script src='http://stevesouders.com/bin/resource.cgi?type=js&sleep=4&t={{ prevt }}' type='text/javascript'></script>
+
+{% endblock %}

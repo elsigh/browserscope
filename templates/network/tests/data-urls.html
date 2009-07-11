@@ -1,0 +1,42 @@
+{% extends "simple.html" %}
+
+{% block body %}
+
+<div id=results>&nbsp;</div>
+
+<script>
+var gbError = false;
+var gbSuccess = false;
+
+function imageOnload() {
+	gbSuccess = true;
+}
+
+function imageOnerror() {
+	gbError = true;
+}
+
+function doTest() {
+	var elem1 = document.getElementById('elem1');
+	if ( ( elem1.width >=30 && elem1.height >=30 ) || ( elem1.clientWidth >=30 && elem1.clientHeight >=30 ) ) {
+		document.getElementById('results').innerHTML = "This browser <i>does</i> support data: URLs.";
+		parent.saveResult('du', 1);
+	}
+	else {
+		document.getElementById('results').innerHTML = "This browser does <i>not</i> support data: URLs.";
+		parent.saveResult('du', 0);
+	}
+}
+
+window.onload = doTest;
+</script>
+
+<p>
+The image below is loaded using a "data:" URL, also called an "inline image".
+This is a way a page can embed resources without requiring an additional HTTP request.
+
+<p>
+<img id=elem1 border=0 src="data:image/gif;base64,R0lGODlhIAAgAPcAAAgICBAQEBgYGCEhISkpKTExMTk5OUJCQkpKSlJSUlpaWmNjY2tra3Nzc3t7e4SEhIyMjJSUlJycnKWlpa2trbW1tb29vcbGxs7OztbW1t7e3ufn5+/v7/f39////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH5BAEAAB4ALAAAAAAgACAAAAj+AD0IHEiwoMGDCBMqXMgwIQcMGjg0nOgBQ4IIDR5ooLiwwoIDCxI4gCBhI8eCGiQoOKAAwoMFDDCcJJgSggEHJyUe1EChAQMCFBryjCDBQYMGESpcuFCBAlEGCgzIVJiSgYEHEiREcPBxAVEKLx0oIGASIQYIDhIESMDAq1EHDyxIqCCBQYIEB6hCoGsgAIMIBxiE1bqgaAMCAiQohMAg64EAXAkYUACTKNsHLwfo3HmUgc3EGSgYEJBgQQMIB0Q+UKBgs0ENnhM0GMBgoIYEAgbcHR1B9AOqDyAscGCgAUEOswUICPygggALCjlA8PkgAYSCHCpMb77AQIKFHCSMLHjQwIBigxw4pDwgIGh0C4ETmFcoofr5hBkqTD5goOzBswpAp9AFDBzwAAPuJZSSAv4ZhIEFtKHFEAcYuYZSBhKcxkCDCNVnIU0VOJDBAhdMBFZ0EFCgHUUWRPAhQSVRUNtEZ704kATplTSRBg0IeFB4DUREko0FFcXhQOpJlBKRIB4505NQRvlkQAAAOw=="
+  onload="imageOnload()" onerror="imageOnerror()"></a>
+
+{% endblock %}

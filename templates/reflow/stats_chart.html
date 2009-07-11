@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Stats Chart</title>
+    <style>
+    body {
+      margin-top: 3em;
+    }
+    #rt-chart-nav {
+      padding-bottom: 5px;
+      border-bottom: 1px solid #ccc;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #fff;
+      font-size: 85%;
+    }
+    #rt-chart-nav select {
+      float: right;
+      margin: .6em 2em 0 0;
+    }
+    #rt-chart-nav ul {
+      padding: .3em;
+      margin: 0;
+      list-style: none;
+      background: #fff;
+    }
+    #rt-chart-nav a {
+      display: block;
+      padding: .5em;
+      color: #00c;
+    }
+    #rt-chart-nav a.rt-selected {
+      text-decoration: none;
+    }
+    #rt-chart-nav a.rt-selected,
+    #rt-chart-nav a:hover,
+    #rt-chart-nav li:hover > a {
+      background-color: #00c;
+      color: #fff;
+    }
+    #rt-chart-nav li {
+      float: left;
+      margin: 0 5px 0 0;
+    }
+    #rt-chart-nav li li {
+      float: none;
+      margin: 0;
+      border-bottom: 1px solid #00c;
+    }
+    #rt-chart-nav li ul {
+      display: none;
+      position: absolute;
+      padding: 0;
+      margin: 0;
+      top: auto;
+      left: auto;
+      width: 9em;
+      border-top: 1px solid #00c;
+    }
+    #rt-chart-nav li:hover ul {
+      display: block;
+    }
+    #rt-chart-nav li li a {
+      border: 0;
+      border-left: 1px solid #00c;
+      border-right: 1px solid #00c;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="rt-chart-nav">
+      <select id="rt-chart-tests">
+        {% for testname in tests %}
+          <option
+            {% ifequal testname test %}
+              selected="selected"
+            {% endifequal %}
+            >{{ testname }}</option>
+        {% endfor %}
+      </select>
+      <ul>
+        {% for this_url_type, url_dict in test_pages.items %}
+        <li>
+          <a href="/reflow/stats_chart?url_type={{ this_url_type }}"
+            {% ifequal this_url_type url_type %}
+            class="rt-selected"
+            {% endifequal %}
+            >{{ this_url_type }}</a>
+          <ul>
+          {% for param, param_vals in url_dict.params.items %}
+            <li>
+              <a href="/reflow/stats_chart?url_type={{ this_url_type }}&x_axis={{ param }}"
+              >{{ param }}</a>
+            </li>
+          {% endfor %}
+          </ul>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+
+    <div id="rt-chart"></div>
+
+
+    <strong>Params</strong>:
+    <ul>
+      {% for param_combo in param_combos %}
+        <li>
+          {{ param_combo }}
+        </li>
+      {% endfor %}
+    </ul>
+
+    <script>
+      var rtChartTestsSelect = document.getElementById('rt-chart-tests');
+      rtChartTestsSelect.onchange = function(e) {
+        var currentHref = window.location.href.replace(/&test=[^&]+/, '');
+        if (!currentHref.match(/\?/)) {
+          currentHref += '?';
+        }
+        var selectedTest =
+            rtChartTestsSelect.options[rtChartTestsSelect.options.selectedIndex].value;
+        if (selectedTest != '{{ test }}') {
+          window.location.href = currentHref + '&test=' + selectedTest;
+        }
+      }
+    </script>
+    <script src="http://www.google.com/jsapi"></script>
+    <script>
+      // Load the Visualization API and the piechart package.
+      google.load('visualization', '1', {'packages': ['{% ifequal x_axis "css_selector" %}linechart{% else %}scatterchart{% endifequal %}']});
+
+      // Set a callback to run when the API is loaded.
+      google.setOnLoadCallback(drawChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      // X-Axis: {{ x_axis }}
+      function drawChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('{% ifequal x_axis "css_selector" %}string{% else %}number{% endifequal %}', '{{ x_axis }}');
+
+        {% for user_agent in user_agents %}
+        data.addColumn('number', '{{ user_agent }}');
+        {% endfor %}
+        data.addRows({{ x_labels|length }});
+
+        {% for x_label in x_labels %}
+          // x_label: {{ x_label }}
+          data.setValue({{ forloop.counter0 }}, 0, {% ifequal x_axis "css_selector" %}'{% endifequal %}{{ x_label|urlunquote }}{% ifequal x_axis "css_selector" %}'{% endifequal %});
+
+          {% for user_agent in user_agents %}
+            {% with stats_charts|by_key:forloop.parentloop.counter0|by_key:user_agent|by_key:"results"|by_key:test|by_key:"median" as median %}
+              // user_agent: {{ user_agent }}
+              data.setValue({{ forloop.parentloop.counter0 }}, {{ forloop.counter }}, {% if median %}{{ median }}{% else %}0{% endif %});
+            {% endwith %}
+          {% endfor %}
+        {% endfor %}
+
+        var chartEl = document.getElementById('rt-chart');
+        var chart = new google.visualization.{% ifequal x_axis "css_selector" %}LineChart{% else %}ScatterChart{% endifequal %}(chartEl);
+        chart.draw(data, {
+          width: 1000,
+          height: 600,
+          legend: 'bottom',
+          title: 'Reflow Timer: {{ test }}',
+          titleX: '{{ x_axis }}',
+          titleY: '{{ y_axis }}',
+          lineSize: 2,
+          pointSize: 3
+        });
+      }
+    </script>
+  </body>
+</html>
+

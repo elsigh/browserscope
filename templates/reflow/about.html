@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block style %}
+  <style>
+    #reflow-bms {
+      float: right;
+      clear: both;
+      padding: 0;
+      margin: 3px 0 0;
+      font-size: 90%;
+    }
+    #reflow-bms em {
+      font-size: 60%;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+
+  <div id="reflow-bms">
+    Bookmarklets:
+    {% if is_elsigh %}
+      <a href="javascript:(function(){_rnd=Math.floor(Math.random()*1000);_src='http://{{server}}/js
+/reflow/reflow_timer_callback.js?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.t
+ype='text/javascript';_my_script.src=_src;document.getElementsByTagName('head')[0].appendChild(_my_s
+cript);})();"
+      >ReflowCallback</a> |
+    {% endif %}
+    <a href="javascript:(function(){_rnd=Math.floor(Math.random()*1000);_src='http://{{server}}/js/r
+eflow/reflow_timer_alltests.js?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.typ
+e='text/javascript';_my_script.src=_src;document.getElementsByTagName('head')[0].appendChild(_my_scr
+ipt);})();"
+    >Reflow Bookmarklet - Interactive</a> |
+    <a href="javascript:(function(){_rnd=Math.floor(Math.random()*1000);_src='http://{{server}}/js/r
+eflow/reflow_timer_visual.js?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.type=
+'text/javascript';_my_script.src=_src;document.getElementsByTagName('head')[0].appendChild(_my_scrip
+t);})();"
+    >Reflow Bookmarklet - All Tests</a>
+  </div>
+
+  <h1>{{ page_title }}</h1>
+
+  <a href="/reflow/test" class="bs-btn">Run the Reflow Tests</a>
+
+  <h2>What is Reflow?</h2>
+  <p>
+    Reflow in a web browser refers to the process of the render engine
+    calculating the positions and geometry of elements in the document
+    for purpose of drawing, or re-drawing, its visual
+    presentation. Every browser has its own logic for doing, and
+    sometimes not doing, these calculations. Dynamic changes to the
+    document's styles and contents will cause reflow to occur - being
+    mindful of the things that slow down this process can lead one to
+    creating faster web pages.
+  </p>
+
+
+  <h2>How the Reflow Timer Works</h2>
+  <p>
+    Reflow Timer is a fairly naive Javascript-driven test to see how
+    long it takes for the browser to return control to the Javascript
+    engine following one or many changes done in script to an
+    element. Before each test is performed, we attempt to flush the
+    browser's render queue(if a browser uses this optimization) by asking
+    for that element's offsetHeight. This idea was suggested by
+    Mozilla's render-engine guru David Baron, and so it at least works
+    in Gecko to cause the render engine to perform all queued-up
+    changes - which is essential for correctly providing the
+    calculated value of the element's fully rendered height. (See the
+    ReflowTimer.flushRenderQueue_ method in
+    <a href="{{ "js/reflow/reflow_timer.js"|resource_path }}">reflow_timer.js</a>
+  </p>
+
+  <p>
+    Once satisfied that the render queue has been flushed, we
+    give the browser a little time to rest, then set a timer. We
+    perform whatever operations are in a particular test (almost always a set operation on element.style), and then we
+    again flush the render queue and capture the time again right
+    after that. We get the delta, and voila - we call that the reflow
+    time.
+  </p>
+
+  <p>
+    This approach is certainly not flawless (Javascript timers can be @ 15ms inaccurate), but it appears to work in
+    all browsers in non-debug builds - therefore giving us a time that
+    should be something akin to what real-world users would experience in terms of the interaction-blocking time caused by reflow.
+  </p>
+
+  <h2 id="rt-tests">More About Each Test</h2>
+  {% for test in tests %}
+    <h3 id="rt-{{ test.key }}">{{ test.label }}</h3>
+    <p>{{ test.doc }}</p>
+  {% endfor %}
+
+
+
+  <h2>Additional resources</h2>
+  <ul>
+    <li><a href="http://www.mozilla.org/newlayout/doc/reflow.html">Mozilla's Notes on HTML reflow</a></li>
+    <li><a href="https://developer.mozilla.org/En/Introduction_to_Layout_in_Mozilla">Introduction to Layout in Mozilla</a></li>
+    <li><a href="http://dev.opera.com/articles/view/efficient-javascript/?page=3">Opera's Repaints and reflows</a></li>
+    <li>Satoshi Ueyama's debug-Firefox reflow demos:
+      <ul>
+        <li><a href="http://www.youtube.com/watch?v=nJtBUHyNBxs">google.co.jp reflow</a></li><li><a href="http://www.youtube.com/watch?v=ZTnIxIA5KGw">mozilla.org reflow</a></li>
+        <li><a href="http://www.youtube.com/watch?v=dndeRnzkJDU">ja.wikipedia.org reflow</a></li>
+      </ul></li>
+    <li><a href="http://www.stubbornella.org/content/2009/03/27/reflows-repaints-css-performance-making-your-javascript-slow/">Nicole Sullivan on Reflows and Repaints</a></li>
+  </ul>
+{% endblock %}

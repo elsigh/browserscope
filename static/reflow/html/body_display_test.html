@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>IE body display</title>
+  </head>
+  <a href="/tests/index.html">Tests Home</a>
+  <h1>Body Display Test</h1>
+  <body>
+    <table>
+      <thead>
+        <tr>
+          <th>
+            test
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+             test
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <input type="text" value="what">
+    <input type="submit" value="submit">
+    <button type="button">Button</button>
+    <br>
+    <br>
+
+    <button type="button" onclick="doit1()">set document.documentElement.style.display = 'none'</button>
+    <br>
+    <button type="button" onclick="doit2()">set document.body.style.display = 'none'</button>
+    <br>
+    <button type="button" onclick="doit3()">documentElement.removeChild(body)</button>
+    <script>
+      function doit1() {
+        document.documentElement.style.display = 'none';
+        alert("document.documentElement.style.display = 'none'");
+      }
+      function doit2() {
+        document.body.style.display = 'none';
+        alert("document.body.style.display = 'none'");
+        document.body.style.display = '';
+      }
+      function doit3() {
+        var documentElement = window.document.documentElement;
+        var body = window.document.body;
+        var tmpBody = documentElement.removeChild(body);
+        alert('documentElement.removeChild(body)');
+        documentElement.appendChild(tmpBody);
+      }
+    </script>
+  </body>
+</html>
+

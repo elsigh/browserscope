@@ -1,0 +1,19 @@
+<html>
+<head>
+  {% if next_url %}
+    <meta http-equiv="refresh" content="0;url={{ next_url }}"/>
+  {% endif %}
+</head>
+<body>
+  <h3>Updating Datastore</h3>
+  {% if next_url %}
+    <ul>
+      <li>Updated: {{ current_name }}</li>
+      <li>About to update: {{ next_name }}</li>
+    </ul>
+  {% else %}
+    All Done!!!!!!
+  {% endif %}
+</body>
+</html>
+

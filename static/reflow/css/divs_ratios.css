@@ -1,0 +1,51 @@
+body {
+  text-align: left;
+}
+.g-section {
+  width: 100%;
+  overflow: hidden;
+}
+.g-section,
+.g-unit {
+  zoom: 1;
+}
+.g-tpl-50-50 > .g-unit {
+  width: 49.999%;
+  float: right;
+}
+.g-tpl-50-50 > .g-first {
+  width: 49.999%;
+  float: left;
+}
+.g-tpl-33-67 > .g-unit {
+  width: 66.999%;
+  float: right;
+}
+.g-tpl-33-67 > .g-first {
+  width: 32.999%;
+  float: left;
+}
+.g-tpl-67-33 > .g-unit {
+  width: 32.999%;
+  float: right;
+}
+.g-tpl-67-33 > .g-first {
+  width: 66.999%;
+  float: left;
+}
+.g-tpl-25-75 > .g-unit {
+  width: 74.999%;
+  float: right;
+}
+.g-tpl-25-75 > .g-first {
+  width: 24.999%;
+  float: left;
+}
+.g-tpl-75-25 > .g-unit {
+  width: 24.999%;
+  float: right;
+}
+.g-tpl-75-25 > .g-first {
+  width: 74.999%;
+  float: left;
+}

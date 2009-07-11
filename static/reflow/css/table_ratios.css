@@ -1,0 +1,40 @@
+.g-section {
+  border-collapse: collapse;
+  width: 100%;
+  border: 0;
+  padding: 0;
+}
+.g-section td {
+  border: 0px solid red;
+  padding: 0;
+}
+.g-tpl-50-50 > .g-unit {
+  width: 50%;
+}
+.g-tpl-50-50 > .g-first {
+  width: 50%;
+}
+.g-tpl-33-67 > .g-unit {
+  width: 67%;
+}
+.g-tpl-33-67 > .g-first {
+  width: 33%;
+}
+.g-tpl-67-33 > .g-unit {
+  width: 33%;
+}
+.g-tpl-67-33 > .g-first {
+  width: 67%;
+}
+.g-tpl-25-75 > .g-unit {
+  width: 75%;
+}
+.g-tpl-25-75 > .g-first {
+  width: 25%;
+}
+.g-tpl-75-25 > .g-unit {
+  width: 25%;
+}
+.g-tpl-75-25 > .g-first {
+  width: 75%;
+}

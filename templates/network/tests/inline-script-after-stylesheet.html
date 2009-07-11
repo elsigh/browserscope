@@ -1,0 +1,44 @@
+{% extends "simple.html" %}
+
+{% block body %}
+
+<div id=results>&nbsp;</div>
+
+<script>
+var t_start = Number(new Date());
+
+function doTest() {
+	var t_end = Number(new Date());
+
+	if ( (t_end - t_start) > 7000 ) {
+		document.getElementById('results').innerHTML = "stylesheet followed by inline script blocks other downloads (bad)";
+		parent.saveResult('parcssjs', 0);
+	}
+	else if ( t_inlinejs - t_start < 4000 ) {
+		document.getElementById('results').innerHTML = "the inline script was executed out-of-order (bad)";
+		parent.saveResult('parcssjs', 0);
+	}
+	else {
+		document.getElementById('results').innerHTML = "stylesheet followed by inlne script <i>doesn't</i> block other downloads (good)";
+		parent.saveResult('parcssjs', 1);
+	}
+}
+
+window.onload = doTest;
+</script>
+
+<p>
+In some browsers, even though stylesheets don't block downloads, a stylesheet followed by an inline script will block subsequent downloads.
+This page tests that situation by including a stylesheet followed by an inline script followed by an image. The stylesheet and image each take 4 seconds to return.
+If the page loads in under 8 seconds, it means the stylesheet and inline script combination did not block downloads.
+
+<p>
+<link type="text/css" rel="stylesheet" href="http://stevesouders.com/bin/resource.cgi?type=css&sleep=4&t={{ epoch }}">
+
+<script>
+var t_inlinejs = Number(new Date());
+</script>
+
+<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep=4&t={{ epoch }}'>
+
+{% endblock %}

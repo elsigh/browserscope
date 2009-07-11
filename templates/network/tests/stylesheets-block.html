@@ -1,0 +1,35 @@
+{% extends "simple.html" %}
+
+{% block body %}
+
+<div id=results>&nbsp;</div>
+
+<script>
+var t_start = Number(new Date());
+
+function doTest() {
+	var t_end = Number(new Date());
+
+	if ( (t_end - t_start) > 7000 ) {
+		document.getElementById('results').innerHTML = "stylesheets block, they aren't loaded in parallel";
+		parent.saveResult('parsheet', 0);
+	}
+	else {
+		document.getElementById('results').innerHTML = "stylesheets are loaded in parallel with other resources";
+		parent.saveResult('parsheet', 1);
+	}
+}
+
+window.onload = doTest;
+</script>
+
+<p>
+This test determines if other resources can be downloaded while a stylesheet is being downloaded.
+This test loads a stylesheet and an image that each take 4 seconds to return.
+If the page loads in under 8 seconds it means the stylesheet didn't block the image download.
+
+<p>
+<link type="text/css" rel="stylesheet" href="http://stevesouders.com/bin/resource.cgi?type=css&sleep=4&t={{ epoch }}">
+<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep=4&t={{ epoch }}'>
+
+{% endblock %}

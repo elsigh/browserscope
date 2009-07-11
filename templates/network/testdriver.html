@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Network Tester{% endblock %}
+{% block style %}
+<style>
+{{ today_style|safe }}
+#tests A { border: 1px solid; padding-left: 4px; padding-right: 4px;
+    margin-left: 4px; margin-right: 4px; text-decoration: none;
+    background: #FFF; }
+#tests A:hover { background: #FEE19E; }
+.testdone { background: #C6E87D; }
+BODY { background: #EEE; }
+#results { margin-left: 20px; margin-top: 10px; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class=contents>
+
+<h2>Tests</h2>
+<div id=tests>
+{% for test in tests %}
+  <a id=test{{ forloop.counter0 }} target=testframe title="{{ test.label }}"
+     onclick="doTestClick({{ forloop.counter0 }}); return false;"
+     href="{{ test.url }}?t={{ epoch }}">{{ forloop.counter }}</a>
+{% endfor %}
+</div>
+
+<div id=results></div>
+
+<script src="/static/util.js"></script>
+<script src="/static/beacon.js"></script>
+<script>
+var giCurTest = 0;  // zero-based
+var gbStop = false;
+var gaResults = {};
+var sTests = "";
+
+function doTestClick(iTest) {
+  gbStop = true;
+  giCurTest = iTest;
+  doTest(iTest)
+}
+
+function saveResult(name, value) {
+  gaResults[name] = value;
+  document.getElementById('results').innerHTML = (giCurTest + 1) + ". " + name +
+      " = " + value + "<br>" + document.getElementById('results').innerHTML;
+  document.getElementById('test' + giCurTest).style.backgroundColor = "#C6E87D";
+  if (!gbStop) {
+    doNextTest();
+    gbStop = false;
+  }
+}
+
+function doNextTest() {
+  if (giCurTest + 1 < {{ tests|length }}) {
+    setTimeout("doTest(" + (giCurTest + 1) + ")", 2000);
+  } else {
+    // Send results beacon.
+    var testResults = [];
+    for (var test in gaResults) {
+      if (gaResults.hasOwnProperty(test)) {
+        testResults.push(test + '=' + gaResults[test]);
+      }
+    }
+    var uriParams = "category=network&results=" + testResults.join(',') +
+        "&csrf_token={{ csrf_token }}";
+    var beacon = new Beacon(uriParams);
+    beacon.onComplete = function() {
+      var continueUrl = Util.getParam('continue');
+      var results = 'network_results=' + testResults.join(',');
+      var nextUrl;
+      if (continueUrl != '') {
+        nextUrl = continueUrl + '&' + results;
+      } else {
+        nextUrl = '/?' + results;
+      }
+      window.top.location.href = nextUrl;
+    };
+    beacon.send();
+  }
+}
+
+function doTest(iTest) {
+  giCurTest = iTest;
+  parent.testframe.location = document.getElementById('test' + iTest).href;
+}
+
+// Start the first test.
+doTest(giCurTest);
+
+</script>
+
+</div><!-- contents -->
+
+{% endblock %}

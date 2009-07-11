@@ -1,0 +1,43 @@
+{% extends "simple.html" %}
+
+{% block body %}
+
+<div id=results>&nbsp;</div>
+
+<script>
+var t_start = Number(new Date());
+
+function doTest() {
+	var t_end = Number(new Date());
+
+	if ( (t_end - t_start) > 4000 ) {
+		document.getElementById('results').innerHTML = "caching redirects <i>doesn't</i> work";
+		parent.saveResult('cacheredir', 0);
+	}
+	else {
+		document.getElementById('results').innerHTML = "caching redirects <i>does</i> work";
+		parent.saveResult('cacheredir', 1);
+	}
+}
+
+window.onload = doTest;
+</script>
+
+<p>
+This test determines if redirects are cached.
+Redirects are bad for performance, but they're still used quite a bit.
+For example, 
+<a href="http://google.com/">http://google.com/</a> 
+redirects to
+<a href="http://google.com/">http://www.google.com/</a>, and
+<a href="http://google.com/">http://www.google.com</a> (without a trailing slash)
+redirects to
+<a href="http://google.com/">http://www.google.com/</a>.
+
+<p>
+Making a redirect response cacheable saves the user an extra roundtrip next time they hit that redirect, if their browser caches redirects.
+Here, we revisit a redirect that was previously fetched and determine whether the redirect was read from cache or was fetched again.
+
+<iframe src="http://stevesouders.com/bin/resource.cgi?redir=1&type=html&sleep=4&t={{ prevt }}" style="width: 0; height: 0; border: 0;"></iframe>
+
+{% endblock %}

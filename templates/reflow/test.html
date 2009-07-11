@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+
+{% block head %}
+
+<style>
+{% if css_match_each %}
+  {% for num_css_rule in num_css_rules|as_range %}
+  #g-{{num_css_rule}} { {{css_text}} }
+  {% endfor %}
+{% else %}
+  {% for num_css_rule in num_css_rules|as_range %}
+    {{css_selector}} { {{css_text}} }
+  {% endfor %}
+{% endif %}
+
+#g-content {
+  border: 3px solid #000;
+  padding: 5px;
+}
+</style>
+
+<script src="{{ "reflow/js/reflow_timer_build.js"|resource_path }}"></script>
+<input id="rt-params" type="hidden" value="{{ params }}">
+<script>
+function runTest() {
+  var btn = document.getElementById('rt-runtest');
+  if (btn) {
+    btn.disabled = true;
+  }
+  ReflowTimer.SERVER = '{{ server }}';
+  var el = document.getElementById('g-content');
+  {% if test %}
+    var t = new ReflowTimer(false, el);
+    t.tests = ['{{ test.key }}'];
+    t.renderResults = true;
+    t.onTestsComplete = function(results) {
+      if (btn) {
+        btn.disabled = false;
+      }
+    };
+  {% else %}
+    var t = new ReflowTimer(true, el);
+    t.renderResults = false;
+    t.onBeaconComplete = function() {
+      var continueUrl = Util.getParam('continue');
+      var results = 'reflow_results=' + t.testResultVals.join(',');
+      var nextUrl;
+      if (continueUrl != '') {
+        nextUrl = continueUrl + '&' + results;
+      } else {
+        nextUrl = '/?' + results;
+      }
+      // TODO(elsigh): this won't scale.
+      var network_results = Util.getParam('network_results');
+      if (network_results) {
+        nextUrl = nextUrl + '&network_results=' + network_results;
+      }
+      window.location.href = nextUrl;
+    }
+  {% endif %}
+  t.run();
+}
+</script>
+{% endblock %}
+
+
+{% block body %}
+<h1>{{ page_title }}</h1>
+
+{% if autorun %}
+  <p>
+    Autorunning the Reflow tests ... <br>
+    Please wait while until all the tests are complete and at the end your results will be sent back and automatically incorporated into the public result set.
+  </p>
+{% else %}
+  <p>
+    <button id="rt-runtest" onclick="runTest();" class="bs-runtest">
+      {% if test %}
+        Run the test - {{ test.label }}
+      {% else %}
+        Start
+      {% endif %}
+    </button>
+  </p>
+  <p>
+    {% if test %}
+      Learn more about the <a href="/reflow/about#rt-{{ test.key }}">{{ test.label }} test</a>.
+    {% else %}
+      Clicking the button will run <a href="/reflow/about#rt-tests">each of the reflow tests</a> on the thick-bordered element below.
+      <input id="csrf_token" type="hidden" value="{{ csrf_token }}">
+    {% endif %}
+  </p>
+{% endif %}
+
+
+<div id="g-content">
+  {% for num_element in num_elements|as_range %}
+    {% for nest in num_nest|as_range %}<div>{% endfor %}
+      <p id="g-{{num_element}}">
+        <a href="#" class="g-nest-{{nest}}">
+          {{ num_element }}
+        </a>
+      </p>
+    {% for nest in num_nest|as_range %}</div>{% endfor %}
+  {% endfor %}
+</div>
+
+
+<script>
+  {% if autorun %}
+    runTest();
+  {% else %}
+    document.getElementById('rt-runtest').disabled = false;
+  {% endif %}
+</script>
+{% endblock %}
+

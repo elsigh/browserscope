@@ -1,0 +1,53 @@
+README FOR BROWSERSCOPE
+-----------------------
+
+Hey there - thanks for downloading the code. This file has instructions
+for getting setup so that you can run the codebase locally.
+
+This project is built on Google App Engine using the
+Django web application framework and written in Python.
+
+To get started, you'll need to first download the App Engine SDK at:
+http://code.google.com/appengine/downloads.html
+
+For local development, just startup the server:
+./pathto/google_appengine/dev_appserver.py --port=8080 ua-profiler
+
+You should then be able to hit the local application at:
+http://localhost:8080/
+
+Note: the first time you hit the homepage it may take a little
+while - that's because it's trying to read out median times for all
+of the tests from a non-extant datastore and write to memcache.
+Just be patient.
+
+You can run the unit tests at:
+  http://localhost:8080/test
+
+
+CONTRIBUTING
+------------------
+
+Most likely you are interested in adding new tests or creating
+a new test category. If you are interested in adding tests to an existing
+"category" you may want to get in touch with the maintainer for that
+branch of the tree. We are really looking forward to receiving your
+code in patch format. Currently the category maintainers are:
+Network: Steve Souders <souders@gmail.com>
+Reflow: Lindsey Simon <elsigh@gmail.com>
+
+
+To create a completely new category:
+  * Add your urls to urls.py
+  * Add a controller in controllers/newcategory.py
+  * Add unit tests in test/test_newcategory.py
+  * Add static content in static/newcategory/(js|img|css)
+  * Add your new category to settings.py and make sure that the unit tests pass.
+
+References:
+  * App Engine Docs - http://code.google.com/appengine/docs/python/overview.html
+  * App Engine Group - http://groups.google.com/group/google-appengine
+  * Python Docs - http://www.python.org/doc/
+  * Django - http://www.djangoproject.com/
+
+

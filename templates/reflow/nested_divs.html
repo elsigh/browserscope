@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Grid Divs nested {{num_nest}} deep</title>
+    <style>
+      @import "/css/reflow/divs_ratios.css";
+    </style>
+  </head>
+  <body>
+    <input id="csrf_token" type="hidden" value="{{ csrf_token }}">
+    <input id="rt-params" type="hidden" value="{{ params }}">
+    <a href="/tests/index.html">Tests Home</a>
+    <div id="g-content">
+      {% for template in templates %}
+        <h2>{{template}}</h2>
+        {% include "reflow/grid.html" %}
+      {% endfor %}
+    </div>
+  </body>
+</html>
+

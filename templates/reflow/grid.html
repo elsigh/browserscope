@@ -1,0 +1,15 @@
+<div id="g-tpl-{{template}}-{{num_nest}}" class="g-tpl-{{template}} g-section">
+  <div class="g-unit g-first">
+    {{num_nest}}
+  </div>
+  <div class="g-unit">
+    {# Recursive templating #}
+    {% ifnotequal num_nest 1 %}
+      {% with num_nest|add:"-1" as num_nest %}
+        {% with "reflow/grid.html" as filename %}
+          {% include filename %}
+        {% endwith %}
+      {% endwith %}
+    {% endifnotequal %}
+  </div>
+</div>

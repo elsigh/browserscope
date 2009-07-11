@@ -1,0 +1,64 @@
+{% extends "simple.html" %}
+
+{% block body %}
+
+<div style="margin: 10px 40px 10px 40px; padding: 8px; width: auto; color: #933000;">
+Latency: <span id=latency><img src="/static/Network/images/progressbar.gif"></span>
+</div>
+
+<p>
+The tests are modified based on the latency between your browser and the test server.
+If your latency is high (slow connection speed), resources are programmed to take longer to load and the test may take longer (5-10 minutes).
+If your latency is low (fast connection speed), the test will be shorter (1-2 minutes).
+
+<script>
+// Load three images. Take the median latency.
+var gaTimes = new Array();
+var t_start = 0;
+var numtests = 3;
+
+function loadImage() {
+  img = new Image();
+  img.onload = imageOnload;
+  t_start = Number(new Date());
+  img.src = "http://stevesouders.com//bin/resource.cgi?type=gif&n=" + (gaTimes.length+1) + "&giffile=pixel.gif&t={{ epoch }}";
+}
+
+function imageOnload() {
+  var t_end = Number(new Date());
+  var latency = (t_end - t_start);
+  gaTimes[gaTimes.length] = latency;
+
+  if ( numtests > gaTimes.length ) {
+    loadImage();
+  }
+  else {
+    gaTimes.sort(compareNumbers);
+    latency = gaTimes[parseInt(numtests/2)];
+    PERFICATURE.setCookie('latency', latency);
+    parent.saveResult('latency', latency);
+    document.getElementById('latency').innerHTML = 
+      ( latency > 4000 ? "Very High" :
+        ( latency > 2000 ? "High" :
+        ( latency > 500 ? "Medium" : "Low" ) ) ) +
+      " (" + latency + " milliseconds)";
+  }
+}
+
+
+function compareNumbers(a, b) {
+  if (a > b) {
+    return 1;
+  }
+  if (a < b) {
+    return -1;
+  }
+  return 0;
+}
+
+loadImage();
+
+{% include "network/cookies.js" %}
+</script>
+
+{% endblock %}

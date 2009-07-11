@@ -1,0 +1,230 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>Rich Text Tests</title>
+  <script>
+      /** The document of the editable iframe */
+      var editorDoc = null;
+      /** The window of the editable iframe */
+      var editorWin = null;
+      /** Dummy text to apply and unapply formatting to */
+      var TEST_CONTENT = 'test_text';
+      /** Constant for indicating an action is unsupported (threw exception) */
+      var UNSUPPORTED = 'UNSUPPORTED';
+      var applyResultWithCSS = {};
+      var unapplyResultWithCSS = {};
+      var unapplyExtraResultWithCSS = [];
+      var applyResultNoCSS = {};
+      var unapplyResultNoCSS = {};
+      var unapplyExtraResultNoCSS = [];
+ 
+      /** Escape HTML before displaying it */
+      function htmlEscape(str) {
+        return str.replace(/>/g, '&gt;').replace(/</g, '&lt;');
+      }
+    
+      /**
+       * Selects all in the editor. Used prior to execCommand. 
+       */
+      function selectAll() {
+        editorWin.focus();
+        var sel;
+        if (editorWin.getSelection) {
+	      sel = editorWin.getSelection();
+        } else if (editorDoc.selection) {
+          sel = editorDoc.selection.createRange();
+        }
+        if (sel.expand) {
+          // IE - expand to select entire text editing area.
+          sel.expand('textedit');
+          sel.select();
+          return;
+        }
+        var range = null;
+        try {
+          range = sel.getRangeAt(0);
+        } catch(ex) {
+          range = editorDoc.createRange();
+        }
+        range.setStart(editorDoc.body, 0);
+        range.setEnd(editorDoc.body, editorDoc.body.childNodes.length);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+      
+      /**
+       * Sets the selection to be collapsed at the start of the editor.
+       */
+       function selectStart() {
+         editorWin.focus();
+         var sel;
+         if (editorWin.getSelection) {
+           sel = editorWin.getSelection();
+         } else if (editorDoc.selection) {
+           sel = editorDoc.selection.createRange();
+         }
+         if (sel.move) {
+           // IE - move to start of text editing area.
+           sel.move('textedit', -1);
+           sel.select();
+           return;
+         }
+          var range = null;
+          try {
+            range = sel.getRangeAt(0);
+          } catch(ex) {
+            range = editorDoc.createRange();
+          }
+          range.setStart(editorDoc.body, 0);
+          range.setEnd(editorDoc.body, 0);
+          sel.removeAllRanges();
+          sel.addRange(range);
+       }
+ 
+      /** 
+       * Gets the HTML before the text, so that we know how the browser
+       * applied a style
+       */
+      function getSurroundingTags(text) {
+        var index = editorDoc.body.innerHTML.indexOf(text);
+        if (index == -1) {
+          return '';
+        }
+        return editorDoc.body.innerHTML.substring(0, index);
+      }
+ 
+      /**
+       * Sets the HTML of the document, and runs the given execCommand.
+       * @param html The HTML to initialize the editor to
+       * @param command The command to pass to execCommand
+       * @param styleWithCSS In some browsers, the output is different
+       * depending on whether this is true or false. The value to use.
+       * @param opt_arg Argument to pass onto the third execCommand param.
+       * @param collapse If true, this execCommand should be applied to a
+       * collapsed selection.
+       * @return The HTML before TEST_CONTENT after the execCommand is run.
+       * This shows whether the expected formatting was applied.
+       */
+      function runCommand(html, command, styleWithCSS, opt_arg, collapse) {
+        try {
+          editorDoc.execCommand('styleWithCSS', false, styleWithCSS);
+        } catch (ex) {
+          if (styleWithCSS) {
+            return UNSUPPORTED;
+          }
+        }
+        editorDoc.body.innerHTML = html;
+        if (collapse) {
+          selectStart();
+        }  else {
+          selectAll();
+        }
+        try {
+          editorDoc.execCommand(command, false, opt_arg);
+        } catch (ex) {
+          return UNSUPPORTED;
+        }
+        return getSurroundingTags(TEST_CONTENT);
+      }
+      
+      function statusHeader(command) {
+        var h = document.createElement('h2');
+        h.innerHTML = 'Testing ' + command + '...';
+        document.getElementById('output').appendChild(h);
+      }
+      
+      function statusSuccess(p, command, test, reason) {
+        p.innerHTML = p.innerHTML + test + ' SUCCESS';
+        if (reason) {
+          p.innerHTML = p.innerHTML + ': ' + reason;
+        }
+        p.innerHTML = p.innerHTML + '<br>';
+      }
+      
+      function statusFail(p, command, test, reason) {
+        p.innerHTML = p.innerHTML + test + ' FAIL';
+        if (reason) {
+          p.innerHTML = p.innerHTML + ': ' + reason;
+        }
+        p.innerHTML = p.innerHTML + '<br>';
+      }
+      
+      function runCommandTest(content, command, shouldApply, withCSS, opt_arg, collapse, outputElement, testName, dict) {
+        result = runCommand(content, command, withCSS, opt_arg, collapse);
+        if (result == UNSUPPORTED) {
+          statusFail(outputElement, command, testName, 'Error executing command');
+          dict[command] = false;
+        } else if (shouldApply && !result) {
+          statusFail(outputElement, command, testName, 'No style applied');
+          dict[command] = false;
+        } else if (!shouldApply && result) {
+          statusFail(outputElement, command, testName, '"' + htmlEscape(result) + '" not removed.');
+        } else {
+          statusSuccess(outputElement, command, testName, shouldApply ? ('Applied "' + htmlEscape(result) +'"') : '');
+          dict[command] = true;
+        }
+      }
+      
+      function score(command) {
+        var sum = 0;
+        if (applyResultNoCSS[command]) {
+         sum++;
+        }
+        if (unapplyResultNoCSS[command]) {
+         sum++;
+        }
+        for (var i = 0; i < unapplyExtraResultNoCSS.length; i++) {
+          if (unapplyExtraResultNoCSS[i][command]) {
+            sum++;
+          }
+        }
+        return sum;
+      }
+      
+      function testCommand(command, testUnapply, opt_arg, collapse, extraFormats) {
+        statusHeader(command);
+        p = document.createElement('p');
+        document.getElementById('output').appendChild(p);
+        runCommandTest(TEST_CONTENT, command, true, true, opt_arg, collapse, p, 'Apply Style, styleWithCSS = true', applyResultWithCSS);
+        if (testUnapply && applyResultWithCSS[command]) {
+          runCommandTest(editorDoc.body.innerHTML, command, false, true, opt_arg, collapse, p, 'Unapply browser-applied Style, styleWithCSS = true', unapplyResultWithCSS);
+        }
+        runCommandTest(TEST_CONTENT, command, true, false, opt_arg, collapse, p, 'Apply Style, styleWithCSS = false', applyResultNoCSS);
+        if (testUnapply && applyResultNoCSS[command]) {
+          runCommandTest(editorDoc.body.innerHTML, command, false, false, opt_arg, collapse, p, 'Unapply browser-applied Style, styleWithCSS = false', unapplyResultNoCSS);
+        }
+        for (var i = 0; i < extraFormats.length; i++) {
+          unapplyExtraResultNoCSS[i] = unapplyExtraResultNoCSS[i] || {};
+          unapplyExtraResultWithCSS[i] = unapplyExtraResultWithCSS[i] || {};
+          runCommandTest(extraFormats[i][0] + TEST_CONTENT + extraFormats[i][1], command, false, false, opt_arg, collapse, p, 'Unapply common browser style "' + htmlEscape(extraFormats[i][0]) + '" styleWithCSS=false', unapplyExtraResultNoCSS[i]);
+          runCommandTest(extraFormats[i][0] + TEST_CONTENT + extraFormats[i][1], command, false, true, opt_arg, collapse, p, 'Unapply common browser style "' + htmlEscape(extraFormats[i][0]) + '" styleWithCSS=true', unapplyExtraResultWithCSS[i]);
+        }
+        return score(command);
+      }
+      
+      /**
+       * When the onload event fires, editing iframe is fully loaded and
+       * tests can run.
+       */
+      function runTests() {
+        editorDoc = document.getElementById('editor').contentWindow.document;
+        editorWin = document.getElementById('editor').contentWindow;
+        {% autoescape off %}
+        var results = [];
+{{ code }}
+        var token = '{{ csrf_token }}';
+        var url = '/beacon?category=richtext&csrf_token=' + token + '&results=' + results.join(',');
+        new Image().src = url;
+        {% endautoescape %}
+      }
+ 
+  </script>
+</head>
+<body>
+
+  <div id="output"></div> 
+  <iframe name="editor" id="editor" src="editable.html" onload="runTests();"></iframe>
+</body>
+</html>

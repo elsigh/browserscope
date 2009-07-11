@@ -1,0 +1,19 @@
+{% extends "simple.html" %}
+
+{% block body %}
+
+<script>
+window.onload = function() {
+	parent.testframe.location = "cache-expires2?t={{ epoch }}"
+}
+</script>
+
+<p>
+loading resources to test caching...
+
+<p>
+<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep=4&t={{ epoch }}'>
+<link type="text/css" rel="stylesheet" href="http://stevesouders.com/bin/resource.cgi?type=css&sleep=4&t={{ epoch }}">
+<script src='http://stevesouders.com/bin/resource.cgi?type=js&sleep=4&t={{ epoch }}' type='text/javascript'></script>
+
+{% endblock %}

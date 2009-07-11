@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Test Tables</title>
+  </head>
+  <body>
+    <table cellpadding="1" cellspacing="1" border="1">
+      <tbody>
+        <tr>
+          <td rowspan="1" colspan="3">
+            <strong>Test 10 Nested Tables</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>open</td>
+          <td>/test/nested_tables?nest=10</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>getEval</td>
+          <td>
+            (function(){_document=selenium.browserbot.getCurrentWindow().document;_rnd=Math.floor(Math.random()*1000);_src='/js/reflow_timer_callback.js?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.type='text/javascript';_my_script.src=_src;_document.getElementsByTagName('head')[0].appendChild(_my_script);})();
+          </td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>waitForCondition</td>
+          <td>
+            selenium.browserbot.getCurrentWindow().document.getElementById('rt-results') != null
+          </td>
+          <td>30000</td>
+        </tr>
+
+        <tr>
+          <td rowspan="1" colspan="3">
+            <strong>Test 50 Nested Tables</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>open</td>
+          <td>/test/nested_tables?nest=50</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>getEval</td>
+          <td>
+            (function(){_document=selenium.browserbot.getCurrentWindow().document;_rnd=Math.floor(Math.random()*1000);_src='/js/reflow_timer_callback.js?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.type='text/javascript';_my_script.src=_src;_document.getElementsByTagName('head')[0].appendChild(_my_script);})();
+          </td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>waitForCondition</td>
+          <td>
+            selenium.browserbot.getCurrentWindow().document.getElementById('rt-results') != null
+          </td>
+          <td>30000</td>
+        </tr>
+
+        <tr>
+          <td rowspan="1" colspan="3">
+            <strong>Test 100 Nested Tables</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>open</td>
+          <td>/test/nested_tables?nest=100</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>getEval</td>
+          <td>
+            (function(){_document=selenium.browserbot.getCurrentWindow().document;_rnd=Math.floor(Math.random()*1000);_src='/js/reflow_timer_callback.js?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.type='text/javascript';_my_script.src=_src;_document.getElementsByTagName('head')[0].appendChild(_my_script);})();
+          </td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>waitForCondition</td>
+          <td>
+            selenium.browserbot.getCurrentWindow().document.getElementById('rt-results') != null
+          </td>
+          <td>30000</td>
+        </tr>
+
+        <tr>
+          <td rowspan="1" colspan="3">
+            <strong>Test 500 Nested Tables</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>open</td>
+          <td>/test/nested_tables?nest=500</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>getEval</td>
+          <td>
+            (function(){_document=selenium.browserbot.getCurrentWindow().document;_rnd=Math.floor(Math.random()*1000);_src='/js/reflow_timer_callback.js?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.type='text/javascript';_my_script.src=_src;_document.getElementsByTagName('head')[0].appendChild(_my_script);})();
+          </td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>waitForCondition</td>
+          <td>
+            selenium.browserbot.getCurrentWindow().document.getElementById('rt-results') != null
+          </td>
+          <td>30000</td>
+        </tr>
+
+      </tbody>
+    </table>
+  </body>
+</html>
+

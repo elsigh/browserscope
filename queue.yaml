@@ -1,0 +1,14 @@
+queue:
+
+- name: default
+  rate: 1/s
+
+- name: update-dirty
+  rate: 8/s
+
+- name: recent-tests
+  rate: 1/s
+
+- name: user-agent-group
+  rate: 1/s
+

@@ -1,0 +1,34 @@
+{% extends "simple.html" %}
+
+{% block body %}
+
+<div id=results>&nbsp;</div>
+
+<script>
+var t_start = Number(new Date());
+
+function doTest() {
+	var t_end = Number(new Date());
+
+	if ( (t_end - t_start) > 4000 ) {
+		document.getElementById('results').innerHTML = "caching resource redirects <i>doesn't</i> work";
+		parent.saveResult('cacheresredir', 0);
+	}
+	else {
+		document.getElementById('results').innerHTML = "caching resource redirects <i>does</i> work";
+		parent.saveResult('cacheresredir', 1);
+	}
+}
+
+window.onload = doTest;
+</script>
+
+<p>
+This test determines if redirects are cached <i>for resources in the page</i> (as opposed to the page URL itself).
+
+<p>
+<img src='http://stevesouders.com/bin/resource.cgi?redir=1&type=gif&sleep=4&t={{ prevt }}'>
+<link type="text/css" rel="stylesheet" href="http://stevesouders.com/bin/resource.cgi?redir=1&type=css&sleep=4&t={{ prevt }}">
+<script src='http://1.cuzillion.com/bin/resource.cgi?redir=1&type=js&sleep=4&t={{ prevt }}' type='text/javascript'></script>
+
+{% endblock %}

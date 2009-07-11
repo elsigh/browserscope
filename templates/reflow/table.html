@@ -1,0 +1,17 @@
+<table id="g-tpl-{{template}}-{{num_nest}}" class="g-section">
+  <tr class="g-tpl-{{template}}">
+    <td class="g-unit g-first">
+      {{num_nest}}
+    </td>
+    <td class="g-unit">
+      {# Recursive templating #}
+      {% ifnotequal num_nest 1 %}
+        {% with num_nest|add:"-1" as num_nest %}
+          {% with "reflow/table.html" as filename %}
+            {% include filename %}
+          {% endwith %}
+        {% endwith %}
+      {% endifnotequal %}
+    </td>
+  </tr>
+</table>
