@@ -19,25 +19,28 @@
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
 
-from settings import *
+import settings
 
-CATEGORY_TESTS = {}
-def GetTests(category):
-  if category not in CATEGORY_TESTS:
-    _AddTests(category)
-  return CATEGORY_TESTS[category]
 
-ALL_TESTS = {}
-def GetTest(category, test_key):
-  if category, test_key not in ALL_TESTS:
-    _AddTests(category)
-  return ALL_TESTS[(category, test_key)]
+def GetTestSets():
+  for category in settings.CATEGORIES:
+    yield GetTestSet(category)
 
-def _AddTests(category):
+
+CATEGORY_TEST_SETS = {}
+def GetTestSet(category):
+  if category not in CATEGORY_TEST_SETS:
+    AddTestSet(_ImportTestSet(category))
+  return CATEGORY_TEST_SETS[category]
+
+
+def AddTestSet(test_set):
+  """Add a test_set."""
+  global CATEGORY_TEST_SETS
+  CATEGORY_TEST_SETS[test_set.category] = test_set
+
+
+def _ImportTestSet(category):
   """Modules that define tests must add them."""
-  mod = __import__(
-      '%s.%s' % (CONTROLLERS_MODULE, category), globals(), locals(), [category])
-    global CATEGORY_TESTS
-    CATEGORY_TESTS[category] = mod.TESTS
-    global ALL_TESTS
-    ALL_TESTS.update(((category, test.key), test) for test in mod.TESTS)
+  return __import__('%s.%s_test_set' % (settings.CONTROLLERS_MODULE, category),
+                    globals(), locals(), [category]).TEST_SET
