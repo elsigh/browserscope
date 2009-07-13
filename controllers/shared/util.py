@@ -344,7 +344,8 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   version_level = request.GET.get('v', 'top')
   user_agent_group_strings = UserAgentGroup.GetByVersionLevel(version_level)
 
-  tests = opt_tests or test_set.tests
+  tests = [test for test in opt_tests or test_set.tests
+           if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat]
   stats = GetStatsData(test_set.category, tests, user_agent_group_strings,
                        test_set.default_params, use_memcache)
 
