@@ -32,7 +32,7 @@ from models.result import ResultParent
 from models.result import ResultTime
 from models.user_agent import UserAgent
 
-import test_result
+import mock_data
 
 
 class TestUtil(unittest.TestCase):
@@ -128,15 +128,6 @@ class TestUtil(unittest.TestCase):
     self.assertEqual(True, util.CheckThrottleIpAddress('192.168.1.1'))
 
 
-class TestTest(object):
-  """Mock test object."""
-  def __init__(self, key, label, url, score_type):
-    self.key = key
-    self.label = label
-    self.url = url
-    self.score_type = score_type
-
-
 class TestStats(unittest.TestCase):
 
   # overload this
@@ -153,34 +144,21 @@ class TestStats(unittest.TestCase):
 
   def GetStatsData(self, use_memcache):
 
-    test_result.AddFiveResultsAndIncrementAllCounts()
-
-    tests = (
-      TestTest('testDisplay', 'Display Block', 'testpage', 'custom'),
-      TestTest('testVisibility', 'Visiblility None', 'testpage', 'boolean'),
-    )
-
-    def custom_tests_function(test, median):
-      logging.info('custom_tests_function %s, %s' % (test.key, median))
-      if test.key == 'testDisplay':
-        return ('%iX' % int(median/100), '86')
-      else:
-        return None
-
-    user_agents = test_result.GetUserAgent().get_string_list()
+    test_set = mock_data.AddFiveResultsAndIncrementAllCounts()
+    user_agents = mock_data.GetUserAgent().get_string_list()
 
     request = HttpRequest()
     request.META = {'HTTP_USER_AGENT': 'Firefox 3.0.1'}
 
-    stats = util.GetStatsData(test_result.FIVE_TEST_CATEGORY,
-        tests, custom_tests_function, user_agents, params=None,
+    stats = util.GetStatsData(test_set.category,
+        test_set.tests, user_agents, params=None,
         use_memcache=use_memcache)
 
     expected_medians = {'testDisplay': 300, 'testVisibility': 2}
     expected_scores = {'testDisplay': 9, 'testVisibility': 10}
     expected_display = {'testDisplay': '3X', 'testVisibility':
                         util.STATS_SCORE_TRUE}
-    for test in tests:
+    for test in test_set.tests:
       for user_agent in user_agents:
         self.assertEqual(expected_medians[test.key],
                          stats[user_agent]['results'][test.key]['median'])

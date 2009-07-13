@@ -24,103 +24,15 @@ Example beacon request:
 
 __author__ = 'steve@souders.com (Steve Souders)'
 
-#CVSNO - How much of this stuff do I really need?
-
 import time
-import datetime
-import logging
 
-# Shared stuff
-from shared import decorators
-from shared import util
+from controllers import all_test_sets
+from controllers.shared import decorators
+from controllers.shared import util
 
 from django import http
 
 CATEGORY = 'network'
-CATEGORY_NAME = 'Network'
-
-HOME_INTRO = ('A significant performance bottleneck for web pages is network '
-  'performance. It\'s true that network performance depends in part on the '
-  'user\'s connection speed and geographic location. '
-  'But the browser also plays a significant role. '
-  'By supporting features such as <code>data:</code> URLs, prefetch links, '
-  'and parallel script downloading, browsers can make all web pages load '
-  'faster.')
-
-class NetworkTest(object):
-  TESTS_URL_PATH = '/%s/tests' % CATEGORY
-
-  def __init__(self, key, label, url, score_type, doc):
-    self.key = key
-    self.label = label
-    self.url = '%s/%s' % (self.TESTS_URL_PATH, url)
-    self.score_type = score_type
-    self.doc = doc
-
-
-TESTS = (
-  # key, label, url, score_type, doc
-  NetworkTest(
-    'latency', 'Check Latency', 'latency', 'custom',
-    '''add doc'''),
-  NetworkTest(
-    'hostconn', 'Connections per Hostname', 'connections-per-hostname',
-    'custom',
-    '''add doc'''),
-  NetworkTest(
-    'maxconn', 'Max Connections', 'max-connections', 'custom',
-    '''add doc'''),
-  NetworkTest(
-    'parscript', 'Parallel Scripts', 'scripts-block', 'boolean',
-    '''add doc'''),
-  NetworkTest(
-    'parsheet', 'Parallel Stylesheets', 'stylesheets-block', 'boolean',
-    '''add doc'''),
-  NetworkTest(
-    'parcssjs', 'Parallel Stylesheet and Inline Script',
-    'inline-script-after-stylesheet', 'boolean',
-    '''add doc'''),
-  NetworkTest(
-    'cacheexp', 'Cache Expires', 'cache-expires', 'boolean',
-    '''add doc'''),
-  NetworkTest(
-    'cacheredir', 'Cache Redirects', 'cache-redirects', 'boolean',
-    '''add doc'''),
-  NetworkTest(
-    'cacheresredir', 'Cache Resource Redirects', 'cache-resource-redirects',
-    'boolean' ,
-    '''add doc'''),
-  NetworkTest(
-    'prefetch', 'Link Prefetch', 'link-prefetch', 'boolean',
-    '''add doc'''),
-  NetworkTest(
-    'gzip', 'Compression Supported', 'gzip', 'boolean' ,
-    '''add doc'''),
-  NetworkTest(
-    'du', 'data: URLs', 'data-urls', 'boolean' ,
-    '''add doc'''),
-)
-
-
-def CustomTestsFunction(testFieldName, median):
-  """Returns a tuple with display text for the cell as well as a 1-100 value.
-  i.e. ('1X', 95)
-  """
-  #logging.info('CustomTestsFunction w/ %s, %s' % (test, median))
-  score = 0
-  if 'hostconn' == testFieldName:
-    if median <= 2:
-      score = 60
-    elif median <= 4:
-      score = 85
-    else:
-      score = 95
-  return str(median), score
-  # if test is 'testDisplay':
-  #   return median > 100
-  # elif test is 'testVisibility':
-  #   return median > 200
-  # return result
 
 
 def Render(request, template_file, params):
@@ -144,7 +56,7 @@ def About(request):
   """About page."""
   params = {
     'page_title': 'Network Tests - About',
-    'tests': TESTS,
+    'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
   return Render(request, 'network/about.html', params)
 
@@ -179,7 +91,7 @@ def TestDriver(request):
   params = {
     'page_title': 'Performance Test Driver',
     'csrf_token': request.session.get('csrf_token'),
-    'tests': TESTS,
+    'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
   return Render(request, 'network/testdriver.html', params)
 

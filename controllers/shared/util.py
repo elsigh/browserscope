@@ -42,8 +42,9 @@ from settings import *
 
 from models.result import *
 from models.user_agent import *
-
-import decorators
+from models import result_ranker
+from controllers import all_test_sets
+from controllers.shared import decorators
 
 
 #@decorators.trusted_tester_required
@@ -59,16 +60,12 @@ def Render(request, template, params={}, category=None):
   params['sign_out'] = users.create_logout_url('/')
 
   # Creates a list of tuples categories and their ui names.
-  for i, this_category in enumerate(CATEGORIES):
-    _mod = __import__('%s.%s' % (CONTROLLERS_MODULE, this_category), globals(),
-                      locals(), [this_category])
-    params['app_categories'].append([_mod.CATEGORY, _mod.CATEGORY_NAME])
-
-    # Sets the current page's category and subnav.
-    if category and category == this_category:
-      params['app_category'] = _mod.CATEGORY
+  for i, test_set in enumerate(all_test_sets.GetTestSets()):
+    params['app_categories'].append([test_set.category, test_set.category_name])
+    # Select the current page's category.
+    if category and category == test_set.category:
+      params['app_category'] = test_set.category
       params['app_category_index'] = i
-
   return shortcuts.render_to_response(template, params)
 
 
@@ -154,18 +151,9 @@ def Home(request):
 
   stats_tables = {}
   intro_text = {}
-  for category in CATEGORIES:
-    # TODO(elsigh): Is this a bad thing to do efficiency-wise?
-    _mod = __import__('%s.%s' % (CONTROLLERS_MODULE, category), globals(),
-                      locals(), [category])
-    try:
-      params = _mod.DEFAULT_PARAMS
-    except:
-      params = None
-
-    stats_tables[category] = GetStats(request, category, output='html',
-                                      params=params)
-    intro_text[category] = _mod.HOME_INTRO
+  for test_set in all_test_sets.GetTestSets():
+    stats_tables[test_set.category] = GetStats(request, test_set, output='html')
+    intro_text[test_set.category] = test_set.home_intro
 
   message = request.GET.get('message')
 
@@ -343,44 +331,28 @@ def GetCsrf(request):
   return http.HttpResponse(msg)
 
 
-def GetTestsByCategory(category):
-  """Dynamically import the required TESTS tuple."""
-  _mod = __import__('%s.%s' % (CONTROLLERS_MODULE, category), globals(),
-                    locals(), [category])
-  tests = _mod.TESTS
-  custom_function = None
-  if _mod.CustomTestsFunction:
-    custom_function = _mod.CustomTestsFunction
-  return (tests, custom_function)
-
-
-def GetStats(request, category, output='html', params=None, opt_tests=None,
+def GetStats(request, test_set, output='html', opt_tests=None,
              use_memcache=True):
   """Returns the stats table.
   Args:
-    request: A request object.
-    category: 'reflow' or 'network' etc...
+    request: a request object.
+    test_set: a TestSet instance.
     output: Output type html or else you get a dict of params.
-    params: List to match test_type.params.
-    opt_tests: List of tests.
+    opt_tests: list of tests.
     use_memcache: Use memcache or not.
   """
-
   version_level = request.GET.get('v', 'top')
   user_agent_group_strings = UserAgentGroup.GetByVersionLevel(version_level)
 
-  tests, custom_tests_function = GetTestsByCategory(category)
-  if opt_tests:
-    tests = opt_tests
-
-  stats = GetStatsData(category, tests, custom_tests_function,
-                       user_agent_group_strings, params, use_memcache)
+  tests = opt_tests or test_set.tests
+  stats = GetStatsData(test_set.category, tests, user_agent_group_strings,
+                       test_set.default_params, use_memcache)
 
   # Looks for a category_results=test1=X,test2=X url GET param.
   results = None
-  for this_category in CATEGORIES:
-    results_val = request.GET.get('%s_results' % this_category)
-    if results_val and this_category == category:
+  for category in CATEGORIES:
+    results_val = request.GET.get('%s_results' % category)
+    if results_val and category == test_set.category:
       results = dict(ParseResults(results_val))
 
   current_ua_string = None
@@ -410,19 +382,19 @@ def GetStats(request, category, output='html', params=None, opt_tests=None,
       if median == None:
         median = ''
       stats[current_ua_string]['current_results'][test.key]['median'] = median
-      score, display = GetScoreAndDisplay(test, median, custom_tests_function)
+      score, display = GetScoreAndDisplayValue(test, median)
       stats[current_ua_string]['current_results'][test.key]['score'] = score
       stats[current_ua_string]['current_results'][test.key]['display'] = display
 
   params = {
-    'category': category,
+    'category': test_set.category,
     'tests': tests,
     'v': version_level,
     'user_agents': user_agent_group_strings,
     'request_path': request.path,
     'current_user_agent': current_ua_string,
     'stats': stats,
-    'params': params,
+    'params': test_set.default_params,
   }
   #logging.info("PARAMS: %s", str(params))
   if output is 'html':
@@ -431,8 +403,7 @@ def GetStats(request, category, output='html', params=None, opt_tests=None,
     return params
 
 
-def GetStatsData(category, tests, custom_tests_function,
-                 user_agents, params, use_memcache=True):
+def GetStatsData(category, tests, user_agents, params, use_memcache=True):
   stats = {}
   total_runs = {}
 
@@ -456,22 +427,20 @@ def GetStatsData(category, tests, custom_tests_function,
     for test in tests:
       stats[user_agent]['results'][test.key] = {}
 
-      guid = ResultParent.guid(category, test.key, user_agent, params)
-      #logging.info('guid: %s w/ params %s' % (guid, params))
+      ranker = result_ranker.Factory(category, test, user_agent, params)
 
       # Median and total
       if not stats[user_agent].has_key('total_runs'):
-        median, total_runs = ResultParent.get_median(guid, return_total=True)
+        median, total_runs = ranker.GetMedianAndNumScores()
         stats[user_agent]['total_runs'] = total_runs
         stats['total_runs'] += total_runs
       else:
-        median = ResultParent.get_median(guid, return_total=False,
-                                         total=stats[user_agent]['total_runs'])
-      if median == None:
+        median = ranker.GetMedian(num_scores=stats[user_agent]['total_runs'])
+      if median is None:
         median = ''
       stats[user_agent]['results'][test.key]['median'] = median
 
-      score, display = GetScoreAndDisplay(test, median, custom_tests_function)
+      score, display = GetScoreAndDisplayValue(test, median)
       user_agent_score += score
       stats[user_agent]['results'][test.key]['score'] = score
       stats[user_agent]['results'][test.key]['display'] = display
@@ -488,24 +457,23 @@ def GetStatsData(category, tests, custom_tests_function,
   return stats
 
 
-def GetScoreAndDisplay(test, median, custom_tests_function):
+def GetScoreAndDisplayValue(test, median):
   # Score for the template is a value of 0-10.
-  # Boolean scores are 1 or 10.
   if test.score_type == 'boolean':
+    # Boolean scores are 1 or 10.
     if median == 0:
       score = 1
       display = STATS_SCORE_FALSE
     else:
       score = 10
       display = STATS_SCORE_TRUE
-  # The custom_tests_function returns a score between 1-100 which we'll
-  # turn into a 0-10 display.
   elif test.score_type == 'custom':
-    display, score = custom_tests_function(test, median)
+    # The custom_tests_function returns a score between 1-100 which we'll
+    # turn into a 0-10 display.
+    score, display = test.GetScoreAndDisplayValue(median)
     score = int(round(float('%s.0' % int(score)) / 10))
     #logging.info('got display:%s, score:%s for %s w/ median: %s' %
     #             (display, score, test.key, median))
-
   return score, display
 
 
@@ -553,24 +521,16 @@ def SeedDatastore(request):
     user_agents.append(user_agent)
 
   keys = []
-  for category in categories:
-    #logging.info('CATEGORY: %s' % category)
-
-    try:
-      _mod = __import__('%s.%s' % (CONTROLLERS_MODULE, category), globals(),
-                        locals(), [category])
-      params = getattr(_mod, 'DEFAULT_PARAMS')
-    except:
-      params = None
-
+  for test_set in all_test_sets.GetTestSets():
+    #logging.info('CATEGORY: %s' % test_set.category)
+    params = test_set.default_params
     for user_agent in user_agents:
       #logging.info(' - USER AGENT: %s' % user_agent.pretty())
       user_agent_list = user_agent.get_string_list()
-      (tests, custom_tests_function) = GetTestsByCategory(category)
       for x in range(1, NUM_RECORDS + 1):
         #logging.info(' -- i: %s' % x)
         result_parent = ResultParent()
-        result_parent.category = category
+        result_parent.category = test_set.category
         result_parent.user_agent = user_agent
         result_parent.user_agent_list = user_agent_list
         result_parent.ip = '1.2.3.4'
@@ -578,7 +538,7 @@ def SeedDatastore(request):
           result_parent.params = params
         result_parent.put()
 
-        for test in tests:
+        for test in test_set.tests:
           if test.score_type == 'boolean':
             score = random.randrange(0, 1)
           elif test.score_type == 'custom':

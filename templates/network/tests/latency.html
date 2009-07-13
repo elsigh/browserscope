@@ -36,7 +36,6 @@ function imageOnload() {
     gaTimes.sort(compareNumbers);
     latency = gaTimes[parseInt(numtests/2)];
     PERFICATURE.setCookie('latency', latency);
-    parent.saveResult('latency', latency);
     document.getElementById('latency').innerHTML = 
       ( latency > 4000 ? "Very High" :
         ( latency > 2000 ? "High" :

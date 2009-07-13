@@ -21,30 +21,31 @@ __author__ = 'elsigh@google.com (Lindsey Simon)'
 import unittest
 import logging
 
-from google.appengine.ext import db
 from django.test.client import Client
 
-from controllers.reflow import *
+from controllers import reflow_test_set
 
-class ReflowTest(unittest.TestCase):
+class ReflowTestTest(unittest.TestCase):
 
   #def setUp(self):
     # Every test needs a client.
     #self.client = Client()
 
-  def test_CustomTestsFunction(self):
-    display, score = CustomTestsFunction('testGetOffsetHeight', 0)
-    self.assertEqual('0.0', display)
-    self.assertEqual(0, score)
+  def testScoreAndDisplayValueZero(self):
+    test = reflow_test_set.ReflowTest('testGetOffsetHeight', 'zer', 'Zero Test')
+    score, display = test.GetScoreAndDisplayValue(0)
+    self.assertEqual((0, '0.0'), (score, display))
 
-    display, score = CustomTestsFunction('testDisplay', 475)
-    self.assertEqual('0.5', display)
-    self.assertEqual(80, score)
+  def testScoreAndDisplayValueRoundUp(self):
+    test = reflow_test_set.ReflowTest('testDisplay', 'da up', 'da up Test')
+    score, display = test.GetScoreAndDisplayValue(475)
+    self.assertEqual((80, '0.5'), (score, display))
 
-    display, score = CustomTestsFunction('testDisplay', 1203)
-    self.assertEqual('1.2', display)
-    self.assertEqual(66, score)
+  def testScoreAndDisplayValueRoundDown(self):
+    test = reflow_test_set.ReflowTest('testDisplay', 'da down', 'da down Test')
+    score, display = test.GetScoreAndDisplayValue(1203)
+    self.assertEqual((66, '1.2'), (score, display))
+
 
 if __name__ == '__main__':
   unittest.main()
-

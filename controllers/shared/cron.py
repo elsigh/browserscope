@@ -57,23 +57,18 @@ def UpdateDirty(request):
 
   result_times = query.fetch(_CRON_FETCH_SIZE, 0)
 
-  if len(result_times) == 0:
+  if not result_times:
     return http.HttpResponse(UPDATE_DIRTY_DONE)
 
   result_time = random.choice(result_times)
 
-  # Check the mutex lock.
-  memcache_keyname = 'cron_' + str(result_time.key())
-  in_memcache = memcache.get(key=memcache_keyname,
-                             namespace=UPDATE_DIRTY_MEMCACHE_NS)
-  if in_memcache:
-    msg = ('Bummer, got a busy ResultTime key(%s) according to memcache.' %
-           memcache_keyname)
+  # Create a mutex so we can have multiple workers.
+  lock_key = 'cron_' + str(result_time.key())
+  if not memcache.add(key=lock_key, value=1, time=_CRON_MEMCACHE_TIMEOUT,
+                      namespace=UPDATE_DIRTY_MEMCACHE_NS):
+    msg = 'Bummer, unable to acquire lock for update: key=%s.' % lock_key
     return http.HttpResponse(msg, status=403)
 
-  # Creates a mutex so we can have multiple workers.
-  memcache.set(key=memcache_keyname, value=1, time=_CRON_MEMCACHE_TIMEOUT,
-               namespace=UPDATE_DIRTY_MEMCACHE_NS)
   #logging.info('set memcache for key %s' % memcache_keyname)
   result_time.increment_all_counts()
 
@@ -162,4 +157,3 @@ def UpdateRecentTests(request):
   memcache.set(key=util.RECENT_TESTS_MEMCACHE_KEY, value=recent_tests,
                time=util.STATS_MEMCACHE_TIMEOUT)
   return http.HttpResponse('Done')
-

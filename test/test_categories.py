@@ -20,30 +20,36 @@ __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 import unittest
 import logging
-from settings import *
 
+from controllers import all_test_sets
+import settings
 
-REQUIRED = ['CATEGORY', 'CATEGORY_NAME', 'TESTS',
-            'CustomTestsFunction', 'HOME_INTRO']
 
 class TestCategories(unittest.TestCase):
 
+  def testCategoriesMatch(self):
+    self.assertEqual(settings.CATEGORIES,
+                     [x.category for x in all_test_sets.GetTestSets()])
 
-  def test_categories(self):
+  def testCategoryNamesCapitalized(self):
+    for test_set in all_test_sets.GetTestSets():
+      # Make sure category name is a string and that it is capitalized.
+      self.assertEqual(test_set.category_name.capitalize(),
+                       test_set.category_name)
 
-    passed = []
-    failed = []
-    # Creates a list of tuples categories and their ui names.
-    for category in CATEGORIES:
-      _mod = __import__('%s.%s' % (CONTROLLERS_MODULE, category),
-                        globals(), locals(), [category])
-      for required in REQUIRED:
-        value = hasattr(_mod, required)
-        if value:
-          passed.append((required, value))
-        else:
-          failed.append((category, required))
+  def testTestsDefinedWithRequireAttributes(self):
+    for test_set in all_test_sets.GetTestSets():
+      # Make sure category name is a string and that it is capitalized.
+      self.assert_(len(test_set.tests))
+      for test in test_set.tests:
+        for attr in ('key', 'name', 'url', 'score_type', 'doc',
+                     'min_value', 'max_value'):
+          self.assert_(hasattr(test, attr))
 
-    if len(failed) > 0:
-      for category, required in failed:
-        raise AssertionError('%s.%s has no value' % (category, required))
+  def testSubnavHasDict(self):
+    for test_set in all_test_sets.GetTestSets():
+      self.assert_(test_set.subnav.items())
+
+  def testHomeIntroductionDefined(self):
+    for test_set in all_test_sets.GetTestSets():
+      self.assert_(test_set.home_intro)

@@ -19,7 +19,7 @@ BODY { background: #EEE; }
 <h2>Tests</h2>
 <div id=tests>
 {% for test in tests %}
-  <a id=test{{ forloop.counter0 }} target=testframe title="{{ test.label }}"
+  <a id=test{{ forloop.counter0 }} target=testframe title="{{ test.name }}"
      onclick="doTestClick({{ forloop.counter0 }}); return false;"
      href="{{ test.url }}?t={{ epoch }}">{{ forloop.counter }}</a>
 {% endfor %}

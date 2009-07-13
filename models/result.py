@@ -18,44 +18,14 @@ import hashlib
 import logging
 import sys
 
-from google.appengine.api import datastore
-from google.appengine.api import datastore_errors
-from google.appengine.api import datastore_types
-from google.appengine.api import memcache
-
 from google.appengine.ext import db
 
-from google_app_engine_ranklist import ranker
-
-import user_agent
-from user_agent import UserAgent
+from controllers import all_test_sets
+from models import user_agent
+from models import result_ranker
+from models.user_agent import UserAgent
 
 from settings import *
-
-
-MAX_TEST_MSEC = 60000  # 1 minute
-
-if BUILD == 'production':
-  NUM_RANKERS = 100
-else:
-  NUM_RANKERS = 2
-
-
-def GetRanker(name):
-  key = datastore_types.Key.from_path('app', name)
-  try:
-    r = ranker.Ranker(datastore.Get(key)['ranker'])
-    #if BUILD == 'development':
-    #  logging.info('found ranker w/ name %s' % name)
-    return r
-  except datastore_errors.EntityNotFoundError:
-    #if BUILD == 'development':
-    #  logging.info('new ranker w/ %s rankers and name %s' % (NUM_RANKERS, name))
-    r = ranker.Ranker.Create([0, MAX_TEST_MSEC], NUM_RANKERS)
-    app = datastore.Entity('app', name=name)
-    app['ranker'] = r.rootkey
-    datastore.Put(app)
-    return r
 
 
 class ResultTime(db.Model):
@@ -64,14 +34,17 @@ class ResultTime(db.Model):
   dirty = db.BooleanProperty(default=True)
 
   def increment_all_counts(self):
-    parent = self.parent()
-    for user_agent_string in parent.user_agent.get_string_list():
-      guid = ResultParent.guid(
-          parent.category, self.test, user_agent_string, parent.params)
-      ResultParent.count_test_score(guid, parent.created, self.score)
-      #logging.info('counting score for guid: %s' % guid)
+    for ranker in self.GetRankers():
+      ranker.Add(self.score)
     self.dirty = False
     self.put()
+
+  def GetRankers(self):
+    parent = self.parent()
+    test = all_test_sets.GetTestSet(parent.category).GetTest(self.test)
+    for user_agent_string in parent.user_agent.get_string_list():
+      yield result_ranker.Factory(
+          parent.category, test, user_agent_string, parent.params)
 
 
 class ResultParent(db.Expando):
@@ -105,6 +78,13 @@ class ResultParent(db.Expando):
     db.run_in_transaction(_AddResultInTransaction)
     return parent
 
+  def invalidate_ua_memcache(self):
+    memcache_ua_keys = ['%s_%s' % (self.category, user_agent)
+                        for user_agent in self.user_agent_list]
+    #logging.info('invalidate_ua_memcache, memcache_ua_keys: %s' %
+    #             memcache_ua_keys)
+    memcache.delete_multi(keys=memcache_ua_keys, seconds=0,
+                          namespace=STATS_MEMCACHE_UA_ROW_NS)
 
   def increment_all_counts(self):
     """This is not efficient enough to be used in prod."""
@@ -115,58 +95,3 @@ class ResultParent(db.Expando):
       #logging.info('ResultTime key is %s ' % (result_time.key()))
       #logging.info('w/ ua: %s' %  result_time.parent().user_agent)
       result_time.increment_all_counts()
-
-
-  def invalidate_ua_memcache(self):
-    memcache_ua_keys = []
-    for user_agent in self.user_agent_list:
-      memcache_ua_key = '%s_%s' % (self.category, user_agent)
-      memcache_ua_keys.append(memcache_ua_key)
-    #logging.info('invalidate_ua_memcache, memcache_ua_keys: %s' %
-    #             memcache_ua_keys)
-    memcache.delete_multi(keys=memcache_ua_keys, seconds=0,
-                          namespace=STATS_MEMCACHE_UA_ROW_NS)
-
-
-  @staticmethod
-  def guid(category, test, user_agent_version, params=None):
-    guid = category + '_' + test + '_' + user_agent_version
-    if params:
-      hash_params = hashlib.md5(','.join(params)).hexdigest()
-      guid += '_' + hash_params
-    return guid
-
-
-  @staticmethod
-  def get_ranker(guid):
-    return GetRanker(guid)
-
-
-  @staticmethod
-  def count_test_score(guid, created, score):
-    r = ResultParent.get_ranker(guid)
-    # A ranker's score value keyname must start with a letter.
-    #logging.debug('setting score %s for %s' % (score, guid))
-    r.SetScore('n_' + str(created), [score])
-
-
-  @staticmethod
-  def get_total(guid):
-    r = ResultParent.get_ranker(guid)
-    return r.TotalRankedScores()
-
-  @staticmethod
-  def get_median(guid, return_total=False, total=None):
-    r = ResultParent.get_ranker(guid)
-    if not total:
-      total = r.TotalRankedScores()
-    median_offset = int(round(total/2))
-    try:
-      median = r.FindScore(median_offset)[0][0]
-    except:
-      median = None
-
-    if return_total:
-      return (median, total)
-    else :
-      return median

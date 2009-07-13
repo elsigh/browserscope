@@ -30,12 +30,16 @@ from django.test.client import Client
 from controllers.shared import cron
 from controllers.shared import util
 
+from models import result_ranker
 from models.result import ResultParent
 from models.result import ResultTime
 from models.user_agent import UserAgent
 
+import mock_data
 
 class TestCron(unittest.TestCase):
+
+  CATEGORY = 'test_cron_dirty'
 
   def setUp(self):
     # Every test needs a client.
@@ -43,29 +47,25 @@ class TestCron(unittest.TestCase):
 
   def tearDown(self):
     """Need to clean up it seems."""
-    query = db.Query(ResultParent)
-    results = query.fetch(1000, 0)
-    for result in results:
-      result.delete()
-
-    query = db.Query(ResultTime)
-    results = query.fetch(1000, 0)
-    for result in results:
-      logging.info('Deleting cron entry for key: %s' % result.key())
-      memcache.delete(key='cron_' + str(result.key()), seconds=0,
-                      namespace=cron.UPDATE_DIRTY_MEMCACHE_NS)
-      result.delete()
-
+    query = db.GqlQuery("SELECT __key__ FROM ResultParent WHERE category = :1",
+                        self.CATEGORY)
+    for parent_key in query.fetch(1000, 0):
+      query = db.GqlQuery("SELECT __key__ FROM ResultTime WHERE ANCESTOR IS :1",
+                          parent_key)
+      result_time_keys = query.fetch(1000, 0)
+      for key in result_time_keys:
+         memcache.delete(key='cron_' + str(key), seconds=0,
+                         namespace=cron.UPDATE_DIRTY_MEMCACHE_NS)
+      db.delete(result_time_keys + [parent_key])
 
   def testCronUpdateDirty(self):
-
-
     # First, create a "dirty" ResultParent
     ua_string = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
                  'Gecko/2009011912 Firefox/3.0.6')
     user_agent = UserAgent.factory(ua_string)
 
-    category = 'test_cron_dirty'
+    test_set = mock_data.MockTestSet(self.CATEGORY)
+    category = self.CATEGORY
     result_parent1 = ResultParent()
     result_parent1.category = category
     result_parent1.user_agent = user_agent
@@ -98,7 +98,7 @@ class TestCron(unittest.TestCase):
     response = self.client.get('/cron/update_dirty', {},
         **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
     self.assertEqual(403, response.status_code)
-    self.assertTrue(response.content.find('busy') > -1)
+    self.assertTrue(response.content.find('unable to acquire lock') > -1)
 
     # Fix the mutex and now we should be able to finish.
     memcache.delete_multi(keys=[memcache_keyname1, memcache_keyname2],
@@ -122,11 +122,11 @@ class TestCron(unittest.TestCase):
     for result_time in result_times:
       self.assertFalse(result_time.dirty)
 
-    guid = ResultParent.guid(category, 'testDisplay', 'Firefox 3')
-    self.assertEqual(1, ResultParent.get_total(guid))
-    self.assertEqual(500, ResultParent.get_median(guid))
+    ranker = result_ranker.Factory(
+        category, test_set.GetTest('testDisplay'), 'Firefox 3')
+    self.assertEqual(1, ranker.TotalRankedScores())
+    self.assertEqual(500, ranker.GetMedian())
 
 
 if __name__ == '__main__':
   unittest.main()
-

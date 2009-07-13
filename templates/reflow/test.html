@@ -85,7 +85,7 @@ function runTest() {
   </p>
   <p>
     {% if test %}
-      Learn more about the <a href="/reflow/about#rt-{{ test.key }}">{{ test.label }} test</a>.
+      Learn more about the <a href="/reflow/about#rt-{{ test.key }}">{{ test.name }} test</a>.
     {% else %}
       Clicking the button will run <a href="/reflow/about#rt-tests">each of the reflow tests</a> on the thick-bordered element below.
       <input id="csrf_token" type="hidden" value="{{ csrf_token }}">
