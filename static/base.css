@@ -73,6 +73,7 @@ p.bs-youcan {
 a.bs-admin {
   font-size: 80%;
   color: darkred !important;
+  text-decoration: none;
 }
 .bs-msg-c {
   text-align: center;

@@ -93,7 +93,7 @@ def About(request):
   params = {
     'page_title': 'Reflow Timer - About',
     'server': util.GetServer(request),
-    'tests': all_test_sets.GetTests(CATEGORY),
+    'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
   return util.Render(request, 'reflow/about.html', params, CATEGORY)
 

@@ -55,7 +55,10 @@ def Render(request, template, params={}, category=None):
   params['app_categories'] = []
   params['is_admin'] = users.is_current_user_admin()
   params['user'] = users.get_current_user()
-  params['is_elsigh'] = params['user'].nickname() == 'elsigh'
+  if params['user']:
+    params['is_elsigh'] = params['user'].nickname() == 'elsigh'
+  else:
+    params['is_elsigh'] = False
   params['sign_in'] = users.create_login_url(request.get_full_path())
   params['sign_out'] = users.create_logout_url('/')
 

@@ -25,7 +25,7 @@ indexes:
   - name: __key__
     direction: desc
 
-# Used 10 times in query history.
+# Unused in query history -- copied from input.
 - kind: UserAgentGroup
   properties:
   - name: v
