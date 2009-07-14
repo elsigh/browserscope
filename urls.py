@@ -27,6 +27,9 @@ urlpatterns = patterns('',
   (r'^seed_datastore$', 'controllers.shared.util.SeedDatastore'),
   (r'^clear_datastore$', 'controllers.shared.util.ClearDatastore'),
   (r'^clear_memcache',  'controllers.shared.util.ClearMemcache'),
+  (r'^admin$', 'controllers.admin.Admin'),
+  (r'^admin/confirm-ua', 'controllers.admin.ConfirmUa'),
+  (r'^admin/stats', 'controllers.admin.Stats'),
 
   # Cron admin scripts
   (r'^cron/update_dirty$', 'controllers.shared.cron.UpdateDirty'),

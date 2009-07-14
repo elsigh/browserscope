@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<span style="border: 3px solid red;">
+<b><i>Under construction. None of the form elements work.</i></b>
+</span>
+
+<script defer>
+function checkBrowser(ua_id) {
+ var cb = document.getElementById("c" + ua_id);
+ if (!cb.checked) {
+   var label = document.getElementById("parsed_browser_" + ua_id);
+   label.style.display = '';
+   cb.parentNode.removeChild(cb.parentNode.lastChild);
+ }
+}
+
+function editBrowser(ua_id, browser) {
+ var cb = document.getElementById("c" + ua_id);
+ cb.checked = true;
+ var label = document.getElementById("parsed_browser_" + ua_id);
+ label.style.display = 'none';
+ var box = document.createElement('SPAN');
+ box.innerHTML = "<input type=text name='b_" + ua_id + "' value='" + browser + "'>";
+ cb.parentNode.appendChild(box);
+}
+</script>
+
+<form>
+<table style="margin: 1ex; padding: 1ex; border: 2px solid #999">
+<tr>
+<td>Browser: </td><td><input type=text name=browser value=""></td>
+<td rowspan=2>&nbsp;</td>
+<td rowspan=2><label for="unconfirmed">
+  <input name=unconfirmed id=unconfirmed type=checkbox checked> unconfirmed<br>
+</label>
+<label for="confirmed">
+  <input name=confirmed id=confirmed type=checkbox> confirmed<br>
+</label>
+<label for="changed">
+  <input name=changed id=changed type=checkbox> changed
+</label>
+</td>
+<td rowspan=2>&nbsp;</td>
+<td rowspan=2><input type=submit value="Search User Agents"></td>
+</tr>
+<tr>
+<td>User Agent: </td><td><input type=text name=useragent value=""></td>
+</tr>
+</table>
+</form>
+<div>
+
+<style>
+th { text-align: left; }
+th.action-icon { text-align: center; }
+</style>
+<form>
+<table border=1 cellspacing=0 cellpadding=4>
+<tr><th colspan=6>User Agents</th></tr>
+<tr>
+  <th>Confirm/Edit<br>&nbsp;<small><a href="">all</a> <a href="">none</a></small></th>
+  <th><small>useragentstring.com</small></th>
+  <th><small>user-agent-string.info</small></th>
+  <th>&nbsp;</th>
+  <th>User Agent</th>
+</tr>
+<tr>
+  <td><input onclick="return checkBrowser('1');" id=c1 name=confirm_edit type=checkbox><span ondblclick="return editBrowser('1', 'Firefox 3.1');" id=parsed_browser_1>Firefox 3.1</span></td>
+  <td>Firefox 3.1.2</td>
+  <td>Firefox 3.1.2</td>
+  <td><img width=13 height=13 alt=Delete src="http://www.google.com/reader/ui/2513649784-icon-unsubscribe.png"></td>
+  <td>Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1) Gecko/20090630 Firefox/3.5 GTB5</td>
+</table>
+<input type=submit value="Submit">
+</form>
+
+useragentstring.com
+user-agent-string.info
+
+User-Agent
+
+{% endblock %}

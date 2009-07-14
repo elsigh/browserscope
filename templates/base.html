@@ -46,7 +46,7 @@
     <div class="g-unit">
       <div class="g-c">
         {% if user %}
-          {{ user.email }} {% if is_admin %}<small>admin</small>{% endif %}
+          {{ user.email }} {% if is_admin %}<a href="/admin">admin</a>{% endif %}
         {% else %}
           <a target="_top" href="{{ sign_in }}">Sign in</a>
         {% endif %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<ul>
+<li><a href="/admin/confirm-ua">Confirm user agents</a>
+<li><a href="/admin/stats">Stats</a>
+</ul>
+
+<ul>
+<li><a href="/update_datastore">Update Datastore</a>
+<li><a href="/seed_datastore">Seed Datastore</a>
+<li><a href="/clear_datastore">Clear Datastore</a>
+<li><a href="/clear_memcache">Clear Memcache</a>
+</ul>
+
+<ul>
+<li><a href="/update_dirty">Update dirty tests</a>
+</ul>
+
+{% endblock %}
