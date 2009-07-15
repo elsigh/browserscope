@@ -46,6 +46,17 @@ class TestUtil(unittest.TestCase):
         **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
     self.assertEqual(200, response.status_code)
 
+  def testHomeWithResults(self):
+    response = self.client.get('/?reflow_results=testDisplay=1558,'
+        'testVisibility=816,'
+        'testNonMatchingClass=579,testFourClassReflows=1323,'
+        'testFourScriptReflows=1374,testTwoScriptReflows=1419,'
+        'testPaddingPx=1322,testPaddingLeftPx=1336,'
+        'testFontSizeEm=1346,testWidthPercent=1356,'
+        'testBackground=830,testOverflowHidden=1146,'
+        'testSelectorMatchTime=580,testGetOffsetHeight=0', {},
+        **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+    self.assertEqual(200, response.status_code)
 
   def testBeaconWithoutCsrfToken(self):
     params = {}

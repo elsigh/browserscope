@@ -351,6 +351,10 @@ a.bs-admin {
 .rt-stats th.rt-a {
   background-color: #ccc;
   white-space: nowrap;
+  border-left-color: #ccc;
+}
+.rt-stats th.rt-a {
+  border-top-color: #ccc;
 }
 
 .rt-stats tfoot em {

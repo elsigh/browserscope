@@ -163,6 +163,6 @@ TEST_SET = test_set_base.TestSet(
       part on the user's connection speed and geographic location. But
       the browser also plays a significant role. By supporting features
       such as <code>data:</code> URLs, prefetch links, and parallel script
-      downloading, browsers can make all web pages load faster.''',
+      downloading, browsers can make all web pages load faster. <a href="/network/about">Read more about the network tests.</a>''',
     tests=_TESTS
 )
