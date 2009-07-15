@@ -43,8 +43,10 @@ class ReflowTest(object):
     Returns:
       A tuple of display, score
     """
-    if not median:
-      return 0, '0.0'
+    # We'll give em the benefit of the doubt here.
+    if not median and median != 0:
+      return 10, '0.0'
+
     time = round(float(median) / 1000.0, 1)
     abc = (1, 2, 3, 4)
     if self.key is 'testDisplay':
