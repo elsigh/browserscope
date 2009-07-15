@@ -7,23 +7,33 @@
 </span>
 
 <script defer>
-function updateChangeTextBox(ua_id, browser) {
-  var cb = document.getElementById("cb_" + ua_id);
-  var tb = document.getElementById("tb_" + ua_id);
-  if (cb.checked) {
-    if (!tb) {
-      var tb = document.createElement("input");
-      tb.setAttribute("id", 'tb_' + ua_id);
-      tb.setAttribute("type", 'text');
-      tb.setAttribute("name", 'tb_' + ua_id);
-      tb.setAttribute("value", browser);
-      cb.parentNode.appendChild(tb);
+function confirmAll() {
+  for (var i=1; i <= {{ user_agents|length }}; i++) {
+    var action = document.getElementsByName('action_' + i);
+    if (action[0].checked) {
+      action[1].checked = true;
     }
-  } else if (tb) {
-    tb.parentNode.removeChild(tb);
   }
 }
 
+function updateChangeTextBox(ua_id, browser) {
+  var ch = document.getElementsByName('action_' + ua_id)[2];
+  var ch_text = document.getElementById("cht_" + ua_id);
+  if (ch.checked) {
+    if (!ch_text) {
+      var ch_text = document.createElement("input");
+      ch_text.setAttribute("id", 'cht_' + ua_id);
+      ch_text.setAttribute("type", 'text');
+      ch_text.setAttribute("name", 'tb_' + ua_id);
+      ch_text.setAttribute("value", browser);
+      ch.parentNode.appendChild(ch_text);
+    }
+  } else if (ch_text) {
+    ch_text.parentNode.removeChild(ch_text);
+  }
+}
+
+{% if 0 %}
 {% for user_agent in user_agents %}
 var uasc_script{{ forloop.counter}} = document.createElement('script');
 var uasi_script{{ forloop.counter}} = document.createElement('script');
@@ -32,6 +42,8 @@ uasi_script{{ forloop.counter}}.src = 'http://stevesouders.com/ua/parse-service.
 document.getElementsByTagName('head')[0].appendChild(uasc_script{{ forloop.counter}});
 document.getElementsByTagName('head')[0].appendChild(uasi_script{{ forloop.counter}});
 {% endfor %}
+{% endif %}
+
 </script>
 
 <form>
@@ -65,13 +77,12 @@ th, td { padding: 5px; }
 th { text-align: left; }
 th.action-icon { text-align: center; }
 </style>
-<form>
 
+<form id=ua-form>
 <p>
-
 <table class="user-agents" border=1>
 <tr><td colspan=8><b>User Agents</b><br>
-<small><a href="">confirm all</a>
+<small><a href="" onclick="confirmAll(); return false;">confirm all</a>
 - <a href="">reset</a></small>
 </td></tr>
 <tr>
@@ -87,13 +98,13 @@ th.action-icon { text-align: center; }
 {% for user_agent in user_agents %}
 <tr>
   <td><input name=action_{{ forloop.counter }} value=unconfirm
-    type=radio{% if not user_agent.confirmed %} checked{% endif %}
+    type=radio {% if not user_agent.confirmed %} checked{% endif %}
     onclick="updateChangeTextBox('{{ forloop.counter }}');"></td>
   <td><input name=action_{{ forloop.counter }} value=confirm
-    type=radio{% if user_agent.confirmed %} checked{% endif %}
+    type=radio {% if user_agent.confirmed %} checked{% endif %}
     onclick="updateChangeTextBox('{{ forloop.counter }}');"></td>
   <td nowrap=1><input name=action_{{ forloop.counter }} value=change
-    type=radio id='cb_{{ forloop.counter }}'
+    type=radio
     onclick="updateChangeTextBox('{{ forloop.counter }}', '');"></td><!--TODO put changed value as last parameter and possibly add 'checked'-->
   <td><input name=action_{{ forloop.counter }} value=delete
     type=radio onclick="updateChangeTextBox('{{ forloop.counter }}');"></td>
