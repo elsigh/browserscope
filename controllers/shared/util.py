@@ -387,16 +387,10 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       if median == None:
         median = ''
       stats[current_ua_string]['current_results'][test.key]['median'] = median
-      score, display = GetScoreAndDisplayValue(test, median)
+      score, display, ua_score = GetScoreAndDisplayValue(test, median)
       stats[current_ua_string]['current_results'][test.key]['score'] = score
       stats[current_ua_string]['current_results'][test.key]['display'] = display
-
-      # Normalize very low scores per test for calculating an overall score for
-      # the user agent.
-      ua_score = score
-      if ua_score < 50:
-        ua_score = 50
-      current_ua_score += score
+      current_ua_score += ua_score
 
     stats[current_ua_string]['current_score'] = int(current_ua_score /
                                                     len(tests))
@@ -455,16 +449,10 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True):
         median = ''
       stats[user_agent]['results'][test.key]['median'] = median
 
-      score, display = GetScoreAndDisplayValue(test, median)
+      score, display, ua_score = GetScoreAndDisplayValue(test, median)
       stats[user_agent]['results'][test.key]['score'] = score
       stats[user_agent]['results'][test.key]['display'] = display
-
-      # Normalize very low scores per test for calculating an overall score for
-      # the user agent.
-      ua_score = score
-      if ua_score < 50:
-        ua_score = 50
-      user_agent_score += score
+      user_agent_score += ua_score
 
     stats[user_agent]['score'] = int(user_agent_score / len(tests))
 
@@ -479,7 +467,7 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True):
 
 
 def GetScoreAndDisplayValue(test, median):
-  # Score for the template is a value of 0-10.
+  # Score for the template classnames is a value of 0-10.
   if test.score_type == 'boolean':
     # Boolean scores are 1 or 10.
     if median == 0:
@@ -495,7 +483,13 @@ def GetScoreAndDisplayValue(test, median):
     score = int(round(float('%s.0' % int(score)) / 10))
     #logging.info('got display:%s, score:%s for %s w/ median: %s' %
     #             (display, score, test.key, median))
-  return score, display
+
+  # Normalize very low scores per test for calculating an overall score for
+  # the user agent.
+  ua_score = score
+  if ua_score < 5:
+    ua_score = 5
+  return score, display, ua_score
 
 
 def GetStatsTableHtml(params):

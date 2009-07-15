@@ -31,11 +31,15 @@ class ReflowTestTest(unittest.TestCase):
     # Every test needs a client.
     #self.client = Client()
 
+  def testScoreAndDisplayValueNone(self):
+    test = reflow_test_set.ReflowTest('testGetOffsetHeight', 'zer', 'Zero Test')
+    score, display = test.GetScoreAndDisplayValue(None)
+    self.assertEqual((100, '0.0'), (score, display))
+
   def testScoreAndDisplayValueZero(self):
     test = reflow_test_set.ReflowTest('testGetOffsetHeight', 'zer', 'Zero Test')
     score, display = test.GetScoreAndDisplayValue(0)
     self.assertEqual((100, '0.0'), (score, display))
-
 
   def testScoreAndDisplayValueRoundUp(self):
     test = reflow_test_set.ReflowTest('testDisplay', 'da up', 'da up Test')
