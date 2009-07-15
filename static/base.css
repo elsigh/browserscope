@@ -326,10 +326,11 @@ a.bs-admin {
   border-right-width: 0;
 }
 .rt-stats tbody:hover td {
-  opacity: .2;
 }
 .rt-stats tr:hover td {
-  opacity: 1;
+  background-color: #ffffcc;
+  border-top-color: #333;
+  border-bottom-color: #333;
 }
 .rt-stats thead td,
 .rt-stats th,
