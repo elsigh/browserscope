@@ -74,7 +74,7 @@ class ReflowTest(object):
     elif self.key is 'testSelectorMatchTime':
       abc = (.6, 1, 1.5, 2)
     elif self.key is 'testGetOffsetHeight':
-      abc = (0, .1, .2, .3)
+      abc = (.1, .2, .3, .4)
     score = self._GetScore(time, abc)
     #logging.info('CustomTestsFunction w/ %s, %s' % (test, median))
     #logging.info('TEST!! %s, %s, %s' % (test, time, score))
