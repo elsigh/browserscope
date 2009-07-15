@@ -380,6 +380,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     if not stats.has_key(current_ua_string):
       stats[current_ua_string] = {}
     stats[current_ua_string]['current_results'] = {}
+    current_ua_score = 0
     for test in tests:
       stats[current_ua_string]['current_results'][test.key] = {}
       median = results[test.key]
@@ -389,6 +390,16 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       score, display = GetScoreAndDisplayValue(test, median)
       stats[current_ua_string]['current_results'][test.key]['score'] = score
       stats[current_ua_string]['current_results'][test.key]['display'] = display
+
+      # Normalize very low scores per test for calculating an overall score for
+      # the user agent.
+      ua_score = score
+      if ua_score < 50:
+        ua_score = 50
+      current_ua_score += score
+
+    stats[current_ua_string]['current_score'] = int(current_ua_score /
+                                                    len(tests))
 
   params = {
     'category': test_set.category,
@@ -445,9 +456,15 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True):
       stats[user_agent]['results'][test.key]['median'] = median
 
       score, display = GetScoreAndDisplayValue(test, median)
-      user_agent_score += score
       stats[user_agent]['results'][test.key]['score'] = score
       stats[user_agent]['results'][test.key]['display'] = display
+
+      # Normalize very low scores per test for calculating an overall score for
+      # the user agent.
+      ua_score = score
+      if ua_score < 50:
+        ua_score = 50
+      user_agent_score += score
 
     stats[user_agent]['score'] = int(user_agent_score / len(tests))
 

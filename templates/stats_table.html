@@ -37,7 +37,11 @@
               <td colspan="{{ tests|length|add:2 }}" class="rt-tot">Your Results &darr;</td>
             </tr>
             <tr class="rt-res">
-              <td scope="row" class="rt-a">{{ user_agent }}</td>
+              <td
+                scope="row"
+                class="rt-a
+                       rt-score-{{ stats|by_key:user_agent|by_key:"current_score" }}"
+                >{{ user_agent }}</td>
               {% for test in tests %}
                 <td
                   title="Median time {{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"median" }}"

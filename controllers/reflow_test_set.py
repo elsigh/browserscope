@@ -98,7 +98,7 @@ class ReflowTest(object):
     elif abc[2] < time <= abc[3]:
       score = int(round(60.0 + (abc[3] - time) / (abc[3] - abc[2]) * 10))  # D
     else:
-      score = 10  # F
+      score = 50  # F
     return score
 
 
