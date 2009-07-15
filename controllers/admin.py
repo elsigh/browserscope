@@ -29,6 +29,8 @@ from controllers import all_test_sets
 from controllers.shared import decorators
 from controllers.shared import util
 
+from models import user_agent
+
 from django import http
 
 
@@ -37,31 +39,48 @@ def Render(request, template_file, params):
 
   return util.Render(request, template_file, params)
 
+@decorators.provide_csrf
 @decorators.admin_required
 def Admin(request):
-  """Network Performance Admin Tools"""
+  """Admin Tools"""
 
   params = {
-    'page_title': 'Performance Admin Tools',
+    'page_title': 'Admin Tools',
   }
   return Render(request, 'admin/admin.html', params)
 
 
 @decorators.admin_required
 def ConfirmUa(request):
-  """Network Performance Confirm User-Agents"""
+  """Confirm User-Agents"""
+
+  search_browser = request.GET.get('browser', '')
+  search_user_agent = request.GET.get('useragent', '')
+  search_unconfirmed = request.GET.get('unconfirmed', True)
+  search_confirmed = request.GET.get('confirmed', False)
+  search_changed = request.GET.get('changed', False)
+
+  user_agents = user_agent.UserAgent.all().order('string').fetch(1000)
+
+  # family, v1, v2, v3 = user_agent.UserAgent.parse(string)
 
   params = {
-    'page_title': 'Performance Confirm User-Agents',
+    'page_title': 'Confirm User-Agents',
+    'user_agents': user_agents[:15],
+    'search_browser': search_browser,
+    'search_user_agent': search_user_agent,
+    'search_unconfirmed': search_unconfirmed,
+    'search_confirmed': search_confirmed,
+    'search_changed': search_changed,
   }
   return Render(request, 'admin/confirm-ua.html', params)
 
 
 @decorators.admin_required
 def Stats(request):
-  """Network Performance Stats"""
+  """Stats"""
 
   params = {
-    'page_title': 'Performance Stats',
+    'page_title': 'Stats',
   }
   return util.Render(request, 'admin/stats.html', params)

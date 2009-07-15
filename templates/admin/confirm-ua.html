@@ -7,78 +7,110 @@
 </span>
 
 <script defer>
-function checkBrowser(ua_id) {
- var cb = document.getElementById("c" + ua_id);
- if (!cb.checked) {
-   var label = document.getElementById("parsed_browser_" + ua_id);
-   label.style.display = '';
-   cb.parentNode.removeChild(cb.parentNode.lastChild);
- }
+function updateChangeTextBox(ua_id, browser) {
+  var cb = document.getElementById("cb_" + ua_id);
+  var tb = document.getElementById("tb_" + ua_id);
+  if (cb.checked) {
+    if (!tb) {
+      var tb = document.createElement("input");
+      tb.setAttribute("id", 'tb_' + ua_id);
+      tb.setAttribute("type", 'text');
+      tb.setAttribute("name", 'tb_' + ua_id);
+      tb.setAttribute("value", browser);
+      cb.parentNode.appendChild(tb);
+    }
+  } else if (tb) {
+    tb.parentNode.removeChild(tb);
+  }
 }
 
-function editBrowser(ua_id, browser) {
- var cb = document.getElementById("c" + ua_id);
- cb.checked = true;
- var label = document.getElementById("parsed_browser_" + ua_id);
- label.style.display = 'none';
- var box = document.createElement('SPAN');
- box.innerHTML = "<input type=text name='b_" + ua_id + "' value='" + browser + "'>";
- cb.parentNode.appendChild(box);
-}
+{% for user_agent in user_agents %}
+var uasc_script{{ forloop.counter}} = document.createElement('script');
+var uasi_script{{ forloop.counter}} = document.createElement('script');
+uasc_script{{ forloop.counter}}.src = 'http://stevesouders.com/ua/parse-service.php?service=useragentstringcom&id=uasc_{{ forloop.counter }}&ua={{ user_agent.string|urlencode }}';
+uasi_script{{ forloop.counter}}.src = 'http://stevesouders.com/ua/parse-service.php?service=user-agent-string-info&id=uasi_{{ forloop.counter }}&ua={{ user_agent.string|urlencode }}';
+document.getElementsByTagName('head')[0].appendChild(uasc_script{{ forloop.counter}});
+document.getElementsByTagName('head')[0].appendChild(uasi_script{{ forloop.counter}});
+{% endfor %}
 </script>
 
 <form>
-<table style="margin: 1ex; padding: 1ex; border: 2px solid #999">
+<table style="margin: 1ex; padding: 1ex; border: 2px solid #AAA">
 <tr>
-<td>Browser: </td><td><input type=text name=browser value=""></td>
+<td>Browser: </td><td><input type=text name=browser value="{{ search_browser }}"></td>
 <td rowspan=2>&nbsp;</td>
 <td rowspan=2><label for="unconfirmed">
-  <input name=unconfirmed id=unconfirmed type=checkbox checked> unconfirmed<br>
+  <input name=unconfirmed id=unconfirmed type=checkbox{% if search_unconfirmed %} checked{% endif %}> unconfirmed<br>
 </label>
 <label for="confirmed">
-  <input name=confirmed id=confirmed type=checkbox> confirmed<br>
+  <input name=confirmed id=confirmed type=checkbox{% if search_confirmed %} checked{% endif %}> confirmed<br>
 </label>
 <label for="changed">
-  <input name=changed id=changed type=checkbox> changed
+  <input name=changed id=changed type=checkbox{% if search_changed %} checked{% endif %}> changed
 </label>
 </td>
 <td rowspan=2>&nbsp;</td>
 <td rowspan=2><input type=submit value="Search User Agents"></td>
 </tr>
 <tr>
-<td>User Agent: </td><td><input type=text name=useragent value=""></td>
+<td>User Agent: </td><td><input type=text name=useragent value="{{ search_useragent }}"></td>
 </tr>
 </table>
 </form>
 <div>
 
 <style>
+table.user-agents { border-collapse: collapse; }
+th, td { padding: 5px; }
 th { text-align: left; }
 th.action-icon { text-align: center; }
 </style>
 <form>
-<table border=1 cellspacing=0 cellpadding=4>
-<tr><th colspan=6>User Agents</th></tr>
+
+<p>
+
+<table class="user-agents" border=1>
+<tr><td colspan=8><b>User Agents</b><br>
+<small><a href="">confirm all</a>
+- <a href="">reset</a></small>
+</td></tr>
 <tr>
-  <th>Confirm/Edit<br>&nbsp;<small><a href="">all</a> <a href="">none</a></small></th>
+  <th class=action-icon>?</th>
+  <th class=action-icon>&#10004;</th>
+  <th>Change</th>
+  <th class=action-icon><img width=13 height=13 alt=Delete src="http://www.google.com/reader/ui/2513649784-icon-unsubscribe.png"></th>
+  <th>Parsed Browser</th>
   <th><small>useragentstring.com</small></th>
   <th><small>user-agent-string.info</small></th>
-  <th>&nbsp;</th>
   <th>User Agent</th>
 </tr>
+{% for user_agent in user_agents %}
 <tr>
-  <td><input onclick="return checkBrowser('1');" id=c1 name=confirm_edit type=checkbox><span ondblclick="return editBrowser('1', 'Firefox 3.1');" id=parsed_browser_1>Firefox 3.1</span></td>
-  <td>Firefox 3.1.2</td>
-  <td>Firefox 3.1.2</td>
-  <td><img width=13 height=13 alt=Delete src="http://www.google.com/reader/ui/2513649784-icon-unsubscribe.png"></td>
-  <td>Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1) Gecko/20090630 Firefox/3.5 GTB5</td>
+  <td><input name=action_{{ forloop.counter }} value=unconfirm
+    type=radio{% if not user_agent.confirmed %} checked{% endif %}
+    onclick="updateChangeTextBox('{{ forloop.counter }}');"></td>
+  <td><input name=action_{{ forloop.counter }} value=confirm
+    type=radio{% if user_agent.confirmed %} checked{% endif %}
+    onclick="updateChangeTextBox('{{ forloop.counter }}');"></td>
+  <td nowrap=1><input name=action_{{ forloop.counter }} value=change
+    type=radio id='cb_{{ forloop.counter }}'
+    onclick="updateChangeTextBox('{{ forloop.counter }}', '');"></td><!--TODO put changed value as last parameter and possibly add 'checked'-->
+  <td><input name=action_{{ forloop.counter }} value=delete
+    type=radio onclick="updateChangeTextBox('{{ forloop.counter }}');"></td>
+  <td nowrap=1>{{ user_agent.pretty }}</td>
+  <td nowrap=1 id=uasc_{{ forloop.counter }}><!-- TODO port parse service to GAE --></td>
+  <td nowrap=1 id=uasi_{{ forloop.counter }}><!-- TODO port parse service to GAE --></td>
+  <td>{{ user_agent.string }}</td>
+</tr>
+{% endfor %}
 </table>
+
+<small><a href="">confirm all</a>
+- <a href="">reset</a></small>
+<p>
+
 <input type=submit value="Submit">
 </form>
 
-useragentstring.com
-user-agent-string.info
-
-User-Agent
 
 {% endblock %}
