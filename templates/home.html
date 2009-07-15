@@ -79,10 +79,11 @@
       return;
     }
     categorySections[selectedCategoryLink.category].style.display = 'none';
-    selectedCategoryLink.className = '';
+    selectedCategoryLink.parentNode.className = '';
     selectedCategoryLink = link;
-    selectedCategoryLink.className = 'bs-sel';
+    selectedCategoryLink.parentNode.className = 'bs-sel';
     categorySections[selectedCategoryLink.category].style.display = '';
+    e.preventDefault();
   };
   var categoriesList = document.createElement('ul');
   categoriesList.id = 'bs-results-cats';
@@ -103,27 +104,27 @@
   var selectedCategoryLink;
   for (var i = 0, category; category = categories[i]; i++) {
     var link = document.createElement('a');
+    var li = document.createElement('li');
+    li.appendChild(link);
     var href = '#' + category.cat + '-results'
-    link.href = href;
+    link.href = '';
     link.category = category.cat;
     link.appendChild(document.createTextNode(category.name));
     link.onclick = changeCategoryClickHandler;
     //console.log(i, href, window.location.href);
     if (i == 0) {
       selectedCategoryLink = link;
-      selectedCategoryLink.className = 'bs-sel';
+      selectedCategoryLink.parentNode.className = 'bs-sel';
     } else if (window.location.href.match(href)) {
       if (selectedCategoryLink) {
-        selectedCategoryLink.className = '';
+        selectedCategoryLink.parentNode.className = '';
         categorySections[selectedCategoryLink.category].style.display = 'none';
       }
       selectedCategoryLink = link;
-      selectedCategoryLink.className = 'bs-sel';
+      selectedCategoryLink.parentNode.className = 'bs-sel';
     } else {
       categorySections[category.cat].style.display = 'none';
     }
-    var li = document.createElement('li');
-    li.appendChild(link);
     categoriesList.appendChild(li);
   }
   var results = document.getElementById('bs-results');

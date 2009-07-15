@@ -269,11 +269,12 @@ a.bs-admin {
 
 #bs-results-cats {
   overflow: hidden;
+  margin-left: .6em;
 }
 #bs-results-cats li {
   float: left;
-  margin-left: .8em;
-  background-color: #ddd;
+  margin-right: .3em;
+  background-color: #ccc;
   -moz-border-radius-topright: 4px;
   -moz-border-radius-topleft: 4px;
   -webkit-border-top-right-radius: 4px;
@@ -283,13 +284,17 @@ a.bs-admin {
   display: block;
   padding: 4px 15px;
 }
-#bs-results-cats a.bs-sel {
+#bs-results-cats .bs-sel {
+  background-color: #ddd;
+  border-top: 1px solid #ddd;
+}
+#bs-results-cats .bs-sel a {
   color: #000;
   font-weight: bold;
   text-decoration: none;
 }
 #bs-results-cats li:hover {
-  background: #ccc;
+  background-color: #ddd;
 }
 #bs-results-bycat {
   border: 3px solid #ddd;
