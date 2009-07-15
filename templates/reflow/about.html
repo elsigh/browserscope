@@ -44,10 +44,7 @@ t);})();"
 
   <h2>What is Reflow?</h2>
   <p>
-    Reflow in a web browser refers to the process of the render engine
-    calculating the positions and geometry of elements in the document
-    for purpose of drawing, or re-drawing, its visual
-    presentation. Every browser has its own logic for doing, and
+    Reflow in a web browser refers to the process whereby the render engine calculates positions and geometries of elements in the document for purpose of drawing, or re-drawing, the visual presentation. Every browser has its own logic for doing, and
     sometimes not doing, these calculations. Dynamic changes to the
     document's styles and contents will cause reflow to occur - being
     mindful of the things that slow down this process can lead one to
@@ -72,12 +69,20 @@ t);})();"
   </p>
 
   <p>
+    One important caveat about the test results in the Reflow category is that they will vary based on a user's machine configuration. Since reflow uses CPU power, the times will likely vary a fair amount. Hopefully we'll get enough test results that the median is still interesting.
+  </p>
+
+  <p>
     Once satisfied that the render queue has been flushed, we
     give the browser a little time to rest, then set a timer. We
     perform whatever operations are in a particular test (almost always a set operation on element.style), and then we
     again flush the render queue and capture the time again right
     after that. We get the delta, and voila - we call that the reflow
     time.
+  </p>
+
+  <p>
+    Initially the only test we were curious about was "what is the cost of a worst-case-scenario", i.e. full page reflow where everything has to be re-calculated from scratch. We wanted to a baseline. After doing a series of small experiments it became somewhat clear that there are lots of interesting things worth testing beyond that. At the moment, I feel like these tests are not covering the full breadth of what may be interesting to test here. Consider this a start. ;)
   </p>
 
   <p>

@@ -108,7 +108,7 @@ _TESTS = (
   # key, name, doc
   ReflowTest('testDisplay', 'Display Block',
     '''This test takes an element and sets its
-    style.display="none". According to our friends at Mozilla this has
+    style.display="none". According to the folks at Mozilla this has
     the effect of taking an element out of the browser's "render tree" -
     the in-memory representation of all of results of
     geometry/positioning calculations for that particular
