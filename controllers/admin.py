@@ -62,7 +62,17 @@ def ConfirmUa(request):
 
   user_agents = user_agent.UserAgent.all().order('string').fetch(1000)
 
-  # family, v1, v2, v3 = user_agent.UserAgent.parse(string)
+  for ua in user_agents:
+    match_spans = user_agent.UserAgent.MatchSpans(ua.string)
+    ua.match_strings = []
+    last_pos = 0
+    for start, end in match_spans:
+      if start > last_pos:
+        ua.match_strings.append((False, ua.string[last_pos:start]))
+      ua.match_strings.append((True, ua.string[start:end]))
+      last_pos = end
+    if len(ua.string) > last_pos:
+      ua.match_strings.append((False, ua.string[last_pos:]))
 
   params = {
     'page_title': 'Confirm User-Agents',

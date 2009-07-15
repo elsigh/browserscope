@@ -86,7 +86,15 @@ class UserAgentParser(object):
     self.user_agent_re = re.compile(pattern)
     self.family_replacement = family_replacement
 
-  def parse(self, user_agent_string):
+  def MatchSpans(self, user_agent_string):
+    match_spans = []
+    match = self.user_agent_re.search(user_agent_string)
+    if match:
+      match_spans = [match.span(group_index)
+                     for group_index in range(1, match.lastindex + 1)]
+    return match_spans
+
+  def Parse(self, user_agent_string):
     family, v1, v2, v3 = None, None, None, None
     match = self.user_agent_re.search(user_agent_string)
     if match:
@@ -288,11 +296,23 @@ class UserAgent(db.Model):
       user_agent_string: The full user-agent string.
     """
     for parser in USER_AGENT_PARSERS:
-      family, v1, v2, v3 = parser.parse(user_agent_string)
+      family, v1, v2, v3 = parser.Parse(user_agent_string)
       if family:
         return family, v1, v2, v3
     return 'Other', None, None, None
 
+  @staticmethod
+  def MatchSpans(user_agent_string):
+    """Parses the user-agent string and returns the bits.
+
+    Args:
+      user_agent_string: The full user-agent string.
+    """
+    for parser in USER_AGENT_PARSERS:
+      match_spans = parser.MatchSpans(user_agent_string)
+      if match_spans:
+        return match_spans
+    return []
 
   @staticmethod
   def pretty_print(family, v1=None, v2=None, v3=None):

@@ -2,10 +2,6 @@
 
 {% block body %}
 
-<span style="border: 3px solid red;">
-<b><i>Under construction. None of the form elements work.</i></b>
-</span>
-
 <script defer>
 function confirmAll() {
   for (var i=1; i <= {{ user_agents|length }}; i++) {
@@ -47,7 +43,7 @@ document.getElementsByTagName('head')[0].appendChild(uasi_script{{ forloop.count
 </script>
 
 <form>
-<table style="margin: 1ex; padding: 1ex; border: 2px solid #AAA">
+<table style="margin: 1ex; padding: 1ex; border: 2px solid #AAA" cellspacing=0 cellpadding=0>
 <tr>
 <td>Browser: </td><td><input type=text name=browser value="{{ search_browser }}"></td>
 <td rowspan=2>&nbsp;</td>
@@ -72,10 +68,11 @@ document.getElementsByTagName('head')[0].appendChild(uasi_script{{ forloop.count
 <div>
 
 <style>
-table.user-agents { border-collapse: collapse; }
-th, td { padding: 5px; }
-th { text-align: left; }
+.user-agents { border-collapse: collapse; }
+.user-agents th, .user-agents td { padding: 5px; }
+.user-agents th { text-align: left; }
 th.action-icon { text-align: center; }
+.uamatch { background-color: #CFA;}
 </style>
 
 <form id=ua-form>
@@ -111,7 +108,7 @@ th.action-icon { text-align: center; }
   <td nowrap=1>{{ user_agent.pretty }}</td>
   <td nowrap=1 id=uasc_{{ forloop.counter }}><!-- TODO port parse service to GAE --></td>
   <td nowrap=1 id=uasi_{{ forloop.counter }}><!-- TODO port parse service to GAE --></td>
-  <td>{{ user_agent.string }}</td>
+  <td>{% for is_match, substring in user_agent.match_strings %}{% if is_match %}<span class='uamatch'>{% endif %}{{ substring}}{% if is_match %}</span>{% endif %}{% endfor %}</td>
 </tr>
 {% endfor %}
 </table>
