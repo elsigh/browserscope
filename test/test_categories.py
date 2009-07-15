@@ -21,6 +21,8 @@ __author__ = 'elsigh@google.com (Lindsey Simon)'
 import unittest
 import logging
 
+from django.test.client import Client
+
 from controllers import all_test_sets
 import settings
 
@@ -53,3 +55,21 @@ class TestCategories(unittest.TestCase):
   def testHomeIntroductionDefined(self):
     for test_set in all_test_sets.GetTestSets():
       self.assert_(test_set.home_intro)
+
+  def testTestPageWorks(self):
+    client = Client()
+    for category in settings.CATEGORIES:
+      response = self.client.get('/%s/test' % category, {},
+        **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+      self.assertEqual(200, response.status_code)
+
+  def testAboutPageWorks(self):
+    client = Client()
+    for category in settings.CATEGORIES:
+      response = self.client.get('/%s/' % category, {},
+        **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+      self.assertEqual(200, response.status_code)
+
+      response = self.client.get('/%s/about' % category, {},
+        **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+      self.assertEqual(200, response.status_code)
