@@ -280,15 +280,17 @@ a.bs-admin {
   -webkit-border-top-right-radius: 4px;
   -webkit-border-top-left-radius: 4px;
 }
-#bs-results-cats a {
+#bs-results-cats span {
   display: block;
   padding: 4px 15px;
+  color: #00c;
+  text-decoration: underline;
 }
 #bs-results-cats .bs-sel {
   background-color: #ddd;
   border-top: 1px solid #ddd;
 }
-#bs-results-cats .bs-sel a {
+#bs-results-cats .bs-sel span {
   color: #000;
   font-weight: bold;
   text-decoration: none;
@@ -362,9 +364,14 @@ a.bs-admin {
 }
 
 .rt-ua td,
-.rt-res td,
 .rt-stats .rt-ua td.rt-a {
   background-color: #eeeeff;
+}
+
+.rt-res th,
+.rt-res td,
+.rt-res td.rt-a {
+  background-color: lightgreen;
 }
 
 .rt-stats tbody td {

@@ -30,6 +30,26 @@
     </thead>
     <tbody>
       {% for user_agent in user_agents %}
+
+        {% if stats|by_key:user_agent|by_key:"current_results" %}
+          {% with stats|by_key:user_agent|by_key:"current_results" as results %}
+            <tr class="rt-res">
+              <td colspan="{{ tests|length|add:2 }}" class="rt-tot">Your Results &darr;</td>
+            </tr>
+            <tr class="rt-res">
+              <td scope="row" class="rt-a">{{ user_agent }}</td>
+              {% for test in tests %}
+                <td
+                  title="Median time {{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"median" }}"
+                  class="rt-score-{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"score" }}"
+                  >{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"display" }}
+                </td>
+              {% endfor %}
+              <td class="rt-tot">-</td>
+            </tr>
+          {% endwith %}
+        {% endif %}
+
         {% if stats|by_key:user_agent|by_key:"results" %}
           <tr
             {% ifequal user_agent current_user_agent %}
@@ -49,33 +69,13 @@
               </td>
             {% endfor %}
             <td class="rt-tot">
-              {% if results %}
-                {% ifequal user_agent current_user_agent %}
+                {% if stats|by_key:user_agent|by_key:"current_results" %}
                   {{ stats|by_key:user_agent|by_key:"total_runs"|add:1 }}
                 {% else %}
                   {{ stats|by_key:user_agent|by_key:"total_runs" }}
-                {% endifequal %}
-              {% else %}
-                {{ stats|by_key:user_agent|by_key:"total_runs" }}
-              {% endif %}
+                {% endif %}
             </td>
           </tr>
-        {% endif %}
-
-        {% if stats|by_key:user_agent|by_key:"current_results" %}
-          {% with stats|by_key:user_agent|by_key:"current_results" as results %}
-            <tr class="rt-res">
-              <td scope="row" class="rt-a">{{ user_agent }}</td>
-              {% for test in tests %}
-                <td
-                  title="Median time {{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"median" }}"
-                  class="rt-score-{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"score" }}"
-                  >{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"display" }}
-                </td>
-              {% endfor %}
-              <td class="rt-tot">-</td>
-            </tr>
-          {% endwith %}
         {% endif %}
 
       {% endfor %}

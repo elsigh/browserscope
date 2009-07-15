@@ -103,19 +103,18 @@
   {% endfor %}
   var selectedCategoryLink;
   for (var i = 0, category; category = categories[i]; i++) {
-    var link = document.createElement('a');
+    var link = document.createElement('span');
     var li = document.createElement('li');
+    var re = new RegExp('\\?' + category.cat + '_results=');
     li.appendChild(link);
-    var href = '#' + category.cat + '-results'
-    link.href = '';
     link.category = category.cat;
     link.appendChild(document.createTextNode(category.name));
     link.onclick = changeCategoryClickHandler;
-    //console.log(i, href, window.location.href);
     if (i == 0) {
       selectedCategoryLink = link;
       selectedCategoryLink.parentNode.className = 'bs-sel';
-    } else if (window.location.href.match(href)) {
+    // this will set the selected tab to the first of the result strings.
+    } else if (window.location.href.match(re)) {
       if (selectedCategoryLink) {
         selectedCategoryLink.parentNode.className = '';
         categorySections[selectedCategoryLink.category].style.display = 'none';
