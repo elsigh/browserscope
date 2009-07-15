@@ -19,7 +19,7 @@ import logging
 import sys
 
 
-APP_TITLE = 'BrowserScope'
+APP_TITLE = 'Browserscope'
 
 # TODO(elsigh): Set the default for production to False
 DEBUG = True
