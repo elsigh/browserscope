@@ -24,6 +24,9 @@ from controllers import test_set_base
 
 _CATEGORY = 'reflow'
 
+LT_1X_TIME = '~ 0X'
+EQ_1X_TIME = '1X'
+GT_1X_TIME = '> 1X'
 
 class ReflowTest(object):
   TESTS_URL_PATH = '/%s/test' % _CATEGORY
@@ -45,7 +48,7 @@ class ReflowTest(object):
     """
     # We'll give em the benefit of the doubt here.
     if not median and median != 0:
-      return 100, '~ 0X'
+      return 90, LT_1X_TIME
 
     time = round(float(median) / 1000.0, 1)
     abc = (1, 2, 3, 4)
@@ -80,11 +83,11 @@ class ReflowTest(object):
     score = self._GetScore(time, abc)
 
     if score >= 90:
-      display = '~ 0X'
+      display = LT_1X_TIME
     elif score >= 80:
-      display = '1X'
+      display = EQ_1X_TIME
     else:
-      display = '&gt; 1X'
+      display = GT_1X_TIME
 
 
     #logging.info('CustomTestsFunction w/ %s, %s' % (test, median))

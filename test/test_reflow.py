@@ -34,22 +34,22 @@ class ReflowTestTest(unittest.TestCase):
   def testScoreAndDisplayValueNone(self):
     test = reflow_test_set.ReflowTest('testGetOffsetHeight', 'zer', 'Zero Test')
     score, display = test.GetScoreAndDisplayValue(None)
-    self.assertEqual((100, '0.0'), (score, display))
+    self.assertEqual((100, reflow_test_set.LT_1X_TIME), (score, display))
 
   def testScoreAndDisplayValueZero(self):
     test = reflow_test_set.ReflowTest('testGetOffsetHeight', 'zer', 'Zero Test')
     score, display = test.GetScoreAndDisplayValue(0)
-    self.assertEqual((100, '0.0'), (score, display))
+    self.assertEqual((90, reflow_test_set.LT_1X_TIME), (score, display))
 
   def testScoreAndDisplayValueRoundUp(self):
     test = reflow_test_set.ReflowTest('testDisplay', 'da up', 'da up Test')
     score, display = test.GetScoreAndDisplayValue(475)
-    self.assertEqual((80, '0.5'), (score, display))
+    self.assertEqual((80, reflow_test_set.EQ_1X_TIME), (score, display))
 
   def testScoreAndDisplayValueRoundDown(self):
     test = reflow_test_set.ReflowTest('testDisplay', 'da down', 'da down Test')
     score, display = test.GetScoreAndDisplayValue(1203)
-    self.assertEqual((66, '1.2'), (score, display))
+    self.assertEqual((80, reflow_test_set.EQ_1X_TIME), (score, display))
 
 
 if __name__ == '__main__':
