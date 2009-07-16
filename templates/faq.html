@@ -38,7 +38,9 @@
       Where does the data come from and live?
     </dt>
     <dd>
-      The data comes from developers and users like you, running the tests in their browsers. At the end of the tests, the results are sent back the project's server which is hosted on <a href="http://code.google.com/appengine">Google App Engine</a>. IP addresses are md5 hashed and only examined to prevent abuse.
+      The data comes from developers and users like you, running the tests in their browsers. 
+At the end of the tests, the results are sent back to the Browserscope database which is hosted on <a href="http://code.google.com/appengine">Google App Engine</a>. 
+An MD5-hashed version of the IP address that submitted the test is saved to prevent abuse.
     </dd>
 
     <dt id="signin">
