@@ -34,7 +34,7 @@ class ReflowTestTest(unittest.TestCase):
   def testScoreAndDisplayValueNone(self):
     test = reflow_test_set.ReflowTest('testGetOffsetHeight', 'zer', 'Zero Test')
     score, display = test.GetScoreAndDisplayValue(None)
-    self.assertEqual((100, reflow_test_set.LT_1X_TIME), (score, display))
+    self.assertEqual((90, reflow_test_set.LT_1X_TIME), (score, display))
 
   def testScoreAndDisplayValueZero(self):
     test = reflow_test_set.ReflowTest('testGetOffsetHeight', 'zer', 'Zero Test')
