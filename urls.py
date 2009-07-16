@@ -30,6 +30,8 @@ urlpatterns = patterns('',
   (r'^admin$', 'controllers.admin.Admin'),
   (r'^admin/confirm-ua', 'controllers.admin.ConfirmUa'),
   (r'^admin/stats', 'controllers.admin.Stats'),
+  (r'^admin/rebuild_rankers', 'controllers.admin_rankers.RebuildRankers'),
+  (r'^admin/update_result_parents', 'controllers.admin_rankers.UpdateResultParents'),
 
   # Cron admin scripts
   (r'^cron/update_dirty$', 'controllers.shared.cron.UpdateDirty'),

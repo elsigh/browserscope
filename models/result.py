@@ -56,6 +56,7 @@ class ResultParent(db.Expando):
   """
   category = db.StringProperty()
   user_agent = db.ReferenceProperty(UserAgent)
+  user_agent_pretty = db.StringProperty()
   user_agent_list = db.StringListProperty()
   ip = db.StringProperty()
   # TODO(elsigh) remove user in favor of user_id
