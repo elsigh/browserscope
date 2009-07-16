@@ -68,48 +68,48 @@ function doTestClick(iTest) {
 }
 
 function saveResult(name, value) {
-  gaResults[name] = value;
-  document.getElementById('results').innerHTML = (giCurTest + 1) + ". " + gsTests[name][0] +
-      " = " + ( "boolean" == gsTests[name][1] ? ( 0 == value ? "no" : "yes" ) : value ) + "<br>" + document.getElementById('results').innerHTML;
-  document.getElementById('test' + giCurTest).style.backgroundColor = "#C6E87D";
-  if (!gbStop) {
-    doNextTest();
-  }
+	gaResults[name] = value;
+	document.getElementById('results').innerHTML = (giCurTest + 1) + ". " + gsTests[name][0] +
+		" = " + ( "boolean" == gsTests[name][1] ? ( 0 == value ? "no" : "yes" ) : value ) + "<br>" + document.getElementById('results').innerHTML;
+	document.getElementById('test' + giCurTest).style.backgroundColor = "#C6E87D";
+	if (!gbStop) {
+		doNextTest();
+	}
 }
 
 function doNextTest() {
-  if (giCurTest + 1 < {{ tests|length }}) {
-    setTimeout("doTest(" + (giCurTest + 1) + ")", 2000);
-  } else {
-    // Send results beacon.
-    var testResults = [];
-    for (var test in gaResults) {
-      if (gaResults.hasOwnProperty(test)) {
-        testResults.push(test + '=' + gaResults[test]);
-      }
-    }
-    var uriParams = "category=network&results=" + testResults.join(',') +
-        "&csrf_token={{ csrf_token }}";
-    var beacon = new Beacon(uriParams);
-    beacon.onComplete = function() {
-      var continueUrl = Util.getParam('continue');
-      var results = 'network_results=' + testResults.join(',');
-      var nextUrl;
-      if (continueUrl != '') {
-        nextUrl = continueUrl + '&' + results;
-      } else {
-        nextUrl = '/?' + results;
-      }
-      window.top.location.href = nextUrl;
-    };
-    beacon.send();
-  }
+	if (giCurTest + 1 < {{ tests|length }}) {
+		setTimeout("doTest(" + (giCurTest + 1) + ")", 2000);
+	} else {
+		// Send results beacon.
+		var testResults = [];
+		for (var test in gaResults) {
+			if (gaResults.hasOwnProperty(test)) {
+				testResults.push(test + '=' + gaResults[test]);
+			}
+		}
+		var uriParams = "category=network&results=" + testResults.join(',') +
+			"&csrf_token={{ csrf_token }}";
+		var beacon = new Beacon(uriParams);
+		beacon.onComplete = function() {
+			var continueUrl = Util.getParam('continue');
+			var results = 'network_results=' + testResults.join(',');
+			var nextUrl;
+			if (continueUrl != '') {
+				nextUrl = continueUrl + '&' + results;
+			} else {
+				nextUrl = '/?' + results;
+			}
+			window.top.location.href = nextUrl;
+		};
+		beacon.send();
+	}
 }
 
 function doTest(iTest) {
-  giCurTest = iTest;
-  document.getElementById('test' + iTest).style.backgroundColor = "#F2FA6B";
-  parent.testframe.location = document.getElementById('test' + giCurTest).href;
+	giCurTest = iTest;
+	document.getElementById('test' + iTest).style.backgroundColor = "#F2FA6B";
+	parent.testframe.location = document.getElementById('test' + giCurTest).href;
 }
 
 function doStart() {
