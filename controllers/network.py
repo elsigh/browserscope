@@ -57,6 +57,7 @@ def Test(request):
   params = {
     'page_title': 'Network Performance Tests',
     'continue': request.GET.get('continue'),
+    'autorun': request.GET.get('autorun'),
   }
   return Render(request, 'network/test.html', params)
 
@@ -69,6 +70,8 @@ def TestDriver(request):
     'page_title': 'Performance Test Driver',
     'csrf_token': request.session.get('csrf_token'),
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
+    'continue': request.GET.get('continue'),
+    'autorun': request.GET.get('autorun'),
   }
   return Render(request, 'network/testdriver.html', params)
 
