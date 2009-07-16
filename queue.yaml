@@ -4,7 +4,7 @@ queue:
   rate: 1/s
 
 - name: update-dirty
-  rate: 8/s
+  rate: 7/s
 
 - name: recent-tests
   rate: 1/s
