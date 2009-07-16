@@ -21,6 +21,6 @@ function testOnerror() {
 </script>
 
 <frameset rows="200,*" border=2>
-  <frame src="testdriver{% if continue %}?continue={{ continue }}{% endif %}" id=testdriver name=testdriver></frame>
+  <frame src="testdriver?s=1{% if continue %}&continue={{ continue|urlquote }}{% endif %}{% if autorun %}&autorun={{ autorun }}{% endif %}" id=testdriver name=testdriver></frame>
   <frame src="about:blank" id=testframe name=testframe onload="testOnload()" onerror="testOnerror()"></frame>
 </frameset>
