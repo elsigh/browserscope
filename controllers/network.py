@@ -42,16 +42,6 @@ def Render(request, template_file, params):
   return util.Render(request, template_file, params, CATEGORY)
 
 
-def Home(request):
-  """Original index page"""
-
-  params = {
-    'page_title': 'Home',
-    'stats_table': util.GetStats(request, CATEGORY),
-  }
-  return Render(request, 'network/home.html', params)
-
-
 def About(request):
   """About page."""
   params = {
@@ -64,24 +54,10 @@ def About(request):
 def Test(request):
   """Network Performance Tests"""
 
-  autorun = request.GET.get('autorun')
-  if autorun:
-    return http.HttpResponseRedirect('/network/harness')
-
   params = {
     'page_title': 'Network Performance Tests',
   }
   return Render(request, 'network/test.html', params)
-
-
-def Harness(request):
-  """Network Performance Test Harness"""
-
-  params = {
-    'page_title': 'Performance Test Harness',
-    'continue': request.GET.get('continue'),
-  }
-  return Render(request, 'network/harness.html', params)
 
 
 @decorators.provide_csrf
@@ -94,15 +70,6 @@ def TestDriver(request):
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
   return Render(request, 'network/testdriver.html', params)
-
-
-def Results(request):
-  """Network Performance Tests Completed"""
-
-  params = {
-    'page_title': 'Performance Tests Completed',
-  }
-  return Render(request, 'network/results.html', params)
 
 
 def StatsTable(request):
@@ -119,33 +86,6 @@ def Faq(request):
     'page_title': 'Performance FAQ',
   }
   return Render(request, 'network/faq.html', params)
-
-
-def ParseFix(request):
-  """Network Performance Parse Fix XHR"""
-
-  params = {
-    'page_title': 'Performance Parse Fix XHR',
-  }
-  return Render(request, 'network/parse-fix.html', params)
-
-
-def ParseService(request):
-  """Network Performance Parse Web Service"""
-
-  params = {
-    'page_title': 'Performance Parse Web Service',
-  }
-  return Render(request, 'network/parse-service.html', params)
-
-
-def Parse(request):
-  """Network Performance Parse User-Agent"""
-
-  params = {
-    'page_title': 'Performance Parse User-Agent',
-  }
-  return Render(request, 'network/parse.html', params)
 
 
 def CacheExpires(request):
