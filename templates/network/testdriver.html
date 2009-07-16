@@ -7,25 +7,30 @@
     margin-left: 4px; margin-right: 4px; text-decoration: none;
     background: #FFF; }
 #tests A:hover { background: #FEE19E; }
-.testdone { background: #C6E87D; }
 BODY { background: #EEE; }
-#results { margin-left: 20px; margin-top: 10px; }
+#results { margin-left: 20px; margin-top: 10px; background: #FFF; padding: 8px; border: 2px solid #333; }
 </style>
 {% endblock %}
 
 {% block body %}
 <div class=contents>
 
-<h2>Tests</h2>
-<div id=tests>
+<table border=0 cellpadding=0 cellspacing=0>
+  <tr>
+    <td valign=top>
+<div id=tests style="margin-top: 10px;">
 {% for test in tests %}
   <a id=test{{ forloop.counter0 }} target=testframe title="{{ test.name }}"
      onclick="doTestClick({{ forloop.counter0 }}); return false;"
      href="{{ test.url }}?t={{ epoch }}">{{ forloop.counter }}</a>
 {% endfor %}
 </div>
-
+    </td>
+    <td valign=top>
 <div id=results></div>
+    </td>
+  </tr>
+</table>
 
 <script src="/static/util.js"></script>
 <script src="/static/beacon.js"></script>
@@ -34,6 +39,12 @@ var giCurTest = 0;  // zero-based
 var gbStop = false;
 var gaResults = {};
 var sTests = "";
+var gsTests = {
+{% for test in tests %}
+{{ test.key }}: ["{{ test.name }}", "{{ test.score_type }}"],
+{% endfor %}
+end: 0
+};
 
 function doTestClick(iTest) {
   gbStop = true;
@@ -43,8 +54,8 @@ function doTestClick(iTest) {
 
 function saveResult(name, value) {
   gaResults[name] = value;
-  document.getElementById('results').innerHTML = (giCurTest + 1) + ". " + name +
-      " = " + value + "<br>" + document.getElementById('results').innerHTML;
+  document.getElementById('results').innerHTML = (giCurTest + 1) + ". " + gsTests[name][0] +
+      " = " + ( "boolean" == gsTests[name][1] ? ( 0 == value ? "no" : "yes" ) : value ) + "<br>" + document.getElementById('results').innerHTML;
   document.getElementById('test' + giCurTest).style.backgroundColor = "#C6E87D";
   if (!gbStop) {
     doNextTest();
@@ -83,7 +94,8 @@ function doNextTest() {
 
 function doTest(iTest) {
   giCurTest = iTest;
-  parent.testframe.location = document.getElementById('test' + iTest).href;
+  document.getElementById('test' + iTest).style.backgroundColor = "#F2FA6B";
+  parent.testframe.location = document.getElementById('test' + giCurTest).href;
 }
 
 // Start the first test.
