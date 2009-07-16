@@ -56,6 +56,7 @@ def Test(request):
 
   params = {
     'page_title': 'Network Performance Tests',
+    'continue': request.GET.get('continue'),
   }
   return Render(request, 'network/test.html', params)
 
