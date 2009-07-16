@@ -1,60 +1,26 @@
-{% extends "base.html" %}
-
-{% block style %}
-<style>
-{{ today_style|safe }}
-</style>
-{% endblock %}
-
-{% block body %}
-
-<h1>Network Tests</h1>
-
-<div style="margin-top: 1em;">
-
-<table cellpadding=0 cellspacing=0 border=0>
-  <tr>
-    <td>
-<noscript>
-	  <input disabled id='startbutton' class="bs-runtest" type=button value="Start" onclick="doStart()" disabled>
-</noscript>
 <script>
-document.writeln('<input id=\'startbutton\' class=\'bs-runtest\' type=button ' +
-    'value="Start" onclick="document.location=\'harness\'">');
+function saveResult(name, value) {
+	if ( testdriver && "function" === typeof(testdriver.saveResult) ) {
+		testdriver.saveResult(name, value);
+	}
+}
+
+function testOnload() {
+	if ( testdriver && "function" === typeof(testdriver.doNextTest) ) {
+		// For now, we'll use saveResult as the means for triggering the next page.
+		//testdriver.doNextTest();
+	}
+}
+
+function testOnerror() {
+	if ( testdriver && "function" === typeof(testdriver.doNextTest) ) {
+		// CVSNO - do something better for error handling? save a null result?
+		testdriver.doNextTest();
+	}
+}
 </script>
-	</td>
-	<td id=testmessage style="padding-left: 20px;">
-<noscript>
-<font color=#CC0000>The test won't work on your browser. Your browser does not have JavaScript support, which is required to perform the test.</font>
-</noscript>
-	</td>
-  </tr>
-</table>
 
-<p style='margin-top: 20px;'>
-These test pages measure the performance traits of your browser.
-Your browser must support JavaScript in order to run the tests.
-The following browser performance traits are measured.
-
-<div style="float: right; border: 1px solid #BBB; padding: 8px;">
-CVSNO:
-echo genFixBrowser($_SERVER['HTTP_USER_AGENT']);
-</div>
-
-<ol>
-  <li> <a href="tests/connections-per-hostname">How many connections are opened per hostname (for HTTP/1.1)?</a>
-  <li> <a href="tests/max-connections">How many total connections are opened across all hostnames (for HTTP/1.1)?</a>
-  <li> <a href="tests/scripts-block">Do external scripts block other downloads?</a>
-  <li> <a href="tests/stylesheets-block">Do stylesheets block other downloads?</a>
-  <li> <a href="tests/inline-script-after-stylesheet">Do inline scripts after stylesheets block other downloads?</a>
-  <li> <a href="tests/cache-expires">Are resources with a future Expires header cached?</a>
-  <li> <a href="tests/cache-redirects">Are page redirects with a future Expires header cached?</a>
-  <li> <a href="tests/cache-resource-redirects">Are resource redirects with a future Expires header cached?</a>
-  <li> <a href="tests/link-prefetch">Do prefetch links work?</a>
-  <li> <a href="tests/gzip">Is compression supported?</a>
-  <li> <a href="tests/data-urls">Are data: URLs supported?</a>
-</ol>
-
-</div> <!-- contents -->
-
-{% endblock %}
+<frameset rows="200,*" border=2>
+  <frame src="testdriver{% if continue %}?continue={{ continue }}{% endif %}" id=testdriver name=testdriver></frame>
+  <frame src="about:blank" id=testframe name=testframe onload="testOnload()" onerror="testOnerror()"></frame>
+</frameset>
