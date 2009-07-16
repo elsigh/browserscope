@@ -69,14 +69,8 @@ urlpatterns = patterns('',
   (r'^network/?$', 'controllers.network.About'),
   (r'^network/about$', 'controllers.network.About'),
   (r'^network/test$', 'controllers.network.Test'),
-  (r'^network/harness', 'controllers.network.Harness'),
   (r'^network/testdriver', 'controllers.network.TestDriver'),
   (r'^network/stats_table$', 'controllers.network.StatsTable'),
-
-  #TODO(slamm): point these to another place and remove the network/ templates.
-  #(r'^network/parse-fix', 'controllers.network.ParseFix'),
-  #(r'^network/parse-service', 'controllers.network.ParseService'),
-  #(r'^network/parse', 'controllers.network.Parse'),
 
   # Network Performance test URLs
   (r'^network/tests/cache-expires2', 'controllers.network.CacheExpires2'),
