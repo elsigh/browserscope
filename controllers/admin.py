@@ -23,12 +23,14 @@ Confirm new user agents.
 
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
+import logging
 import time
+
+from google.appengine.ext import db
 
 from controllers import all_test_sets
 from controllers.shared import decorators
 from controllers.shared import util
-
 from models import user_agent
 
 from django import http
@@ -39,7 +41,6 @@ def Render(request, template_file, params):
 
   return util.Render(request, template_file, params)
 
-@decorators.provide_csrf
 @decorators.admin_required
 def Admin(request):
   """Admin Tools"""
@@ -48,6 +49,28 @@ def Admin(request):
     'page_title': 'Admin Tools',
   }
   return Render(request, 'admin/admin.html', params)
+
+@decorators.check_csrf
+def SubmitChanges(request):
+  logging.info('^^^^^^^^^^^^^^^^^^^^ SubmitChanges')
+  encoded_ua_keys = [key[3:] for key in request.GET if key.startswith('ac_')]
+  logging.info('Encoded ua keys: %s' % ', '.join(encoded_ua_keys))
+  actions = dict([(key, request.GET['ac_%s' % key]) for key in encoded_ua_keys])
+  changes = dict([(key, request.GET['cht_%s' % key]) for key in encoded_ua_keys
+                  if 'cht_%s' % key in request.GET])
+  ua_keys = [db.Key(encoded=encoded_key) for encoded_key in encoded_ua_keys]
+  user_agents = db.get(ua_keys)
+  update_user_agents = []
+  for ua in user_agents:
+    action = actions[str(ua.key())]
+    if action == 'confirm' and not ua.confirmed:
+      ua.confirmed = True
+      update_user_agents.append(ua)
+    if action == 'unconfirm' and ua.confirmed:
+      ua.confirmed = False
+      update_user_agents.append(ua)
+  logging.info('Update user agents: %s' % ', '.join([ua.string for ua in update_user_agents]))
+  db.put(update_user_agents)
 
 
 @decorators.admin_required
@@ -60,7 +83,13 @@ def ConfirmUa(request):
   search_confirmed = request.GET.get('confirmed', False)
   search_changed = request.GET.get('changed', False)
 
+  if 'search' in request.GET.keys():
+    pass
+  elif 'submit' in request.GET.keys():
+    SubmitChanges(request)
+
   user_agents = user_agent.UserAgent.all().order('string').fetch(1000)
+  user_agents = user_agents[:10]
 
   for ua in user_agents:
     match_spans = user_agent.UserAgent.MatchSpans(ua.string)
@@ -76,12 +105,13 @@ def ConfirmUa(request):
 
   params = {
     'page_title': 'Confirm User-Agents',
-    'user_agents': user_agents[:15],
+    'user_agents': user_agents,
     'search_browser': search_browser,
     'search_user_agent': search_user_agent,
     'search_unconfirmed': search_unconfirmed,
     'search_confirmed': search_confirmed,
     'search_changed': search_changed,
+    'csrf_token': request.session['csrf_token'],
   }
   return Render(request, 'admin/confirm-ua.html', params)
 
