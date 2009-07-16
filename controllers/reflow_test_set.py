@@ -45,7 +45,7 @@ class ReflowTest(object):
     """
     # We'll give em the benefit of the doubt here.
     if not median and median != 0:
-      return 100, '0.0'
+      return 100, '~ 0X'
 
     time = round(float(median) / 1000.0, 1)
     abc = (1, 2, 3, 4)
@@ -78,9 +78,18 @@ class ReflowTest(object):
     elif self.key is 'testGetOffsetHeight':
       abc = (.1, .2, .3, .4)
     score = self._GetScore(time, abc)
+
+    if score >= 90:
+      display = '~ 0X'
+    elif score >= 80:
+      display = '1X'
+    else:
+      display = '&gt; 1X'
+
+
     #logging.info('CustomTestsFunction w/ %s, %s' % (test, median))
     #logging.info('TEST!! %s, %s, %s' % (test, time, score))
-    return score, str(time)
+    return score, display
 
   @staticmethod
   def _GetScore(time, abc):
@@ -101,6 +110,17 @@ class ReflowTest(object):
       score = int(round(60.0 + (abc[3] - time) / (abc[3] - abc[2]) * 10))  # D
     else:
       score = 50  # F
+
+    # Ok normalize again in the interest of showing simplified text instead of
+    # numbers in the UI.
+    # TODO(elsigh): refactor this with that in mind.
+    if score > 80:
+      score = 90
+    elif score > 60:
+      score = 80
+    else:
+      score = 50
+
     return score
 
 
