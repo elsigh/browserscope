@@ -8,7 +8,7 @@
     background: #FFF; }
 #tests A:hover { background: #FEE19E; }
 BODY { background: #EEE; }
-#results { margin-left: 20px; margin-top: 10px; background: #FFF; padding: 8px; border: 2px solid #333; }
+#results { margin-left: 20px; margin-top: 10px; background: #FFF; padding: 8px; border: 2px solid #333; display: none; }
 </style>
 {% endblock %}
 
@@ -18,13 +18,14 @@ BODY { background: #EEE; }
 <table border=0 cellpadding=0 cellspacing=0>
   <tr>
     <td valign=top>
-<div id=tests style="margin-top: 10px;">
+<div id=tests style="margin-top: 10px; margin-bottom: 10px;">
 {% for test in tests %}
   <a id=test{{ forloop.counter0 }} target=testframe title="{{ test.name }}"
      onclick="doTestClick({{ forloop.counter0 }}); return false;"
      href="{{ test.url }}?t={{ epoch }}">{{ forloop.counter }}</a>
 {% endfor %}
 </div>
+<input id=startstop type=button value="{% if autorun %}Stop{% else %}Start{% endif %}" onclick="startstop()">
     </td>
     <td valign=top>
 <div id=results></div>
@@ -46,10 +47,24 @@ var gsTests = {
 end: 0
 };
 
+function startstop() {
+	var btn = document.getElementById('startstop');
+	if ( btn ) {
+		if ( "Start" == btn.value ) {
+			btn.value = "Stop";
+			doStart();
+		}
+		else {
+			btn.value = "Start";
+			doStop();
+		}
+	}
+}
+
 function doTestClick(iTest) {
-  gbStop = true;
-  giCurTest = iTest;
-  doTest(iTest)
+	doStop();
+	giCurTest = iTest;
+	doTest(iTest)
 }
 
 function saveResult(name, value) {
@@ -59,7 +74,6 @@ function saveResult(name, value) {
   document.getElementById('test' + giCurTest).style.backgroundColor = "#C6E87D";
   if (!gbStop) {
     doNextTest();
-    gbStop = false;
   }
 }
 
@@ -98,9 +112,20 @@ function doTest(iTest) {
   parent.testframe.location = document.getElementById('test' + giCurTest).href;
 }
 
-// Start the first test.
-doTest(giCurTest);
+function doStart() {
+	document.getElementById('results').style.display = "block";
+	gbStop = false;
+	doTest(giCurTest);
+}
 
+function doStop() {
+	gbStop = true;
+}
+
+// Start the first test.
+if ( Util.getParam("autorun") ) {
+	doStart();
+}
 </script>
 
 </div><!-- contents -->
