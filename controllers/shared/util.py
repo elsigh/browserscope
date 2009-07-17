@@ -232,14 +232,13 @@ def ClearMemcache(request):
     categories = CATEGORIES
 
   ua = request.GET.get('ua')
+  version_level = request.GET.get('v')
   if ua:
     user_agent_strings = ua.split(',')
+  elif version_level:
+    user_agent_strings = UserAgentGroup.GetStrings(version_level)
   else:
-    version_level = request.GET.get('v')
-    if version_level:
-      user_agent_strings = UserAgentGroup.GetStrings(version_level)
-  if not user_agent_strings:
-    return http.HttpResponse('Either pass in user_agent_strings= or v=')
+    return http.HttpResponse('Either pass in ua= or v=')
 
   logging.info('categories are: %s' % categories)
   logging.info('user_agent_strings are: %s' % user_agent_strings)
