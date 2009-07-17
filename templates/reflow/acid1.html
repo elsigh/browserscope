@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+
+{% block head %}
+<style>
+#rt-text {
+  position: absolute;
+  width: 200px;
+  background: #fff;
+  z-index: 2;
+  margin-top: 10px;
+}
+#g-intro {
+  font-size: 110%;
+  color: #333;
+  padding: 3px;
+  margin: 2px 0 4px 0;
+}
+
+#g-content {
+  font: 70%/1 Verdana, sans-serif;
+  background-color: blue;
+  color: white;
+  margin: 1em auto 1em auto;
+  border: .5em solid #ccc;
+  padding: 0;
+  width: 48em;
+  background-color: white;
+}
+.g-content-c dl {
+  margin: 0;
+  border: 0;
+  padding: .5em;
+}
+.g-content-c dt {
+  background-color: rgb(204,0,0);
+  margin: 0;
+  padding: 1em;
+  width: 10.638%; /* refers to parent element's width of 47em. = 5em or 50px */
+  height: 28em;
+  border: .5em solid black;
+  float: left;
+}
+.g-content-c dd {
+  float: right;
+  margin: 0 0 0 1em;
+  border: 1em solid black;
+  padding: 1em;
+  width: 34em;
+  height: 27em;
+}
+.g-content-c ul {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+.g-content-c li {
+  display: block; /* i.e., suppress marker */
+  color: black;
+  height: 9em;
+  width: 5em;
+  margin: 0;
+  border: .5em solid black;
+  padding: 1em;
+  float: left;
+  background-color: #FC0;
+}
+.g-content-c #bar {
+  background-color: black;
+  color: white;
+  width: 41.17%; /* = 14em */
+  border: 0;
+  margin: 0 1em;
+}
+.g-content-c #baz {
+  margin: 1em 0;
+  border: 0;
+  padding: 1em;
+  width: 10em;
+  height: 10em;
+  background-color: black;
+  color: white;
+}
+.g-content-c form {
+  margin: 0;
+  display: inline;
+}
+.g-content-c p {
+  margin: 0;
+}
+.g-content-c form p {
+  line-height: 1.9;
+}
+.g-content-c blockquote {
+  margin: 1em 1em 1em 2em;
+  border-width: 1em 1.5em 2em .5em;
+  border-style: solid;
+  border-color: black;
+  padding: 1em 0;
+  width: 5em;
+  height: 9em;
+  float: left;
+  background-color: #FC0;
+  color: black;
+}
+.g-content-c address {
+  font-style: normal;
+}
+.g-content-c h1 {
+  background-color: black;
+  color: white;
+  float: left;
+  margin: 1em 0;
+  border: 0;
+  padding: 1em;
+  width: 10em;
+  height: 10em;
+  font-weight: normal;
+  font-size: 1em;
+}
+</style>
+
+<script src="{{ "reflow/js/reflow_timer_build.js"|resource_path }}"></script>
+<script>
+function runTest() {
+  var btn = document.getElementById('rt-runtest');
+  if (btn) {
+    btn.disabled = true;
+  }
+  ReflowTimer.SERVER = '{{ server }}';
+  var el = document.getElementById('g-content');
+  {% if test %}
+    var t = new ReflowTimer(false, el);
+    t.tests = ['{{ test.key }}'];
+    t.renderResults = true;
+    t.onTestsComplete = function(results) {
+      if (btn) {
+        btn.disabled = false;
+      }
+    };
+  {% else %}
+    var t = new ReflowTimer(true, el);
+    t.renderResults = false;
+    t.onBeaconComplete = function() {
+      var continueUrl = unescape(Util.getParam('continue'));
+      var results = 'reflow_results=' + t.results.join(',');
+      var nextUrl;
+      if (continueUrl != '') {
+        nextUrl = continueUrl + '&' + results;
+      } else {
+        nextUrl = '/?' + results;
+      }
+      // TODO(elsigh): this won't scale.
+      var network_results = Util.getParam('network_results');
+      if (network_results) {
+        nextUrl = nextUrl + '&network_results=' + network_results;
+      }
+      window.location.href = nextUrl;
+    }
+  {% endif %}
+  t.run();
+}
+</script>
+{% endblock %}
+
+
+{% block body %}
+<input id="rt-params" type="hidden" value="{{ params }}">
+<input id="csrf_token" type="hidden" value="{{ csrf_token }}">
+<div id="rt-text">
+  <h1>{{ page_title }}</h1>
+
+
+  {% if autorun %}
+    <p>
+      Autorunning the Reflow tests ... <br>
+      Please wait while until all the tests are completed. At the end, your results will be sent back and automatically incorporated into the public result set.
+    </p>
+  {% else %}
+    <p>
+      <button id="rt-runtest" onclick="runTest();" class="bs-runtest">
+        {% if test %}
+          Run the test - {{ test.label }}
+        {% else %}
+          Start
+        {% endif %}
+      </button>
+    </p>
+    <p>
+      {% if test %}
+        Learn more about the <a href="/reflow/about#rt-{{ test.key }}">{{ test.name }} test</a>.
+      {% else %}
+        Clicking the button will run <a href="/reflow/about#rt-tests">each of the reflow tests</a> on the Acid1 test container and then send back the results to the public score database.
+      {% endif %}
+    </p>
+  {% endif %}
+</div>
+
+<div id="g-content">
+  <div class="g-content-c">
+    <p id="g-intro">
+      Why, look - it's {{ num_elements }} instances of the Acid1 test. <a href="/reflow/about#acid1">Why?</a>
+    </p>
+
+    {% for i in num_elements|as_range %}
+      <dl>
+        <dt>
+         toggle
+        </dt>
+        <dd>
+        <ul>
+          <li>
+           the way
+          </li>
+          <li id="bar">
+          <p>
+           the world ends
+          </p>
+          <form action="./" method="get">
+            <p>
+             bang
+            <input type="radio" name="foo" value="off">
+            </p>
+            <p>
+             whimper
+            <input type="radio" name="foo2" value="on">
+            </p>
+          </form>
+          </li>
+          <li>
+           i grow old
+          </li>
+          <li id="baz">
+           pluot?
+          </li>
+        </ul>
+        <blockquote>
+          <address>
+             bar maids,
+          </address>
+        </blockquote>
+        <h1>
+           sing to me, erbarme dich
+        </h1>
+        </dd>
+      </dl>
+
+      <p style="color:black;font-size:1em;line-height:1.3em;clear: both;padding-bottom:1em;border-bottom:3px solid #ccc;margin-bottom:1em;">
+       This is a nonsensical document, but syntactically valid HTML 4.0. All 100%-conformant CSS1 agents should be able to render the document elements above this paragraph indistinguishably (to the pixel) from this
+        <a href="http://www.w3.org/Style/CSS/Test/CSS1/current/sec5526c.gif" target="_blank">reference rendering,</a>
+       (except font rasterization and form widgets). All discrepancies should be traceable to CSS1 implementation shortcomings.
+      </p>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  {% if autorun %}
+    runTest();
+  {% else %}
+    document.getElementById('rt-runtest').disabled = false;
+  {% endif %}
+</script>
+{% endblock %}

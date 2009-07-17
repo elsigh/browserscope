@@ -75,16 +75,6 @@ a.bs-admin {
   color: darkred !important;
   text-decoration: none;
 }
-.bs-msg-c {
-  text-align: center;
-}
-.bs-msg {
-  background-color: #fffbe8;
-  border: 1px solid #fff1a9;
-  margin: 20px auto 0;
-  display: inline-block;
-  padding: 5px;
-}
 
 /** AllTests **/
 #bs-alltests dl {
@@ -284,6 +274,7 @@ a.bs-admin {
   display: block;
   padding: 4px 15px;
   color: #00c;
+  cursor: pointer;
   text-decoration: underline;
 }
 #bs-results-cats .bs-sel {
