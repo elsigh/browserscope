@@ -58,7 +58,6 @@ class ResultParent(db.Expando):
   category = db.StringProperty()
   user_agent = db.ReferenceProperty(UserAgent)
   user_agent_pretty = db.StringProperty()
-  user_agent_list = db.StringListProperty(default=[])
   ip = db.StringProperty()
   # TODO(elsigh) remove user in favor of user_id
   user = db.UserProperty()
@@ -101,8 +100,8 @@ class ResultParent(db.Expando):
       result_time.increment_all_counts()
 
   def _get_user_agent_list(self):
-    """Transition from storing user_agent_list to user_agent_pretty."""
-    if self.user_agent_pretty:
-      return UserAgent.parse_to_string_list(self.user_agent_pretty)
-    else:
-      return self.user_agent_list
+    """Build user_agent_list on-the-fly from user_agent_pretty.
+
+    In the past, we stored user_agent_list.
+    """
+    return UserAgent.parse_to_string_list(self.user_agent_pretty)
