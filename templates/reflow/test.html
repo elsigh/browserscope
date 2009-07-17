@@ -42,7 +42,7 @@ function runTest() {
     var t = new ReflowTimer(true, el);
     t.renderResults = false;
     t.onBeaconComplete = function() {
-      var continueUrl = Util.getParam('continue');
+      var continueUrl = unescape(Util.getParam('continue'));
       var results = 'reflow_results=' + t.testResultVals.join(',');
       var nextUrl;
       if (continueUrl != '') {
