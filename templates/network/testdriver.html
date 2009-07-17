@@ -22,7 +22,7 @@ BODY { background: #EEE; }
 {% for test in tests %}
   <a id=test{{ forloop.counter0 }} target=testframe title="{{ test.name }}"
      onclick="doTestClick({{ forloop.counter0 }}); return false;"
-     href="{{ test.url }}?t={{ epoch }}">{{ forloop.counter }}</a>
+     href="/network/tests/{{ test.url_name }}?t={{ epoch }}">{{ forloop.counter }}</a>
 {% endfor %}
 </div>
 <input id=startstop type=button value="{% if autorun %}Stop{% else %}Start{% endif %}" onclick="startstop()">
@@ -36,50 +36,49 @@ BODY { background: #EEE; }
 <script src="/static/util.js"></script>
 <script src="/static/beacon.js"></script>
 <script>
-var giCurTest = 0;  // zero-based
 var gbStop = false;
+var giLastTest = -1;
 var gaResults = {};
 var sTests = "";
-var gsTests = {
-{% for test in tests %}
-{{ test.key }}: ["{{ test.name }}", "{{ test.score_type }}"],
-{% endfor %}
-end: 0
+var gNumTests = 0;
+var gsTests = {{% for test in tests %}
+    {{ test.key }}: ["{{ test.name }}", "{{ test.score_type }}", gNumTests++, "{{ test.url_name }}"],{% endfor %}
+    end: 0
 };
 
-function startstop() {
-	var btn = document.getElementById('startstop');
-	if ( btn ) {
-		if ( "Start" == btn.value ) {
-			btn.value = "Stop";
-			doStart();
-		}
-		else {
-			btn.value = "Start";
-			doStop();
-		}
-	}
+
+function doStart() {
+	gbStop = false;
+	doTest(giLastTest+1);
 }
 
-function doTestClick(iTest) {
-	doStop();
-	giCurTest = iTest;
-	doTest(iTest)
+function doStop() {
+	gbStop = true;
+}
+
+function doTest(iTest) {
+	document.getElementById('test' + iTest).style.backgroundColor = "#F2FA6B";
+	parent.testframe.location = document.getElementById('test' + iTest).href;
+	if ( !gbStop ) {
+		giLastTest = iTest;
+	}
 }
 
 function saveResult(name, value) {
 	gaResults[name] = value;
-	document.getElementById('results').innerHTML = (giCurTest + 1) + ". " + gsTests[name][0] +
+	var iTest = getTestNumber(name);
+	document.getElementById('results').innerHTML = (iTest + 1) + ". " + gsTests[name][0] +
 		" = " + ( "boolean" == gsTests[name][1] ? ( 0 == value ? "no" : "yes" ) : value ) + "<br>" + document.getElementById('results').innerHTML;
-	document.getElementById('test' + giCurTest).style.backgroundColor = "#C6E87D";
+	document.getElementById('results').style.display = "block";
+	document.getElementById('test' + iTest).style.backgroundColor = "#C6E87D";
 	if (!gbStop) {
-		doNextTest();
+		doNextTest(iTest+1);
 	}
 }
 
-function doNextTest() {
-	if (giCurTest + 1 < {{ tests|length }}) {
-		setTimeout("doTest(" + (giCurTest + 1) + ")", 2000);
+function doNextTest(iTest) {
+	if ( iTest < {{ tests|length }}) {
+		setTimeout("doTest(" + iTest + ")", 2000);
 	} else {
 		// Send results beacon.
 		var testResults = [];
@@ -97,7 +96,8 @@ function doNextTest() {
 			var nextUrl;
 			if (continueUrl != '') {
 				nextUrl = continueUrl + '&' + results;
-			} else {
+			} 
+			else {
 				nextUrl = '/?' + results;
 			}
 			window.top.location.href = nextUrl;
@@ -106,25 +106,60 @@ function doNextTest() {
 	}
 }
 
-function doTest(iTest) {
-	giCurTest = iTest;
-	document.getElementById('test' + iTest).style.backgroundColor = "#F2FA6B";
-	parent.testframe.location = document.getElementById('test' + giCurTest).href;
+function doTestClick(iTest) {
+	doStop();
+	doTest(iTest)
 }
 
-function doStart() {
-	document.getElementById('results').style.display = "block";
-	gbStop = false;
-	doTest(giCurTest);
+function startstop() {
+	var btn = document.getElementById('startstop');
+	if ( btn ) {
+		if ( "Start" == btn.value ) {
+			btn.value = "Stop";
+			doStart();
+		}
+		else {
+			btn.value = "Start";
+			doStop();
+		}
+	}
 }
 
-function doStop() {
-	gbStop = true;
+
+function getTestNumber(testkey, testurl) {
+	if ( testkey ) {
+		for ( test in gsTests ) {
+			if ( gsTests.hasOwnProperty(test) ) {
+				if ( testkey == test ) {
+					return gsTests[test][2];
+				}
+			}
+		}
+	}
+	else if ( testurl ) {
+		for ( test in gsTests ) {
+			if ( gsTests.hasOwnProperty(test) ) {
+				if ( testurl == gsTests[test][3] ) {
+					return gsTests[test][2];
+				}
+			}
+		}
+	}
+
+	return undefined;
 }
 
-// Start the first test.
+
 if ( Util.getParam("autorun") ) {
+	// Start the first test.
 	doStart();
+}
+else if ( Util.getParam("testurl") ) {
+	doStop();
+	var iTest = getTestNumber(null, Util.getParam("testurl"));
+	if ( iTest ) {
+		doTestClick(iTest);
+	}
 }
 </script>
 
