@@ -237,11 +237,9 @@ def ClearMemcache(request):
   else:
     version_level = request.GET.get('v')
     if version_level:
-      user_agent_strings = UserAgentGroup.GetByVersionLevel(version_level)
-
+      user_agent_strings = UserAgentGroup.GetStrings(version_level)
   if not user_agent_strings:
     return http.HttpResponse('Either pass in user_agent_strings= or v=')
-
 
   logging.info('categories are: %s' % categories)
   logging.info('user_agent_strings are: %s' % user_agent_strings)
@@ -348,7 +346,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     use_memcache: Use memcache or not.
   """
   version_level = request.GET.get('v', 'top')
-  user_agent_group_strings = UserAgentGroup.GetByVersionLevel(version_level)
+  user_agent_group_strings = UserAgentGroup.GetStrings(version_level)
 
   tests = [test for test in opt_tests or test_set.tests
            if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat]
@@ -587,7 +585,7 @@ def UpdateTx(test_time, user_agent):
   result_parent = ResultParent()
   result_parent.category = test_time.category
   result_parent.user_agent = user_agent
-  result_parent.user_agent_list = test_time.user_agent_list
+  result_parent.user_agent_pretty = test_time.user_agent_pretty
   result_parent.ip = test_time.ip
   result_parent.created = test_time.created
   result_parent.params = test_time.params

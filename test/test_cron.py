@@ -69,7 +69,7 @@ class TestCron(unittest.TestCase):
     result_parent1 = ResultParent()
     result_parent1.category = category
     result_parent1.user_agent = user_agent
-    result_parent1.user_agent_list = user_agent.get_string_list()
+    result_parent1.user_agent_pretty = user_agent.pretty()
     result_parent1.put()
 
     result_time1 = ResultTime(parent=result_parent1)

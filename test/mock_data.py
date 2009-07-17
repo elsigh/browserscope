@@ -51,7 +51,7 @@ def AddFiveResultsAndIncrementAllCounts():
   result1 = ResultParent()
   result1.category = test_set.category
   result1.user_agent = user_agent
-  result1.user_agent_list = user_agent.get_string_list()
+  result1.user_agent_pretty = user_agent.pretty()
   result1.ip = '12.2.2.255'
   result1.put()
   result1_time1 = ResultTime(parent=result1)
@@ -66,7 +66,7 @@ def AddFiveResultsAndIncrementAllCounts():
   result2 = ResultParent()
   result2.category = test_set.category
   result2.user_agent = user_agent
-  result2.user_agent_list = user_agent.get_string_list()
+  result2.user_agent_pretty = user_agent.pretty()
   result2.ip = '12.2.2.255'
   result2.put()
   result2_time1 = ResultTime(parent=result2)
@@ -81,7 +81,7 @@ def AddFiveResultsAndIncrementAllCounts():
   result3 = ResultParent()
   result3.category = test_set.category
   result3.user_agent = user_agent
-  result3.user_agent_list = user_agent.get_string_list()
+  result3.user_agent_pretty = user_agent.pretty()
   result3.ip = '12.2.2.255'
   result3.put()
   result3_time = ResultTime(parent=result3)
@@ -97,7 +97,7 @@ def AddFiveResultsAndIncrementAllCounts():
   result4 = ResultParent()
   result4.category = test_set.category
   result4.user_agent = user_agent
-  result4.user_agent_list = user_agent.get_string_list()
+  result4.user_agent_pretty = user_agent.pretty()
   result4.ip = '12.2.2.255'
   result4.put()
   result4_time = ResultTime(parent=result4)
@@ -113,7 +113,7 @@ def AddFiveResultsAndIncrementAllCounts():
   result5 = ResultParent()
   result5.category = test_set.category
   result5.user_agent = user_agent
-  result5.user_agent_list = user_agent.get_string_list()
+  result5.user_agent_pretty = user_agent.pretty()
   result5.ip = '12.2.2.255'
   result5.put()
   result5_time = ResultTime(parent=result5)
@@ -136,7 +136,7 @@ def AddThreeResultsWithParamsAndIncrementAllCounts():
   result1 = ResultParent()
   result1.category = test_set.category
   result1.user_agent = user_agent
-  result1.user_agent_list = user_agent.get_string_list()
+  result1.user_agent_pretty = user_agent.pretty()
   result1.ip = '12.2.2.255'
   result1.params = test_set.default_params
   result1.put()
@@ -149,7 +149,7 @@ def AddThreeResultsWithParamsAndIncrementAllCounts():
   result2 = ResultParent()
   result2.category = test_set.category
   result2.user_agent = user_agent
-  result2.user_agent_list = user_agent.get_string_list()
+  result2.user_agent_pretty = user_agent.pretty()
   result2.ip = '12.2.2.255'
   result2.params = test_set.default_params
   result2.put()
@@ -162,7 +162,7 @@ def AddThreeResultsWithParamsAndIncrementAllCounts():
   result3 = ResultParent()
   result3.category = test_set.category
   result3.user_agent = user_agent
-  result3.user_agent_list = user_agent.get_string_list()
+  result3.user_agent_pretty = user_agent.pretty()
   result3.ip = '12.2.2.255'
   result3.params = test_set.default_params
   result3.put()
@@ -179,7 +179,7 @@ def AddOneTest():
   result = ResultParent()
   result.category = test_set.category
   result.user_agent = user_agent
-  result.user_agent_list = user_agent.get_string_list()
+  result.user_agent_pretty = user_agent.pretty()
   result.ip = '12.2.2.255'
   result.put()
   result_time1 = ResultTime(parent=result)

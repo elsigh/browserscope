@@ -57,8 +57,8 @@ handlers:
   login: admin
   script: gaeunit.py
 
-# Cron/Task Queue
-- url: /cron.*
+# Admin/Cron/Task Queue
+- url: /(admin|cron).*
   login: admin
   script: main.py
 

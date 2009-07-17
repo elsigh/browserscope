@@ -58,7 +58,7 @@ class ResultParent(db.Expando):
   category = db.StringProperty()
   user_agent = db.ReferenceProperty(UserAgent)
   user_agent_pretty = db.StringProperty()
-  user_agent_list = db.StringListProperty()
+  user_agent_list = db.StringListProperty(default=[])
   ip = db.StringProperty()
   # TODO(elsigh) remove user in favor of user_id
   user = db.UserProperty()
@@ -73,7 +73,7 @@ class ResultParent(db.Expando):
     parent = cls(category=category,
                  ip=ip,
                  user_agent=user_agent,
-                 user_agent_list=user_agent.get_string_list(),
+                 user_agent_pretty=user_agent.pretty(),
                  **kwds)
     def _AddResultInTransaction():
       parent.put()
@@ -84,7 +84,7 @@ class ResultParent(db.Expando):
 
   def invalidate_ua_memcache(self):
     memcache_ua_keys = ['%s_%s' % (self.category, user_agent)
-                        for user_agent in self.user_agent_list]
+                        for user_agent in self._get_user_agent_list()]
     #logging.info('invalidate_ua_memcache, memcache_ua_keys: %s' %
     #             memcache_ua_keys)
     memcache.delete_multi(keys=memcache_ua_keys, seconds=0,
@@ -99,3 +99,10 @@ class ResultParent(db.Expando):
       #logging.info('ResultTime key is %s ' % (result_time.key()))
       #logging.info('w/ ua: %s' %  result_time.parent().user_agent)
       result_time.increment_all_counts()
+
+  def _get_user_agent_list(self):
+    """Transition from storing user_agent_list to user_agent_pretty."""
+    if self.user_agent_pretty:
+      return UserAgent.parse_to_string_list(self.user_agent_pretty)
+    else:
+      return self.user_agent_list

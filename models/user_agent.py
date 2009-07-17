@@ -185,29 +185,49 @@ class UserAgentGroup(db.Model):
   v = db.StringProperty()  # version level
 
   @staticmethod
-  def GetByVersionLevel(version_level):
+  def AddString(version_level, string):
+    key_name = UserAgentGroup._MakeKeyName(version_level, string)
+    UserAgentGroup.get_or_insert(key_name, v=str(version_level), string=string)
+
+    # Now add string to memcache entry if it exists. Otherwise, skip.
+    memcache_key = UserAgentGroup._MakeMemcacheKey(version_level)
+    user_agent_strings = memcache.get(key=memcache_key)
+    if user_agent_strings and string not in user_agent_strings:
+      user_agent_strings.append(string)
+      user_agent_strings.sort()
+      memcache.set(key=memcache_key, value=user_agent_strings)
+
+  @staticmethod
+  def GetStrings(version_level):
     version_level = str(version_level)
-    results = None
     if version_level == 'top':
-      user_agent_group_strings = TOP_USER_AGENT_GROUP_STRINGS[:]
+      user_agent_strings = TOP_USER_AGENT_GROUP_STRINGS[:]
     else:
-      memcache_key = UserAgentGroup.MakeMemcacheKey(version_level)
-      user_agent_group_strings = memcache.get(key=memcache_key)
-      if not user_agent_group_strings:
-        query = db.Query(UserAgentGroup)
-        query.filter('v =', version_level)
-        query.order('string')
-        results = query.fetch(1000, 0)
-        user_agent_group_strings = [x.string for x in results]
-        memcache.set(key=memcache_key, value=user_agent_group_strings, time=0)
-    return user_agent_group_strings
+      memcache_key = UserAgentGroup._MakeMemcacheKey(version_level)
+      user_agent_strings = memcache.get(key=memcache_key)
+      if not user_agent_strings:
+        query = UserAgentGroup.gql(
+            'WHERE v = :1 ORDER BY string', version_level)
+        user_agent_strings = [x.string for x in query.fetch(1000, 0)]
+        if len(user_agent_strings) > 900:
+          # TODO: Handle more than 1000 user agents strings in a group.
+          logging.warn('UserAgentGroup: Group will max out at 1000:'
+                       ' version_level=%s, len(user_agent_strings)=%s',
+                       version_level, len(user_agent_strings))
+        memcache.set(key=memcache_key, value=user_agent_strings)
+    return user_agent_strings
 
   @staticmethod
-  def MakeKey(version_level, user_agent_group_string):
-    return 'key:%s_%s' % (version_level, user_agent_group_string)
+  def ClearMemcache(version_level):
+    memcache_key = UserAgentGroup._MakeMemcacheKey(version_level)
+    memcache.delete(key=memcache_key, seconds=0)
 
   @staticmethod
-  def MakeMemcacheKey(version_level):
+  def _MakeKeyName(version_level, user_agent_string):
+    return 'key:%s_%s' % (version_level, user_agent_string)
+
+  @staticmethod
+  def _MakeMemcacheKey(version_level):
     return 'user_agent_group_%s' % version_level
 
 
@@ -240,28 +260,22 @@ class UserAgent(db.Model):
 
 
   def update_groups(self):
-    """Make sure this new user agent is accounted for in the group."""
+    """Make sure this new user agent is accounted for in the group.
+
+    Add a string for every version level.
+    If a level does not have a string, then one from the previous level.
+    For example, "Safari 4.3" would add the following:
+        level      string
+            0  Safari
+            1  Safari 4
+            2  Safari 4.3
+            3  Safari 4.3
+    """
     string_list = self.get_string_list()
-    for v in range(4):
-      if v < len(string_list):
-        string = string_list[v]
-      else:
-        # If we get to a depth with nothing else, just use the last one.
-        # i.e. for v=3, Safari 4.3 should still be in the list even though it
-        # has no 3rd bit on the version string.
-        pass
-
-      key_name = UserAgentGroup.MakeKey(v, string)
-      if UserAgentGroup.get_by_key_name(key_name) is None:
-        UserAgentGroup(key_name=key_name, v=str(v), string=string).put()
-
-        # Now update memcache cheaply with append/sort - if it's set.
-        memcache_key = UserAgentGroup.MakeMemcacheKey(v)
-        user_agents = memcache.get(key=memcache_key)
-        if user_agents and string not in user_agents:
-          user_agents.append(string)
-          user_agents.sort()
-          memcache.set(key=memcache_key, value=user_agents, time=0)
+    max_string_index = len(string_list) - 1
+    for v in (0, 1, 2, 3):
+      string = string_list[min(v, max_string_index)]
+      UserAgentGroup.AddString(v, string)
 
 
   @staticmethod
@@ -327,3 +341,22 @@ class UserAgent(db.Model):
     elif v1:
       return '%s %s' % (family, v1)
     return family
+
+  @staticmethod
+  def parse_to_string_list(pretty_string):
+    """Parse a pretty string into string list."""
+    string_list = []
+    if pretty_string:
+      family_end = pretty_string.find(' ')
+      if family_end != -1:
+        string_list.append(pretty_string[:family_end])
+        v1_end = pretty_string.find('.', family_end + 1)
+        if v1_end != -1:
+          string_list.append(pretty_string[:v1_end])
+          v2_end = pretty_string.find('.', v1_end + 1)
+          if v2_end == -1:
+            v2_end = pretty_string.find(' ', v1_end + 1)
+          if v2_end != -1:
+            string_list.append(pretty_string[:v2_end])
+      string_list.append(pretty_string)
+    return string_list

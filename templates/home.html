@@ -16,7 +16,7 @@
           <td>{{ test.created|date:"P" }}</td>
           <td>{{ test.created|date:"N j" }}</td>
           <td>{{ test.category }}</td>
-          <td>{{ test.user_agent_list|last }}</td>
+          <td>{{ test.user_agent_pretty }}</td>
         </tr>
       {% endfor %}
     </table>

@@ -33,6 +33,7 @@ from models.result import ResultParent
 
 import django
 from django import http
+from django.utils import simplejson
 
 def Render(request, template_file, params):
   """Render network test pages."""
@@ -40,7 +41,6 @@ def Render(request, template_file, params):
   return util.Render(request, template_file, params)
 
 
-@decorators.admin_required
 def RebuildRankers(request):
   """Rebuild rankers."""
 
@@ -50,14 +50,24 @@ def RebuildRankers(request):
   return Render(request, 'admin/rebuild_rankers.html', params)
 
 
-@decorators.admin_required
 def UpdateResultParents(request):
-  bookmark = request.GET.get('bookmark', None)
-  total = request.GET.get('total', 0)
-
+  is_client_tool = False
+  if request.method == 'POST':
+    # Request is from client tool (e.g. bin/db_update.py)
+    is_client_tool = True
+    try:
+      bookmark, total_scanned, total_updated = simplejson.loads(
+          request.raw_post_data)
+    except ValueError:
+      bookmark = None
+  else:
+    bookmark = request.GET.get('bookmark', None)
+    total_scanned = request.GET.get('total_scanned', 0)
+    total_updated = request.GET.get('total_updated', 0)
   query = pager.PagerQuery(ResultParent)
   try:
-    prev_bookmark, results, next_bookmark = query.fetch(1000, bookmark)
+    prev_bookmark, results, next_bookmark = query.fetch(100, bookmark)
+    total_scanned += len(results)
     changed_results = []
     for result in results:
       if result.user_agent_list:
@@ -65,16 +75,24 @@ def UpdateResultParents(request):
         result.user_agent_list = []
         changed_results.append(result)
     if changed_results:
-      logging.info('Update ResultParent user_agent_list -> user_agent_pretty: count = %s', len(changed_results))
-      db.put(changed_results)
+      num_changed_results = len(changed_results)
+      db.put(changed_results)  # TODO: Handle Timeout exception
+
+      total_updated += num_changed
   except DeadlineExceededError:
-    logging.warn('Update ResultParent user_agent_list -> user_agent_pretty: DeadlineExceededError')
-    # retry with fewer?
-    return http.HttpResponse('UpdateResultParent: timed-out.', status=403)
-  if next_bookmark:
-    taskqueue.Task(method='GET', url='/admin/update_result_parent',
-                   params={'bookmark': next_bookmark,
-                           'total': total}).add(update-dirty)
-  else:
-    logging.info('Update ResultParent user_agent_list -> user_agent_pretty: total processed: %s', total)
-  return http.HttpResponse('UpdateResultParent: chunk complete.')
+    return http.HttpResponse('UpdateResultParent: DeadlineExceededError.',
+                             status=403)
+  if is_client_tool:
+    return http.HttpResponse(
+        simplejson.dumps((next_bookmark, total_scanned, total_updated)))
+  elif next_bookmark:
+    taskqueue.Task(
+        method='GET',
+        url='/admin/update_result_parents',
+        params={
+            'bookmark': next_bookmark,
+            'total_scanned': total_scanned,
+            'total_updated': total_updated,
+            }).add()
+    return http.HttpResponse('Finished batch. Queued more updates.')
+  return http.HttpResponse('Finished batch. No more updates.')

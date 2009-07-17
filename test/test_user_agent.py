@@ -125,14 +125,32 @@ class UserAgentTest(unittest.TestCase):
                      UserAgent.pretty_print('Other', None, None, None))
 
 
+  def test_parse_to_string_list(self):
+    self.assertEqual([], UserAgent.parse_to_string_list(''))
+
+    self.assertEqual(['Opera'],
+                     UserAgent.parse_to_string_list('Opera'))
+
+    self.assertEqual(['IE', 'IE 8'],
+                     UserAgent.parse_to_string_list('IE 8'))
+
+    self.assertEqual(['Firefox', 'Firefox 3', 'Firefox 3.1'],
+                     UserAgent.parse_to_string_list('Firefox 3.1'))
+
+    self.assertEqual(['Chrome', 'Chrome 5', 'Chrome 5.4', 'Chrome 5.4.3'],
+                     UserAgent.parse_to_string_list('Chrome 5.4.3'))
+
+    self.assertEqual(
+        ['Safari', 'Safari 100', 'Safari 100.33', 'Safari 100.33 preA4'],
+        UserAgent.parse_to_string_list('Safari 100.33 preA4'))
+
+
+
 class UserAgentGroupTest(unittest.TestCase):
 
   def setUp(self):
-
-    # purge memcache
-    for version_level, label in BROWSER_NAV:
-      memcache_key = UserAgentGroup.MakeMemcacheKey(version_level)
-      memcache.delete(key=memcache_key, seconds=0)
+    for version_level, _ in BROWSER_NAV:
+      UserAgentGroup.ClearMemcache(version_level)
 
     user_agent_strings = [
         ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
@@ -154,24 +172,24 @@ class UserAgentGroupTest(unittest.TestCase):
   def test_update_groups_version_level_zero(self):
     self.assertEqual(
         ['Firefox', 'IE'],
-        UserAgentGroup.GetByVersionLevel('0'))
+        UserAgentGroup.GetStrings(version_level=0))
 
   def test_update_groups_version_level_one(self):
     self.assertEqual(
         ['Firefox 3', 'IE 7'],
-        UserAgentGroup.GetByVersionLevel('1'))
+        UserAgentGroup.GetStrings(version_level=1))
 
   def test_update_groups_version_level_two(self):
     self.assertEqual(
         ['Firefox 3.0', 'Firefox 3.1', 'IE 7.0'],
-        UserAgentGroup.GetByVersionLevel('2'))
+        UserAgentGroup.GetStrings(version_level=2))
 
   def test_update_groups_version_level_three(self):
     # This also tests that the order comes out the way we'd want even though
     # they didn't go in in that order.
     self.assertEqual(
         ['Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8', 'IE 7.0'],
-        UserAgentGroup.GetByVersionLevel('3'))
+        UserAgentGroup.GetStrings(version_level=3))
 
 
 if __name__ == '__main__':
