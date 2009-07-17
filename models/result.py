@@ -19,6 +19,7 @@ import logging
 import sys
 
 from google.appengine.ext import db
+from google.appengine.api import memcache
 
 from controllers import all_test_sets
 from models import user_agent
