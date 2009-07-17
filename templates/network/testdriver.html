@@ -91,7 +91,7 @@ function doNextTest(iTest) {
 			"&csrf_token={{ csrf_token }}";
 		var beacon = new Beacon(uriParams);
 		beacon.onComplete = function() {
-			var continueUrl = Util.getParam('continue');
+			var continueUrl = unescape(Util.getParam('continue'));
 			var results = 'network_results=' + testResults.join(',');
 			var nextUrl;
 			if (continueUrl != '') {
@@ -148,7 +148,6 @@ function getTestNumber(testkey, testurl) {
 
 	return undefined;
 }
-
 
 if ( Util.getParam("autorun") ) {
 	// Start the first test.
