@@ -18,7 +18,6 @@
 {% block body %}
 
   <div id="reflow-bms">
-    Bookmarklets:
     {% if is_elsigh %}
       <a href="javascript:(function(){_rnd=Math.floor(Math.random()*1000);_src='http://{{server}}/js
 /reflow/reflow_timer_callback.js?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.t
@@ -27,15 +26,10 @@ cript);})();"
       >ReflowCallback</a> |
     {% endif %}
     <a href="javascript:(function(){_rnd=Math.floor(Math.random()*1000);_src='http://{{server}}/js/r
-eflow/reflow_timer_alltests.js?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.typ
-e='text/javascript';_my_script.src=_src;document.getElementsByTagName('head')[0].appendChild(_my_scr
-ipt);})();"
-    >Reflow Bookmarklet - Interactive</a> |
-    <a href="javascript:(function(){_rnd=Math.floor(Math.random()*1000);_src='http://{{server}}/js/r
-eflow/reflow_timer_visual.js?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.type=
+eflow/reflow_timer_ui.js?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.type=
 'text/javascript';_my_script.src=_src;document.getElementsByTagName('head')[0].appendChild(_my_scrip
 t);})();"
-    >Reflow Bookmarklet - All Tests</a>
+    >Reflow Bookmarklet!</a>
   </div>
 
   <h1>{{ page_title }}</h1>
@@ -69,10 +63,6 @@ t);})();"
   </p>
 
   <p>
-    One important caveat about the test results in the Reflow category is that they will vary based on a user's machine configuration. Since reflow uses CPU power, the times will likely vary a fair amount. Hopefully we'll get enough test results that the median is still interesting.
-  </p>
-
-  <p>
     Once satisfied that the render queue has been flushed, we
     give the browser a little time to rest, then set a timer. We
     perform whatever operations are in a particular test (almost always a set operation on element.style), and then we
@@ -82,13 +72,14 @@ t);})();"
   </p>
 
   <p>
-    Initially the only test we were curious about was "what is the cost of a worst-case-scenario", i.e. full page reflow where everything has to be re-calculated from scratch. We wanted to a baseline. After doing a series of small experiments it became somewhat clear that there are lots of interesting things worth testing beyond that. At the moment, I feel like these tests are not covering the full breadth of what may be interesting to test here. Consider this a start. ;)
-  </p>
-
-  <p>
     This approach is certainly not flawless (Javascript timers can be @ 15ms inaccurate), but it appears to work in
     all browsers in non-debug builds - therefore giving us a time that
-    should be something akin to what real-world users would experience in terms of the interaction-blocking time caused by reflow.
+    should be something akin to what real-world users would experience in terms of the interaction-blocking time caused by selector match time + position calculations (aka "reflow" in our tests).
+  </p>
+
+  <h2 id="acid1">What's up with using the Acid1 test?</h2>
+  <p>
+    <a href="http://www.w3.org/Style/CSS/Test/CSS1/current/test5526c.htm">Acid1</a> (<a href="http://en.wikipedia.org/wiki/Acid1">Wikipedia</a>) has been around for a 11 years now and tests core compatibility with CSS1. This test causes a nice balance of CSS selector matching plus layout changes and has the added advantage that we didn't write it.
   </p>
 
   <h2 id="rt-tests">More About Each Test</h2>

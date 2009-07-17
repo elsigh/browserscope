@@ -24,9 +24,6 @@ from controllers import test_set_base
 
 _CATEGORY = 'reflow'
 
-LT_1X_TIME = '~ 0X'
-EQ_1X_TIME = '1X'
-GT_1X_TIME = '> 1X'
 
 class ReflowTest(object):
   TESTS_URL_PATH = '/%s/test' % _CATEGORY
@@ -47,84 +44,64 @@ class ReflowTest(object):
       A tuple of display, score
     """
     # We'll give em the benefit of the doubt here.
-    if not median and median != 0:
-      return 90, LT_1X_TIME
+    if median == None or median == '':
+      return 90, ''
 
-    time = round(float(median) / 1000.0, 1)
-    abc = (1, 2, 3, 4)
+    median = round(float(median))
+
     if self.key is 'testDisplay':
-      abc = (.3, .5, 1, 1.5)
+      # This is the benchmark test, so everything should be green here.
+      bench = 100
     elif self.key is 'testVisibility':
-      abc = (.4, .7, 1.1, 1.6)
+      bench = 50
     elif self.key is 'testNonMatchingClass':
-      abc = (.6, 1, 2, 3)
+      # Since our supposition is that the test is 70% layout 30% selector,
+      # We'll go with 50% here as an A
+      bench = 50
     elif self.key is 'testFourClassReflows':
-      abc = (.6, 1, 2, 3)
+      bench = 120
     elif self.key is 'testFourScriptReflows':
-      abc = (.6, 1, 2, 3)
+      bench = 120
     elif self.key is 'testTwoScriptReflows':
-      abc = (.6, 1, 2, 3)
+      bench = 120
     elif self.key is 'testPaddingPx':
-      abc = (.6, 1, 2, 3)
+      bench = 120
     elif self.key is 'testPaddingLeftPx':
-      abc = (.6, 1, 1.5, 2)
+      bench = 120
     elif self.key is 'testFontSizeEm':
-      abc = (.6, 1, 2, 3)
+      bench = 120
     elif self.key is 'testWidthPercent':
-      abc = (.6, 1, 2, 3)
+      bench = 120
     elif self.key is 'testBackground':
-      abc = (.6, 1, 2, 3)
+      bench = 50
     elif self.key is 'testOverflowHidden':
-      abc = (.6, 1, 2, 3)
-    elif self.key is 'testSelectorMatchTime':
-      abc = (.6, 1, 1.5, 2)
+      bench = 50
     elif self.key is 'testGetOffsetHeight':
-      abc = (.1, .2, .3, .4)
-    score = self._GetScore(time, abc)
+      # Should we be pickier here that this should really be 0?
+      bench = 50
 
-    if score >= 90:
-      display = LT_1X_TIME
-    elif score >= 80:
-      display = EQ_1X_TIME
+    if median <= (bench/2):
+      score = 100
+      display = '~0X'
+    elif median <= bench:
+      score = 90
+      display = '1X'
+    elif median <= (bench*2):
+      score = 80
+      display = '2X'
+    elif median <= (bench*3):
+      score = 70
+      display = '3X'
+    elif median <= (bench*4):
+      score = 60
+      display = '4X'
     else:
-      display = GT_1X_TIME
+     score = 50
+     display = '>4X'
+    #logging.info('%s, %s, %s' % (median, score, display))
 
-
-    #logging.info('CustomTestsFunction w/ %s, %s' % (test, median))
-    #logging.info('TEST!! %s, %s, %s' % (test, time, score))
     return score, display
 
-  @staticmethod
-  def _GetScore(time, abc):
-    """Computes an A/B/C/D/F-like score out of 100.
-
-    Args:
-      time: a float to score
-      abc: (a_cutoff, b_cutoff, c_cutoff, d_cutoff)
-    """
-    # Make the score proportional to where the time falls in the abc ranges.
-    if time <= abc[0]:
-      score = int(round(90.0 + (abc[0] - time) / abc[0] * 10))             # A
-    elif abc[0] < time <= abc[1]:
-      score = int(round(80.0 + (abc[1] - time) / (abc[1] - abc[0]) * 10))  # B
-    elif abc[1] < time <= abc[2]:
-      score = int(round(70.0 + (abc[2] - time) / (abc[2] - abc[1]) * 10))  # C
-    elif abc[2] < time <= abc[3]:
-      score = int(round(60.0 + (abc[3] - time) / (abc[3] - abc[2]) * 10))  # D
-    else:
-      score = 50  # F
-
-    # Ok normalize again in the interest of showing simplified text instead of
-    # numbers in the UI.
-    # TODO(elsigh): refactor this with that in mind.
-    if score > 80:
-      score = 90
-    elif score > 60:
-      score = 80
-    else:
-      score = 50
-
-    return score
 
 
 _TESTS = (
@@ -155,9 +132,9 @@ _TESTS = (
     costly for the browser to perform as it should not need be purging
     the element from the render tree and recalculating
     geometries.'''),
-  ReflowTest('testNonMatchingClass', 'Non Matching by Class',
-    '''This test adds a class name to an element, and more specifically a
-    class name which is not present in the document's CSS object
+  ReflowTest('testNonMatchingClass', 'Non Matching Class',
+    '''This test adds a class name to an element where that
+    class name is not present in the document's CSS object
     model.'''),
   ReflowTest('testFourClassReflows', 'Four Reflows by Class',
     '''This test adds a class name to an element that will match a
@@ -196,21 +173,21 @@ _TESTS = (
     '''This test sets an element's style.overflow="hidden" and then back
     again, timing the cost of an element returning to the default
     overflow which is "visible"'''),
-  ReflowTest('testSelectorMatchTime', 'Selector Match Time',
-    '''In the world of reflow, one of the possible operations that can
-    eat up time occurs when an element gets a new class name and the
-    render engine has to look through the CSSOM to see if this element
-    now matches some CSS declaration. The goal of this test is to try
-    to cause this match operation without causing any change to the
-    render tree. The test is much like the Non-Matching Class test,
-    except that instead of flushing the render queue before this test,
-    we try to simply flush any style computations. The way it works is
-    to make a CSS rule that can get activated by virtue of an
-    attribute selector but which will never cause reflow because it
-    will never match any element in the render tree. For instance
-    "body[bogusattr='bogusval'] html {color:pink}". We note that this
-    test seems not to work in engines other than Gecko at this
-    time.'''),
+  # ReflowTest('testSelectorMatchTime', 'Selector Match Time',
+  #   '''In the world of reflow, one of the possible operations that can
+  #   eat up time occurs when an element gets a new class name and the
+  #   render engine has to look through the CSSOM to see if this element
+  #   now matches some CSS declaration. The goal of this test is to try
+  #   to cause this match operation without causing any change to the
+  #   render tree. The test is much like the Non-Matching Class test,
+  #   except that instead of flushing the render queue before this test,
+  #   we try to simply flush any style computations. The way it works is
+  #   to make a CSS rule that can get activated by virtue of an
+  #   attribute selector but which will never cause reflow because it
+  #   will never match any element in the render tree. For instance
+  #   "body[bogusattr='bogusval'] html {color:pink}". We note that this
+  #   test seems not to work in engines other than Gecko at this
+  #   time.'''),
   ReflowTest('testGetOffsetHeight', 'Do Nothing / OffsetHeight',
     '''This test does nothing other than the request for offsetHeight
     after already having done so. Theoretically, this test is
@@ -228,8 +205,9 @@ TEST_SET = test_set_base.TestSet(
       'About': '/%s/about' % _CATEGORY
     },
     home_intro='''Reflow in a web browser refers to the process whereby the render engine calculates positions and geometries of elements in the document for purpose of drawing, or re-drawing, the visual presentation. Because reflow is a user-blocking operation in the browser, it is useful for developers to understand how to improve reflow times and also to understand the effects of various document properties (DOM nesting, CSS specificity, types of style changes) on reflow. <a href="/reflow/about">Read more about reflow and these tests.</a>''',
-    default_params=[
-    'nested_anchors', 'num_elements=400', 'num_nest=4',
-    'css_selector=%23g-content%20*', 'num_css_rules=1000',
-    'css_text=border%3A%201px%20solid%20%230C0%3B%20padding%3A%208px%3B'],
+    # default_params=[
+    # 'nested_anchors', 'num_elements=400', 'num_nest=4',
+    # 'css_selector=%23g-content%20*', 'num_css_rules=1000',
+    # 'css_text=border%3A%201px%20solid%20%230C0%3B%20padding%3A%208px%3B'],
+    default_params=['acid1', 'num_elements=200'],
 )

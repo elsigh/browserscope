@@ -32,24 +32,35 @@ class ReflowTestTest(unittest.TestCase):
     #self.client = Client()
 
   def testScoreAndDisplayValueNone(self):
-    test = reflow_test_set.ReflowTest('testGetOffsetHeight', 'zer', 'Zero Test')
+    test = reflow_test_set.ReflowTest('testVisibility', 'zer', 'Zero Test')
     score, display = test.GetScoreAndDisplayValue(None)
-    self.assertEqual((90, reflow_test_set.LT_1X_TIME), (score, display))
+    self.assertEqual((90, ''), (score, display))
 
   def testScoreAndDisplayValueZero(self):
-    test = reflow_test_set.ReflowTest('testGetOffsetHeight', 'zer', 'Zero Test')
+    test = reflow_test_set.ReflowTest('testVisibility', 'zer', 'Zero Test')
     score, display = test.GetScoreAndDisplayValue(0)
-    self.assertEqual((90, reflow_test_set.LT_1X_TIME), (score, display))
+    self.assertEqual((100, '~0X'), (score, display))
 
-  def testScoreAndDisplayValueRoundUp(self):
-    test = reflow_test_set.ReflowTest('testDisplay', 'da up', 'da up Test')
-    score, display = test.GetScoreAndDisplayValue(475)
-    self.assertEqual((80, reflow_test_set.EQ_1X_TIME), (score, display))
-
-  def testScoreAndDisplayValueRoundDown(self):
-    test = reflow_test_set.ReflowTest('testDisplay', 'da down', 'da down Test')
-    score, display = test.GetScoreAndDisplayValue(1203)
-    self.assertEqual((80, reflow_test_set.EQ_1X_TIME), (score, display))
+  def testScoreAndDisplayValueVisibility(self):
+    test = reflow_test_set.ReflowTest('testVisibility', 'da up', 'da up Test')
+    score, display = test.GetScoreAndDisplayValue(20)
+    self.assertEqual((100, '~0X'), (score, display))
+    score, display = test.GetScoreAndDisplayValue(40)
+    self.assertEqual((90, '1X'), (score, display))
+    score, display = test.GetScoreAndDisplayValue(30)
+    self.assertEqual((90, '1X'), (score, display))
+    score, display = test.GetScoreAndDisplayValue(50)
+    self.assertEqual((90, '1X'), (score, display))
+    score, display = test.GetScoreAndDisplayValue(60)
+    self.assertEqual((80, '2X'), (score, display))
+    score, display = test.GetScoreAndDisplayValue(100)
+    self.assertEqual((80, '2X'), (score, display))
+    score, display = test.GetScoreAndDisplayValue(150)
+    self.assertEqual((70, '3X'), (score, display))
+    score, display = test.GetScoreAndDisplayValue(180)
+    self.assertEqual((60, '4X'), (score, display))
+    score, display = test.GetScoreAndDisplayValue(200)
+    self.assertEqual((60, '4X'), (score, display))
 
 
 if __name__ == '__main__':

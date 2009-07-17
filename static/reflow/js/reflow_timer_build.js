@@ -317,6 +317,12 @@ var ReflowTimer = function(sendResultsToServer, opt_container, opt_passes) {
   this.medianReflowTimes_ = [];
 
   /**
+   * @type {Array}
+   * @private
+   */
+  this.normalizedTimes_ = [];
+
+  /**
    * @type {Function}
    */
   this.testCurry_ = Util.curry(this, this.test_);
@@ -327,12 +333,6 @@ var ReflowTimer = function(sendResultsToServer, opt_container, opt_passes) {
   this.testContinueCurry_ = Util.curry(this, this.testContinue_);
 
   /**
-   * @type {Function}
-   */
-  this.renderResultsOnPageCurry_ = Util.curry(this,
-      this.renderResultsOnPage_);
-
-  /**
    * Start with the first test.
    * @type {number}
    */
@@ -341,7 +341,7 @@ var ReflowTimer = function(sendResultsToServer, opt_container, opt_passes) {
   /**
    * @type {Array}
    */
-  this.testResultVals = [];
+  this.results = [];
 };
 
 /**
@@ -349,7 +349,6 @@ var ReflowTimer = function(sendResultsToServer, opt_container, opt_passes) {
  * @type {string}
  */
 ReflowTimer.SERVER = 'ua-profiler.appspot.com';
-
 
 /**
  * @type {number}
@@ -378,8 +377,10 @@ ReflowTimer.TEST_CLASS_NAME = 'rt-test-classname';
 /**
  * @type {string}
  */
-ReflowTimer.TEST_MULTIPLE_REFLOW_CSSTEXT = 'font-size: 20px; ' +
-    'line-height: 10px; padding-left: 10px; margin-top: 7px;';
+ReflowTimer.TEST_MULTIPLE_REFLOW_CSSTEXT = 'font-size: 20px !important; ' +
+    'line-height: 10px !important;' +
+    'padding-left: 10px !important;' +
+    'margin-top: 7px; !important';
 
 
 /**
@@ -395,6 +396,7 @@ ReflowTimer.TEST_PADDING_LEFT_SHORTHAND_CSSTEXT = 'padding-left: 4px;';
 
 
 /**
+ * These are the enabled tests.
  * @type {Array.<string>}
  */
 ReflowTimer.prototype.tests = [
@@ -410,15 +412,16 @@ ReflowTimer.prototype.tests = [
   'testWidthPercent',
   'testBackground',
   'testOverflowHidden',
-  'testSelectorMatchTime',
   'testGetOffsetHeight'
 ];
 
 
 /**
+ * And these are the rest of the ones we've tried.
  * @type {Array.<string>}
  */
 ReflowTimer.prototype.unusedTests = [
+  'testSelectorMatchTime', // only works in FF this way
   'testLineHeight', // Same as testFontSize
   'testWidthPx', // Same as testWidthEm
   'testFontSizePx', // Same as testFontSizeEm
@@ -431,9 +434,11 @@ ReflowTimer.prototype.unusedTests = [
 
 
 /**
- * @type {boolean}
+ * Normalize values when sent to the server based on the following
+ * test's score, using it as a golden test of 1x reflow.
+ * @type {text}
  */
-ReflowTimer.prototype.renderResults = true;
+ReflowTimer.prototype.normalizeTimesToTest = 'testDisplay';
 
 
 /**
@@ -545,7 +550,7 @@ ReflowTimer.prototype.flushStyleComputation_ = function() {
  */
 ReflowTimer.prototype.run = function() {
 
-  this.testResultVals = [];
+  this.results = [];
 
   // Gets rid of prior test elements in the DOM.
   var previousElementIds = ['rt-content', 'rt-results',
@@ -668,9 +673,11 @@ ReflowTimer.prototype.test_ = function() {
 
   var time1 = new Date().getTime();
 
-  // Run the current test and then flush the render queue.
+  // Run the current test.
   this[this.currentTestName_]();
 
+  // Now flush the render queue again, ensuring that our last change
+  // gets pushed all the way through.
   this.flushBetween_();
 
   var time2 = new Date().getTime();
@@ -724,23 +731,32 @@ ReflowTimer.prototype.testsComplete_ = function() {
         ReflowTimer.getMedian(this.reflowTimes_[test]);
   }
 
+  // Normalized times.
+  if (this.normalizeTimesToTest) {
+    var benchmark = this.medianReflowTimes_[this.normalizeTimesToTest];
+    for (var i = 0, test; test = this.tests[i]; i++) {
+      var percentage = Math.round(
+          (this.medianReflowTimes_[test]/benchmark) * 100);
+      this.normalizedTimes_[test] = percentage;
+    }
+  }
+
+  // Results.
+  for (var i = 0, test; test = this.tests[i]; i++) {
+    this.results.push(test + '=' + (this.normalizeTimesToTest ?
+                                    this.normalizedTimes_[test] :
+                                    this.medianReflowTimes_[test]));
+  }
+
   // Inserts a result el into the doc for selenium-rc to block on.
   var el = document.createElement('input');
   el.type = 'hidden';
   el.id = 'rt-results';
-  var results = [];
-  for (var i = 0, test; test = this.tests[i]; i++) {
-    results.push(test + ':' + this.medianReflowTimes_[test]);
-  }
-  el.value = results.join(',');
+  el.value = this.results.join(',');
   this.body_.appendChild(el, this.body_.firstChild);
 
   if (this.testFeedbackEl_) {
     this.testFeedbackEl_.innerHTML = 'All done with the reflow tests!';
-  }
-
-  if (this.renderResults) {
-    this.renderResultsOnPage_();
   }
 
   // Send and or render on page.
@@ -752,14 +768,15 @@ ReflowTimer.prototype.testsComplete_ = function() {
     this.sendResultsToServer_();
   }
 
-  this.onTestsComplete(this.medianReflowTimes_);
+  this.onTestsComplete(this.results);
 };
 
 
 /**
  * Provides a function for subclasses/functional uses to implement.
+ * @param {array.<string>} results The results array where test=result.
  */
-ReflowTimer.prototype.onTestsComplete = function(reflowTimes) {};
+ReflowTimer.prototype.onTestsComplete = function(results) {};
 
 
 /******************************
@@ -789,6 +806,17 @@ ReflowTimer.prototype.testOverflowHidden = function() {
   this.containerStyle_.overflow = 'hidden';
 };
 ReflowTimer.prototype.testOverflowHiddenTearDown = function() {
+  this.containerStyle_.overflow = this.originalValue_;
+};
+
+
+ReflowTimer.prototype.testOverflowAutoSetUp = function() {
+  this.originalValue_ = this.containerStyle_.overflow;
+};
+ReflowTimer.prototype.testOverflowAuto = function() {
+  this.containerStyle_.overflow = 'auto';
+};
+ReflowTimer.prototype.testOverflowAutoTearDown = function() {
   this.containerStyle_.overflow = this.originalValue_;
 };
 
@@ -1051,12 +1079,8 @@ ReflowTimer.prototype.logPaintEvents_ = function(e) {
  * @private
  */
 ReflowTimer.prototype.sendResultsToServer_ = function() {
-  for (var i = 0, test; test = this.tests[i]; i++) {
-    this.testResultVals.push(test + '=' + this.medianReflowTimes_[test]);
-  }
 
-  var uriParams = 'category=reflow' +
-      '&results=' + this.testResultVals.join(',');
+  var uriParams = 'category=reflow' + '&results=' + this.results.join(',');
 
   // Add on params to the beacon.
   var paramsEl = document.getElementById('rt-params');
@@ -1091,8 +1115,7 @@ ReflowTimer.prototype.sendResultsToServer_ = function() {
  */
 ReflowTimer.prototype.onBeaconComplete_ = function() {
   if (this.testFeedbackEl_) {
-    this.testFeedbackEl_.innerHTML =
-        'Your results made it to the mothership!';
+    this.testFeedbackEl_.innerHTML = 'Your results were saved.';
   }
   this.onBeaconComplete();
 };
@@ -1102,134 +1125,4 @@ ReflowTimer.prototype.onBeaconComplete_ = function() {
  * Provides a function for subclasses/functional uses to implement.
  */
 ReflowTimer.prototype.onBeaconComplete = function() {};
-
-
-/**
- * Renders the test results in the DOM on the page.
- * @private
- */
-ReflowTimer.prototype.renderResultsOnPage_ = function() {
-  var container = this.doc_.createElement('div');
-  container.id = 'rt-content';
-
-  var anchor = this.doc_.createElement('a');
-  anchor.href = 'http://' + ReflowTimer.SERVER + '/';
-  anchor.appendChild(this.doc_.createTextNode('Reflow Timer'));
-  container.appendChild(anchor);
-
-  var dl = this.doc_.createElement('dl');
-  container.appendChild(dl);
-  var dtClone = this.doc_.createElement('dt');
-  var ddClone = this.doc_.createElement('dd');
-  var dt, dd;
-
-  // Show the avg reflow time first.
-  for (var i = 0, test; test = this.tests[i]; i++) {
-    dt = dtClone.cloneNode(false);
-    dt.className = 'rt-median';
-    dt.innerHTML = test.replace(/test/, '');
-    dl.appendChild(dt);
-    dd = ddClone.cloneNode(false);
-    dd.id = 'rt-' + test;
-    dd.className = 'rt-median';
-    dd.innerHTML = this.medianReflowTimes_[test];
-    dl.appendChild(dt);
-    dl.appendChild(dd);
-
-    if (this.passes_ > 1) {
-      for (var j = 0, n = this.reflowTimes_[test].length; j < n; j++) {
-        dt = dtClone.cloneNode(false);
-        dt.innerHTML = ' - pass ' + (j + 1);
-        dd = ddClone.cloneNode(false);
-        dd.innerHTML = this.reflowTimes_[test][j];
-        dl.appendChild(dt);
-        dl.appendChild(dd);
-      }
-    }
-  }
-
-  // Do we have paint events?
-  if (this.paintEvents_.length > 0) {
-    var expectedPaintEventsLength = this.passes_ * 2;
-    /*
-    if (this.paintEvents_.length != expectedPaintEventsLength) {
-      alert('FYI, we encountered a paint event count discrepancy. Expected ' +
-          expectedPaintEventsLength + ' events, but got ' +
-          this.paintEvents_.length);
-    }
-    */
-    for (var i = 0, paintEvent; paintEvent = this.paintEvents_[i]; i++) {
-      dt = dtClone.cloneNode(false);
-      dt.innerHTML = 'Paint ' + (i + 1) + ' Delta';
-      dl.appendChild(dt);
-
-      var delta = i == 0 ? 0 : paintEvent['time'] -
-          this.paintEvents_[i - 1]['time'] - this.timeout_;
-      if (delta < 0) {
-        delta = 0;
-      }
-      dd = ddClone.cloneNode(false);
-      dd.innerHTML = delta;
-      dl.appendChild(dd);
-    }
-  }
-
-  if (!document.getElementById('rt-css')) {
-    var cssText = [
-        '#rt-content {',
-          'border: 5px solid #333;',
-          'padding: 5px 5px 10px;',
-          'width: 22em;',
-          'background: #777;',
-          'text-align: left;',
-          'color: #fff;',
-          'font: 9px/1 normal arial, sans;',
-          'position: absolute;',
-          'top: 10px;',
-          'right: 10px;',
-          'z-index: 999666333;',
-        '}',
-        '#rt-content a,',
-        '#rt-content a:hover {',
-          'float: right;',
-          'background: none;',
-          'border: 0;',
-          'text-decoration: none;',
-          'font-size: 14px;',
-          'display: block;',
-          'color: #fff;',
-        '}',
-        '#rt-content dl {',
-          'margin: 0;',
-        '}',
-        '#rt-content dt {',
-          'float: left;',
-          'width: 69.999%;',
-          'margin: 0;',
-          'zoom: 1',
-        '}',
-        '#rt-content dd {',
-          'float: left;',
-          'width: 29.999%;',
-          'text-align: right;',
-          'margin: 0;',
-          'zoom: 1;',
-        '}',
-        '#rt-content dd:after {',
-          'content: " ";',
-          'display: block;',
-          'visibility: hidden;',
-          'height: 0',
-        '}',
-        '#rt-content .rt-median {',
-          'border-top: 1px solid #ccc;',
-          'padding-top: 4px;',
-          'margin-top: 4px;',
-          'font-size: 13px;',
-        '}'].join('');
-    Util.addCssText(cssText, 'rt-css');
-  }
-
-  this.body_.appendChild(container, this.body_.firstChild);
-};
 

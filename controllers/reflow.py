@@ -120,7 +120,7 @@ def Test(request):
   }
   params.update(util.ParamsListToDict(test_set.default_params))
 
-  return util.Render(request, 'reflow/test.html', params, CATEGORY)
+  return util.Render(request, 'reflow/acid1.html', params, CATEGORY)
 
 
 #@cache_page(60*15)

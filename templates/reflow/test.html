@@ -43,7 +43,7 @@ function runTest() {
     t.renderResults = false;
     t.onBeaconComplete = function() {
       var continueUrl = unescape(Util.getParam('continue'));
-      var results = 'reflow_results=' + t.testResultVals.join(',');
+      var results = 'reflow_results=' + t.results.join(',');
       var nextUrl;
       if (continueUrl != '') {
         nextUrl = continueUrl + '&' + results;

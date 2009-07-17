@@ -15,7 +15,7 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Used 66 times in query history.
+# Unused in query history -- copied from input.
 - kind: ResultTime
   ancestor: yes
 

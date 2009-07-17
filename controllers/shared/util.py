@@ -484,8 +484,8 @@ def GetScoreAndDisplayValue(test, median):
     # turn into a 0-10 display.
     score, display = test.GetScoreAndDisplayValue(median)
     score = int(round(float('%s.0' % int(score)) / 10))
-    #logging.info('got display:%s, score:%s for %s w/ median: %s' %
-    #             (display, score, test.key, median))
+    logging.info('got display:%s, score:%s for %s w/ median: %s' %
+                 (display, score, test.key, median))
 
   # Normalize very low scores per test for calculating an overall score for
   # the user agent.
