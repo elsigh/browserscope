@@ -48,7 +48,7 @@
   style.position = 'absolute';
   style.left = '20px';
   style.top = '20px';
-  style.border = '3px solid #333';
+  style.border = '3px solid #444';
   style.padding = '5px 5px 15px 15px';
   style.background = '#eee';
   style.width = '22em';
@@ -57,6 +57,9 @@
   style.color = '#111';
   style.textAlign = 'left';
   style.zIndex = '999';
+  style.setProperty('-webkit-box-shadow', '5px 5px 5px #ccc', '');
+  style.setProperty('-moz-border-radius', '10px', '');
+  style.setProperty('-webkit-border-radius', '10px', '');
   container.id = 'rt-alltests';
 
   var header = divEl.cloneNode(false);
@@ -80,7 +83,7 @@
   style.top = '5px';
   style.right = '5px';
   style.cursor = 'pointer';
-  style.color = '#999';
+  style.color = '#777';
   container.appendChild(close);
   close.onclick = dispose;
 
@@ -158,6 +161,7 @@
 
     thisButton.disabled = true;
     thisButton.rt = new ReflowTimer(false, reflowEl);
+    thisButton.rt.normalizeTimesToTest = false;
     thisButton.rt.tests = [thisButton.test];
     thisButton.rt.onTestsComplete = function(medianReflowTimes) {
       thisButton.disabled = false;

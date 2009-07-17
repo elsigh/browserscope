@@ -35,7 +35,7 @@ BROWSER_NAV = [
 ]
 
 TOP_USER_AGENT_GROUP_STRINGS = [
-  'Chrome 1', 'Chrome 2',
+  'Chrome 1', 'Chrome 2', 'Chrome 3',
   'Firefox 3.0', 'Firefox 3.5',
   'IE 6', 'IE 7', 'IE 8',
   'Opera 9', 'Opera 10',

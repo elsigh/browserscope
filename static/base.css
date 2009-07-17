@@ -132,7 +132,7 @@ a.bs-admin {
   border: 1px solid #ddd;
   border-top: 0;
   background: #eee;
-  z-index: 2;
+  z-index: 9;
   width: 5em;
 }
 #bs-nav-cats li:hover ul {

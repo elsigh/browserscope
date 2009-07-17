@@ -339,9 +339,14 @@ var ReflowTimer = function(sendResultsToServer, opt_container, opt_passes) {
   this.currentTestIndex_ = 0;
 
   /**
-   * @type {Array}
+   * @type {Object}
    */
-  this.results = [];
+  this.results = {};
+
+  /**
+   * @type {Array.<string>}
+   */
+  this.resultsParams_ = [];
 };
 
 /**
@@ -436,7 +441,7 @@ ReflowTimer.prototype.unusedTests = [
 /**
  * Normalize values when sent to the server based on the following
  * test's score, using it as a golden test of 1x reflow.
- * @type {text}
+ * @type {text|boolean}
  */
 ReflowTimer.prototype.normalizeTimesToTest = 'testDisplay';
 
@@ -550,7 +555,9 @@ ReflowTimer.prototype.flushStyleComputation_ = function() {
  */
 ReflowTimer.prototype.run = function() {
 
-  this.results = [];
+  // Cresultslear these from prior runs.
+  this.results = {};
+  this.resultsParams_ = []
 
   // Gets rid of prior test elements in the DOM.
   var previousElementIds = ['rt-content', 'rt-results',
@@ -605,10 +612,8 @@ ReflowTimer.prototype.run = function() {
     style.textAlign = 'center';
     style.background = '#eee';
     style.border = '1px solid #333';
-    style.mozBorderRadiusBottomleft = '3px';
-    style.mozBorderRadiusBottomright = '3px';
-    style.webkitBorderRadiusBottomleft = '3px';
-    style.webkitBorderRadiusBottomright = '3px';
+    style.setProperty('-moz-border-radius-bottom', '4px', '');
+    style.setProperty('-webkit-border-radius-bottom', '4px', '');
     style.borderTop = '0';
     style.padding = '4px 20px';
     style.top = '0px';
@@ -743,16 +748,18 @@ ReflowTimer.prototype.testsComplete_ = function() {
 
   // Results.
   for (var i = 0, test; test = this.tests[i]; i++) {
-    this.results.push(test + '=' + (this.normalizeTimesToTest ?
-                                    this.normalizedTimes_[test] :
-                                    this.medianReflowTimes_[test]));
+    var result = this.normalizeTimesToTest ?
+                 this.normalizedTimes_[test] :
+                 this.medianReflowTimes_[test]
+    this.resultsParams_.push(test + '=' + result);
+    this.results[test] = result;
   }
 
   // Inserts a result el into the doc for selenium-rc to block on.
   var el = document.createElement('input');
   el.type = 'hidden';
   el.id = 'rt-results';
-  el.value = this.results.join(',');
+  el.value = this.resultsParams_.join(',');
   this.body_.appendChild(el, this.body_.firstChild);
 
   if (this.testFeedbackEl_) {
@@ -763,7 +770,7 @@ ReflowTimer.prototype.testsComplete_ = function() {
   if (this.shouldSendResultsToServer_) {
     if (this.testFeedbackEl_) {
       this.testFeedbackEl_.innerHTML +=
-          '<br>Sending your results to the mothership...';
+          '<br>Sending your results to be saved...';
     }
     this.sendResultsToServer_();
   }
@@ -1080,7 +1087,8 @@ ReflowTimer.prototype.logPaintEvents_ = function(e) {
  */
 ReflowTimer.prototype.sendResultsToServer_ = function() {
 
-  var uriParams = 'category=reflow' + '&results=' + this.results.join(',');
+  var uriParams = 'category=reflow' + '&results=' +
+      this.resultsParams_.join(',');
 
   // Add on params to the beacon.
   var paramsEl = document.getElementById('rt-params');
