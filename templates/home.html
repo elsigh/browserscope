@@ -114,6 +114,8 @@
       }
       selectedCategoryLink = link;
       selectedCategoryLink.parentNode.className = 'bs-sel';
+      // scroll to the bottom so we can see the results
+      window.scrollTo(0, 99999999)
     } else {
       categorySections[category.cat].style.display = 'none';
     }
