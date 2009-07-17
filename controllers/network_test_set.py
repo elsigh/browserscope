@@ -41,7 +41,8 @@ class NetworkTest(object):
     """
     self.key = key
     self.name = name
-    self.url = '%s/%s' % (self.TESTS_URL_PATH, url_name)
+    self.url_name = url_name
+    self.url = '%s/test?testurl=%s' % (_CATEGORY, url_name)
     self.score_type = score_type
     self.doc = doc
     self.is_hidden_stat = is_hidden_stat
