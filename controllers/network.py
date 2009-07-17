@@ -58,6 +58,7 @@ def Test(request):
     'page_title': 'Network Performance Tests',
     'continue': request.GET.get('continue'),
     'autorun': request.GET.get('autorun'),
+    'testurl': request.GET.get('testurl'),
   }
   return Render(request, 'network/test.html', params)
 
@@ -72,6 +73,7 @@ def TestDriver(request):
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
     'continue': request.GET.get('continue'),
     'autorun': request.GET.get('autorun'),
+    'testurl': request.GET.get('testurl'),
   }
   return Render(request, 'network/testdriver.html', params)
 
