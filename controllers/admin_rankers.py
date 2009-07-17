@@ -75,10 +75,8 @@ def UpdateResultParents(request):
         result.user_agent_list = []
         changed_results.append(result)
     if changed_results:
-      num_changed_results = len(changed_results)
-      db.put(changed_results)  # TODO: Handle Timeout exception
-
-      total_updated += num_changed
+      db.put(changed_results)
+      total_updated += len(changed_results)
   except DeadlineExceededError:
     return http.HttpResponse('UpdateResultParent: DeadlineExceededError.',
                              status=403)
