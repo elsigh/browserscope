@@ -34,15 +34,15 @@
   spanEl.style.marginLeft = '4px';
 
   var buttonEl = document.createElement('button');
-  buttonEl.style.textAlign = 'left';
-  buttonEl.style.width = '12em';
-  buttonEl.style.padding = 'auto';
-  buttonEl.style.margin = 'auto';
-  buttonEl.style.font = 'inherit';
-  buttonEl.style.color = 'inherit';
-  buttonEl.style.background = 'none';
-  buttonEl.style.border = 'auto';
-
+  var style = buttonEl.style;
+  style.textAlign = 'left';
+  style.width = '12em';
+  style.padding = '0';
+  style.margin = '0';
+  style.fontSize = 'inherit';
+  style.fontFamily = 'inherit';
+  style.color = 'inherit';
+  style.background = 'none';
   var container = divEl.cloneNode(false);
   var style = container.style;
   style.position = 'absolute';
@@ -57,11 +57,13 @@
   style.color = '#111';
   style.textAlign = 'left';
   style.zIndex = '999';
-  style.setProperty('-webkit-box-shadow', '5px 5px 5px #ccc', '');
-  style.setProperty('-moz-border-radius', '10px', '');
-  style.setProperty('-webkit-border-radius', '10px', '');
+  if (style.setProperty) {
+    style.setProperty('-moz-border-radius', '10px', '');
+    style.setProperty('-moz-box-shadow', '5px 5px 5px #ccc', '');
+    style.setProperty('-webkit-border-radius', '10px', '');
+    style.setProperty('-webkit-box-shadow', '5px 5px 5px #ccc', '');
+  }
   container.id = 'rt-alltests';
-
   var header = divEl.cloneNode(false);
   var anchor = document.createElement('a');
   style = anchor.style;

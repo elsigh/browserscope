@@ -612,8 +612,10 @@ ReflowTimer.prototype.run = function() {
     style.textAlign = 'center';
     style.background = '#eee';
     style.border = '1px solid #333';
-    style.setProperty('-moz-border-radius-bottom', '4px', '');
-    style.setProperty('-webkit-border-radius-bottom', '4px', '');
+    if (style.setProperty) {
+      style.setProperty('-moz-border-radius-bottom', '4px', '');
+      style.setProperty('-webkit-border-radius-bottom', '4px', '');
+    }
     style.borderTop = '0';
     style.padding = '4px 20px';
     style.top = '0px';
