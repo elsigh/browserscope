@@ -122,7 +122,7 @@ var ReflowTimer = function(sendResultsToServer, opt_container, opt_passes) {
   /**
    * @type {Array.<string>}
    */
-  this.resultsParams_ = [];
+  this.resultsParams = [];
 };
 
 /**
@@ -333,7 +333,7 @@ ReflowTimer.prototype.run = function() {
 
   // Cresultslear these from prior runs.
   this.results = {};
-  this.resultsParams_ = []
+  this.resultsParams = []
 
   // Gets rid of prior test elements in the DOM.
   var previousElementIds = ['rt-content', 'rt-results',
@@ -529,7 +529,7 @@ ReflowTimer.prototype.testsComplete_ = function() {
     var result = this.normalizeTimesToTest ?
                  this.normalizedTimes_[test] :
                  this.medianReflowTimes_[test]
-    this.resultsParams_.push(test + '=' + result);
+    this.resultsParams.push(test + '=' + result);
     this.results[test] = result;
   }
 
@@ -537,7 +537,7 @@ ReflowTimer.prototype.testsComplete_ = function() {
   var el = document.createElement('input');
   el.type = 'hidden';
   el.id = 'rt-results';
-  el.value = this.resultsParams_.join(',');
+  el.value = this.resultsParams.join(',');
   this.body_.appendChild(el, this.body_.firstChild);
 
   if (this.testFeedbackEl_) {
@@ -866,7 +866,7 @@ ReflowTimer.prototype.logPaintEvents_ = function(e) {
 ReflowTimer.prototype.sendResultsToServer_ = function() {
 
   var uriParams = 'category=reflow' + '&results=' +
-      this.resultsParams_.join(',');
+      this.resultsParams.join(',');
 
   // Add on params to the beacon.
   var paramsEl = document.getElementById('rt-params');
