@@ -52,7 +52,7 @@ class ReflowTestTest(unittest.TestCase):
     score, display = test.GetScoreAndDisplayValue(50)
     self.assertEqual((90, '1X'), (score, display))
     score, display = test.GetScoreAndDisplayValue(60)
-    self.assertEqual((80, '2X'), (score, display))
+    self.assertEqual((90, '1X'), (score, display))
     score, display = test.GetScoreAndDisplayValue(100)
     self.assertEqual((80, '2X'), (score, display))
     score, display = test.GetScoreAndDisplayValue(150)

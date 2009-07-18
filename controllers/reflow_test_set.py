@@ -80,19 +80,25 @@ class ReflowTest(object):
       # Should we be pickier here that this should really be 0?
       bench = 50
 
-    if median <= (bench/2):
+    half = bench/2
+    a = bench * 1.4
+    b = bench * 2.4
+    c = bench * 3.4
+    d = bench * 4.4
+
+    if median <= half:
       score = 100
       display = '~0X'
-    elif median <= bench:
+    elif half < median <= a:
       score = 90
       display = '1X'
-    elif median <= (bench*2):
+    elif a < median <= b:
       score = 80
       display = '2X'
-    elif median <= (bench*3):
+    elif b < median <= c:
       score = 70
       display = '3X'
-    elif median <= (bench*4):
+    elif c < median <= d:
       score = 60
       display = '4X'
     else:
