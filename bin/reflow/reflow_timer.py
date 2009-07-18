@@ -81,6 +81,7 @@ class TestReflowTime(unittest.TestCase):
       logging.debug('Opening %s of %s, url(%s)...' %
                     (i, total_urls, browserUrl))
       i += 1
+      self.selenium.set_timeout(100000)
       self.selenium.open(browserUrl)
 
       # Resize the window to something consistent.
