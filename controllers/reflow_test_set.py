@@ -88,7 +88,7 @@ class ReflowTest(object):
 
     if median <= half:
       score = 100
-      display = '~0X'
+      display = '0X'
     elif half < median <= a:
       score = 90
       display = '1X'
