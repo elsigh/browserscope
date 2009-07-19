@@ -25,9 +25,8 @@ import os
 import simplejson
 import sys
 
-DIR_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-sys.path.append('%s/..' % DIR_PATH)
-from appengine_tools import appengine_rpc
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from third_party.appengine_tools import appengine_rpc
 
 UPDATER_URL_PATH = '/admin/update_result_parents'
 

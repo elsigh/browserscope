@@ -34,11 +34,10 @@ import simplejson
 import sys
 import urlparse
 
-logging.basicConfig(level=logging.INFO)
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from third_party.appengine_tools import appengine_rpc
 
-DIR_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-sys.path.append('%s/..' % DIR_PATH)
-from appengine_tools import appengine_rpc
+logging.basicConfig(level=logging.INFO)
 
 LOADER_URL_PATH = '/network/loader'
 MAX_RETRIES = 1
