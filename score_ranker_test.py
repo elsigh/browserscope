@@ -22,13 +22,13 @@ import score_ranker
 
 class TestGetShallowBranchingFactor(unittest.TestCase):
   def testGetShallowBranchingFactorOneLevel(self):
-    self.assertEqual(7, score_ranker.GetShallowBranchingFactor(0, 7, 100))
+    self.assertEqual(8, score_ranker.GetShallowBranchingFactor(0, 7, 100))
 
   def testGetShallowBranchingFactorBasic(self):
     self.assertEqual(40, score_ranker.GetShallowBranchingFactor(0, 60000, 100))
 
   def testGetShallowBranchingFactorAtMax(self):
-    self.assertEqual(10, score_ranker.GetShallowBranchingFactor(0, 1000, 10))
+    self.assertEqual(10, score_ranker.GetShallowBranchingFactor(1, 1000, 10))
 
 
 class MockStorage(score_ranker.StorageBase):

@@ -22,8 +22,8 @@ def GetShallowBranchingFactor(min_value, max_value, max_branching_factor=100):
   """Compute the branching factor that gives the most shallow tree.
 
   Using max_branching_factor would give a tree of minimal depth. However, that
-  would waste space in the nodes. This function computes the branching factor
-  that gives the same depth with the least waste.
+  may waste space. This function computes the branching factor that gives the
+  same depth with the least waste.
 
   Args:
     min_value: an integer
