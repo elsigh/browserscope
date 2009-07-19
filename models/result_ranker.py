@@ -33,13 +33,50 @@ from google_app_engine_ranklist import ranker
 
 
 class ResultRankerParent(db.Model):
+  MEMCACHE_NAMESPACE = 'result_ranker_parent'
+  PARAMS_SEPARATOR = '&'
+
   category = db.StringProperty()
   test_key = db.StringProperty()
   user_agent_version = db.StringProperty()
-  params = db.StringProperty()
+  params_str = db.StringProperty()
   min_value = db.IntegerProperty()
   max_value = db.IntegerProperty()
   branching_factor = db.IntegerProperty()
+
+  @staticmethod
+  def KeyName(category, test_key, user_agent_version, params_str):
+    if params_str:
+      params_hash = hashlib.md5(params_str).hexdigest()
+      return '_'.join((category, test_key, user_agent_version, params_hash))
+    else:
+      return '_'.join((category, test_key, user_agent_version))
+
+  @classmethod
+  def factory(cls, category, test, user_agent_version, params):
+    params_str = ''
+    if params:
+      params_str = cls.PARAMS_SEPARATOR.join(sorted(params))
+    key_name = cls.KeyName(category, test.key, user_agent_version, params_str)
+    result_ranker_parent = memcache.get(key=key_name,
+                                        namespace=cls.MEMCACHE_NAMESPACE)
+    if result_ranker_parent:
+      logging.info('Found result_ranker_parent in memcache, key_name=%s', key_name)
+    else:
+      logging.info('get_or_insert result_ranker_parent, key_name=%s', key_name)
+      result_ranker_parent = cls.get_or_insert(
+          key_name,
+          category=category,
+          test_key=test.key,
+          user_agent_version=user_agent_version,
+          params_str=params_str,
+          min_value=test.min_value,
+          max_value=test.max_value,
+          branching_factor=score_ranker.GetShallowBranchingFactor(
+              test.min_value, test.max_value))
+      memcache.set(key=key_name, namespace=cls.MEMCACHE_NAMESPACE,
+                   value=result_ranker_parent)
+    return result_ranker_parent
 
 
 class MedianRanker(score_ranker.Ranker):
@@ -48,14 +85,17 @@ class MedianRanker(score_ranker.Ranker):
     return self.GetMedianAndNumScores(num_scores)[0]
 
   def GetMedianAndNumScores(self, num_scores=None):
+    median = None
     if num_scores is None:
       num_scores = self.TotalRankedScores()
-    median_index = int(round(num_scores/2))
-    try:
-      median = self.FindScore(median_index)
-    # TODO: Give exact exceptions to catch
-    except:
-      median = None
+    if num_scores:
+      median_index = int(num_scores) / 2
+      try:
+        median = self.FindScore(median_index)
+      # TODO: Give exact exceptions to catch
+      except Exception, e:
+        logging.warn('Exception, %s, from FindScore(rank=%s)',
+                     str(e), median_index)
     return median, num_scores
 
 
@@ -72,28 +112,11 @@ class ResultRanker(MedianRanker):
     Returns:
       a Ranker instance
     """
-    query = ResultRankerParent.all()
-    query.filter('category =', category)
-    query.filter('test_key =', test.key)
-    query.filter('user_agent_version =', user_agent_version)
-    params_str = ''
-    if params:
-      params_str = "&".join(sorted(params))
-      query.filter('params =', params_str)
-    ranker_parent = query.get()
-    if not ranker_parent:
-      ranker_parent = ResultRankerParent(
-          category=category,
-          test_key=test.key,
-          user_agent_version=user_agent_version,
-          params=params_str,
-          min_value=test.min_value,
-          max_value=test.max_value,
-          branching_factor=score_ranker.GetShallowBranchingFactor(
-              test.min_value, test.max_value))
-      ranker_parent.put()
+    ranker_parent = ResultRankerParent.factory(
+        category, test, user_agent_version, params)
     self.storage = result_ranker_storage.ScoreDatastore(
         ranker_parent.key())
+    logging.info("Init Ranker: ranker_parent=%s", ranker_parent.key())
     score_ranker.Ranker.__init__(
         self,
         self.storage,
@@ -122,10 +145,11 @@ class RankListRanker(MedianRanker):
 
   @staticmethod
   def KeyName(category, test_key, user_agent_version, params=None):
-    key_parts = [category, test_key, user_agent_version]
     if params:
-      key_parts.append(hashlib.md5(','.join(params)).hexdigest())
-    return '_'.join(key_parts)
+      params_str = hashlib.md5(','.join(params)).hexdigest()
+      return '_'.join((category, test_key, user_agent_version, params_str))
+    else:
+      return '_'.join((category, test_key, user_agent_version))
 
   def Add(self, score):
     self.Update([score])
