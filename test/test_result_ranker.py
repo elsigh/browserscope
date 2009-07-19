@@ -18,11 +18,12 @@
 
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
-import unittest
+import third_party
 import logging
+import mox
+import unittest
 
 from models import result_ranker
-from third_party.pymox import mox
 import mock_data
 
 
