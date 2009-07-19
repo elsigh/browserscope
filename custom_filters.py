@@ -16,7 +16,9 @@
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 import logging
+from datetime import timedelta
 import urllib2
+
 from django import template
 register = template.Library()
 
@@ -71,3 +73,7 @@ def as_range(end_range):
   end_range = int(end_range)
   return range(1, end_range + 1)
 
+
+@register.filter
+def utc_to_pst(utc_dt):
+  return utc_dt - timedelta(hours=7)

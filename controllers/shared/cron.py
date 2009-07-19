@@ -52,34 +52,41 @@ UPDATE_DIRTY_DONE = 'No more dirty ResultTimes.'
 UPDATE_DIRTY_MEMCACHE_NS = 'cron_update_dirty'
 def UpdateDirty(request):
   """Updates any dirty tests, adding its score to the appropriate ranker."""
-  query = db.Query(ResultTime)
-  query.filter('dirty =', True)
-
-  result_times = query.fetch(_CRON_FETCH_SIZE, 0)
-
-  if not result_times:
-    return http.HttpResponse(UPDATE_DIRTY_DONE)
-
-  result_time = random.choice(result_times)
-
-  # Create a mutex so we can have multiple workers.
-  lock_key = 'cron_' + str(result_time.key())
-  if not memcache.add(key=lock_key, value=1, time=_CRON_MEMCACHE_TIMEOUT,
-                      namespace=UPDATE_DIRTY_MEMCACHE_NS):
-    msg = 'Bummer, unable to acquire lock for update: key=%s.' % lock_key
-    return http.HttpResponse(msg, status=403)
-
-  #logging.info('set memcache for key %s' % memcache_keyname)
-  result_time.increment_all_counts()
-
   try:
-    taskqueue.Task(method='GET', url='/cron/more_dirty',
-        params={'key': result_time.key()}).add(queue_name='update-dirty')
-  except:
-    logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
+    query = db.Query(ResultTime)
+    query.filter('dirty =', True)
 
-  return http.HttpResponse('UpdateDirty done in category: %s, key: %s' %
-                           (result_time.parent().category, result_time.key()))
+    result_times = query.fetch(_CRON_FETCH_SIZE, 0)
+
+    if not result_times:
+      return http.HttpResponse(UPDATE_DIRTY_DONE)
+
+    result_time = random.choice(result_times)
+    if result_time.parent().category == 'richtext':
+      result_time.dirty = False
+      result_time.put()
+      return http.HttpResponse('richtext')
+
+    # Create a mutex so we can have multiple workers.
+    lock_key = 'cron_' + str(result_time.key())
+    if not memcache.add(key=lock_key, value=1, time=_CRON_MEMCACHE_TIMEOUT,
+                        namespace=UPDATE_DIRTY_MEMCACHE_NS):
+      msg = 'Bummer, unable to acquire lock for update: key=%s.' % lock_key
+      return http.HttpResponse(msg, status=403)
+
+    #logging.info('set memcache for key %s' % memcache_keyname)
+    result_time.increment_all_counts()
+
+    try:
+      taskqueue.Task(method='GET', url='/cron/more_dirty',
+          params={'key': result_time.key()}).add(queue_name='update-dirty')
+    except:
+      logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
+
+    return http.HttpResponse('UpdateDirty done in category: %s, key: %s' %
+                             (result_time.parent().category, result_time.key()))
+  except:
+    return http.HttpResponse('Things did not go well.')
 
 
 def MoreDirty(request):

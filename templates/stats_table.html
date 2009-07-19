@@ -72,11 +72,11 @@
               </td>
             {% endfor %}
             <td class="rt-tot">
-                {% if stats|by_key:user_agent|by_key:"current_results" %}
-                  {{ stats|by_key:user_agent|by_key:"total_runs"|add:1 }}
-                {% else %}
-                  {{ stats|by_key:user_agent|by_key:"total_runs" }}
-                {% endif %}
+              {% if stats|by_key:user_agent|by_key:"current_results" %}
+                {{ stats|by_key:user_agent|by_key:"total_runs"|add:1 }}
+              {% else %}
+                {{ stats|by_key:user_agent|by_key:"total_runs" }}
+              {% endif %}
             </td>
           </tr>
         {% endif %}

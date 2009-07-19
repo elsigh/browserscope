@@ -350,7 +350,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   tests = [test for test in opt_tests or test_set.tests
            if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat]
   stats = GetStatsData(test_set.category, tests, user_agent_group_strings,
-                       test_set.default_params, use_memcache)
+                       test_set.default_params, use_memcache, version_level)
 
   # Looks for a category_results=test1=X,test2=X url GET param.
   results = None
@@ -412,7 +412,8 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     return params
 
 
-def GetStatsData(category, tests, user_agents, params, use_memcache=True):
+def GetStatsData(category, tests, user_agents, params, use_memcache=True,
+                 version_level='top'):
   stats = {}
   total_runs = {}
 
@@ -463,6 +464,12 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True):
       memcache.set(key=memcache_ua_key, value=stats[user_agent],
                    time=STATS_MEMCACHE_TIMEOUT,
                    namespace=STATS_MEMCACHE_UA_ROW_NS)
+
+  # If we're not on the top browsers page and we have 0 total runs, then
+  # remove from the list.
+  if stats[user_agent]['total_runs'] == 0 and version_level != 'top':
+    del stats[user_agent]
+
   return stats
 
 

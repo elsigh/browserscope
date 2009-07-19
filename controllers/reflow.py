@@ -23,6 +23,8 @@ import logging
 import re
 import urllib2
 
+from django import http
+
 # Shared stuff
 from controllers.shared import decorators
 from controllers.shared import util
@@ -121,6 +123,57 @@ def Test(request):
   params.update(util.ParamsListToDict(test_set.default_params))
 
   return util.Render(request, 'reflow/acid1.html', params, CATEGORY)
+
+
+def TestSelectors(request):
+  page_title = 'Reflow CSS Selector Tests'
+  test_key = request.GET.get('t')
+  test_set = all_test_sets.GetTestSet(CATEGORY)
+  try:
+    test = test_set.GetTest(test_key)
+    page_title += ' %s' % test.name
+  except KeyError:
+    test = None
+
+  default_params=[
+    'nested_anchors', 'num_elements=400', 'num_nest=4',
+    'css_selector=%23g-content%20*', 'num_css_rules=1000',
+    'css_text=border%3A%201px%20solid%20%230C0%3B%20padding%3A%208px%3B']
+
+  params = {
+    'page_title': page_title,
+    'params': ','.join(default_params),
+    'test': test,
+    'server': util.GetServer(request),
+    'autorun': request.GET.get('autorun'),
+    'continue': request.GET.get('continue'),
+    'csrf_token': request.session.get('csrf_token')
+  }
+  params.update(util.ParamsListToDict(default_params))
+
+  return util.Render(request, 'reflow/test.html', params, CATEGORY)
+
+
+def TestGenCss(request):
+
+  default_params=[
+    'css_selector=%23g-content%20div%20*', 'num_css_rules=1000',
+    'css_text=width%3A%20auto']
+  params = request.GET.get('params', default_params)
+  css = GenCss(params)
+  return http.HttpResponse(css)
+
+
+def GenCss(params):
+  css = []
+  params = util.ParamsListToDict(params)
+  if params.has_key('css_match_each'):
+    for num_css_rule in range(num_css_rules):
+      css.append('g-%s { %s }' % (params['num_css_rule'], params['css_text']))
+  else:
+    for num_css_rule in range(int(params['num_css_rules'])):
+      css.append('%s { %s }' % (params['css_selector'], params['css_text']))
+  return ' '.join(css)
 
 
 #@cache_page(60*15)

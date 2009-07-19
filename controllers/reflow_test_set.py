@@ -179,21 +179,21 @@ _TESTS = (
     '''This test sets an element's style.overflow="hidden" and then back
     again, timing the cost of an element returning to the default
     overflow which is "visible"'''),
-  # ReflowTest('testSelectorMatchTime', 'Selector Match Time',
-  #   '''In the world of reflow, one of the possible operations that can
-  #   eat up time occurs when an element gets a new class name and the
-  #   render engine has to look through the CSSOM to see if this element
-  #   now matches some CSS declaration. The goal of this test is to try
-  #   to cause this match operation without causing any change to the
-  #   render tree. The test is much like the Non-Matching Class test,
-  #   except that instead of flushing the render queue before this test,
-  #   we try to simply flush any style computations. The way it works is
-  #   to make a CSS rule that can get activated by virtue of an
-  #   attribute selector but which will never cause reflow because it
-  #   will never match any element in the render tree. For instance
-  #   "body[bogusattr='bogusval'] html {color:pink}". We note that this
-  #   test seems not to work in engines other than Gecko at this
-  #   time.'''),
+  ReflowTest('testSelectorMatchTime', 'Selector Match Time',
+    '''In the world of reflow, one of the possible operations that can
+    eat up time occurs when an element gets a new class name and the
+    render engine has to look through the CSSOM to see if this element
+    now matches some CSS declaration. The goal of this test is to try
+    to cause this match operation without causing any change to the
+    render tree. The test is much like the Non-Matching Class test,
+    except that instead of flushing the render queue before this test,
+    we try to simply flush any style computations. The way it works is
+    to make a CSS rule that can get activated by virtue of an
+    attribute selector but which will never cause reflow because it
+    will never match any element in the render tree. For instance
+    "body[bogusattr='bogusval'] html {color:pink}". We note that this
+    test seems not to work in engines other than Gecko at this
+    time.'''),
   ReflowTest('testGetOffsetHeight', 'Do Nothing / OffsetHeight',
     '''This test does nothing other than the request for offsetHeight
     after already having done so. Theoretically, this test is
