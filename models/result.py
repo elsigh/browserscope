@@ -53,7 +53,6 @@ class ResultParent(db.Expando):
 
   Inherits from db.Expando instead of db.Model to allow the network_loader
   to add an attribute for 'loader_id'.
-  TODO(slamm): use __getattribute to expando attributes to 'loader_id'
   """
   category = db.StringProperty()
   user_agent = db.ReferenceProperty(UserAgent)
