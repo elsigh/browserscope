@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2009 Google Inc.
 #
@@ -27,7 +27,7 @@ from google.appengine.ext import db
 
 from controllers.shared import decorators
 from controllers.shared import util
-from gaefy.db import pager
+from third_party.gaefy.db import pager
 from models.result import ResultParent
 
 
