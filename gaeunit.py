@@ -77,6 +77,7 @@ from xml.sax.saxutils import unescape
 from google.appengine.ext import webapp
 from google.appengine.api import apiproxy_stub_map
 from google.appengine.api import datastore_file_stub
+from google.appengine.api.memcache import memcache_stub
 from google.appengine.ext.webapp.util import run_wsgi_app
 
 _LOCAL_TEST_DIR = 'test'  # location of files
@@ -429,8 +430,11 @@ def _run_test_suite(runner, suite):
        apiproxy_stub_map.apiproxy = apiproxy_stub_map.APIProxyStubMap()
        temp_stub = datastore_file_stub.DatastoreFileStub('GAEUnitDataStore', None, None, trusted=True)
        apiproxy_stub_map.apiproxy.RegisterStub('datastore', temp_stub)
+       apiproxy_stub_map.apiproxy.RegisterStub(
+           'memcache',
+           memcache_stub.MemcacheServiceStub())# setup mock
        # Allow the other services to be used as-is for tests.
-       for name in ['user', 'urlfetch', 'mail', 'memcache', 'images']:
+       for name in ['user', 'urlfetch', 'mail', 'images']:
            apiproxy_stub_map.apiproxy.RegisterStub(name, original_apiproxy.GetStub(name))
        runner.run(suite)
     finally:
