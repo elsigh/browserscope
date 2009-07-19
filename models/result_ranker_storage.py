@@ -43,7 +43,7 @@ class ScoreDatastore(score_ranker.StorageBase):
     Raises:
       score_ranker.TransactionFailedError if transaction failed
     """
-    datastore.RunInTransaction(func, *args, **kwds)
+    return datastore.RunInTransaction(func, *args, **kwds)
 
   def SetMultiple(self, nodes):
     """Set multiple nodes at once.
@@ -81,10 +81,10 @@ class ScoreDatastore(score_ranker.StorageBase):
       {node_index_1: [child_count_1, ...], ...}
     """
     node_entities = datastore.Get([self._RankerNodeKey(node_index)
-                                   for node_index in set(node_indexes)])
+                                   for node_index in node_indexes])
     # TODO(slamm): pass actual node to save recreating it if putting back
     return dict((node_index, node["child_counts"])
-                for (node_index, node) in zip(node_indexes, node_entities)
+                for node_index, node in zip(node_indexes, node_entities)
                 if node)
 
   def DeleteMultiple(self, node_indexes):
