@@ -29,8 +29,7 @@ from models import result_ranker_storage
 
 # Two alternative rankers here
 import score_ranker
-import third_party
-from google_app_engine_ranklist import ranker
+from third_party.google_app_engine_ranklist import ranker
 
 
 class ResultRankerParent(db.Model):
