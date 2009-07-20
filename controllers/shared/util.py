@@ -437,7 +437,7 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
     for test in tests:
       stats[user_agent]['results'][test.key] = {}
 
-      ranker = result_ranker.Factory(category, test, user_agent, params)
+      ranker = test.GetRanker(user_agent, params)
 
       # Median and total
       if not stats[user_agent].has_key('total_runs'):

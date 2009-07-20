@@ -25,15 +25,18 @@ from controllers import test_set_base
 _CATEGORY = 'reflow'
 
 
-class ReflowTest(object):
+class ReflowTest(test_set_base.TestBase):
   TESTS_URL_PATH = '/%s/test' % _CATEGORY
   def __init__(self, key, name, doc):
-    self.key = key
-    self.name = name
-    self.url = '%s?t=%s' % (self.TESTS_URL_PATH, key)
-    self.score_type = 'custom'
-    self.doc = doc
-    self.min_value, self.max_value = 0, 60000
+    test_set_base.TestBase.__init__(
+        self,
+        key=key,
+        name=name,
+        url='%s?t=%s' % (self.TESTS_URL_PATH, key),
+        score_type='custom',
+        doc=doc,
+        min_value=0,
+        max_value=60000)
 
   def GetScoreAndDisplayValue(self, median):
     """Returns a tuple with display text for the cell as well as a 1-100 value.

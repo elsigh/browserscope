@@ -19,8 +19,9 @@
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
 import third_party
-import logging
 import mox
+
+import logging
 import unittest
 
 from models import result_ranker

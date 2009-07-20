@@ -23,7 +23,7 @@ from controllers import test_set_base
 _CATEGORY = 'network'
 
 
-class NetworkTest(object):
+class NetworkTest(test_set_base.TestBase):
   TESTS_URL_PATH = '/%s/tests' % _CATEGORY
 
   def __init__(self, key, name, url_name, score_type, doc,
@@ -39,19 +39,23 @@ class NetworkTest(object):
       value_range: (min_value, max_value) as integer values
       is_hidden_stat: whether or not the test shown in the stats table
     """
-    self.key = key
-    self.name = name
     self.url_name = url_name
-    self.url = '%s/test?testurl=%s' % (_CATEGORY, url_name)
-    self.score_type = score_type
-    self.doc = doc
     self.is_hidden_stat = is_hidden_stat
     if value_range:
-      self.min_value, self.max_value = value_range
+      min_value, max_value = value_range
     elif score_type == 'boolean':
-      self.min_value, self.max_value = 0, 1
+      min_value, max_value = 0, 1
     else:
-      self.min_value, self.max_value = 0, 60
+      min_value, max_value = 0, 60
+    test_set_base.TestBase.__init__(
+        self,
+        key=key,
+        name=name,
+        url='%s/test?testurl=%s' % (_CATEGORY, url_name),
+        score_type=score_type,
+        doc=doc,
+        min_value=min_value,
+        max_value=max_value)
 
   def GetScoreAndDisplayValue(self, median):
     """Returns a tuple with display text for the cell as well as a 1-100 value.

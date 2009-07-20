@@ -18,16 +18,23 @@
 
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
+from models import result_ranker
 
-class ExampleTest(object):
-  def __init__(self, key, name, doc):
+class TestBase(object):
+  def __init__(self, key, name, url, score_type, doc, min_value, max_value,
+               test_set=None):
     self.key = key
     self.name = name
-    self.url = key
-    self.score_type = 'custom'
+    self.url = url
+    self.score_type = score_type
     self.doc = doc
-    self.min_value = 0
-    self.max_value = 1
+    self.min_value = min_value
+    self.max_value = max_value
+    self.test_set = test_set
+
+  def GetRanker(self, user_agent_version, params):
+    return result_ranker.Factory(
+        self.test_set.category, self, user_agent_version, params)
 
 
 class TestSet(object):
@@ -50,7 +57,10 @@ class TestSet(object):
     self.subnav = subnav
     self.home_intro = home_intro
     self.default_params = default_params
-    self._test_dict = dict((test.key, test) for test in tests)
+    self._test_dict = {}
+    for test in tests:
+      test.test_set = self  # add back pointer to each test
+      self._test_dict[test.key] = test
 
   def GetTest(self, test_key):
     return self._test_dict[test_key]

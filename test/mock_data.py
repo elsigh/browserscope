@@ -34,15 +34,18 @@ def GetUserAgent():
   return ua
 
 
-class MockTest(object):
+class MockTest(test_set_base.TestBase):
   """Mock test object."""
   def __init__(self, key, name, url, score_type):
-    self.key = key
-    self.name = name
-    self.url = url
-    self.score_type = score_type
-    self.min_value = 0
-    self.max_value = 10000
+    test_set_base.TestBase.__init__(
+        self,
+        key=key,
+        name=name,
+        url=url,
+        doc='doc',
+        score_type=score_type,
+        min_value=0,
+        max_value=10000)
 
   def GetScoreAndDisplayValue(self, median):
     if self.key == 'testDisplay':

@@ -23,7 +23,6 @@ from google.appengine.api import memcache
 
 from controllers import all_test_sets
 from models import user_agent
-from models import result_ranker
 from models.user_agent import UserAgent
 
 from settings import *
@@ -44,8 +43,7 @@ class ResultTime(db.Model):
     parent = self.parent()
     test = all_test_sets.GetTestSet(parent.category).GetTest(self.test)
     for user_agent_string in parent.user_agent.get_string_list():
-      yield result_ranker.Factory(
-          parent.category, test, user_agent_string, parent.params)
+      yield test.GetRanker(user_agent_string, parent.params)
 
 
 class ResultParent(db.Expando):
