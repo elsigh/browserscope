@@ -24,8 +24,6 @@ import os
 import sys
 import logging
 
-import third_party  # allow importing third_party modules without 'third_party'
-
 from appengine_django import InstallAppengineHelperForDjango
 from appengine_django import have_django_zip
 from appengine_django import django_zip_path

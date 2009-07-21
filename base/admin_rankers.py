@@ -29,7 +29,7 @@ from base import decorators
 from base import util
 from models.result import ResultParent
 
-from gaefy.db import pager
+from third_party.gaefy.db import pager
 
 import django
 from django import http

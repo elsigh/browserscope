@@ -18,8 +18,7 @@
 
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
-import third_party
-import mox
+from third_party import mox
 
 import logging
 import unittest

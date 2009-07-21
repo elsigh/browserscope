@@ -1,0 +1,4 @@
+URL: http://code.google.com/p/pymox
+
+Local Modifications:
+  * Add __init__.py with "from mox import *".
