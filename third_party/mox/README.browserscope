@@ -1,4 +1,7 @@
 URL: http://code.google.com/p/pymox
 
+VERSION: 0.5.1
+CHECK_VERSION: curl -s 'http://pymox.googlecode.com/svn/trunk/setup.py' | perl -ne '/version=.([\d.]+)/ && {print "$1\n"}'
+
 Local Modifications:
   * Add __init__.py with "from mox import *".
