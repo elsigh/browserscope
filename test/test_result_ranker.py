@@ -23,6 +23,9 @@ from third_party import mox
 import logging
 import unittest
 
+from google.appengine.api import datastore
+from google.appengine.api import datastore_errors
+from google.appengine.api import memcache
 from models import result_ranker
 import mock_data
 
@@ -50,6 +53,23 @@ class ResultRankerParentTest(unittest.TestCase):
         'cate', 'da test', 'C 3.p0', '')
     result = result_ranker.ResultRankerParent.get_by_key_name(key_name)
     self.assertEqual('cate', result.category)
+
+  def testDelete(self):
+    category, test_key, ua_version, params_str = 'cat', 'dog', 'mouse 1.0', ''
+    mock_test = mock_data.MockTest(test_key, test_key.capitalize(), 'url', 'oo')
+    result_ranker_parent = result_ranker.ResultRankerParent.factory(
+        category, mock_test, ua_version, params=None)
+    result_ranker_parent.delete()
+    key_name = result_ranker.ResultRankerParent.KeyName(
+        category, test_key, ua_version, params_str)
+    self.assertEqual(
+        None,
+        memcache.get(
+            key=key_name,
+            namespace=result_ranker.ResultRankerParent.MEMCACHE_NAMESPACE))
+    self.assertEqual(
+        None,
+        result_ranker.ResultRankerParent.get_by_key_name(key_name))
 
 
 class MedianRankerTest(unittest.TestCase):
@@ -113,7 +133,7 @@ class ResultRankerTest(unittest.TestCase):
     self.assertEqual(sorted(scores + [554]),
                      [r.FindScore(x) for x in range(len(scores) + 1)])
 
-  def testDeleteAfterInitialUpdateSucceeds(self):
+  def testRemoveAfterInitialUpdateSucceeds(self):
     mock_test = mock_data.MockTest('del', 'Del', '/del', 'pickle')
     mock_test.min_value = 0
     mock_test.max_value = 60000
@@ -139,3 +159,23 @@ class RankListRankerTest(unittest.TestCase):
     self.assertEqual(
         'category_test_user_agent_version_1c565ba4056b84201ed4fe4c4b6b2e42',
         key_name)
+
+  def testDelete(self):
+    category, test_key, ua_version, params_str = 'cc', 'tt', 'b 1', 'pp'
+    mock_test = mock_data.MockTest(
+        test_key, test_key.capitalize(), '/url', 'type')
+    r = result_ranker.RankListRanker(
+        category, mock_test, ua_version, params_str)
+    r.Update(range(10) + range(8, 20) + [50000])
+    r.Delete()
+    self.assertEqual(0, r.TotalRankedScores())
+    self.assertRaises(datastore_errors.EntityNotFoundError,
+                      datastore.Get, r.key)
+    self.assertRaises(datastore_errors.EntityNotFoundError,
+                      datastore.Get, r.ranker.rootkey)
+    node_query = datastore.Query('ranker_node', keys_only=True)
+    node_query.Ancestor(r.ranker.rootkey)
+    self.assertEqual([], list(node_query.Run()))
+    score_query = datastore.Query('score_node', keys_only=True)
+    score_query.Ancestor(r.ranker.rootkey)
+    self.assertEqual([], list(score_query.Run()))

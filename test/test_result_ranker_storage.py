@@ -65,3 +65,12 @@ class ResultRankerStorageTest(unittest.TestCase):
     storage.SetMultiple(scores)
     storage.DeleteMultiple([0, 2])
     self.assertEqual({1: [3, 5, 8]}, storage.GetMultiple([0, 1, 2]))
+
+  def testDeleteAll(self):
+    parent_key = datastore_types.Key.from_path(
+        "result_ranker_storage_test_parent", "delete_all")
+    storage = result_ranker_storage.ScoreDatastore(parent_key)
+    scores = {0: [11, 12], 1: [22, 23], 2: [33, 34]}
+    storage.SetMultiple(scores)
+    storage.DeleteAll()
+    self.assertEqual({}, storage.GetMultiple([0, 1, 2]))

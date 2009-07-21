@@ -82,7 +82,6 @@ class ScoreDatastore(score_ranker.StorageBase):
     """
     node_entities = datastore.Get([self._RankerNodeKey(node_index)
                                    for node_index in node_indexes])
-    # TODO(slamm): pass actual node to save recreating it if putting back
     return dict((node_index, node["child_counts"])
                 for node_index, node in zip(node_indexes, node_entities)
                 if node)
@@ -95,6 +94,11 @@ class ScoreDatastore(score_ranker.StorageBase):
     """
     db_nodes = datastore.Delete([self._RankerNodeKey(node_index)
                                  for node_index in set(node_indexes)])
+
+  def DeleteAll(self):
+    query = datastore.Query('ranker_node', keys_only=True)
+    query.Ancestor = self.parent_key
+    datastore.Delete(list(query.Run()))
 
   def _RankerNodeKey(self, node_index):
     """Creates a (named) key for the node with a given id.

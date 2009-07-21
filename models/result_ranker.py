@@ -75,6 +75,11 @@ class ResultRankerParent(db.Model):
                    value=result_ranker_parent)
     return result_ranker_parent
 
+  def delete(self):
+    """Remove this from storage."""
+    memcache.delete(key=self.key().name(), namespace=self.MEMCACHE_NAMESPACE)
+    db.Model.delete(self)
+
 
 class MedianRanker(score_ranker.Ranker):
 
@@ -109,16 +114,21 @@ class ResultRanker(MedianRanker):
     Returns:
       a Ranker instance
     """
-    ranker_parent = ResultRankerParent.factory(
+    self.ranker_parent = ResultRankerParent.factory(
         category, test, user_agent_version, params)
     self.storage = result_ranker_storage.ScoreDatastore(
-        ranker_parent.key())
+        self.ranker_parent.key())
     score_ranker.Ranker.__init__(
         self,
         self.storage,
-        ranker_parent.min_value,
-        ranker_parent.max_value,
-        ranker_parent.branching_factor)
+        self.ranker_parent.min_value,
+        self.ranker_parent.max_value,
+        self.ranker_parent.branching_factor)
+
+  def Delete(self):
+    """Remove the ranker."""
+    self.storage.DeleteAll()
+    self.ranker_parent.delete()
 
 
 class RankListRanker(MedianRanker):
@@ -126,14 +136,14 @@ class RankListRanker(MedianRanker):
   BRANCHING_FACTOR = 100
 
   def __init__(self, category, test, user_agent_version, params=None):
-    self.key_name = self.KeyName(category, test.key, user_agent_version, params)
-    key = datastore_types.Key.from_path('app', self.key_name)
+    key_name = self.KeyName(category, test.key, user_agent_version, params)
+    self.key = datastore_types.Key.from_path('app', key_name)
     try:
-      self.ranker = ranker.Ranker(datastore.Get(key)['ranker'])
+      self.ranker = ranker.Ranker(datastore.Get(self.key)['ranker'])
     except datastore_errors.EntityNotFoundError:
       self.ranker = ranker.Ranker.Create(
           [0, self.MAX_TEST_MSEC], self.BRANCHING_FACTOR)
-      app = datastore.Entity('app', name=self.key_name)
+      app = datastore.Entity('app', name=key_name)
       app['ranker'] = self.ranker.rootkey
       datastore.Put(app)
 
@@ -158,15 +168,26 @@ class RankListRanker(MedianRanker):
                        for i, score in enumerate(scores))
     self.ranker.SetScores(user_scores)
 
-  #def Remove
-  #def RemoveMultiple
-
   def FindScore(self, rank):
     return self.ranker.FindScore(rank)[0][0]
 
   def TotalRankedScores(self):
     return self.ranker.TotalRankedScores()
 
+  def _delete_entity(self, name):
+    query = datastore.Query(name, keys_only=True)
+    query.Ancestor(self.ranker.rootkey)
+    while 1:
+      results = list(query.Run())
+      db.delete(results)
+      if len(results) < 1000:
+        break
+
+  def Delete(self):
+    """Remove the ranker."""
+    self._delete_entity('ranker_node')
+    self._delete_entity('ranker_score')
+    db.delete([self.ranker.rootkey, self.key])
 
 def Factory(category, test, user_agent_version, params=None):
   #return ResultRanker(category, test, user_agent_version, params)
