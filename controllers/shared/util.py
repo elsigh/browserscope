@@ -382,15 +382,16 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     stats[current_ua_string]['current_results'] = {}
     current_ua_score = 0
     for test in tests:
-      stats[current_ua_string]['current_results'][test.key] = {}
-      median = results[test.key]
-      if median == None:
-        median = ''
-      stats[current_ua_string]['current_results'][test.key]['median'] = median
-      score, display, ua_score = GetScoreAndDisplayValue(test, median)
-      stats[current_ua_string]['current_results'][test.key]['score'] = score
-      stats[current_ua_string]['current_results'][test.key]['display'] = display
-      current_ua_score += ua_score
+      if results.has_key(test.key):
+        stats[current_ua_string]['current_results'][test.key] = {}
+        median = results[test.key]
+        if median == None:
+          median = ''
+        stats[current_ua_string]['current_results'][test.key]['median'] = median
+        score, display, ua_score = GetScoreAndDisplayValue(test, median)
+        stats[current_ua_string]['current_results'][test.key]['score'] = score
+        stats[current_ua_string]['current_results'][test.key]['display'] = display
+        current_ua_score += ua_score
 
     stats[current_ua_string]['current_score'] = int(current_ua_score /
                                                     len(tests))
