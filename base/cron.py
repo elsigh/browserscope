@@ -34,7 +34,7 @@ from django import http
 from django import shortcuts
 
 from django.template import add_to_builtins
-add_to_builtins('custom_filters')
+add_to_builtins('base.custom_filters')
 
 from models.result import ResultParent
 from models.result import ResultTime

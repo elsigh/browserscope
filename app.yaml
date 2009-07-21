@@ -62,21 +62,11 @@ handlers:
   login: admin
   script: main.py
 
-# If we match a version string, map to a static file
-# and also send a far-future expires header for caching that version.
-# i.e /js/foo.1.24.js will send down the contents of /static/js/wuz.js
-# but with an Expires header of +10 years from today.
-# ex: /js/reflows/reflow_timer.1.2.js -> static/reflows/js/reflow_timer.js
-- url: /(js|css|img)/([^\/]+)/(.+)\.\d+\.\d+\.(js|css|png|gif|jpg)
-  static_files: static/\2/\1/\3.\4
-  upload: /(js|css|img).*
-  expiration: '3650d'
+# Static files in categories.
+- url: /(\w+)/static/(.*)
+  static_files: categories/\1/static/\2
+  upload: /.*
 
-# Default static content url catches those w/o versions in their names.
-# ex: /js/reflows/reflow_timer.js -> static/reflows/js/reflow_timer.js
-- url: /(js|css|img)/([^\/]+)/(.*\.(js|css|png|gif|jpg))
-  static_files: static/\2/\1/\3
-  upload: static/.*
 
 - url: /favicon.ico
   static_files: static/img/favicon.ico

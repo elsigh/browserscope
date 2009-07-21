@@ -64,8 +64,12 @@ def urlunquote(url):
 
 
 @register.filter
-def resource_path(resource):
-  return '/static/' + resource
+def resource_path(resource, category=None):
+  if category:
+    path = '/%s/static/%s' % (category, resource)
+  else:
+    path = '/static/%s' % resource
+  return path
 
 
 @register.filter

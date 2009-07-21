@@ -237,16 +237,20 @@ def StatsChart(request):
 
 @decorators.provide_csrf
 def NestedAnchors(request):
+  default_params=[
+     'nested_anchors', 'num_elements=400', 'num_nest=0',
+     'css_selector=p', 'num_css_rules=1',
+     'css_text=float:left;height:100px;width:100px;border:1px solid red;margin-right:5px;']
   css_match_each = request.GET.get('css_match_each', '')
   show_form = int(request.GET.get('show_form', 0))
   params = {
     'csrf_token': request.session.get('csrf_token'),
     'css_match_each': css_match_each,
-    'show_form': show_form,
+    'show_form': show_form
   }
   render_params = ['nested_anchors']
   test_set = all_test_sets.GetTestSet(CATEGORY)
-  parsed_params = util.ParamsListToDict(test_set.default_params)
+  parsed_params = util.ParamsListToDict(default_params)
   for name, val in parsed_params.items():
     if val == '':
       continue

@@ -19,23 +19,16 @@
 
   <div id="reflow-bms">
     {% if is_elsigh %}
-      <a href="javascript:(function(){_rnd=Math.floor(Math.random()*1000);_src='http://{{server}}/js
-/reflow/reflow_timer_callback.js?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.t
-ype='text/javascript';_my_script.src=_src;document.getElementsByTagName('head')[0].appendChild(_my_s
-cript);})();"
+      <a href="javascript:(function(){_rnd=Math.floor(Math.random()*1000);_src='http://{{server}}{{ "js/reflow_timer_callback.js"|resource_path:"reflow" }}?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.type='text/javascript';_my_script.src=_src;document.getElementsByTagName('head')[0].appendChild(_my_script);})();"
       >ReflowCallback</a> |
     {% endif %}
-    <a href="javascript:(function(){_rnd=Math.floor(Math.random()*1000);_src='http://{{server}}/js/r
-eflow/reflow_timer_ui.js?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.type=
-'text/javascript';_my_script.src=_src;document.getElementsByTagName('head')[0].appendChild(_my_scrip
-t);})();"
+    <a href="javascript:(function(){_rnd=Math.floor(Math.random()*1000);_src='http://{{server}}{{ "js/reflow_timer_ui.js"|resource_path:"reflow" }}?rnd='+_rnd;_my_script=document.createElement('SCRIPT');_my_script.type='text/javascript';_my_script.src=_src;document.getElementsByTagName('head')[0].appendChild(_my_script);})();"
     >Reflow Bookmarklet!</a>
   </div>
 
   <h1>{{ page_title }}</h1>
 
   <a href="/reflow/test" class="bs-btn">Run the Reflow Tests</a>
-
   <h2>What is Reflow?</h2>
   <p>
     Reflow in a web browser refers to the process whereby the render engine calculates positions and geometries of elements in the document for purpose of drawing, or re-drawing, the visual presentation. Every browser has its own logic for doing, and
@@ -59,7 +52,7 @@ t);})();"
     changes - which is essential for correctly providing the
     calculated value of the element's fully rendered height. (See the
     ReflowTimer.flushRenderQueue_ method in
-    <a href="{{ "js/reflow/reflow_timer.js"|resource_path }}">reflow_timer.js</a>
+    <a href="{{ "js/reflow_timer.js"|resource_path:"reflow" }}">reflow_timer.js</a>
   </p>
 
   <p>
