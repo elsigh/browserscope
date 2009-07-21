@@ -101,7 +101,7 @@ TEMPLATE_DIRS = (
 INSTALLED_APPS = (
      'appengine_django',
      'django.contrib.sessions',
-     'gaebar',
+     'third_party.gaebar',
 #    'django.contrib.admin',
 #    'django.contrib.auth',
 #    'django.contrib.contenttypes',
@@ -147,4 +147,3 @@ STATS_MEMCACHE_UA_ROW_NS = 'ua_row'
 STATS_SCORE_TRUE = 'yes'
 STATS_SCORE_FALSE = 'no'
 BAD_BEACON_MSG = 'Nein swine.'
-

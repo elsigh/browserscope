@@ -50,7 +50,7 @@ handlers:
 # Static: Gaebar
 - url: /gaebar/static
   login: admin
-  static_dir: gaebar/static
+  static_dir: third_party/gaebar/static
 
 # GAEUnit Testing
 - url: /test.*

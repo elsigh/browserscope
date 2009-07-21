@@ -45,7 +45,7 @@ urlpatterns = patterns('',
   (r'^_ah/queue/recent-tests$', 'base.cron.UpdateRecentTests'),
 
   # GAEBar
-  (r'^gaebar/', include('gaebar.urls')),
+  (r'^gaebar/', include('third_party.gaebar.urls')),
 
   # UNIT TEST URLs
   # TODO(elsigh): try to do a custom urls.py for unit tests?
