@@ -60,10 +60,7 @@ class ResultRankerParent(db.Model):
     key_name = cls.KeyName(category, test.key, user_agent_version, params_str)
     result_ranker_parent = memcache.get(key=key_name,
                                         namespace=cls.MEMCACHE_NAMESPACE)
-    if result_ranker_parent:
-      logging.info('Found result_ranker_parent in memcache, key_name=%s', key_name)
-    else:
-      logging.info('get_or_insert result_ranker_parent, key_name=%s', key_name)
+    if not result_ranker_parent:
       result_ranker_parent = cls.get_or_insert(
           key_name,
           category=category,
@@ -116,7 +113,6 @@ class ResultRanker(MedianRanker):
         category, test, user_agent_version, params)
     self.storage = result_ranker_storage.ScoreDatastore(
         ranker_parent.key())
-    logging.info("Init Ranker: ranker_parent=%s", ranker_parent.key())
     score_ranker.Ranker.__init__(
         self,
         self.storage,
@@ -134,9 +130,7 @@ class RankListRanker(MedianRanker):
     key = datastore_types.Key.from_path('app', self.key_name)
     try:
       self.ranker = ranker.Ranker(datastore.Get(key)['ranker'])
-      logging.warn("Found ranker: %s", self.key_name)
     except datastore_errors.EntityNotFoundError:
-      logging.warn("Create ranker: %s", self.key_name)
       self.ranker = ranker.Ranker.Create(
           [0, self.MAX_TEST_MSEC], self.BRANCHING_FACTOR)
       app = datastore.Entity('app', name=self.key_name)
@@ -163,7 +157,6 @@ class RankListRanker(MedianRanker):
     user_scores = dict(("n_%s_%s" % (now, i), [score])
                        for i, score in enumerate(scores))
     self.ranker.SetScores(user_scores)
-    logging.warn("Total after adding %s score(s): %s", len(scores), self.TotalRankedScores())
 
   #def Remove
   #def RemoveMultiple

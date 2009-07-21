@@ -88,8 +88,6 @@ class ResultParent(db.Expando):
 
   def increment_all_counts(self):
     """This is not efficient enough to be used in prod."""
-    logging.info('ResultParent.increment_all_counts: %s, ua: %s'
-                 % (self.key(), self.user_agent.key()))
     result_times = ResultTime.all().ancestor(self)
     for result_time in result_times:
       #logging.info('ResultTime key is %s ' % (result_time.key()))
