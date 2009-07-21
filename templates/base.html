@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+  <title>
+    {% if app_category %}
+      {{ app_categories|by_key:app_category_index|by_key:1}} -
+    {% endif %}
+    {% if page_title %}
+      {{ page_title }} -
+    {% endif %}
+    {{ app_title }}
+  </title>
+  <link
+    rel="stylesheet"
+    href="{{ "base.css"|resource_path }}"
+    type="text/css">
+  {% block style %}{% endblock %}
+  {% block head %}{% endblock %}
+</head>
+
+<body>
+
+  <div id="bs-nav" class="g-section g-tpl-50-50">
+    <div class="g-unit g-first">
+      <div class="g-c">
+        <h1>
+          <a target="_top" href="/">{{ app_title }}</a>
+        </h1>
+
+        <ul id="bs-nav-cats" class="g-section bs-compact bs-list-horz">
+        {% for tuple in app_categories %}
+          <li>
+            <a target="_top"
+               href="/{{ tuple|by_key:0 }}/">{{ tuple|by_key:1 }}</a>
+            <ul class="bs-compact">
+              <li>
+                <a target="_top" href="/{{ tuple|by_key:0 }}/test">Test</a>
+              </li>
+            </ul>
+        {% endfor %}
+        </ul>
+
+      </div>
+    </div>
+    <div class="g-unit">
+      <div class="g-c">
+        {% if user %}
+          {{ user.email }} {% if is_admin %}<a href="/admin">admin</a>{% endif %}
+        {% else %}
+          <a target="_top" href="{{ sign_in }}">Sign in</a>
+        {% endif %}
+        |
+        <a target="_top" href="/faq">FAQ</a>
+
+
+        {% if user %}
+          | <a target="_top" href="{{ sign_out }}"> sign out</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+
+
+  {% block body %}{% endblock %}
+
+  <div id="bs-foot">
+    <a href="/">Home</a> |
+    <a href="/faq">FAQ</a> |
+    <a href="http://code.google.com/p/browserscope/source/checkout">Code</a> |
+    <a href="http://code.google.com/p/browserscope/issues/list">Submit a Bug</a> |
+    <a href="http://groups.google.com/group/browserscope">Mailing List</a> |
+    <a href="mailto:browserscope@googlegroups.com">Contact</a>
+  </div>
+
+  <script>
+  var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+  document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+  <script type="text/javascript">
+  try {
+  var pageTracker = _gat._getTracker("UA-9733170-1");
+  pageTracker._trackPageview();
+  } catch(err) {}</script>
+</body>
+
+</html>
+
