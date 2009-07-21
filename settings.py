@@ -95,6 +95,7 @@ ROOT_URLCONF = 'urls'
 ROOT_PATH = os.path.dirname(__file__)
 TEMPLATE_DIRS = (
     os.path.join(ROOT_PATH, 'templates'),
+    os.path.join(ROOT_PATH, 'categories'),
 )
 
 INSTALLED_APPS = (
@@ -139,10 +140,11 @@ GAEBAR_MODELS = (
 
 # UA PROFILER GLOBALS
 CATEGORIES = ['network', 'reflow']
+#for category in CATEGORIES:
+#  TEMPLATE_DIRS.append(os.path.join(ROOT_PATH, '%s/templates' % category))
 STATS_MEMCACHE_TIMEOUT = 0
 STATS_MEMCACHE_UA_ROW_NS = 'ua_row'
 STATS_SCORE_TRUE = 'yes'
 STATS_SCORE_FALSE = 'no'
 BAD_BEACON_MSG = 'Nein swine.'
-CONTROLLERS_MODULE = 'controllers'
 

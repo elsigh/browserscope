@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div id="bs-alltests">
+  <h1>{{ app_title }} - Run the Tests</h1>
+
+  <p class="bs-youcan">
+    We're excited that you want to participate! Below are the links to begin the tests. Just click, sit back, and at the end we'll show you how your results stack up compared to other users. If you have questions, please check our <a href="/faq">FAQ</a> and our <a href="http://groups.google.com/group/browserscope">discussion group</a>.
+  </p>
+
+  <dl class="bs-youcan">
+    <dt>
+      <a class="bs-btn" href="/network/test?autorun=1&continue={{ "/reflow/test?autorun=1"|urlquote }}">Run all Tests</a>
+    </dt>
+    <dd>
+      Click the link above to run the tests across all categories. This will take longer, but gets everything done with one click.
+    </dd>
+
+    {% for app_category in app_categories %}
+      <dt>
+        <a class="bs-btn" href="/{{ app_category|by_key:0 }}/test?autorun=1">{{ app_category|by_key:1 }} Tests</a>
+      </dt>
+      <dd>
+        Run the tests in the <a href="/{{ app_category|by_key:0 }}/">{{ app_category|by_key:1 }}</a> category.
+      </dd>
+    {% endfor %}
+  </dl>
+</div>
+
+{% endblock %}

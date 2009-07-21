@@ -27,7 +27,7 @@ from google.appengine.api import memcache
 from django.http import HttpRequest
 from django.test.client import Client
 
-from controllers.shared import util
+from base import util
 from models.result import ResultParent
 from models.result import ResultTime
 from models.user_agent import UserAgent
@@ -43,7 +43,7 @@ class TestUtil(unittest.TestCase):
 
   def testHome(self):
     response = self.client.get('/', {},
-        **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+        **mock_data.UNIT_TEST_UA)
     self.assertEqual(200, response.status_code)
 
 
@@ -51,7 +51,7 @@ class TestUtil(unittest.TestCase):
   # def testHomeWithResults(self):
   #   url = ('/?reflow_results=testDisplay=1558')
   #   response = self.client.get(url, {},
-  #       **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+  #       **mock_data.UNIT_TEST_UA)
   #   self.assertEqual(200, response.status_code)
 
   def testBeaconWithoutCsrfToken(self):
@@ -76,7 +76,7 @@ class TestUtil(unittest.TestCase):
       'csrf_token': csrf_token
     }
     response = self.client.get('/beacon', params,
-        **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+        **mock_data.UNIT_TEST_UA)
 
     # Did a ResultParent get created?
     query = db.Query(ResultParent)
@@ -109,8 +109,7 @@ class TestUtil(unittest.TestCase):
       'params': ','.join(beacon_params),
       'csrf_token': csrf_token
     }
-    response = self.client.get('/beacon', params,
-        **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+    response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
 
     # Did a ResultParent get created?
     query = db.Query(ResultParent)

@@ -23,9 +23,10 @@ import logging
 
 from django.test.client import Client
 
-from controllers import all_test_sets
+from categories import all_test_sets
 import settings
 
+import mock_data
 
 class TestCategories(unittest.TestCase):
 
@@ -56,20 +57,24 @@ class TestCategories(unittest.TestCase):
     for test_set in all_test_sets.GetTestSets():
       self.assert_(test_set.home_intro)
 
+class TestCategoriesHandlers(unittest.TestCase):
+
+  def setUp(self):
+    self.client = Client()
+
   def testTestPageWorks(self):
-    client = Client()
     for category in settings.CATEGORIES:
       response = self.client.get('/%s/test' % category, {},
-        **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+        **mock_data.UNIT_TEST_UA)
       self.assertEqual(200, response.status_code)
 
   def testAboutPageWorks(self):
     client = Client()
     for category in settings.CATEGORIES:
       response = self.client.get('/%s/' % category, {},
-        **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+        **mock_data.UNIT_TEST_UA)
       self.assertEqual(200, response.status_code)
 
       response = self.client.get('/%s/about' % category, {},
-        **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+        **mock_data.UNIT_TEST_UA)
       self.assertEqual(200, response.status_code)

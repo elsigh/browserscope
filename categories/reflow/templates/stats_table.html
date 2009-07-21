@@ -1,0 +1,99 @@
+
+<div id="rt-stats-{{ category }}" class="rt-stats">
+  <table cellpadding="0" cellspacing="0">
+    <thead>
+      <tr>
+        <th scope="col" class="rt-a">
+          <form id="rt-stats-{{ category }}-form" action="" method="get">
+            <select name="v" onchange="document.getElementById('rt-stats-{{ category }}-form').submit();">
+              {% for tuple in browser_nav %}
+                {% with tuple|by_key:0 as version %}
+                  <option
+                    value="{{ version }}"
+                    {% ifequal v version %}selected="selected"{% endifequal %}
+                    >{{ tuple|by_key:1 }}</option>
+                {% endwith %}
+              {% endfor %}
+            </select>
+          </form>
+          {% if is_admin %}
+            <a href="/clear_memcache?v={{ v }}&category={{ category }}&continue=/" class="bs-admin">clear memcache</a>
+          {% endif %}
+        </th>
+        {% for test in tests %}
+          <th scope="col">
+            <a href="{{ test.url }}">{{ test.name }}</a>
+          </th>
+        {% endfor %}
+        <th># Tests</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user_agent in user_agents %}
+
+        {% if stats|by_key:user_agent|by_key:"current_results" %}
+          {% with stats|by_key:user_agent|by_key:"current_results" as results %}
+            <tr class="rt-res">
+              <td colspan="{{ tests|length|add:2 }}" class="rt-tot">Your Results &darr;</td>
+            </tr>
+            <tr class="rt-res">
+              <td
+                scope="row"
+                class="rt-a
+                       rt-score-{{ stats|by_key:user_agent|by_key:"current_score" }}"
+                >{{ user_agent }}</td>
+              {% for test in tests %}
+                <td
+                  class="rt-score-{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"score" }}"
+                  >{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"display" }}
+                </td>
+              {% endfor %}
+              <td class="rt-tot">-</td>
+            </tr>
+          {% endwith %}
+        {% endif %}
+
+        {% if stats|by_key:user_agent|by_key:"results" %}
+          <tr
+            {% ifequal user_agent current_user_agent %}
+              class="rt-ua"
+            {% endifequal %}
+            >
+            <td scope="row" class="rt-a rt-score-{{ stats|by_key:user_agent|by_key:"score" }}">
+              {{ user_agent }}
+              {% if is_admin %}
+                <a href="/clear_memcache?category={{ category }}&ua={{ user_agent }}&continue=/" class="bs-admin">clear</a>
+              {% endif %}
+            </td>
+            {% for test in tests %}
+              <td
+                class="rt-score-{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"score" }}"
+                >{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"display" }}
+              </td>
+            {% endfor %}
+            <td class="rt-tot">
+              {% if stats|by_key:user_agent|by_key:"current_results" %}
+                {{ stats|by_key:user_agent|by_key:"total_runs"|add:1 }}
+              {% else %}
+                {{ stats|by_key:user_agent|by_key:"total_runs" }}
+              {% endif %}
+            </td>
+          </tr>
+        {% endif %}
+
+      {% endfor %}
+    </tbody>
+    {% if is_admin %}
+      {% if params %}
+        <tfoot>
+          <tr>
+            <td colspan="{{ tests|length|add:2 }}">
+              params: <a href="/reflow/test/{{ params|join:"&" }}">{{ params }}</a>
+            </td>
+          </tr>
+        </tfoot>
+      {% endif %}
+    {% endif %}
+  </table>
+</div>
+

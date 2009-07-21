@@ -23,7 +23,7 @@ import logging
 
 from django.test.client import Client
 
-from controllers import reflow_test_set
+from categories.reflow import test_set
 
 class ReflowTestTest(unittest.TestCase):
 
@@ -32,17 +32,17 @@ class ReflowTestTest(unittest.TestCase):
     #self.client = Client()
 
   def testScoreAndDisplayValueNone(self):
-    test = reflow_test_set.ReflowTest('testVisibility', 'zer', 'Zero Test')
+    test = test_set.ReflowTest('testVisibility', 'zer', 'Zero Test')
     score, display = test.GetScoreAndDisplayValue(None)
     self.assertEqual((90, ''), (score, display))
 
   def testScoreAndDisplayValueZero(self):
-    test = reflow_test_set.ReflowTest('testVisibility', 'zer', 'Zero Test')
+    test = test_set.ReflowTest('testVisibility', 'zer', 'Zero Test')
     score, display = test.GetScoreAndDisplayValue(0)
     self.assertEqual((100, '0X'), (score, display))
 
   def testScoreAndDisplayValueVisibility(self):
-    test = reflow_test_set.ReflowTest('testVisibility', 'da up', 'da up Test')
+    test = test_set.ReflowTest('testVisibility', 'da up', 'da up Test')
     score, display = test.GetScoreAndDisplayValue(20)
     self.assertEqual((100, '0X'), (score, display))
     score, display = test.GetScoreAndDisplayValue(40)

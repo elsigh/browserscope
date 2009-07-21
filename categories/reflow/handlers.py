@@ -26,9 +26,9 @@ import urllib2
 from django import http
 
 # Shared stuff
-from controllers.shared import decorators
-from controllers.shared import util
-from controllers import all_test_sets
+from base import decorators
+from base import util
+from categories import all_test_sets
 
 # Data structures for reflow testing.
 from bin.reflow.run_reflow_timer import TEST_PAGES
@@ -97,7 +97,7 @@ def About(request):
     'server': util.GetServer(request),
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
-  return util.Render(request, 'reflow/about.html', params, CATEGORY)
+  return util.Render(request, 'templates/about.html', params, CATEGORY)
 
 
 @decorators.provide_csrf
@@ -122,7 +122,7 @@ def Test(request):
   }
   params.update(util.ParamsListToDict(test_set.default_params))
 
-  return util.Render(request, 'reflow/acid1.html', params, CATEGORY)
+  return util.Render(request, 'templates/acid1.html', params, CATEGORY)
 
 
 def TestSelectors(request):
@@ -151,7 +151,7 @@ def TestSelectors(request):
   }
   params.update(util.ParamsListToDict(default_params))
 
-  return util.Render(request, 'reflow/test.html', params, CATEGORY)
+  return util.Render(request, 'templates/test.html', params, CATEGORY)
 
 
 def TestGenCss(request):
@@ -232,7 +232,7 @@ def StatsChart(request):
     'url_type': url_type,
     'test_pages': TEST_PAGES
   }
-  return util.Render(request, 'reflow/stats_chart.html', params, CATEGORY)
+  return util.Render(request, 'templates/stats_chart.html', params, CATEGORY)
 
 
 @decorators.provide_csrf
@@ -255,7 +255,7 @@ def NestedAnchors(request):
     render_params.append('%s=%s' % (name, urllib2.quote(value)))
   params['params'] = ','.join(render_params)
 
-  return util.Render(request, 'reflow/nested_anchors.html', params, CATEGORY)
+  return util.Render(request, 'templates/nested_anchors.html', params, CATEGORY)
 
 
 @decorators.provide_csrf
@@ -269,7 +269,7 @@ def NestedTables(request):
     'params': render_params,
     'templates': ['50-50', '33-67', '67-33', '25-75', '75-25']
   }
-  return util.Render(request, 'reflow/nested_tables.html', params, CATEGORY)
+  return util.Render(request, 'templates/nested_tables.html', params, CATEGORY)
 
 
 @decorators.provide_csrf
@@ -282,4 +282,4 @@ def NestedDivs(request):
     'params': render_params,
     'templates': ['50-50', '33-67', '67-33', '25-75', '75-25']
   }
-  return util.Render(request, 'reflow/nested_divs.html', params, CATEGORY)
+  return util.Render(request, 'templates/nested_divs.html', params, CATEGORY)

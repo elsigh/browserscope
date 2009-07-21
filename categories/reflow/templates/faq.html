@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div id="bs-faq">
+  <h1>{{ app_title }} FAQ</h1>
+
+  <ol>
+    <li>
+      <a href="#group">How can I contact the developers or discuss this project?</a>
+    </li>
+    <li>
+      <a href="#data">Where does the data come from and live?</a>
+    </li>
+    <li>
+      <a href="#signin">Do I need to sign in to run the tests and send in my scores?</a>
+    </li>
+    <li>
+      <a href="#opensource">Is {{ app_title }} open-source?</a>
+    </li>
+    <li>
+      <a href="#contribute">How can I contribute code or tests to {{ app_title }}</a>
+    </li>
+    <li>
+      <a href="#bug">Where can I submit a bug?</a>
+    </li>
+  </ol>
+
+  <dl>
+    <dt id="group">
+      How can I contact the developers or discuss this project?
+    </dt>
+    <dd>
+      Please visit <a href="http://groups.google.com/group/browserscope">groups.google.com/group/browserscope</a> or send an email to <a href="mailto:browserscope@googlegroups.com">browserscope@googlegroups.com</a>.
+    </dd>
+
+    <dt id="data">
+      Where does the data come from and live?
+    </dt>
+    <dd>
+      The data comes from developers and users like you, running the tests in their browsers. 
+At the end of the tests, the results are sent back to the Browserscope database which is hosted on <a href="http://code.google.com/appengine">Google App Engine</a>. 
+An MD5-hashed version of the IP address that submitted the test is saved to prevent abuse.
+    </dd>
+
+    <dt id="signin">
+      Do I need to sign in to run the tests and send in my scores?
+    </dt>
+    <dd>
+      No, you do not need to sign in. However, if you do sign in before running the tests, your Google userid is stored along with your test results in order to eventually make it possible for you to retrieve all your scores.
+    </dd>
+
+    <dt id="opensource">
+      Is {{ app_title }} open-source?
+    </dt>
+    <dd>
+      {{ app_title }} is an open source project, licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache 2.0 license</a> with all of the code publicly hosted at <a href="http://code.google.com/p/browserscope">code.google.com/p/browserscope</a>.
+      <ul>
+        <li><a href="http://code.google.com/p/browserscope/source/checkout">Checkout the code here</a></li>
+        <li><a href="http://code.google.com/p/browserscope/source/browse/trunk">Browse the code here</a></li>
+        <li><a href="http://code.google.com/p/browserscope/source/browse/trunk/README">Read the instructions for running the code/system on your machine</a></li>
+      </ul>
+    </dd>
+
+    <dt id="contribute">
+      How can I contribute code or tests to {{ app_title }}?
+    </dt>
+    <dd>
+      <ol>
+        <li>See the instructions above and checkout and run the codebase on your workstation.</li>
+        <li>Make edits/additions in your code tree and create a patch. (Does your code need unit tests? Check out the unit tests in the /tests directory and add tests for your changes there.)</li>
+        <li>Create an issue for tracking your new code at <a href="http://code.google.com/p/browserscope/issues/list">code.google.com/p/browserscope/issues/list</a> and upload your patch there. We'll get you some feedback ASAP!</li>
+      </ol>
+    </dd>
+
+    <dt id="bug">
+      Where can I submit a bug?
+    </dt>
+    <dd>
+      We have an issue tracking system at
+      <a href="http://code.google.com/p/browserscope/issues/list">code.google.com/p/browserscope/issues/list</a>
+    </dd>
+  </dl>
+</div>
+
+{% endblock %}

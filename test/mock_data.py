@@ -20,8 +20,8 @@ __author__ = 'slamm@google.com (Stephen Lamm)'
 
 from google.appengine.ext import db
 
-from controllers import test_set_base
-from controllers import all_test_sets
+from categories import test_set_base
+from categories import all_test_sets
 from models.user_agent import UserAgent
 from models.result import ResultParent
 from models.result import ResultTime
@@ -52,6 +52,9 @@ class MockTest(test_set_base.TestBase):
       return 86, '%iX' % int((median or 0)/100)
     else:
       return None
+
+
+UNIT_TEST_UA = {'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'}
 
 
 TESTS = (

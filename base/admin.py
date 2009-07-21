@@ -28,9 +28,9 @@ import time
 
 from google.appengine.ext import db
 
-from controllers import all_test_sets
-from controllers.shared import decorators
-from controllers.shared import util
+from categories import all_test_sets
+from base import decorators
+from base import util
 from models import user_agent
 
 from django import http

@@ -42,5 +42,5 @@ def AddTestSet(test_set):
 
 def _ImportTestSet(category):
   """Modules that define tests must add them."""
-  return __import__('%s.%s_test_set' % (settings.CONTROLLERS_MODULE, category),
+  return __import__('categories.%s.test_set' % category,
                     globals(), locals(), [category]).TEST_SET

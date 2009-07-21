@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+{% if recent_tests %}
+  <div id="bs-home-recent">
+    <h3>
+      recent tests:
+      {% if is_admin %}
+        <a href="/clear_memcache?recent=1&continue=/" class="bs-admin">clear memcache</a>
+      {% endif %}
+    </h3>
+    <table id="bs-home-recent-tests" cellpadding="0" cellspacing="0">
+      {% for test in recent_tests %}
+        <tr>
+          <td>{{ test.created|utc_to_pst|date:"P" }} PST</td>
+          <td>{{ test.created|utc_to_pst|date:"N j" }}</td>
+          <td>{{ test.category }}</td>
+          <td>{{ test.user_agent_pretty }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+{% endif %}
+
+
+<h1>{{ app_title }}</h1>
+<p>
+  {{ app_title }} is a community-driven project for benchmarking web browsers.
+  The goals are to foster innovation by tracking browser performance and to be a resource of browser behavior for web developers and users.
+  The benchmark is a collection of tests organized into categories: <a href="/network">Network</a> and <a href="/reflow">Reflow</a>.
+  (More test categories are in the works.)
+</p>
+<h3>What can you do here?</h3>
+<p>
+  <strong><a href="/alltests" class="bs-btn bs-runtest">Run the Tests</a></strong>
+</p>
+<p>
+  So far <strong>X</strong> users have run the tests <strong>X</strong> times on <strong>X</strong> unique browsers!
+</p>
+<p>
+  This ability for users to contribute to the results is the most important feature of {{ app_title }}.
+  It's the key for {{ app_title }}'s longevity, accuracy, and currency.
+</p>
+<ul>
+  <li>No dedicated test resources are required. By minimizing costs, the project can continue to run in perpetuity.</li>
+  <li>A wide variety of users run the tests, giving greater coverage than would be possible from a typical benchmark regression test suite.</li>
+  <li>Tests are run under real world conditions. Results are aggregated across all tests, reducing the impact of bias and outliers.</li>
+  <li>Because testing is in the hands of users, it's always up-to-date. As soon as a new browser or web device comes out, it shows up in {{ app_title }}. Often, it shows up beforehand as part of developer beta testing.</li>
+</ul>
+
+<h2>Results</h2>
+<div id="bs-results">
+  <ul id="bs-results-bycat" class="bs-compact">
+    {% for app_category in app_categories %}
+      {% with app_category|by_key:0 as category %}
+        <li id="{{ category }}-results">
+          <h3>{{ app_category|by_key:1 }}</h3>
+          <!--<p><a class="bs-btn" href="/{{ category }}/test">Run the {{ app_category|by_key:1 }} Tests</a></p>-->
+          <p>{{ intro_text|by_key:category|safe }}</p>
+          {{ stats_tables|by_key:category }}
+        </li>
+      {% endwith %}
+    {% endfor %}
+  </ul>
+</div>
+<script>
+(function(){
+  var changeCategoryClickHandler = function(e) {
+    var link = this
+    if (selectedCategoryLink == link) {
+      return;
+    }
+    categorySections[selectedCategoryLink.category].style.display = 'none';
+    selectedCategoryLink.parentNode.className = '';
+    selectedCategoryLink = link;
+    selectedCategoryLink.parentNode.className = 'bs-sel';
+    categorySections[selectedCategoryLink.category].style.display = '';
+    e.preventDefault();
+  };
+  var categoriesList = document.createElement('ul');
+  categoriesList.id = 'bs-results-cats';
+  categoriesList.className = 'bs-compact';
+  var categories = [];
+  var categorySections = {};
+  var parent, h3;
+  {% for app_category in app_categories %}
+    parent = document.getElementById('{{ app_category|by_key:0 }}-results');
+    categorySections['{{ app_category|by_key:0 }}'] = parent;
+    categories.push({
+      'cat': '{{ app_category|by_key:0 }}',
+      'name': '{{ app_category|by_key:1 }}'
+    });
+    h3 = parent.getElementsByTagName('h3')[0];
+    parent.removeChild(h3);
+  {% endfor %}
+  var selectedCategoryLink;
+  for (var i = 0, category; category = categories[i]; i++) {
+    var link = document.createElement('span');
+    var li = document.createElement('li');
+    var re = new RegExp('\\?' + category.cat + '_results=');
+    li.appendChild(link);
+    link.category = category.cat;
+    link.appendChild(document.createTextNode(category.name));
+    link.onclick = changeCategoryClickHandler;
+    if (i == 0) {
+      selectedCategoryLink = link;
+      selectedCategoryLink.parentNode.className = 'bs-sel';
+    // this will set the selected tab to the first of the result strings.
+    } else if (window.location.href.match(re)) {
+      if (selectedCategoryLink) {
+        selectedCategoryLink.parentNode.className = '';
+        categorySections[selectedCategoryLink.category].style.display = 'none';
+      }
+      selectedCategoryLink = link;
+      selectedCategoryLink.parentNode.className = 'bs-sel';
+      // scroll to the bottom so we can see the results
+      window.scrollTo(0, 99999999)
+    } else {
+      categorySections[category.cat].style.display = 'none';
+    }
+    categoriesList.appendChild(li);
+  }
+  var results = document.getElementById('bs-results');
+  var resultsByCat = document.getElementById('bs-results-bycat');
+  results.insertBefore(categoriesList, resultsByCat);
+})();
+</script>
+{% endblock %}
+

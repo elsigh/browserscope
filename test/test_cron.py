@@ -27,8 +27,8 @@ from google.appengine.api import memcache
 from django.http import HttpRequest
 from django.test.client import Client
 
-from controllers.shared import cron
-from controllers.shared import util
+from base import cron
+from base import util
 
 from models import result_ranker
 from models.result import ResultParent
@@ -42,7 +42,6 @@ class TestCron(unittest.TestCase):
   CATEGORY = 'test_cron_dirty'
 
   def setUp(self):
-    # Every test needs a client.
     self.client = Client()
 
   def tearDown(self):
@@ -84,7 +83,7 @@ class TestCron(unittest.TestCase):
 
     # Run it twice for the two ResultTimes
     response = self.client.get('/cron/update_dirty', {},
-        **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+        **mock_data.UNIT_TEST_UA)
     self.assertEqual(200, response.status_code)
     logging.info('CONTENT: %s' % response.content)
     self.assertTrue(response.content.find('done') > -1)
@@ -96,7 +95,7 @@ class TestCron(unittest.TestCase):
                        time=30,
                        namespace=cron.UPDATE_DIRTY_MEMCACHE_NS)
     response = self.client.get('/cron/update_dirty', {},
-        **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+        **mock_data.UNIT_TEST_UA)
     self.assertEqual(403, response.status_code)
     self.assertTrue(response.content.find('unable to acquire lock') > -1)
 
@@ -106,13 +105,13 @@ class TestCron(unittest.TestCase):
                           namespace=cron.UPDATE_DIRTY_MEMCACHE_NS)
 
     response = self.client.get('/cron/update_dirty', {},
-        **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+        **mock_data.UNIT_TEST_UA)
     self.assertEqual(200, response.status_code)
     self.assertTrue(response.content.find('done') > -1)
 
     # Should now return empty
     response = self.client.get('/cron/update_dirty', {},
-        **{'HTTP_USER_AGENT': 'silly-human', 'REMOTE_ADDR': '127.0.0.1'})
+        **mock_data.UNIT_TEST_UA)
     self.assertEqual(200, response.status_code)
     self.assertEqual(cron.UPDATE_DIRTY_DONE, response.content)
 

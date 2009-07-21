@@ -27,12 +27,12 @@
   width: 48em;
   background-color: white;
 }
-.g-content-c dl {
+.acid1-dl {
   margin: 0;
   border: 0;
   padding: .5em;
 }
-.g-content-c dt {
+.acid1-dt {
   background-color: rgb(204,0,0);
   margin: 0;
   padding: 1em;
@@ -41,7 +41,7 @@
   border: .5em solid black;
   float: left;
 }
-.g-content-c dd {
+.acid1-dd {
   float: right;
   margin: 0 0 0 1em;
   border: 1em solid black;
@@ -49,12 +49,12 @@
   width: 34em;
   height: 27em;
 }
-.g-content-c ul {
+.acid1-ul {
   margin: 0;
   border: 0;
   padding: 0;
 }
-.g-content-c li {
+.acid1-li {
   display: block; /* i.e., suppress marker */
   color: black;
   height: 9em;
@@ -65,14 +65,14 @@
   float: left;
   background-color: #FC0;
 }
-.g-content-c #bar {
+.acid1-bar {
   background-color: black;
   color: white;
   width: 41.17%; /* = 14em */
   border: 0;
   margin: 0 1em;
 }
-.g-content-c #baz {
+.acid1-baz {
   margin: 1em 0;
   border: 0;
   padding: 1em;
@@ -81,17 +81,18 @@
   background-color: black;
   color: white;
 }
-.g-content-c form {
+.acid1-form {
   margin: 0;
   display: inline;
 }
-.g-content-c p {
+.acid1-p {
   margin: 0;
 }
-.g-content-c form p {
+.acid1-form-p {
   line-height: 1.9;
+  margin: 0;
 }
-.g-content-c blockquote {
+.acid1-bq {
   margin: 1em 1em 1em 2em;
   border-width: 1em 1.5em 2em .5em;
   border-style: solid;
@@ -103,10 +104,10 @@
   background-color: #FC0;
   color: black;
 }
-.g-content-c address {
+.acid1-addr {
   font-style: normal;
 }
-.g-content-c h1 {
+.acid1-h1 {
   background-color: black;
   color: white;
   float: left;
@@ -117,6 +118,9 @@
   height: 10em;
   font-weight: normal;
   font-size: 1em;
+}
+.acid1-clear {
+  color:black;font-size:1em;line-height:1.3em;clear: both;padding-bottom:1em;border-bottom:3px solid #ccc;margin:0 0 1em 0;
 }
 </style>
 
@@ -197,55 +201,55 @@ function runTest() {
 </div>
 
 <div id="g-content">
-  <div class="g-content-c">
+  <div id="g-content-c">
     <p id="g-intro">
-      Why, look - it's {{ num_elements }} instances of the Acid1 test. <a href="/reflow/about#acid1">Why?</a>
+      Why, look - it's {{ num_elements }} instances of the <a href="/reflow/about#acid1">Acid1 test</a>.
     </p>
 
     {% for i in num_elements|as_range %}
-      <dl>
-        <dt>
+      <dl class="acid1-dl">
+        <dt class="acid1-dt">
          toggle
         </dt>
-        <dd>
-        <ul>
-          <li>
-           the way
-          </li>
-          <li id="bar">
-          <p>
-           the world ends
-          </p>
-          <form action="./" method="get">
-            <p>
-             bang
-            <input type="radio" name="foo" value="off">
-            </p>
-            <p>
-             whimper
-            <input type="radio" name="foo2" value="on">
-            </p>
-          </form>
-          </li>
-          <li>
-           i grow old
-          </li>
-          <li id="baz">
-           pluot?
-          </li>
-        </ul>
-        <blockquote>
-          <address>
-             bar maids,
-          </address>
-        </blockquote>
-        <h1>
-           sing to me, erbarme dich
-        </h1>
+        <dd class="acid1-dd">
+          <ul class="acid1-ul">
+            <li class="acid1-li">
+             the way
+            </li>
+            <li class="acid1-li acid1-bar">
+              <p class="acid1-p">
+               the world ends
+              </p>
+              <form action="./" method="get" class="acid1-form">
+                <p class="acid1-form-p">
+                  bang
+                  <input type="radio" name="foo" value="off">
+                </p>
+                <p class="acid1-form-p">
+                  whimper
+                  <input type="radio" name="foo2" value="on">
+                </p>
+              </form>
+            </li>
+            <li class="acid1-li">
+             i grow old
+            </li>
+            <li class="acid1-li acid1-baz">
+             pluot?
+            </li>
+          </ul>
+          <blockquote class="acid1-bq">
+            <address class="acid1-addr">
+               bar maids,
+            </address>
+          </blockquote>
+          <h1 class="acid1-h1">
+             sing to me, erbarme dich
+          </h1>
         </dd>
       </dl>
 
-      <p style="color:black;font-size:1em;line-height:1.3em;clear: both;padding-bottom:1em;border-bottom:3px solid #ccc;margin-bottom:1em;">
+      <p class="acid1-clear">
        This is a nonsensical document, but syntactically valid HTML 4.0. All 100%-conformant CSS1 agents should be able to render the document elements above this paragraph indistinguishably (to the pixel) from this
         <a href="http://www.w3.org/Style/CSS/Test/CSS1/current/sec5526c.gif" target="_blank">reference rendering,</a>
        (except font rasterization and form widgets). All discrepancies should be traceable to CSS1 implementation shortcomings.

@@ -10,6 +10,10 @@
 
 (function(){
 
+  var FONT_SIZE = '13px';
+  var FONT_FAMILY = 'Arial, sans';
+  var COLOR = '#111';
+
   // TODO(elsigh): Also remove event listeners to prevent memory leakage.
   var dispose = function() {
     var previousRunEl = document.getElementById('rt-alltests');
@@ -39,10 +43,11 @@
   style.width = '12em';
   style.padding = '0';
   style.margin = '0';
-  style.fontSize = 'inherit';
-  style.fontFamily = 'inherit';
-  style.color = 'inherit';
+  style.fontSize = FONT_SIZE;
+  style.fontFamily = FONT_FAMILY;
+  style.color = COLOR;
   style.background = 'none';
+
   var container = divEl.cloneNode(false);
   var style = container.style;
   style.position = 'absolute';
@@ -54,7 +59,7 @@
   style.width = '22em';
   style.font = '13px normal Arial, sans';
   style.lineHeight = '1.3';
-  style.color = '#111';
+  style.color = COLOR;
   style.textAlign = 'left';
   style.zIndex = '999';
   if (style.setProperty) {

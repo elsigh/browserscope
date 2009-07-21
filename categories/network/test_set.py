@@ -17,7 +17,7 @@
 """Network Tests Definitions."""
 
 
-from controllers import test_set_base
+from categories import test_set_base
 
 
 _CATEGORY = 'network'

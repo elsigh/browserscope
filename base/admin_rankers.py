@@ -25,8 +25,8 @@ from google.appengine.runtime import DeadlineExceededError
 from google.appengine.api.labs import taskqueue
 from google.appengine.ext import db
 
-from controllers.shared import decorators
-from controllers.shared import util
+from base import decorators
+from base import util
 from models.result import ResultParent
 
 from gaefy.db import pager

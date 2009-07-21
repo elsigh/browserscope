@@ -19,7 +19,7 @@
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 
-from controllers import test_set_base
+from categories import test_set_base
 
 
 _CATEGORY = 'richtext'

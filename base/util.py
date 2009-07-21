@@ -43,8 +43,8 @@ from settings import *
 from models.result import *
 from models.user_agent import *
 from models import result_ranker
-from controllers import all_test_sets
-from controllers.shared import decorators
+from categories import all_test_sets
+from base import decorators
 
 
 #@decorators.trusted_tester_required
@@ -72,6 +72,9 @@ def Render(request, template, params={}, category=None):
     if category and category == test_set.category:
       params['app_category'] = test_set.category
       params['app_category_index'] = i
+
+  if category != None:
+    template = '%s/%s' % (category, template)
   return shortcuts.render_to_response(template, params)
 
 

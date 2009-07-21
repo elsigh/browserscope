@@ -28,7 +28,7 @@ from django import http
 import urls
 import settings
 
-from controllers.shared import decorators
+from base import decorators
 
 
 
