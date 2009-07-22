@@ -358,7 +358,7 @@ ReflowTimer.SERVER = 'ua-profiler.appspot.com';
 /**
  * @type {number}
  */
-ReflowTimer.REFLOW_REST_TIME = 100;
+ReflowTimer.REFLOW_REST_TIME = 250;
 
 
 /**
@@ -804,7 +804,7 @@ ReflowTimer.prototype.testVisibilitySetUp = function() {
   this.containerStyle_.visibility = 'hidden';
 };
 ReflowTimer.prototype.testVisibility = function() {
-  this.containerStyle_.visibility = '';
+  this.containerStyle_.visibility = 'visible';
 };
 
 
