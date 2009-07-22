@@ -73,6 +73,8 @@ if __name__ == '__main__':
     if 'third_party' not in os.listdir('.'):
       logging.error('Must run from the application root.')
   subversion_externals = GetSubversionExternals()
+  for skipping_dirs in sorted(subversion_externals.keys()):
+    print "Skipping directory managed by svn:externals: %s" % skipping_dirs
   check_dirs = GetThirdPartyDirectoriesToCheck(subversion_externals.keys())
   for third_party_dir in check_dirs:
     CheckVersion(third_party_dir)
