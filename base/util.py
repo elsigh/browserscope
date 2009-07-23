@@ -422,58 +422,38 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
   total_runs = {}
 
   for user_agent in user_agents:
-    # Checks memcache for user agent row data.
+    user_agent_stats = None
     if use_memcache:
       memcache_ua_key = '%s_%s' % (category, user_agent)
-      row = memcache.get(key=memcache_ua_key,
-                         namespace=STATS_MEMCACHE_UA_ROW_NS)
-      #logging.info('Memcache got %s for UA: %s' % (row, user_agent))
-      if row:
-        stats[user_agent] = row
-        continue
-
-    stats[user_agent] = {}
-    stats[user_agent]['results'] = {}
-    stats[user_agent]['score'] = 0
-    stats['total_runs'] = 0
-
-    user_agent_score = 0
-    for test in tests:
-      stats[user_agent]['results'][test.key] = {}
-
-      ranker = test.GetRanker(user_agent, params)
-
-      # Median and total
-      if not stats[user_agent].has_key('total_runs'):
-        median, total_runs = ranker.GetMedianAndNumScores()
-        stats[user_agent]['total_runs'] = total_runs
-        stats['total_runs'] += total_runs
-      else:
-        median = ranker.GetMedian(num_scores=stats[user_agent]['total_runs'])
-      if median is None:
-        median = ''
-      stats[user_agent]['results'][test.key]['median'] = median
-
-      score, display, ua_score = GetScoreAndDisplayValue(test, median)
-      stats[user_agent]['results'][test.key]['score'] = score
-      stats[user_agent]['results'][test.key]['display'] = display
-      user_agent_score += ua_score
-
-    stats[user_agent]['score'] = int(user_agent_score / len(tests))
-
-    # Store the stats in memcache if we get here.
-    if use_memcache:
-      #logging.info('ok, putting %s into %s' % (stats[user_agent],
-      #                                         memcache_ua_key))
-      memcache.set(key=memcache_ua_key, value=stats[user_agent],
-                   time=STATS_MEMCACHE_TIMEOUT,
-                   namespace=STATS_MEMCACHE_UA_ROW_NS)
-
-  # If we're not on the top browsers page and we have 0 total runs, then
-  # remove from the list.
-  if stats[user_agent]['total_runs'] == 0 and version_level != 'top':
-    del stats[user_agent]
-
+      user_agent_stats = memcache.get(
+          key=memcache_ua_key, namespace=STATS_MEMCACHE_UA_ROW_NS)
+    if not user_agent_stats:
+      total_runs = None
+      user_agent_results = {}
+      user_agent_score = 0
+      for test in tests:
+        median, total_runs = test.GetRanker(
+            user_agent, params).GetMedianAndNumScores(num_scores=total_runs)
+        if median is None:
+          median = ''
+        score, display, ua_score = GetScoreAndDisplayValue(test, median)
+        user_agent_score += ua_score
+        user_agent_results[test.key] = {
+            'median': median,
+            'score': score,
+            'display': display,
+            }
+      user_agent_stats = {
+          'total_runs': total_runs,
+          'results': user_agent_results,
+          'score': user_agent_score / len(tests)
+          }
+      if use_memcache:
+        memcache.set(key=memcache_ua_key, value=user_agent_stats,
+                     time=STATS_MEMCACHE_TIMEOUT,
+                     namespace=STATS_MEMCACHE_UA_ROW_NS)
+    if version_level == 'top' or user_agent_stats['total_runs']:
+      stats[user_agent] = user_agent_stats
   return stats
 
 
