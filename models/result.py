@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import hashlib
 import logging
 import sys
 
@@ -25,7 +24,7 @@ from categories import all_test_sets
 from models import user_agent
 from models.user_agent import UserAgent
 
-from settings import *
+import settings
 
 
 class ResultTime(db.Model):
@@ -47,7 +46,7 @@ class ResultTime(db.Model):
 
 
 class ResultParent(db.Expando):
-  """A parent entity for a run.
+  """A parent entity for a test run.
 
   Inherits from db.Expando instead of db.Model to allow the network_loader
   to add an attribute for 'loader_id'.
@@ -63,18 +62,28 @@ class ResultParent(db.Expando):
   params = db.StringListProperty(default=[])
 
   @classmethod
-  def AddResult(cls, category, ip, user_agent_string, test_scores, **kwds):
+  def AddResult(cls, category, ip, user_agent_string, results, **kwds):
     """Create result models and stores them as one transaction."""
+    if settings.BUILD == 'production' and category not in settings.CATEGORIES:
+      logging.info('Got a bogus category(%s), bailing.' % category)
+      return
     user_agent = UserAgent.factory(user_agent_string)
     parent = cls(category=category,
                  ip=ip,
                  user_agent=user_agent,
                  user_agent_pretty=user_agent.pretty(),
                  **kwds)
+    # Loop through to see if there are any additional expando properties
+    # to store along with the parent.
+    for results_dict in results:
+      if results_dict.has_key('expando'):
+        setattr(parent, str(results_dict['key']), results_dict['expando'])
+
     def _AddResultInTransaction():
       parent.put()
-      db.put([ResultTime(parent=parent, test=str(test), score=int(score))
-              for test, score in test_scores])
+      for results_dict in results:
+        db.put(ResultTime(parent=parent, test=str(results_dict['key']),
+               score=int(results_dict['score'])))
     db.run_in_transaction(_AddResultInTransaction)
     return parent
 
@@ -84,7 +93,7 @@ class ResultParent(db.Expando):
     #logging.info('invalidate_ua_memcache, memcache_ua_keys: %s' %
     #             memcache_ua_keys)
     memcache.delete_multi(keys=memcache_ua_keys, seconds=0,
-                          namespace=STATS_MEMCACHE_UA_ROW_NS)
+                          namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
 
   def increment_all_counts(self):
     """This is not efficient enough to be used in prod."""

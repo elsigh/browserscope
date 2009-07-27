@@ -35,7 +35,7 @@ from models.user_agent import UserAgent
 import mock_data
 
 
-class TestUtil(unittest.TestCase):
+class TestUtilHandlers(unittest.TestCase):
 
   def setUp(self):
     # Every test needs a client.
@@ -47,23 +47,22 @@ class TestUtil(unittest.TestCase):
     self.assertEqual(200, response.status_code)
 
 
-  #TODO(elsigh): Figure out why this test doesn't work - it returns 404
-  # def testHomeWithResults(self):
-  #   url = ('/?reflow_results=testDisplay=1558')
-  #   response = self.client.get(url, {},
-  #       **mock_data.UNIT_TEST_UA)
-  #   self.assertEqual(200, response.status_code)
+  def testHomeWithResults(self):
+    params = {'reflow_results': 'testDisplay=1558'}
+    response = self.client.get('/', params, **mock_data.UNIT_TEST_UA)
+    self.assertEqual(200, response.status_code)
+
 
   def testBeaconWithoutCsrfToken(self):
     params = {}
-    response = self.client.get('/beacon', params)
+    response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
     self.assertEqual(403, response.status_code)
 
 
   def testBeaconWithoutCategory(self):
     csrf_token = self.client.get('/get_csrf').content
     params = {'results': 'testDisply:200', 'csrf_token': csrf_token}
-    response = self.client.get('/beacon', params)
+    response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
     self.assertEqual(util.BAD_BEACON_MSG, response.content)
 
 
@@ -75,8 +74,7 @@ class TestUtil(unittest.TestCase):
       'results': 'testDisplay=1,testVisibility=2',
       'csrf_token': csrf_token
     }
-    response = self.client.get('/beacon', params,
-        **mock_data.UNIT_TEST_UA)
+    response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
 
     # Did a ResultParent get created?
     query = db.Query(ResultParent)
@@ -130,8 +128,20 @@ class TestUtil(unittest.TestCase):
     self.assertEqual(True, result_times[1].dirty)
 
 
+class TestUtilFunctions(unittest.TestCase):
+
   def testCheckThrottleIpAddress(self):
     self.assertEqual(True, util.CheckThrottleIpAddress('192.168.1.1'))
+
+
+  def testParseResults(self):
+    expected = [{'score': '5', 'key': 'test1'}, {'score': '10', 'key': 'test2'}]
+    parsed_results = util.ParseResults('test1=5,test2=10')
+    logging.info(parsed_results)
+    are_equal = expected == parsed_results
+    # TODO(elsigh): figure this out one day.
+    # Why can't we just do assertEqual on dictionaries in gaeunit?
+    self.assertTrue(are_equal)
 
 
 class TestStats(unittest.TestCase):

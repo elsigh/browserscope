@@ -240,7 +240,7 @@ def NestedAnchors(request):
   default_params=[
      'nested_anchors', 'num_elements=400', 'num_nest=0',
      'css_selector=p', 'num_css_rules=1',
-     'css_text=float:left;height:100px;width:100px;border:1px solid red;margin-right:5px;']
+     'css_text=float:left;height:30px;width:30px;border:1px solid red;margin-right:5px;']
   css_match_each = request.GET.get('css_match_each', '')
   show_form = int(request.GET.get('show_form', 0))
   params = {
@@ -255,6 +255,7 @@ def NestedAnchors(request):
     if val == '':
       continue
     value = request.GET.get(name, val)
+    #logging.info('name %s, value: %s' % (name, value))
     params[name] = value
     render_params.append('%s=%s' % (name, urllib2.quote(value)))
   params['params'] = ','.join(render_params)

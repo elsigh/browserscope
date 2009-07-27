@@ -92,9 +92,13 @@ def ParseResults(results_string):
   Args:
     raw_results: a string like 'test1=time1,test2=time2,[...]'.
   Returns:
-    [(test1, time1), (test2, time2)]
+    [{'key': test1, 'score': time1}, {'key': test2, 'score': time2}]
   """
-  return [x.split('=') for x in results_string.split(',')]
+  results = []
+  for x in results_string.split(','):
+    key, score = x.split('=')
+    results.append({'key': key, 'score': score})
+  return results
 
 
 # These are things which do not get urlquoted in Javascript, however do
@@ -285,21 +289,20 @@ def Beacon(request):
   This is the handler for after a test is done.
   ex: /beacon?category=reflow&csrf_token=number&results=tes1=150,test2=300
   """
+  # First make sure this IP is not being an overachiever ;)
+  ip = request.META.get('REMOTE_ADDR')
+  if not CheckThrottleIpAddress(ip):
+    return http.HttpResponseServerError(BAD_BEACON_MSG)
+  # Mask the IP for storage
+  ip = hashlib.md5(ip).hexdigest()
+
   callback = request.GET.get('callback', None)
   category = request.GET.get('category', None)
   results_string = request.GET.get('results', None)
   if category is None or results_string is None:
     return http.HttpResponse(BAD_BEACON_MSG)
   results = ParseResults(results_string)
-  logging.info('Beacon results: %s' % results)
-
-  ip = request.META.get('REMOTE_ADDR')
-  ip_ok = CheckThrottleIpAddress(ip)
-  if not ip_ok:
-    return http.HttpResponseServerError(BAD_BEACON_MSG)
-
-  # hash ip address
-  ip = hashlib.md5(ip).hexdigest()
+  #logging.info('Beacon results: %s' % results)
 
   user_agent_string = request.META.get('HTTP_USER_AGENT')
   user = users.get_current_user()
@@ -307,7 +310,7 @@ def Beacon(request):
   params = request.GET.get('params', [])
   if params and params != '':
     params = ParamsStringToList(params)
-  logging.info('Beacon params: %s' % params)
+  #logging.info('Beacon params: %s' % params)
 
   result_parent = ResultParent.AddResult(category, ip, user_agent_string,
                                          results, params=params, user=user)
