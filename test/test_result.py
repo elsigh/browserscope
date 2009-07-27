@@ -67,3 +67,27 @@ class ResultTest(unittest.TestCase):
         test_set.category, test_set.GetTest('testDisplay'), 'Firefox 3',
         test_set.default_params)
     self.assertEqual(2, ranker.GetMedian())
+
+
+  def testAddResult(self):
+    parent = mock_data.AddOneTestUsingAddResult()
+    result_times = parent.get_result_times()
+    self.assertEqual(2, len(result_times))
+    self.assertEqual('testDisplay', result_times[0].test)
+    self.assertEqual(500, result_times[0].score)
+    self.assertEqual('testVisibility', result_times[1].test)
+    self.assertEqual(200, result_times[1].score)
+
+
+  def testAddResultWithExpando(self):
+    parent = mock_data.AddOneTestUsingAddResultWithExpando()
+    result_times = parent.get_result_times()
+    self.assertEqual(2, len(result_times))
+    self.assertEqual('testDisplay', result_times[0].test)
+    self.assertEqual(500, result_times[0].score)
+    self.assertEqual(20, parent.testDisplay)
+    self.assertEqual('testVisibility', result_times[1].test)
+    self.assertEqual(200, result_times[1].score)
+    self.assertEqual('testeroo', parent.testVisibility)
+
+

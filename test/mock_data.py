@@ -26,11 +26,10 @@ from models.user_agent import UserAgent
 from models.result import ResultParent
 from models.result import ResultTime
 
-
+_UA_STRING = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
+              'Gecko/2009011912 Firefox/3.0.6')
 def GetUserAgent():
-  ua_string = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-               'Gecko/2009011912 Firefox/3.0.6')
-  ua = UserAgent.factory(ua_string)
+  ua = UserAgent.factory(_UA_STRING)
   return ua
 
 
@@ -69,6 +68,15 @@ class MockTestSet(test_set_base.TestSet):
         self, category, category, TESTS, {'subnav1': '/url1'},
         "Some Home Intro text", default_params=params)
     all_test_sets.AddTestSet(self)
+
+
+class MockTestSetWithParseResults(MockTestSet):
+  def ParseResults(self, results):
+    baseline_value = 70
+    for result in results:
+      expando_val = int(round(result['score'] / baseline_value) * 100)
+      result['expando'] = expando_val
+    return results
 
 
 def AddFiveResultsAndIncrementAllCounts():
@@ -201,6 +209,43 @@ def AddThreeResultsWithParamsAndIncrementAllCounts():
 
 def AddOneTest():
   test_set = MockTestSet('category-one')
+  user_agent = GetUserAgent()
+  result = ResultParent()
+  result.category = test_set.category
+  result.user_agent = user_agent
+  result.user_agent_pretty = user_agent.pretty()
+  result.ip = '12.2.2.255'
+  result.put()
+  result_time1 = ResultTime(parent=result)
+  result_time1.test = 'testDisplay'
+  result_time1.score = 500
+  result_time2 = ResultTime(parent=result)
+  result_time2.test = 'testVisibility'
+  result_time2.score = 0
+  db.put([result_time1, result_time2])
+  result.increment_all_counts()
+  return test_set
+
+def AddOneTestUsingAddResult():
+  category = 'category-addresult'
+  ip = '12.2.2.555'
+  user_agent_string = _UA_STRING
+  results = [{'key': 'testDisplay', 'score': 500},
+             {'key': 'testVisibility', 'score': 200}]
+  parent = ResultParent.AddResult(category, ip, user_agent_string, results)
+  return parent
+
+def AddOneTestUsingAddResultWithExpando():
+  category = 'category-addresult-withexpando'
+  ip = '12.2.2.555'
+  user_agent_string = _UA_STRING
+  results = [{'key': 'testDisplay', 'score': 500, 'expando': 20},
+             {'key': 'testVisibility', 'score': 200, 'expando': 'testeroo'}]
+  parent = ResultParent.AddResult(category, ip, user_agent_string, results)
+  return parent
+
+def AddOneTestViaAddResultWithParseResults():
+  test_set = MockTestSetWithParseResults('category-parseresults')
   user_agent = GetUserAgent()
   result = ResultParent()
   result.category = test_set.category

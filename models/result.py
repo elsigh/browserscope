@@ -77,8 +77,7 @@ class ResultParent(db.Expando):
     # to store along with the parent.
     for results_dict in results:
       if results_dict.has_key('expando'):
-        setattr(parent, str(results_dict['key']), results_dict['expando'])
-
+        parent.__setattr__(str(results_dict['key']), results_dict['expando'])
     def _AddResultInTransaction():
       parent.put()
       for results_dict in results:
@@ -97,11 +96,20 @@ class ResultParent(db.Expando):
 
   def increment_all_counts(self):
     """This is not efficient enough to be used in prod."""
-    result_times = ResultTime.all().ancestor(self)
+    result_times = self.get_result_times_as_query()
     for result_time in result_times:
       #logging.info('ResultTime key is %s ' % (result_time.key()))
       #logging.info('w/ ua: %s' %  result_time.parent().user_agent)
       result_time.increment_all_counts()
+
+  def get_result_times_as_query(self):
+    return ResultTime.all().ancestor(self)
+
+  def get_result_times(self):
+    """As long as a parent has less than 1000 result times,
+       this will return them all.
+    """
+    return self.get_result_times_as_query().fetch(1000, 0)
 
   def _get_user_agent_list(self):
     """Build user_agent_list on-the-fly from user_agent_pretty.

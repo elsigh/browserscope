@@ -38,6 +38,16 @@ class ReflowTest(test_set_base.TestBase):
         min_value=0,
         max_value=60000)
 
+  def ParseResults(self, results):
+    """Normalizes the raw scores before sending them to the median trees.
+    Args:
+      results: A results dict. See util.ParseResults
+    Returns:
+      A results dict suitable for models.ResultParent.AddResults
+    """
+
+
+
   def GetScoreAndDisplayValue(self, median):
     """Returns a tuple with display text for the cell as well as a 1-100 value.
     i.e. ('1X', 95)
