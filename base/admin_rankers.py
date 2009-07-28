@@ -35,6 +35,14 @@ import django
 from django import http
 from django.utils import simplejson
 
+
+def AllRankers(request):
+  pass
+
+def AllUserAgents(request):
+  pass
+
+
 def Render(request, template_file, params):
   """Render network test pages."""
 
@@ -51,19 +59,11 @@ def RebuildRankers(request):
 
 
 def UpdateResultParents(request):
-  is_client_tool = False
-  if request.method == 'POST':
-    # Request is from client tool (e.g. bin/db_update.py)
-    is_client_tool = True
-    try:
-      bookmark, total_scanned, total_updated = simplejson.loads(
-          request.raw_post_data)
-    except ValueError:
-      bookmark = None
-  else:
-    bookmark = request.GET.get('bookmark', None)
-    total_scanned = request.GET.get('total_scanned', 0)
-    total_updated = request.GET.get('total_updated', 0)
+  bookmark = request.GET.get('bookmark', None)
+  total_scanned = int(request.GET.get('total_scanned', 0))
+  total_updated = int(request.GET.get('total_updated', 0))
+  use_taskqueue = request.GET.get('use_taskqueue', '') == '1'
+
   query = pager.PagerQuery(ResultParent)
   try:
     prev_bookmark, results, next_bookmark = query.fetch(100, bookmark)
@@ -78,19 +78,27 @@ def UpdateResultParents(request):
       db.put(changed_results)
       total_updated += len(changed_results)
   except DeadlineExceededError:
+    logging.warn('DeadlineExceededError in UpdateResultParents:'
+                 ' total_scanned=%s, total_updated=%s.',
+                 total_scanned, total_updated)
     return http.HttpResponse('UpdateResultParent: DeadlineExceededError.',
                              status=403)
-  if is_client_tool:
-    return http.HttpResponse(
+  if use_taskqueue:
+    if next_bookmark:
+      taskqueue.Task(
+          method='GET',
+          url='/admin/update_result_parents',
+          params={
+              'bookmark': next_bookmark,
+              'total_scanned': total_scanned,
+              'total_updated': total_updated,
+              'use_taskqueue': 1,
+              }).add(queue_name='default')
+    else:
+      logging.info('Finished UpdateResultParents tasks:'
+                   ' total_scanned=%s, total_updated=%s',
+                   total_scanned, total_updated)
+      return http.HttpResponse(
         simplejson.dumps((next_bookmark, total_scanned, total_updated)))
-  elif next_bookmark:
-    taskqueue.Task(
-        method='GET',
-        url='/admin/update_result_parents',
-        params={
-            'bookmark': next_bookmark,
-            'total_scanned': total_scanned,
-            'total_updated': total_updated,
-            }).add()
     return http.HttpResponse('Finished batch. Queued more updates.')
   return http.HttpResponse('Finished batch. No more updates.')

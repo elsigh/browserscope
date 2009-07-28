@@ -25,10 +25,10 @@ import os
 import simplejson
 import sys
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from third_party.appengine_tools import appengine_rpc
+from .third_party.appengine_tools import appengine_rpc
 
 UPDATER_URL_PATH = '/admin/update_result_parents'
+
 
 class ResultUpdater(object):
   def __init__(self, host, path, user, bookmark=None):
@@ -46,9 +46,11 @@ class ResultUpdater(object):
     return self.user, getpass.getpass('Password for %s: ' % self.user)
 
   def Send(self, bookmark, total_scanned, total_updated):
-    response_data = self.rpc_server.Send(self.path, simplejson.dumps(
-        (bookmark, total_scanned, total_updated)))
+    response_data = self.rpc_server.Send(self.path, bookmark=bookmark,
+                                         total_scanned=total_scanned,
+                                         total_updated=total_updated)
     return simplejson.loads(response_data)
+
 
 def main(argv):
   options, args = getopt.getopt(

@@ -40,9 +40,14 @@ class ResultTime(db.Model):
 
   def GetRankers(self):
     parent = self.parent()
-    test = all_test_sets.GetTestSet(parent.category).GetTest(self.test)
-    for user_agent_string in parent.user_agent.get_string_list():
-      yield test.GetRanker(user_agent_string, parent.params)
+    test_set = all_test_sets.GetTestSet(parent.category)
+    try:
+      test = test_set.GetTest(self.test)
+    except KeyError:
+      logging.warn('No rankers for test: %s', self.test)
+    else:
+      for user_agent_string in parent.user_agent.get_string_list():
+        yield test.GetRanker(user_agent_string, parent.params)
 
 
 class ResultParent(db.Expando):
