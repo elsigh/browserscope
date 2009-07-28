@@ -45,6 +45,7 @@ from models.user_agent import *
 from models import result_ranker
 from categories import all_test_sets
 from base import decorators
+from base import manage_dirty
 
 
 #@decorators.trusted_tester_required
@@ -268,13 +269,6 @@ def ClearMemcache(request):
    return http.HttpResponse('<br>'.join(message))
 
 
-def ScheduleDirtyUpdate():
-  try:
-    taskqueue.Task(method='GET').add(queue_name='update-dirty')
-  except:
-    logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
-
-
 def ScheduleRecentTestsUpdate():
   try:
     taskqueue.Task(method='GET').add(queue_name='recent-tests')
@@ -314,7 +308,7 @@ def Beacon(request):
 
   result_parent = ResultParent.AddResult(category, ip, user_agent_string,
                                          results, params=params, user=user)
-  ScheduleDirtyUpdate()
+  manage_dirty.ScheduleDirtyUpdate()
   ScheduleRecentTestsUpdate()
 
   if callback:
@@ -422,8 +416,6 @@ def GetStats(request, test_set, output='html', opt_tests=None,
 def GetStatsData(category, tests, user_agents, params, use_memcache=True,
                  version_level='top'):
   stats = {}
-  total_runs = {}
-
   for user_agent in user_agents:
     user_agent_stats = None
     if use_memcache:

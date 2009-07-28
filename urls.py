@@ -30,17 +30,16 @@ urlpatterns = patterns('',
   (r'^admin$', 'base.admin.Admin'),
   (r'^admin/confirm-ua', 'base.admin.ConfirmUa'),
   (r'^admin/stats', 'base.admin.Stats'),
-  (r'^admin/rebuild_rankers', 'base.admin_rankers.RebuildRankers'),
-  (r'^admin/update_result_parents', 'base.admin_rankers.UpdateResultParents'),
+  (r'^admin/rankers/all$', 'base.admin_rankers.AllRankers'),
+  (r'^admin/update_result_parents?', 'base.admin_rankers.UpdateResultParents'),
+  (r'^admin/update_dirty$', 'base.manage_dirty.UpdateDirty'),
+  (r'^admin/make_dirty$', 'base.manage_dirty.MakeDirty'),
 
   # Cron admin scripts
-  (r'^cron/update_dirty$', 'base.cron.UpdateDirty'),
-  (r'^cron/more_dirty$', 'base.cron.MoreDirty'),
   (r'^cron/user_agent_group$', 'base.cron.UserAgentGroup'),
   (r'^cron/update_recent_tests$', 'base.cron.UpdateRecentTests'),
 
-  (r'^_ah/queue/update-dirty$', 'base.cron.UpdateDirty'),
-  (r'^_ah/queue/more-dirty$', 'base.cron.MoreDirty'),
+  (r'^_ah/queue/update-dirty', 'base.manage_dirty.UpdateDirty'),
   (r'^_ah/queue/user-agent-group$', 'base.cron.UserAgentGroup'),
   (r'^_ah/queue/recent-tests$', 'base.cron.UpdateRecentTests'),
 
