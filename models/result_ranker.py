@@ -81,7 +81,14 @@ class ResultRankerParent(db.Model):
     db.Model.delete(self)
 
 
-class MedianRanker(score_ranker.Ranker):
+class MedianRanker(object):
+  """Mix-in class to compute median."""
+
+  def TotalRankedScores(self):
+    raise NotImplementedError
+
+  def FindScore(self, rank):
+    raise NotImplementedError
 
   def GetMedian(self, num_scores=None):
     return self.GetMedianAndNumScores(num_scores)[0]
@@ -101,7 +108,7 @@ class MedianRanker(score_ranker.Ranker):
     return median, num_scores
 
 
-class ResultRanker(MedianRanker):
+class ResultRanker(score_ranker.Ranker, MedianRanker):
 
   def __init__(self, category, test, user_agent_version, params=None):
     """Return an existing or new ranker.

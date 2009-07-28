@@ -75,8 +75,7 @@ class ResultRankerParentTest(unittest.TestCase):
 class MedianRankerTest(unittest.TestCase):
   def setUp(self):
     self.mox = mox.Mox()
-    storage = None
-    self.ranker = result_ranker.MedianRanker(storage, 10, 1009, 10)
+    self.ranker = result_ranker.MedianRanker()
 
   def tearDown(self):
     self.mox.UnsetStubs()
