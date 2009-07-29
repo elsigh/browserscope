@@ -442,8 +442,9 @@ ReflowTimer.prototype.unusedTests = [
  * Normalize values when sent to the server based on the following
  * test's score, using it as a golden test of 1x reflow.
  * @type {text|boolean}
+ * @deprecated
  */
-ReflowTimer.prototype.normalizeTimesToTest = 'testDisplay';
+ReflowTimer.prototype.normalizeTimesToTest = false;
 
 
 /**
