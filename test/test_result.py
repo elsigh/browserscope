@@ -79,15 +79,27 @@ class ResultTest(unittest.TestCase):
     self.assertEqual(200, result_times[1].score)
 
 
+  def testAddResultForTestSetWithParseResults(self):
+    parent = mock_data.AddOneTestUsingAddResultWithParseResults()
+    self.assertEqual(500, parent.testDisplay)
+    self.assertEqual(200, parent.testVisibility)
+    result_times = parent.get_result_times()
+    self.assertEqual(2, len(result_times))
+    self.assertEqual('testDisplay', result_times[0].test)
+    self.assertEqual(250, result_times[0].score)
+    self.assertEqual('testVisibility', result_times[1].test)
+    self.assertEqual(100, result_times[1].score)
+
+
   def testAddResultWithExpando(self):
     parent = mock_data.AddOneTestUsingAddResultWithExpando()
     result_times = parent.get_result_times()
     self.assertEqual(2, len(result_times))
+    self.assertEqual(20, parent.testDisplay)
+    self.assertEqual('testeroo', parent.testVisibility)
     self.assertEqual('testDisplay', result_times[0].test)
     self.assertEqual(500, result_times[0].score)
-    self.assertEqual(20, parent.testDisplay)
     self.assertEqual('testVisibility', result_times[1].test)
     self.assertEqual(200, result_times[1].score)
-    self.assertEqual('testeroo', parent.testVisibility)
 
 

@@ -38,7 +38,7 @@ from django.template import loader, Context
 from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
 
-from settings import *
+import settings
 
 from models.result import *
 from models.user_agent import *
@@ -52,7 +52,7 @@ from base import manage_dirty
 def Render(request, template, params={}, category=None):
   """Wrapper function to render templates with global and category vars."""
 
-  params['app_title'] = APP_TITLE
+  params['app_title'] = settings.APP_TITLE
   params['app_categories'] = []
   params['is_admin'] = users.is_current_user_admin()
   #http://code.google.com/appengine/docs/python/users/userclass.html#User_user_id
@@ -88,7 +88,7 @@ def GetServer(request):
   return server
 
 
-def ParseResults(results_string):
+def ParseResultsParamString(results_string):
   """Parses a results string.
   Args:
     raw_results: a string like 'test1=time1,test2=time2,[...]'.
@@ -138,7 +138,7 @@ def ParamsListToDict(params, unquote=True, quote=False, return_order=False):
     return parsed_params
 
 
-def ParamsStringToList(params):
+def ParseParamsString(params):
   """Converts a string of params into a list."""
   raw_params_list = params.split(',')
   parsed_params, order = ParamsListToDict(raw_params_list, quote=True,
@@ -237,7 +237,7 @@ def ClearMemcache(request):
   if category:
     categories = category.split(',')
   else:
-    categories = CATEGORIES
+    categories = settings.CATEGORIES
 
   ua = request.GET.get('ua')
   version_level = request.GET.get('v')
@@ -254,7 +254,7 @@ def ClearMemcache(request):
     for user_agent in user_agent_strings:
       memcache_ua_key = '%s_%s' % (category, user_agent)
       memcache.delete(key=memcache_ua_key, seconds=0,
-                      namespace=STATS_MEMCACHE_UA_ROW_NS)
+                      namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
       logging.info('Deleting %s in memcache' % memcache_ua_key)
 
   message.append('Cleared memcache for categories: %s and '
@@ -276,6 +276,7 @@ def ScheduleRecentTestsUpdate():
     logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
 
 
+BAD_BEACON_MSG = 'Nein swine.'
 BEACON_COMPLETE_CB_RESPONSE = 'BEACON_COMPLETE = 1;'
 @decorators.check_csrf
 def Beacon(request):
@@ -293,9 +294,22 @@ def Beacon(request):
   callback = request.GET.get('callback', None)
   category = request.GET.get('category', None)
   results_string = request.GET.get('results', None)
+
   if category is None or results_string is None:
+    logging.debug('Got no category or results')
     return http.HttpResponse(BAD_BEACON_MSG)
-  results = ParseResults(results_string)
+
+  if settings.BUILD == 'production' and category not in settings.CATEGORIES:
+    logging.debug('Got a bogus category(%s) in production.' % category)
+    return http.HttpResponse(BAD_BEACON_MSG)
+
+  try:
+    test_set = all_test_sets.GetTestSet(category)
+  except:
+    logging.debug('Could not get a test_set for category: %s' % category)
+    return http.HttpResponse(BAD_BEACON_MSG)
+
+  results = ParseResultsParamString(results_string)
   #logging.info('Beacon results: %s' % results)
 
   user_agent_string = request.META.get('HTTP_USER_AGENT')
@@ -303,11 +317,15 @@ def Beacon(request):
 
   params = request.GET.get('params', [])
   if params and params != '':
-    params = ParamsStringToList(params)
+    params = ParseParamsString(params)
   #logging.info('Beacon params: %s' % params)
 
-  result_parent = ResultParent.AddResult(category, ip, user_agent_string,
+  result_parent = ResultParent.AddResult(test_set, ip, user_agent_string,
                                          results, params=params, user=user)
+
+  if not result_parent:
+    return http.HttpResponse(BAD_BEACON_MSG)
+
   manage_dirty.ScheduleDirtyUpdate()
   ScheduleRecentTestsUpdate()
 
@@ -354,10 +372,10 @@ def GetStats(request, test_set, output='html', opt_tests=None,
 
   # Looks for a category_results=test1=X,test2=X url GET param.
   results = None
-  for category in CATEGORIES:
+  for category in settings.CATEGORIES:
     results_val = request.GET.get('%s_results' % category)
     if results_val and category == test_set.category:
-      results = dict(ParseResults(results_val))
+      results = ParseResultsParamString(results_val)[0]
 
   current_ua_string = None
   current_ua = UserAgent.factory(request.META['HTTP_USER_AGENT'])
@@ -421,7 +439,7 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
     if use_memcache:
       memcache_ua_key = '%s_%s' % (category, user_agent)
       user_agent_stats = memcache.get(
-          key=memcache_ua_key, namespace=STATS_MEMCACHE_UA_ROW_NS)
+          key=memcache_ua_key, namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
     if not user_agent_stats:
       total_runs = None
       user_agent_results = {}
@@ -445,8 +463,8 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
           }
       if use_memcache:
         memcache.set(key=memcache_ua_key, value=user_agent_stats,
-                     time=STATS_MEMCACHE_TIMEOUT,
-                     namespace=STATS_MEMCACHE_UA_ROW_NS)
+                     time=settings.STATS_MEMCACHE_TIMEOUT,
+                     namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
     if version_level == 'top' or user_agent_stats['total_runs']:
       stats[user_agent] = user_agent_stats
   return stats
@@ -458,10 +476,10 @@ def GetScoreAndDisplayValue(test, median):
     # Boolean scores are 1 or 10.
     if median == 0:
       score = 1
-      display = STATS_SCORE_FALSE
+      display = settings.STATS_SCORE_FALSE
     else:
       score = 10
-      display = STATS_SCORE_TRUE
+      display = settings.STATS_SCORE_TRUE
   elif test.score_type == 'custom':
     # The custom_tests_function returns a score between 1-100 which we'll
     # turn into a 0-10 display.
@@ -510,7 +528,7 @@ def SeedDatastore(request):
   """Seed Datastore."""
 
   NUM_RECORDS = 3
-  categories = CATEGORIES
+  categories = settings.CATEGORIES
 
   increment_counts = request.GET.get('increment_counts', True)
   if increment_counts == '0':

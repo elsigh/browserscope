@@ -64,3 +64,18 @@ class TestSet(object):
 
   def GetTest(self, test_key):
     return self._test_dict[test_key]
+
+  def ParseResults(self, results):
+    """Rewrite the results dict before saving the results.
+
+    Left to implementations to overload.
+
+    Args:
+      results: a list of dictionaries of results.
+               i.e. [{'key': test1, 'score': time1},
+                     {'key': test2, 'score': time2}]
+    Returns:
+      A list of dictionaries of results.
+    """
+    return results
+

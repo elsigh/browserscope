@@ -72,10 +72,10 @@ class MockTestSet(test_set_base.TestSet):
 
 class MockTestSetWithParseResults(MockTestSet):
   def ParseResults(self, results):
-    baseline_value = 70
     for result in results:
-      expando_val = int(round(result['score'] / baseline_value) * 100)
-      result['expando'] = expando_val
+      # Add the raw value to be expando'd and store a munged value in score.
+      result['expando'] = result['score']
+      result['score'] = int(round(result['score'] / 2))
     return results
 
 
@@ -227,38 +227,28 @@ def AddOneTest():
   return test_set
 
 def AddOneTestUsingAddResult():
-  category = 'category-addresult'
+  test_set = MockTestSet('category-addresult')
   ip = '12.2.2.555'
   user_agent_string = _UA_STRING
   results = [{'key': 'testDisplay', 'score': 500},
              {'key': 'testVisibility', 'score': 200}]
-  parent = ResultParent.AddResult(category, ip, user_agent_string, results)
+  parent = ResultParent.AddResult(test_set, ip, user_agent_string, results)
+  return parent
+
+def AddOneTestUsingAddResultWithParseResults():
+  test_set = MockTestSetWithParseResults('category-addresult-withparseresults')
+  ip = '12.2.2.555'
+  user_agent_string = _UA_STRING
+  results = [{'key': 'testDisplay', 'score': 500},
+             {'key': 'testVisibility', 'score': 200}]
+  parent = ResultParent.AddResult(test_set, ip, user_agent_string, results)
   return parent
 
 def AddOneTestUsingAddResultWithExpando():
-  category = 'category-addresult-withexpando'
+  test_set = MockTestSet('category-addresult-withexpando')
   ip = '12.2.2.555'
   user_agent_string = _UA_STRING
   results = [{'key': 'testDisplay', 'score': 500, 'expando': 20},
              {'key': 'testVisibility', 'score': 200, 'expando': 'testeroo'}]
-  parent = ResultParent.AddResult(category, ip, user_agent_string, results)
+  parent = ResultParent.AddResult(test_set, ip, user_agent_string, results)
   return parent
-
-def AddOneTestViaAddResultWithParseResults():
-  test_set = MockTestSetWithParseResults('category-parseresults')
-  user_agent = GetUserAgent()
-  result = ResultParent()
-  result.category = test_set.category
-  result.user_agent = user_agent
-  result.user_agent_pretty = user_agent.pretty()
-  result.ip = '12.2.2.255'
-  result.put()
-  result_time1 = ResultTime(parent=result)
-  result_time1.test = 'testDisplay'
-  result_time1.score = 500
-  result_time2 = ResultTime(parent=result)
-  result_time2.test = 'testVisibility'
-  result_time2.score = 0
-  db.put([result_time1, result_time2])
-  result.increment_all_counts()
-  return test_set

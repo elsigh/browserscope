@@ -128,33 +128,28 @@ _TESTS = (
   ReflowTest('testDisplay', 'Display Block',
     '''This test takes an element and sets its
     style.display="none". According to the folks at Mozilla this has
-    the effect of taking an element out of the browser's "render tree" -
-    the in-memory representation of all of results of
+    the effect of taking an element out of the browser's "render tree"
+    (the in-memory representation of all of results of
     geometry/positioning calculations for that particular
-    element. Setting an element to display="none" has the additional
-    effect of removing all of an elements children from the render tree
+    element). Setting an element to display="none" has the additional
+    effect of removing all of an element's children from the render tree
     as well. Next, the test resets the element's style.display="", which
     sets the element's display back to its original value. Our thinking
-    was that this operation ought to approximate the cost of reflowing
-    an element on a particular page since the browser would have to
-    recalculate all the positions and sizes for every child within the
-    element as well as make any changes to the overall document that
-    this change would cause to parents and ancestors. This was
-    originally the only test that the Reflow Timer performed, but as you
-    can see from the results, we discovered that not all render engines
-    work like Gecko's and so we began adding more tests.'''),
+    was that this operation ought to approximate the max cost of reflowing
+    an element on a page since the browser has to
+    recalculate all positions and sizes for every child within the
+    element as well as any changes to the overall document.'''),
   ReflowTest('testVisibility', 'Visiblility None',
     '''Much like the display test above, this test sets an element's
     style.visibility="hidden" and then resets it back to its default,
-    which is visible. Visually this has the same effect as setting
-    display="none", however this change should be significantly less
-    costly for the browser to perform as it should not need be purging
-    the element from the render tree and recalculating
-    geometries.'''),
+    which is "visible". This change should be less costly than
+    changing display from "none" to the default since the browser
+    should not be purging the element from the render tree.'''),
   ReflowTest('testNonMatchingClass', 'Non Matching Class',
     '''This test adds a class name to an element where that
     class name is not present in the document's CSS object
-    model.'''),
+    model. This tests CSS selector match time, and more specifically
+    against selectors with classnames.'''),
   ReflowTest('testFourClassReflows', 'Four Reflows by Class',
     '''This test adds a class name to an element that will match a
     previously added CSS declaration added to the CSSOM. This
@@ -192,21 +187,6 @@ _TESTS = (
     '''This test sets an element's style.overflow="hidden" and then back
     again, timing the cost of an element returning to the default
     overflow which is "visible"'''),
-  ReflowTest('testSelectorMatchTime', 'Selector Match Time',
-    '''In the world of reflow, one of the possible operations that can
-    eat up time occurs when an element gets a new class name and the
-    render engine has to look through the CSSOM to see if this element
-    now matches some CSS declaration. The goal of this test is to try
-    to cause this match operation without causing any change to the
-    render tree. The test is much like the Non-Matching Class test,
-    except that instead of flushing the render queue before this test,
-    we try to simply flush any style computations. The way it works is
-    to make a CSS rule that can get activated by virtue of an
-    attribute selector but which will never cause reflow because it
-    will never match any element in the render tree. For instance
-    "body[bogusattr='bogusval'] html {color:pink}". We note that this
-    test seems not to work in engines other than Gecko at this
-    time.'''),
   ReflowTest('testGetOffsetHeight', 'Do Nothing / OffsetHeight',
     '''This test does nothing other than the request for offsetHeight
     after already having done so. Theoretically, this test is
@@ -215,18 +195,33 @@ _TESTS = (
 )
 
 
-TEST_SET = test_set_base.TestSet(
-    category=_CATEGORY,
-    category_name='Reflow',
-    tests=_TESTS,
-    subnav={
-      'Test': '/%s/test' % _CATEGORY,
-      'About': '/%s/about' % _CATEGORY
-    },
-    home_intro='''Reflow in a web browser refers to the process whereby the render engine calculates positions and geometries of elements in the document for purpose of drawing, or re-drawing, the visual presentation. Because reflow is a user-blocking operation in the browser, it is useful for developers to understand how to improve reflow times and also to understand the effects of various document properties (DOM nesting, CSS specificity, types of style changes) on reflow. <a href="/reflow/about">Read more about reflow and these tests.</a>''',
-    # default_params=[
-    # 'nested_anchors', 'num_elements=400', 'num_nest=4',
-    # 'css_selector=%23g-content%20*', 'num_css_rules=1000',
-    # 'css_text=border%3A%201px%20solid%20%230C0%3B%20padding%3A%208px%3B'],
-    default_params=['acid1', 'num_elements=200'],
+class ReflowTestSet(test_set_base.TestSet):
+  def ParseResults(self, results):
+    baseline_test_name = 'testDisplay'
+    baseline_score = 0
+    for result in results:
+      if result.key == baseline_test_name:
+        baseline_score = result.score
+        break
+    # Turn all values into some computed percentage of the baseline score.
+    # This resets the score in the dict, but adds an expando to preserve the
+    # original score's milliseconds value.
+    for result in results:
+      result.expando = result.score
+      result.score = int(round(result.score / baseline_score) * 100)
+
+TEST_SET = ReflowTestSet(
+  category=_CATEGORY,
+  category_name='Reflow',
+  tests=_TESTS,
+  subnav={
+    'Test': '/%s/test' % _CATEGORY,
+    'About': '/%s/about' % _CATEGORY
+  },
+  home_intro='''Reflow in a web browser refers to the process whereby the render engine calculates positions and geometries of elements in the document for purpose of drawing, or re-drawing, the visual presentation. Because reflow is a user-blocking operation in the browser, it is useful for developers to understand how to improve reflow times and also to understand the effects of various document properties (DOM nesting, CSS specificity, types of style changes) on reflow. <a href="/reflow/about">Read more about reflow and these tests.</a>''',
+  # default_params=[
+  # 'nested_anchors', 'num_elements=400', 'num_nest=4',
+  # 'css_selector=%23g-content%20*', 'num_css_rules=1000',
+  # 'css_text=border%3A%201px%20solid%20%230C0%3B%20padding%3A%208px%3B'],
+  default_params=['acid1', 'num_elements=300'],
 )

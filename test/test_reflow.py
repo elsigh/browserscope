@@ -27,22 +27,18 @@ from categories.reflow import test_set
 
 class ReflowTestTest(unittest.TestCase):
 
-  #def setUp(self):
-    # Every test needs a client.
-    #self.client = Client()
-
   def testScoreAndDisplayValueNone(self):
-    test = test_set.ReflowTest('testVisibility', 'zer', 'Zero Test')
+    test = test_set.ReflowTest('testVisibility', 'zero', 'Zero Test')
     score, display = test.GetScoreAndDisplayValue(None)
     self.assertEqual((90, ''), (score, display))
 
   def testScoreAndDisplayValueZero(self):
-    test = test_set.ReflowTest('testVisibility', 'zer', 'Zero Test')
+    test = test_set.ReflowTest('testVisibility', 'zero', 'Zero Test')
     score, display = test.GetScoreAndDisplayValue(0)
     self.assertEqual((100, '0X'), (score, display))
 
   def testScoreAndDisplayValueVisibility(self):
-    test = test_set.ReflowTest('testVisibility', 'da up', 'da up Test')
+    test = test_set.ReflowTest('testVisibility', 'da viz', 'da Viz Test')
     score, display = test.GetScoreAndDisplayValue(20)
     self.assertEqual((100, '0X'), (score, display))
     score, display = test.GetScoreAndDisplayValue(40)
@@ -61,7 +57,6 @@ class ReflowTestTest(unittest.TestCase):
     self.assertEqual((60, '4X'), (score, display))
     score, display = test.GetScoreAndDisplayValue(200)
     self.assertEqual((60, '4X'), (score, display))
-
 
 if __name__ == '__main__':
   unittest.main()

@@ -33,6 +33,7 @@ from models.result import ResultTime
 from models.user_agent import UserAgent
 
 import mock_data
+import settings
 
 
 class TestUtilHandlers(unittest.TestCase):
@@ -68,6 +69,7 @@ class TestUtilHandlers(unittest.TestCase):
 
   def testBeacon(self):
     category = 'test_beacon'
+    test_set = mock_data.MockTestSet(category)
     csrf_token = self.client.get('/get_csrf').content
     params = {
       'category': category,
@@ -83,7 +85,7 @@ class TestUtilHandlers(unittest.TestCase):
     self.assertNotEqual(result_parent, None)
 
     # Were ResultTimes created?
-    result_times = ResultTime.all().ancestor(result_parent)
+    result_times = result_parent.get_result_times_as_query()
     self.assertEqual(2, result_times.count())
     self.assertEqual(1, result_times[0].score)
     self.assertEqual('testDisplay', result_times[0].test)
@@ -93,8 +95,40 @@ class TestUtilHandlers(unittest.TestCase):
     self.assertEqual(True, result_times[1].dirty)
 
 
+  def testBeaconWithBogusTests(self):
+    category = 'test_beacon_w_bogus_tests'
+    test_set = mock_data.MockTestSet(category)
+    csrf_token = self.client.get('/get_csrf').content
+    params = {
+      'category': category,
+      'results': 'testBogus=1,testVisibility=2',
+      'csrf_token': csrf_token
+    }
+    response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
+    self.assertEqual(util.BAD_BEACON_MSG, response.content)
+
+    # Did a ResultParent get created? Shouldn't have.
+    query = db.Query(ResultParent)
+    query.filter('category =', category)
+    result_parent = query.get()
+    self.assertEqual(None, result_parent)
+
+
+  def testBeaconWithoutTestSet(self):
+    category = 'test_beacon_wo_test_set'
+    csrf_token = self.client.get('/get_csrf').content
+    params = {
+      'category': category,
+      'results': 'testDisplay=1,testVisibility=2',
+      'csrf_token': csrf_token
+    }
+    response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
+    self.assertEqual(util.BAD_BEACON_MSG, response.content)
+
+
   def testBeaconWithParams(self):
     category = 'test_beacon_w_params'
+    test_set = mock_data.MockTestSet(category)
     csrf_token = self.client.get('/get_csrf').content
     beacon_params = ['nested_anchors', 'num_elements=1000',
         'num_css_rules=1000', 'num_nest=2',
@@ -134,10 +168,9 @@ class TestUtilFunctions(unittest.TestCase):
     self.assertEqual(True, util.CheckThrottleIpAddress('192.168.1.1'))
 
 
-  def testParseResults(self):
+  def testParseResultsParamString(self):
     expected = [{'score': '5', 'key': 'test1'}, {'score': '10', 'key': 'test2'}]
-    parsed_results = util.ParseResults('test1=5,test2=10')
-    logging.info(parsed_results)
+    parsed_results = util.ParseResultsParamString('test1=5,test2=10')
     are_equal = expected == parsed_results
     # TODO(elsigh): figure this out one day.
     # Why can't we just do assertEqual on dictionaries in gaeunit?
@@ -173,7 +206,7 @@ class TestStats(unittest.TestCase):
     expected_medians = {'testDisplay': 300, 'testVisibility': 2}
     expected_scores = {'testDisplay': 9, 'testVisibility': 10}
     expected_display = {'testDisplay': '3X', 'testVisibility':
-                        util.STATS_SCORE_TRUE}
+                        settings.STATS_SCORE_TRUE}
     for test in test_set.tests:
       for user_agent in user_agents:
         self.assertEqual(expected_medians[test.key],

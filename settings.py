@@ -21,30 +21,29 @@ import sys
 
 APP_TITLE = 'Browserscope'
 
-# TODO(elsigh): Set the default for production to False
-DEBUG = True
+DEBUG = False
 BUILD = 'production'
 if 'Dev' in os.getenv('SERVER_SOFTWARE'):
   BUILD = 'development'
   DEBUG = True
 
-TEMPLATE_DEBUG = DEBUG
+# TODO(elsigh): Set TEMPLATE_DEBUG to DEBUG
+TEMPLATE_DEBUG = True
 
 # good gawd, why does this default to True?
 APPEND_SLASH = False
 
 ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
+  ('Lindsey Simon', 'lsimon@commoner.com'),
 )
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'appengine'  # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = ''             # Or path to database file if using sqlite3.
-DATABASE_USER = ''             # Not used with sqlite3.
-DATABASE_PASSWORD = ''         # Not used with sqlite3.
-DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
-
+DATABASE_ENGINE = 'appengine'
+DATABASE_NAME = ''
+DATABASE_USER = ''
+DATABASE_PASSWORD = ''
+DATABASE_HOST = ''
+DATABASE_PORT = ''
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -78,15 +77,11 @@ TEMPLATE_LOADERS = (
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-#   'django.contrib.csrf.middleware.CsrfMiddleware',
-#    'django.contrib.auth.middleware.AuthenticationMiddleware',
-#    'django.middleware.doc.XViewMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.debug',
 #    'django.core.context_processors.i18n',
-#    'django.core.context_processors.media',  # 0.97 only.
 #    'django.core.context_processors.request',
 )
 
@@ -102,10 +97,6 @@ INSTALLED_APPS = (
      'appengine_django',
      'django.contrib.sessions',
      'third_party.gaebar',
-#    'django.contrib.admin',
-#    'django.contrib.auth',
-#    'django.contrib.contenttypes',
-#    'django.contrib.sites',
 )
 
 #
@@ -138,12 +129,9 @@ GAEBAR_MODELS = (
 )
 
 
-# UA PROFILER GLOBALS
+# GLOBALS
 CATEGORIES = ['network', 'reflow']
-#for category in CATEGORIES:
-#  TEMPLATE_DIRS.append(os.path.join(ROOT_PATH, '%s/templates' % category))
 STATS_MEMCACHE_TIMEOUT = 0
 STATS_MEMCACHE_UA_ROW_NS = 'ua_row'
 STATS_SCORE_TRUE = 'yes'
 STATS_SCORE_FALSE = 'no'
-BAD_BEACON_MSG = 'Nein swine.'

@@ -67,22 +67,47 @@ class ResultParent(db.Expando):
   params = db.StringListProperty(default=[])
 
   @classmethod
-  def AddResult(cls, category, ip, user_agent_string, results, **kwds):
-    """Create result models and stores them as one transaction."""
-    if settings.BUILD == 'production' and category not in settings.CATEGORIES:
-      logging.info('Got a bogus category(%s), bailing.' % category)
-      return
+  def AddResult(cls, test_set, ip, user_agent_string, results, **kwds):
+    """Create result models and stores them as one transaction.
+
+    Args:
+      test_set: an instance of test_set_base.
+      ip: a string to store as the user's IP. This should be hashed beforehand.
+      user_agent_string: The full user agent string.
+      results: a list of dictionaries.
+
+    Returns:
+      A ResultParent instance.
+    """
     user_agent = UserAgent.factory(user_agent_string)
-    parent = cls(category=category,
+    parent = cls(category=test_set.category,
                  ip=ip,
                  user_agent=user_agent,
                  user_agent_pretty=user_agent.pretty(),
                  **kwds)
-    # Loop through to see if there are any additional expando properties
-    # to store along with the parent.
+
+    # Call the TestSet's ParseResults method
+    results = test_set.ParseResults(results)
+
+    if len(results) != len(test_set.tests):
+      logging.debug('len(results) != len(test_set.tests) for %s.' %
+                    test_set.category)
+      return
+
+
     for results_dict in results:
+      # Make sure this test is is legit.
+      try:
+        test = test_set.GetTest(results_dict['key'])
+      except:
+        logging.debug('Got a test(%s) not in the test_set for %s' %
+                      (results_dict['key'], test_set.category))
+        return
+
+      # Are there expandos after calling ParseResults?
       if results_dict.has_key('expando'):
         parent.__setattr__(str(results_dict['key']), results_dict['expando'])
+
     def _AddResultInTransaction():
       parent.put()
       for results_dict in results:
