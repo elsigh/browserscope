@@ -77,6 +77,7 @@ class TestUtilHandlers(unittest.TestCase):
       'csrf_token': csrf_token
     }
     response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
+    self.assertEqual(204, response.status_code)
 
     # Did a ResultParent get created?
     query = db.Query(ResultParent)

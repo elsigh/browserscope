@@ -215,14 +215,14 @@ class ReflowTestSet(test_set_base.TestSet):
     baseline_score = 0
     for result in results:
       if result['key'] == BASELINE_TEST_NAME:
-        baseline_score = result['score']
+        baseline_score = int(result['score'])
         break
     # Turn all values into some computed percentage of the baseline score.
     # This resets the score in the dict, but adds an expando to preserve the
     # original score's milliseconds value.
     for result in results:
-      result['expando'] = result['score']
-      result['score'] = int(round(result['score'] / baseline_score) * 100)
+      result['expando'] = int(result['score'])
+      result['score'] = int(round(int(result['score']) / baseline_score) * 100)
     return results
 
 TEST_SET = ReflowTestSet(

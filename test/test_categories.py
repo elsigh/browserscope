@@ -19,11 +19,16 @@
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 import unittest
+import random
 import logging
+
+from google.appengine.ext import db
 
 from django.test.client import Client
 
 from categories import all_test_sets
+
+from models.result import *
 import settings
 
 import mock_data
@@ -57,6 +62,7 @@ class TestCategories(unittest.TestCase):
     for test_set in all_test_sets.GetTestSets():
       self.assert_(test_set.home_intro)
 
+
 class TestCategoriesHandlers(unittest.TestCase):
 
   def setUp(self):
@@ -78,3 +84,41 @@ class TestCategoriesHandlers(unittest.TestCase):
       response = self.client.get('/%s/about' % category, {},
         **mock_data.UNIT_TEST_UA)
       self.assertEqual(200, response.status_code)
+
+
+class TestCanBeacon(unittest.TestCase):
+
+  def setUp(self):
+    self.client = Client()
+
+  def testBeacon(self):
+    for category in settings.CATEGORIES:
+      test_set = all_test_sets.GetTestSet(category)
+      csrf_token = self.client.get('/get_csrf').content
+      # Constructs a reasonably random result set
+      results = []
+      for test in test_set.tests:
+        if test.score_type == 'boolean':
+          score = random.randrange(0, 1)
+        elif test.score_type == 'custom':
+          score = random.randrange(5, 2000)
+        results.append('%s=%s' % (test.key, score))
+
+      params = {
+        'category': category,
+        'results': ','.join(results),
+        'csrf_token': csrf_token,
+      }
+      response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
+      self.assertEqual(204, response.status_code)
+
+      # Did a ResultParent get created?
+      query = db.Query(ResultParent)
+      query.filter('category =', category)
+      result_parent = query.get()
+      self.assertNotEqual(result_parent, None)
+
+      # Were the right number of ResultTimes created?
+      result_times = result_parent.get_result_times()
+      self.assertEqual(len(test_set.tests), len(result_times))
+
