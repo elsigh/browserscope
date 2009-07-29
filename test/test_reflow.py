@@ -58,5 +58,20 @@ class ReflowTestTest(unittest.TestCase):
     score, display = test.GetScoreAndDisplayValue(200)
     self.assertEqual((60, '4X'), (score, display))
 
+  def testParseResults(self):
+    reflow_test_set = test_set.TEST_SET
+    results = [{'key': test_set.BASELINE_TEST_NAME, 'score': 100},
+               {'key': 'testTwo', 'score': 50},
+               {'key': 'testThree', 'score': 150},
+               {'key': 'testThree', 'score': 200}]
+    parsed_results = reflow_test_set.ParseResults(results)
+    should_be = [{'expando': 100, 'score': 100,
+                  'key': test_set.BASELINE_TEST_NAME},
+                 {'expando': 50, 'score': 0, 'key': 'testTwo'},
+                 {'expando': 150, 'score': 100, 'key': 'testThree'},
+                 {'expando': 200, 'score': 200, 'key': 'testThree'}]
+    self.assertEqual(should_be, parsed_results)
+
+
 if __name__ == '__main__':
   unittest.main()

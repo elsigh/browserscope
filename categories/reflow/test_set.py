@@ -194,21 +194,36 @@ _TESTS = (
     low time.'''),
 )
 
-
+BASELINE_TEST_NAME = 'testDisplay'
 class ReflowTestSet(test_set_base.TestSet):
+
   def ParseResults(self, results):
-    baseline_test_name = 'testDisplay'
+    """Re-scores the actual value against a baseline score for reflow.
+
+    Sets the 1x reflow time for this test run and compares other times
+    against that. This is to try to account for issues around selection
+    bias, processor speed, etc...
+    We'll preserve the original millisecond time as an expando value in case
+    we want to do some calculations with it later.
+
+    Args:
+      results: a list of dicts.
+
+    Returns:
+      results: a list of dicts (with an expando key).
+    """
     baseline_score = 0
     for result in results:
-      if result.key == baseline_test_name:
-        baseline_score = result.score
+      if result['key'] == BASELINE_TEST_NAME:
+        baseline_score = result['score']
         break
     # Turn all values into some computed percentage of the baseline score.
     # This resets the score in the dict, but adds an expando to preserve the
     # original score's milliseconds value.
     for result in results:
-      result.expando = result.score
-      result.score = int(round(result.score / baseline_score) * 100)
+      result['expando'] = result['score']
+      result['score'] = int(round(result['score'] / baseline_score) * 100)
+    return results
 
 TEST_SET = ReflowTestSet(
   category=_CATEGORY,
