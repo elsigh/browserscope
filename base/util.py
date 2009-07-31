@@ -375,7 +375,12 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   for category in settings.CATEGORIES:
     results_val = request.GET.get('%s_results' % category)
     if results_val and category == test_set.category:
-      results = ParseResultsParamString(results_val)[0]
+      parsed_results = ParseResultsParamString(results_val)
+      results = test_set.ParseResults(parsed_results)
+      # Flattens results into a simple dict.
+      results_dict = {}
+      for result in results:
+        results_dict[result['key']] = result
 
   current_ua_string = None
   current_ua = UserAgent.factory(request.META['HTTP_USER_AGENT'])
@@ -394,15 +399,16 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       user_agent_group_strings.append(current_ua_string)
       user_agent_group_strings.sort()
 
+  # Adds the current results into the stats dict.
   if results:
     if not stats.has_key(current_ua_string):
       stats[current_ua_string] = {}
     stats[current_ua_string]['current_results'] = {}
     current_ua_score = 0
     for test in tests:
-      if results.has_key(test.key):
+      if results_dict.has_key(test.key):
         stats[current_ua_string]['current_results'][test.key] = {}
-        median = results[test.key]
+        median = results_dict[test.key]['score']
         if median == None:
           median = ''
         stats[current_ua_string]['current_results'][test.key]['median'] = median
