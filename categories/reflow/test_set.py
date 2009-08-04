@@ -65,7 +65,7 @@ class ReflowTest(test_set_base.TestBase):
       return 90, ''
 
     median = int(median)
-    logging.info('self.key(%s), median(%s)' % (self.key, median))
+    #logging.info('self.key(%s), median(%s)' % (self.key, median))
 
     if median <= 10:
       score = 100

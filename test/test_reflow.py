@@ -1,4 +1,5 @@
 #!/usr/bin/python2.4
+# -*- coding: utf-8 -*-
 #
 # Copyright 2008 Google Inc.
 #
@@ -40,23 +41,17 @@ class ReflowTestTest(unittest.TestCase):
   def testScoreAndDisplayValueVisibility(self):
     test = test_set.ReflowTest('testVisibility', 'da viz', 'da Viz Test')
     score, display = test.GetScoreAndDisplayValue(20)
-    self.assertEqual((100, '0X'), (score, display))
+    self.assertEqual((97, '¼X'), (score, display))
     score, display = test.GetScoreAndDisplayValue(40)
-    self.assertEqual((90, '1X'), (score, display))
-    score, display = test.GetScoreAndDisplayValue(30)
-    self.assertEqual((90, '1X'), (score, display))
-    score, display = test.GetScoreAndDisplayValue(50)
-    self.assertEqual((90, '1X'), (score, display))
-    score, display = test.GetScoreAndDisplayValue(60)
-    self.assertEqual((90, '1X'), (score, display))
+    self.assertEqual((95, '½X'), (score, display))
     score, display = test.GetScoreAndDisplayValue(100)
-    self.assertEqual((80, '2X'), (score, display))
+    self.assertEqual((90, '1X'), (score, display))
     score, display = test.GetScoreAndDisplayValue(150)
-    self.assertEqual((70, '3X'), (score, display))
+    self.assertEqual((80, '2X'), (score, display))
     score, display = test.GetScoreAndDisplayValue(180)
-    self.assertEqual((60, '4X'), (score, display))
+    self.assertEqual((80, '2X'), (score, display))
     score, display = test.GetScoreAndDisplayValue(200)
-    self.assertEqual((60, '4X'), (score, display))
+    self.assertEqual((60, '3X'), (score, display))
 
   def testParseResults(self):
     reflow_test_set = test_set.TEST_SET
