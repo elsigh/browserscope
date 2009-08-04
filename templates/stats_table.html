@@ -46,6 +46,9 @@
                 <td
                   class="rt-score-{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"score" }}"
                   >{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"display" }}
+                  {% if stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"expando" %}
+                    <small>({{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"expando" }})</small>
+                  {% endif %}
                 </td>
               {% endfor %}
               <td class="rt-tot">-</td>

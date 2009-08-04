@@ -407,14 +407,19 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     current_ua_score = 0
     for test in tests:
       if results_dict.has_key(test.key):
-        stats[current_ua_string]['current_results'][test.key] = {}
+        current_results = stats[current_ua_string]['current_results']
+        current_results[test.key] = {}
         median = results_dict[test.key]['score']
         if median == None:
           median = ''
-        stats[current_ua_string]['current_results'][test.key]['median'] = median
+        current_results[test.key]['median'] = median
         score, display, ua_score = GetScoreAndDisplayValue(test, median)
-        stats[current_ua_string]['current_results'][test.key]['score'] = score
-        stats[current_ua_string]['current_results'][test.key]['display'] = display
+        current_results[test.key]['score'] = score
+        current_results[test.key]['display'] = display
+        expando = None
+        if results_dict[test.key].has_key('expando'):
+          expando = results_dict[test.key]['expando']
+        current_results[test.key]['expando'] = expando
         current_ua_score += ua_score
 
     stats[current_ua_string]['current_score'] = int(current_ua_score /

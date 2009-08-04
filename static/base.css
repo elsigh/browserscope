@@ -322,6 +322,7 @@ a.bs-admin {
 .rt-stats td {
   border: 1px solid #ddd;
   border-right-width: 0;
+  white-space: nowrap;
 }
 .rt-stats tbody:hover td {
 }

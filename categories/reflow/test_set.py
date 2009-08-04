@@ -1,4 +1,5 @@
 #!/usr/bin/python2.4
+# -*- coding: utf-8 -*-
 #
 # Copyright 2009 Google Inc.
 #
@@ -14,10 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 """Reflow Test Definitions."""
 
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
+
+import logging
 
 from categories import test_set_base
 
@@ -60,64 +64,34 @@ class ReflowTest(test_set_base.TestBase):
     if median == None or median == '':
       return 90, ''
 
-    median = round(float(median))
+    median = int(median)
+    logging.info('self.key(%s), median(%s)' % (self.key, median))
 
-    if self.key is 'testDisplay':
-      # This is the benchmark test, so everything should be green here.
-      bench = 100
-    elif self.key is 'testVisibility':
-      bench = 50
-    elif self.key is 'testNonMatchingClass':
-      # Since our supposition is that the test is 70% layout 30% selector,
-      # We'll go with 50% here as an A
-      bench = 50
-    elif self.key is 'testFourClassReflows':
-      bench = 120
-    elif self.key is 'testFourScriptReflows':
-      bench = 120
-    elif self.key is 'testTwoScriptReflows':
-      bench = 120
-    elif self.key is 'testPaddingPx':
-      bench = 120
-    elif self.key is 'testPaddingLeftPx':
-      bench = 120
-    elif self.key is 'testFontSizeEm':
-      bench = 120
-    elif self.key is 'testWidthPercent':
-      bench = 120
-    elif self.key is 'testBackground':
-      bench = 50
-    elif self.key is 'testOverflowHidden':
-      bench = 50
-    elif self.key is 'testGetOffsetHeight':
-      # Should we be pickier here that this should really be 0?
-      bench = 50
-
-    half = bench/2
-    a = bench * 1.4
-    b = bench * 2.4
-    c = bench * 3.4
-    d = bench * 4.4
-
-    if median <= half:
+    if median <= 10:
       score = 100
       display = '0X'
-    elif half < median <= a:
+    elif 10 < median <= 35:
+      score = 97
+      display = '¼X'
+    elif 35 < median <= 65:
+      score = 95
+      display = '½X'
+    elif 65 < median <= 85:
+      score = 93
+      display = '¾X'
+    elif 85 < median <= 110:
       score = 90
       display = '1X'
-    elif a < median <= b:
+    elif 110 < median <= 180:
       score = 80
       display = '2X'
-    elif b < median <= c:
-      score = 70
-      display = '3X'
-    elif c < median <= d:
-      score = 60
-      display = '4X'
     else:
-     score = 50
-     display = '>4X'
-    #logging.info('%s, %s, %s' % (median, score, display))
+      score = 60
+      display = '3X'
+
+
+    # All the scores are set to be percentages
+
 
     return score, display
 
@@ -215,15 +189,24 @@ class ReflowTestSet(test_set_base.TestSet):
     baseline_score = 0
     for result in results:
       if result['key'] == BASELINE_TEST_NAME:
-        baseline_score = int(result['score'])
+        baseline_score = float(result['score'])
         break
+    if not baseline_score:
+      raise NameError('No baseline score found in the test results')
+    #logging.info('baseline is %s' % baseline_score)
+
     # Turn all values into some computed percentage of the baseline score.
     # This resets the score in the dict, but adds an expando to preserve the
     # original score's milliseconds value.
     for result in results:
-      result['expando'] = int(result['score'])
-      result['score'] = int(round(int(result['score']) / baseline_score) * 100)
+      score = int(result['score'])
+      result['expando'] = score
+      result['score'] = int((float(score) / baseline_score) * 100)
+      #logging.info('%s/%s * 100 = %s' % (score, baseline_score,
+      #             (float(score) / baseline_score) * 100))
+    #logging.info('results: %s' % results)
     return results
+
 
 TEST_SET = ReflowTestSet(
   category=_CATEGORY,

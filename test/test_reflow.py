@@ -67,10 +67,23 @@ class ReflowTestTest(unittest.TestCase):
     parsed_results = reflow_test_set.ParseResults(results)
     should_be = [{'expando': 100, 'score': 100,
                   'key': test_set.BASELINE_TEST_NAME},
-                 {'expando': 50, 'score': 0, 'key': 'testTwo'},
-                 {'expando': 150, 'score': 100, 'key': 'testThree'},
+                 {'expando': 50, 'score': 50, 'key': 'testTwo'},
+                 {'expando': 150, 'score': 150, 'key': 'testThree'},
                  {'expando': 200, 'score': 200, 'key': 'testThree'}]
-    self.assertEqual(should_be, parsed_results)
+    self.assertTrue(should_be == parsed_results)
+
+    results = [{'key': test_set.BASELINE_TEST_NAME, 'score': 400},
+               {'key': 'testTwo', 'score': 300},
+               {'key': 'testThree', 'score': 276},
+               {'key': 'testThree', 'score': 149}]
+    parsed_results = reflow_test_set.ParseResults(results)
+    should_be = [{'expando': 400, 'score': 100,
+                  'key': test_set.BASELINE_TEST_NAME},
+                 {'expando': 300, 'score': 75, 'key': 'testTwo'},
+                 {'expando': 276, 'score': 69, 'key': 'testThree'},
+                 {'expando': 149, 'score': 37, 'key': 'testThree'}]
+    self.assertTrue(should_be == parsed_results)
+
 
 
 if __name__ == '__main__':
