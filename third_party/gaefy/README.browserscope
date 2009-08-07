@@ -1,7 +1,7 @@
-URL: http://bitbucket.org/moraes/appengine/src/tip/gaefy/db/pager.py
+URL: http://bitbucket.org/moraes/appengine/history/gaefy/db/pager.py
 
-VERSION: r40:b6654c39e01b
-CHECK_VERSION: curl -s 'http://bitbucket.org/moraes/appengine/src/tip/gaefy/db/pager.py' | perl -0777 -ne 'm|\b(r\d+:[a-f\d]+)\b| && print "$1\n"'
+VERSION: r28:57b9dc2d7458
+CHECK_VERSION: curl -s 'http://bitbucket.org/moraes/appengine/history/gaefy/db/pager.py' | perl -0777 -ne 'm|\b(r\d+:[a-f\d]+)\b| && print "$1\n"'
 
 Retrieve the source:
   hg clone http://bitbucket.org/moraes/appengine/

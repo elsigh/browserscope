@@ -57,7 +57,7 @@ def CheckVersion(third_party_dir):
       readme_key, value = match.groups()
       if readme_key == 'URL':
         print 'URL: %s' % value
-      if readme_key == 'VERSION':
+      elif readme_key == 'VERSION':
         print 'Local version:  %s' % value
       elif readme_key == 'CHECK_VERSION':
         print 'Remote version:',
