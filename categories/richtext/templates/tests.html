@@ -13,12 +13,9 @@
       var TEST_CONTENT = 'test_text';
       /** Constant for indicating an action is unsupported (threw exception) */
       var UNSUPPORTED = 'UNSUPPORTED';
-      var applyResultWithCSS = {};
-      var unapplyResultWithCSS = {};
-      var unapplyExtraResultWithCSS = [];
-      var applyResultNoCSS = {};
-      var unapplyResultNoCSS = {};
-      var unapplyExtraResultNoCSS = [];
+      var applyResult = {};
+      var unapplyResult = {};
+      var unapplyExtraResult = [];
  
       /** Escape HTML before displaying it */
       function htmlEscape(str) {
@@ -32,7 +29,7 @@
         editorWin.focus();
         var sel;
         if (editorWin.getSelection) {
-	      sel = editorWin.getSelection();
+          sel = editorWin.getSelection();
         } else if (editorDoc.selection) {
           sel = editorDoc.selection.createRange();
         }
@@ -99,22 +96,13 @@
        * Sets the HTML of the document, and runs the given execCommand.
        * @param html The HTML to initialize the editor to
        * @param command The command to pass to execCommand
-       * @param styleWithCSS In some browsers, the output is different
-       * depending on whether this is true or false. The value to use.
        * @param opt_arg Argument to pass onto the third execCommand param.
        * @param collapse If true, this execCommand should be applied to a
        * collapsed selection.
        * @return The HTML before TEST_CONTENT after the execCommand is run.
        * This shows whether the expected formatting was applied.
        */
-      function runCommand(html, command, styleWithCSS, opt_arg, collapse) {
-        try {
-          editorDoc.execCommand('styleWithCSS', false, styleWithCSS);
-        } catch (ex) {
-          if (styleWithCSS) {
-            return UNSUPPORTED;
-          }
-        }
+      function runCommand(html, command, opt_arg, collapse) {
         editorDoc.body.innerHTML = html;
         if (collapse) {
           selectStart();
@@ -151,8 +139,8 @@
         p.innerHTML = p.innerHTML + '<br>';
       }
       
-      function runCommandTest(content, command, shouldApply, withCSS, opt_arg, collapse, outputElement, testName, dict) {
-        result = runCommand(content, command, withCSS, opt_arg, collapse);
+      function runCommandTest(content, command, shouldApply, opt_arg, collapse, outputElement, testName, dict) {
+        result = runCommand(content, command, opt_arg, collapse);
         if (result == UNSUPPORTED) {
           statusFail(outputElement, command, testName, 'Error executing command');
           dict[command] = false;
@@ -169,14 +157,14 @@
       
       function score(command) {
         var sum = 0;
-        if (applyResultNoCSS[command]) {
+        if (applyResult[command]) {
          sum++;
         }
-        if (unapplyResultNoCSS[command]) {
+        if (unapplyResult[command]) {
          sum++;
         }
-        for (var i = 0; i < unapplyExtraResultNoCSS.length; i++) {
-          if (unapplyExtraResultNoCSS[i][command]) {
+        for (var i = 0; i < unapplyExtraResult.length; i++) {
+          if (unapplyExtraResult[i][command]) {
             sum++;
           }
         }
@@ -187,19 +175,13 @@
         statusHeader(command);
         p = document.createElement('p');
         document.getElementById('output').appendChild(p);
-        runCommandTest(TEST_CONTENT, command, true, true, opt_arg, collapse, p, 'Apply Style, styleWithCSS = true', applyResultWithCSS);
-        if (testUnapply && applyResultWithCSS[command]) {
-          runCommandTest(editorDoc.body.innerHTML, command, false, true, opt_arg, collapse, p, 'Unapply browser-applied Style, styleWithCSS = true', unapplyResultWithCSS);
-        }
-        runCommandTest(TEST_CONTENT, command, true, false, opt_arg, collapse, p, 'Apply Style, styleWithCSS = false', applyResultNoCSS);
-        if (testUnapply && applyResultNoCSS[command]) {
-          runCommandTest(editorDoc.body.innerHTML, command, false, false, opt_arg, collapse, p, 'Unapply browser-applied Style, styleWithCSS = false', unapplyResultNoCSS);
+        runCommandTest(TEST_CONTENT, command, true, opt_arg, collapse, p, 'Apply Style: ', applyResult);
+        if (testUnapply && applyResult[command]) {
+          runCommandTest(editorDoc.body.innerHTML, command, false, opt_arg, collapse, p, 'Unapply browser-applied Style: ', unapplyResult);
         }
         for (var i = 0; i < extraFormats.length; i++) {
-          unapplyExtraResultNoCSS[i] = unapplyExtraResultNoCSS[i] || {};
-          unapplyExtraResultWithCSS[i] = unapplyExtraResultWithCSS[i] || {};
-          runCommandTest(extraFormats[i][0] + TEST_CONTENT + extraFormats[i][1], command, false, false, opt_arg, collapse, p, 'Unapply common browser style "' + htmlEscape(extraFormats[i][0]) + '" styleWithCSS=false', unapplyExtraResultNoCSS[i]);
-          runCommandTest(extraFormats[i][0] + TEST_CONTENT + extraFormats[i][1], command, false, true, opt_arg, collapse, p, 'Unapply common browser style "' + htmlEscape(extraFormats[i][0]) + '" styleWithCSS=true', unapplyExtraResultWithCSS[i]);
+          unapplyExtraResult[i] = unapplyExtraResult[i] || {};
+          runCommandTest(extraFormats[i][0] + TEST_CONTENT + extraFormats[i][1], command, false, opt_arg, collapse, p, 'Unapply common browser style "' + htmlEscape(extraFormats[i][0]) + ' ', unapplyExtraResult[i]);
         }
         return score(command);
       }
@@ -211,6 +193,12 @@
       function runTests() {
         editorDoc = document.getElementById('editor').contentWindow.document;
         editorWin = document.getElementById('editor').contentWindow;
+        // Always set styleWithCSS to false, since it's not supported by IE.
+        try {
+          editorDoc.execCommand('styleWithCSS', false, false);
+        } catch (ex) {
+          // Not supported by IE.
+        }
         {% autoescape off %}
         var results = [];
 {{ code }}

@@ -32,12 +32,12 @@ from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
 
 # Shared stuff
-from shared import decorators
+from base import decorators
 
 commands = {
   'backcolor' : {
     'opt_arg': '#FF0000',
-    'test_unapply': True,
+    'test_unapply': False,
     'collapse': False,
     'unapply_extras': []},
   'bold' : {
@@ -80,7 +80,7 @@ commands = {
     'unapply_extras': []},
   'formatblock' : {
     'opt_arg': 'h1',
-    'test_unapply': True,
+    'test_unapply': False,
     'collapse': False,
     'unapply_extras': []},
   'indent' : {
@@ -211,9 +211,9 @@ def RunTests(request):
     'csrf_token': request.session.get('csrf_token'),
     'code': code,
   }
-  return shortcuts.render_to_response('templates/tests.html', params)
+  return shortcuts.render_to_response('richtext/templates/tests.html', params)
 
 def EditableIframe(request):
 
   params = {}
-  return shortcuts.render_to_response('templates/editable.html', params)
+  return shortcuts.render_to_response('richtext/templates/editable.html', params)
