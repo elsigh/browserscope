@@ -675,3 +675,11 @@ def ClearDatastore(request):
 @decorators.check_csrf
 def FakeCheckCsrf(request):
   return http.HttpResponse('yo')
+
+
+def UserAgents(request):
+  user_agents = UserAgent.all().fetch(1000)
+  ua_csv = '\n'.join(
+    ['%s,%s,"%s"' % (x.pretty(), x.key().id_or_name(), x.string)
+     for x in user_agents])
+  return http.HttpResponse(ua_csv, mimetype="text/csv")
