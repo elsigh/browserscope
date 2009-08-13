@@ -104,5 +104,6 @@ urlpatterns = patterns('',
   (r'^richtext/apply-tests', 'categories.richtext.handlers.Apply'),
   (r'^richtext/unapply-tests', 'categories.richtext.handlers.Unapply'),
   (r'^richtext/query-tests', 'categories.richtext.handlers.QueryCommand'),
+  (r'^richtext/change-tests', 'categories.richtext.handlers.Change'),
   (r'^richtext/editable', 'categories.richtext.handlers.EditableIframe'),
 )

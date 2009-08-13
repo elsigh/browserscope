@@ -231,3 +231,7 @@ def Unapply(request):
 def QueryCommand(request):
   params = {}
   return shortcuts.render_to_response('richtext/templates/query.html', params)
+  
+def Change(request):
+  params = {}
+  return shortcuts.render_to_response('richtext/templates/change.html', params)
