@@ -253,6 +253,14 @@
       var TEST_WORD = 'bar';
       /** Constant for indicating an action is unsupported (threw exception) */
       var UNSUPPORTED = 'UNSUPPORTED';
+      /** Total number of tests run */
+      var numRunState = 0;
+      var numRunValue = 0;
+      /** Total number of passing tests */
+      var numPassingState = 0;
+      var numPassingValue = 0;
+      /** Whether tests were specified on the url parameter */
+      var testsInUrl = false;
     
       function getTestsToRun() {
         // The url param tests is a comma-separated list of the tests to run.
@@ -263,6 +271,7 @@
           var parts = queryParts[i].split('=');
           var name = parts[0].toLowerCase();
           if (name == 'tests' && parts.length > 1) {
+            testsInUrl = true;
             return parts[1].split(',');
           }
         }
@@ -343,6 +352,10 @@
         // Create table row for results.
         var tr = document.createElement('TR');
         var success = commandSucceeded(command, index, result);
+        if (success) {
+          TESTS[command].type == 'state' ? numPassingState++ : numPassingValue++;
+        }
+        TESTS[command].type == 'state' ? numRunState++ : numRunValue++;
         tr.className = success ? 'success' : 'fail';
         
         // Column 1: command name
@@ -392,6 +405,14 @@
             var result = runCommand(commands[i], j);
             outputResult(commands[i], j, result);
           }
+        }
+        // Only report score if all tests were run (not a subset in the url parameter)
+        if (!testsInUrl) {
+          // Report score as a percentage of passing tests (0-100)
+          var scoreState = Math.round((numPassingState / numRunState) * 100);
+          var scoreValue = Math.round((numPassingValue / numRunValue) * 100);
+          var url = '/beacon?category=richtext&csrf_token={{ csrf_token }}&results=queryCommandState=' + scoreState + ',queryCommandValue=' + scoreValue;
+          new Image().src = url;
         }
       }
     

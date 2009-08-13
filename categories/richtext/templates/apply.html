@@ -84,6 +84,10 @@
       var TEST_WORD = 'bar';
       /** Constant for indicating an action is unsupported (threw exception) */
       var UNSUPPORTED = 'UNSUPPORTED';
+      /** Total number of passing tests */
+      var numPassing = 0;
+      /** Whether tests were specified on the url parameter */
+      var testsInUrl = false;
     
       function getTestsToRun() {
         // The url param tests is a comma-separated list of the tests to run.
@@ -94,6 +98,7 @@
           var parts = queryParts[i].split('=');
           var name = parts[0].toLowerCase();
           if (name == 'tests' && parts.length > 1) {
+            testsInUrl = true;
             return parts[1].split(',');
           }
         }
@@ -182,7 +187,10 @@
       
       function outputResult(command, result) {
         // The apply command "succeeded" if HTML was generated.
-        var success = result != UNSUPPORTED && result;
+        var success = (result != UNSUPPORTED) && result;
+        if (success) {
+          numPassing++;
+        }
         
         // Each command is displayed as a table row with 3 columns
         var tr = document.createElement('TR');
@@ -220,6 +228,13 @@
         for (var i = 0; i < commands.length; i++) {
           var result = runCommand(commands[i]);
           outputResult(commands[i], result);
+        }
+        // Only report score if all tests were run (not a subset in the url parameter)
+        if (!testsInUrl) {
+          // Report score as a percentage of passing tests (0-100)
+          var score = Math.round((numPassing / commands.length) * 100);
+          var url = '/beacon?category=richtext&csrf_token={{ csrf_token }}&results=apply=' + score;
+          new Image().src = url;
         }
       }
       

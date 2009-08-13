@@ -56,6 +56,12 @@
       var TEST_CONTENT = 'foo bar baz';
       /** Constant for indicating an action is unsupported (threw exception) */
       var UNSUPPORTED = 'UNSUPPORTED';
+      /** Total number of tests run */
+      var numRun = 0;
+      /** Total number of passing tests */
+      var numPassing = 0;
+      /** Whether tests were specified on the url parameter */
+      var testsInUrl = false;
 
       /**
        * Color class allows cross-browser comparison of values, in several
@@ -152,6 +158,7 @@
           var parts = queryParts[i].split('=');
           var name = parts[0].toLowerCase();
           if (name == 'tests' && parts.length > 1) {
+            testsInUrl = true;
             return parts[1].split(',');
           }
         }
@@ -377,11 +384,11 @@
         // Each command is displayed as a table row with 4 columns
         var tr = document.createElement('TR');
         var success = checkSuccess(command, index);
-        if (success == true) {
-          tr.className = 'success';
-        } else if (success == false) {
-          tr.className = 'fail';
+        if (success) {
+          numPassing++;
         }
+        numRun++;
+        tr.className = success ? 'success' : 'fail';
         
         // Column 1: command name
         var td = document.createElement('TD');
@@ -426,6 +433,13 @@
             runCommand(commands[i], j);
             outputResult(commands[i], j);
           }
+        }
+        // Only report score if all tests were run (not a subset in the url parameter)
+        if (!testsInUrl) {
+          // Report score as a percentage of passing tests (0-100)
+          var score = Math.round((numPassing / numRun) * 100);
+          var url = '/beacon?category=richtext&csrf_token={{ csrf_token }}&results=change=' + score;
+          new Image().src = url;
         }
       }
     </script>

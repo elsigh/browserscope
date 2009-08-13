@@ -79,6 +79,12 @@
       var UNSUPPORTED = 'UNSUPPORTED';
       /** <br> and <p> are acceptable HTML to be left over from block elements */
       var BLOCK_REMOVE_TAGS = [/\s*<br>\s*/i, /\s*<p>\s*/i];
+      /** Total number of tests run */
+      var numRun = 0;
+      /** Total number of passing tests */
+      var numPassing = 0;
+      /** Whether tests were specified on the url parameter */
+      var testsInUrl = false;
     
       function getTestsToRun() {
         // The url param tests is a comma-separated list of the tests to run.
@@ -89,6 +95,7 @@
           var parts = queryParts[i].split('=');
           var name = parts[0].toLowerCase();
           if (name == 'tests' && parts.length > 1) {
+            testsInUrl = true;
             return parts[1].split(',');
           }
         }
@@ -189,6 +196,10 @@
       function outputResult(command, result, index) {
         // The apply command "succeeded" if HTML was removed.
         var success = commandSucceeded(command, result);
+        if (success) {
+          numPassing++;
+        }
+        numRun++;
         
         // Each command is displayed as a table row with 5 columns
         var tr = document.createElement('TR');
@@ -240,6 +251,13 @@
             var result = runCommand(commands[i], j);
             outputResult(commands[i], result, j);
           }
+        }
+        // Only report score if all tests were run (not a subset in the url parameter)
+        if (!testsInUrl) {
+          // Report score as a percentage of passing tests (0-100)
+          var score = Math.round((numPassing / numRun) * 100);
+          var url = '/beacon?category=richtext&csrf_token={{ csrf_token }}&results=unapply=' + score;
+          new Image().src = url;
         }
       }
     </script>
