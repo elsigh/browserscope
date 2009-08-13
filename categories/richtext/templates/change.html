@@ -28,9 +28,9 @@
           'fontsize' : {
             type: 'value',
             tests: [
-              {html: '<font size=4>foo bar baz</font>', opt_arg: 3},
-              {html: '<span class="Apple-style-span" style="font-size: large;">foo bar baz</span>', opt_arg: 3},
-              {html: '<font size=1 style="font-size:x-small;">foo bar baz</font>', opt_arg: 3}
+              {html: '<font size=4>foo bar baz</font>', opt_arg: 1},
+              {html: '<span class="Apple-style-span" style="font-size: large;">foo bar baz</span>', opt_arg: 1},
+              {html: '<font size=1 style="font-size:x-small;">foo bar baz</font>', opt_arg: 5}
             ]
           },
           'forecolor' : {
@@ -56,6 +56,92 @@
       var TEST_CONTENT = 'foo bar baz';
       /** Constant for indicating an action is unsupported (threw exception) */
       var UNSUPPORTED = 'UNSUPPORTED';
+
+      /**
+       * Color class allows cross-browser comparison of values, in several
+       * formats:
+       *   0xff00ff
+       *   rgb(255, 0, 0)
+       *   Number containing the hex value
+       */
+      function Color(value) {
+        this.compare = function(other) {
+          if (!this.valid || !other.valid) {
+            return false;
+          }
+          return this.red == other.red && this.green == other.green && this.blue == other.blue;
+        }
+        this.parse = function(value) {
+          var hexMatch = String(value).match(/#([0-9a-f]{6})/i);
+          if (hexMatch) {
+            this.red = parseInt(hexMatch[1].substring(0, 2), 16);
+            this.green = parseInt(hexMatch[1].substring(2, 4), 16);
+            this.blue = parseInt(hexMatch[1].substring(4, 6), 16);
+            return true;
+          }
+          var rgbMatch = String(value).match(/rgb\(([0-9]{1,3}),\s*([0-9]{1,3}),\s*([0-9]{1,3})\)/i);
+          if (rgbMatch) {
+            this.red = Number(rgbMatch[1]);
+            this.green = Number(rgbMatch[2]);
+            this.blue = Number(rgbMatch[3]);
+            return true;
+          }
+          if (Number(value)) {
+            this.red = value & 0xFF;
+            this.green = (value & 0xFF00) >> 8;
+            this.blue = (value & 0xFF0000) >> 16;
+            return true;
+          }
+          return false;
+        }
+        this.toString = function() {
+          return this.red + ',' + this.green + ',' + this.blue;
+        }
+        this.valid = this.parse(value);
+      }
+      
+      /**
+       * Utility class for converting font size attribute to named styles
+       * (e.g.) 1 -> 'x-small'
+       */
+       function Size(value) {
+         this.parse = function(value) {
+           if (Number(value)) {
+             this.size = Number(value);
+             return;
+           }
+           switch (value) {
+             case 'x-small':
+               this.size = 1;
+               break;
+             case 'small':
+               this.size = 2;
+               break;
+             case 'medium':
+               this.size = 3;
+               break;
+             case 'large':
+               this.size = 4;
+               break;
+             case 'x-large':
+               this.size = 5;
+               break;
+             case 'xx-large':
+               this.size = 6;
+               break;
+             case 'xxx-large':
+             case '-webkit-xxx-large':
+               this.size = 7;
+               break;
+             default:
+               this.size = null;
+           }
+         }
+         this.compare = function(other) {
+           return this.size && other.size && (this.size == other.size);
+         }
+         this.parse(value);
+       }
     
       function getTestsToRun() {
         // The url param tests is a comma-separated list of the tests to run.
@@ -119,26 +205,205 @@
         }
       }
       
+      function checkFontnameSuccess(index) {
+        var textNode = findTextNode(TEST_CONTENT, editorDoc.body);
+        if (!textNode) {
+          // The text has been removed from the document, or split up for no reason.
+          return false;
+        }
+        var expectedFont = TESTS['fontname'].tests[index].opt_arg;
+        var foundExpected = false;
+        
+        // Loop through all the parent nodes that format the text node,
+        // checking that there is exactly one font face attribute or
+        // font family style, and that it's set correctly.
+        var currentNode = textNode.parentNode;
+        while(currentNode && currentNode.nodeName != 'BODY') {
+          // Check font face attribute.
+          if (currentNode.nodeName == 'FONT' && currentNode.getAttribute('face')) {
+            if (currentNode.getAttribute('face') == expectedFont) {
+              if (foundExpected) {
+                // This is the correct font face, but the style has been
+                // applied twice. This makes it hard for other browsers to
+                // remove the style.
+                return false;
+              }
+              foundExpected = true;
+            } else {
+              // This node has the wrong font face attribute.
+              return false;
+            }
+          }
+          // Check font family style.
+          if (currentNode.style.fontFamily) {
+            if (currentNode.style.fontFamily == expectedFont) {
+              if (foundExpected) {
+                // This is the correct font family, but the style has been
+                // applied twice. This makes it hard for other browsers to
+                // remove the style.
+                return false;
+              }
+              foundExpected = true;
+            } else {
+              // This node has the wrong font family style.
+              return false;
+            }
+          }
+          currentNode = currentNode.parentNode;
+        }
+        return foundExpected;
+      }
+      
+      function checkFontsizeSuccess(index) {
+        var textNode = findTextNode(TEST_CONTENT, editorDoc.body);
+        if (!textNode) {
+          // The text has been removed from the document, or split up for no reason.
+          return false;
+        }
+        var expectedSize = new Size(TESTS['fontsize'].tests[index].opt_arg);
+        var foundExpected = false;
+        
+        // Loop through all the parent nodes that format the text node,
+        // checking that there is exactly one font size attribute or
+        // font size style, and that it's set correctly.
+        var currentNode = textNode.parentNode;
+        while(currentNode && currentNode.nodeName != 'BODY') {
+          // Check font size attribute.
+          if (currentNode.nodeName == 'FONT' && currentNode.getAttribute('size')) {
+            if (new Size(currentNode.getAttribute('size')).compare(expectedSize)) {
+              if (foundExpected) {
+                // This is the correct font size, but the style has been
+                // applied twice. This makes it hard for other browsers to
+                // remove the style.
+                return false;
+              }
+              foundExpected = true;
+            } else {
+              // This node has the wrong font size attribute.
+              return false;
+            }
+          }
+          // Check font size style.
+          if (currentNode.style.fontSize) {
+            if (new Size(currentNode.style.fontSize).compare(expectedSize)) {
+              if (foundExpected) {
+                // This is the correct font size, but the style has been
+                // applied twice. This makes it hard for other browsers to
+                // remove the style.
+                return false;
+              }
+              foundExpected = true;
+            } else {
+              // This node has the wrong font size style.
+              return false;
+            }
+          }
+          currentNode = currentNode.parentNode;
+        }
+        return foundExpected;
+      }
+      
+      function checkColorSuccess(command, index, attributeName, styleName) {
+        var textNode = findTextNode(TEST_CONTENT, editorDoc.body);
+        if (!textNode) {
+          // The text has been removed from the document, or split up for no reason.
+          return false;
+        }
+        var expectedColor = new Color(TESTS[command].tests[index].opt_arg);
+        var foundExpected = false;
+        
+        // Loop through all the parent nodes that format the text node,
+        // checking that there is exactly one font color attribute or
+        // color style, and that it's set correctly.
+        var currentNode = textNode.parentNode;
+        while(currentNode && currentNode.nodeName != 'BODY') {
+          // Check font attribute.
+          if (attributeName && currentNode.nodeName == 'FONT' && currentNode.getAttribute(attributeName)) {
+            if (new Color(currentNode.getAttribute(attributeName)).compare(expectedColor)) {
+              if (foundExpected) {
+                // This is the correct font attribute, but the style has been
+                // applied twice. This makes it hard for other browsers to
+                // remove the style.
+                return false;
+              }
+              foundExpected = true;
+            } else {
+              // This node has the wrong font attribute.
+              return false;
+            }
+          }
+          // Check node style.
+          if (currentNode.style[styleName]) {
+            if (new Color(currentNode.style[styleName]).compare(expectedColor)) {
+              if (foundExpected) {
+                // This is the correct style, but the style has been
+                // applied twice. This makes it hard for other browsers to
+                // remove the style.
+                return false;
+              }
+              foundExpected = true;
+            } else {
+              // This node has the wrong color style.
+              return false;
+            }
+          }
+          currentNode = currentNode.parentNode;
+        }
+        return foundExpected;
+      }
+      
+      function checkSuccess(command, index) {
+        switch(command) {
+          case 'backcolor':
+            return checkColorSuccess(command, index, null, 'backgroundColor');
+            break;
+          case 'fontname':
+            return checkFontnameSuccess(index);
+            break;
+          case 'fontsize':
+            return checkFontsizeSuccess(index);
+            break;
+          case 'forecolor':
+            return checkColorSuccess(command, index, 'color', 'color');
+            break;
+          case 'hilitecolor':
+            return checkColorSuccess(command, index, null, 'backgroundColor');
+            break;
+        }
+        return null;
+      }
+      
       function outputResult(command, index) {        
         // Each command is displayed as a table row with 4 columns
         var tr = document.createElement('TR');
+        var success = checkSuccess(command, index);
+        if (success == true) {
+          tr.className = 'success';
+        } else if (success == false) {
+          tr.className = 'fail';
+        }
         
         // Column 1: command name
         var td = document.createElement('TD');
         td.innerHTML = command;
         tr.appendChild(td);
         
-        // Column 2: opt_arg
+        // Column 2: status
+        td = document.createElement('TD');
+        td.innerHTML = (success == null) ? '?' : (success == true ? 'PASS' : 'FAIL');
+        tr.appendChild(td);
+        
+        // Column 3: opt_arg
         td = document.createElement('TD');
         td.innerHTML = TESTS[command].tests[index].opt_arg;
         tr.appendChild(td);
         
-        // Column 3: original html
+        // Column 4: original html
         td = document.createElement('TD');
         td.innerHTML = TESTS[command].tests[index].html.replace(/\</g, '&lt;').replace(/\>/g, '&gt;');;
         tr.appendChild(td);
         
-        // Column 4: resulting html
+        // Column 5: resulting html
         td = document.createElement('TD');
         td.innerHTML = editorDoc.body.innerHTML.replace(/\</g, '&lt;').replace(/\>/g, '&gt;');;
         tr.appendChild(td);
@@ -174,7 +439,7 @@
     </style>
 </head>
 <body onload="runTests()">
-  <table><tbody id="output"><tr><th>Command</th><th>Argument</th><th>Original HTML</th><th>Resulting HTML</th></tr></tbody></table>
+  <table><tbody id="output"><tr><th>Command</th><th>Status</th><th>Argument</th><th>Original HTML</th><th>Resulting HTML</th></tr></tbody></table>
   <iframe name="editor" id="editor" src="editable.html"></iframe>
 </body>
 </html>
