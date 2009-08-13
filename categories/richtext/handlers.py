@@ -217,3 +217,17 @@ def EditableIframe(request):
 
   params = {}
   return shortcuts.render_to_response('richtext/templates/editable.html', params)
+
+def Apply(request):
+
+  params = {}
+  return shortcuts.render_to_response('richtext/templates/apply.html', params)
+
+def Unapply(request):
+
+  params = {}
+  return shortcuts.render_to_response('richtext/templates/unapply.html', params)
+  
+def QueryCommand(request):
+  params = {}
+  return shortcuts.render_to_response('richtext/templates/query.html', params)
