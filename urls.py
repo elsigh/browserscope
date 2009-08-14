@@ -99,6 +99,22 @@ urlpatterns = patterns('',
   (r'^network/stats', 'categories.network.handlers.Stats'),
   (r'^network/loader', 'categories.network.handlers_loader.ResultLoader'),
 
+  # Acid3 Test URLs
+  (r'acid3/?$', 'categories.acid3.handlers.About'),
+  (r'acid3/about$', 'categories.acid3.handlers.About'),
+  (r'acid3/test$', 'categories.acid3.handlers.Test'),
+  (r'acid3/support-a.png$', 'categories.acid3.handlers.SupportAPng'),
+
+  # v8 Benchmark Suite URLs
+  (r'v8/?$', 'categories.v8.handlers.About'),
+  (r'v8/about$', 'categories.v8.handlers.About'),
+  (r'v8/test$', 'categories.v8.handlers.Test'),
+
+  # SunSpider Benchmark Suite URLs
+  (r'sunspider/?$', 'categories.sunspider.handlers.About'),
+  (r'sunspider/about$', 'categories.sunspider.handlers.About'),
+  (r'sunspider/test$', 'categories.sunspider.handlers.Test'),
+
   # Rich text urls
   (r'^richtext/tests', 'categories.richtext.handlers.RunTests'),
   (r'^richtext/apply-tests', 'categories.richtext.handlers.Apply'),
@@ -106,4 +122,5 @@ urlpatterns = patterns('',
   (r'^richtext/query-tests', 'categories.richtext.handlers.QueryCommand'),
   (r'^richtext/change-tests', 'categories.richtext.handlers.Change'),
   (r'^richtext/editable', 'categories.richtext.handlers.EditableIframe'),
+
 )

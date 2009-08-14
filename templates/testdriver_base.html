@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block head %}
+<!-- Load beacon script -->
+<script src="/static/util.js"></script>
+<script src="/static/beacon.js"></script>
+
+<script type="text/javascript">
+// Placeholder for subcategory test results
+var testResults = [];
+
+// Current category (e.g. 'network', 'reflow')
+var appCategory = '{{ app_category }}';
+
+// Add 'v8' and 'sunspider' when they're ready for release
+var testCategories = ['network', 'reflow', 'acid3'];
+
+function SendScore() {
+  var uriParams = "category=" + appCategory + "&results=" +
+    testResults.join(',') + "&csrf_token={{ csrf_token }}";
+  var beacon = new Beacon(uriParams);
+  beacon.onComplete = function() {
+    var continueUrl = unescape(Util.getParam('continue'));
+    var results = appCategory + '_results=' + testResults.join(',');
+    var nextUrl;
+    if (continueUrl != '') {
+      nextUrl = continueUrl + '&' + results;
+    }
+    else {
+      nextUrl = '/?' + results;
+    }
+
+    for (var i = 0; i < testCategories.length; i++) {
+      var category = testCategories[i];
+      var results = Util.getParam(category + '_results');
+      if (results) {
+        nextUrl = nextUrl + '&' + category + '_results=' + results;
+      }
+    }
+    window.location.href = nextUrl;
+  };
+  beacon.send();
+}
+</script>
+{% endblock %}
+
+{% block body %}{% endblock %}

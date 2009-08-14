@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+  <h1>{{ page_title }}</h1>
+
+  <a href="/v8/test" class="bs-btn">Run the V8 Benchmark Suite Tests</a>
+
+<h2>What is V8 Benchmark?</h2>
+<p>
+This page contains a suite of pure JavaScript benchmarks that the V8 team has
+used to tune V8. The final score is computed as the geometric mean of
+the individual results to make it independent of the running times of
+the individual benchmarks and of a reference system (score
+100). Scores are not comparable across benchmark suite versions and
+higher scores means better performance: <em>Bigger is better!</em>
+</p>
+
+  <h2 id="rt-tests">More About Each Benchmark Test</h2>
+  {% for test in tests %}
+    <h3 id="rt-{{ test.key }}">{{ test.name }}</h3>
+    <p>
+      {{ test.doc }}
+    </p>
+  {% endfor %}
+
+
+{% endblock %}

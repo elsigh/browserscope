@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block head %}
+<!--
+ Copyright (C) 2007 Apple Inc. All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY APPLE COMPUTER, INC. ``AS IS'' AND ANY
+ EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE COMPUTER, INC. OR
+ CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+{% endblock %}
+
+{% block body %}
+
+  <h1>{{ page_title }}</h1>
+
+  <a href="/sunspider/test" class="bs-btn">Run the SunSpider Benchmark Suite Tests</a>
+
+  <h2><SPAN id="logo">&#9728;</SPAN>SunSpider JavaScript Benchmark</h2>
+
+  <P>This is SunSpider, a JavaScript benchmark. This benchmark tests the
+  core JavaScript language only, not the DOM or other browser APIs. It
+  is designed to compare different versions of the same browser, and
+  different browsers to each other. Unlike many widely available
+  JavaScript benchmarks, this test is:</P>
+
+  <ul>
+  <li>Real World</li>
+  <p>This test mostly avoids microbenchmarks, and tries to focus on
+  the kinds of actual problems developers solve with JavaScript today,
+  and the problems they may want to tackle in the future as the language
+  gets faster. This includes tests to generate a tagcloud from JSON
+  input, a 3D raytracer, cryptography tests, code decompression, and
+  many more examples. There are a few microbenchmarkish things, but they
+  mostly represent real performance problems that developers have
+  encountered.</p>
+
+  <li>Balanced</li>
+  <p>This test is balanced between different areas of the language and
+  different types of code. It's not all math, all string processing, or
+  all timing simple loops. In addition to having tests in many
+  categories, the individual tests were balanced to take similar amounts
+  of time on currently shipping versions of popular browsers.</p>
+
+  <li>Statistically Sound</li>
+  <p>One of the challenges of benchmarking is knowing how much noise
+  you have in your measurements. This benchmark runs each test multiple
+  times and determines an error range (technically, a 95% confidence
+  interval). In addition, in comparison mode it tells you if you have
+  enough data to determine if the difference is statistically
+  significant.</p>
+  </ul>
+
+
+  <h2 id="rt-tests">More About Each Benchmark Test</h2>
+  {% for test in tests %}
+    <h3 id="rt-{{ test.key }}">{{ test.name }}</h3>
+    <p>
+      {{ test.doc }}
+    </p>
+  {% endfor %}
+
+
+{% endblock %}

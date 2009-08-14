@@ -75,9 +75,74 @@ handlers:
 - url: /static
   static_dir: static
 
+# Static files used for Acid3 tests
+# Each of the following files requires a specific content-type.
+# Based on the files served from http://acid3.acidtests.org
+- url: /acid3/acid3.html
+  static_files: categories/acid3/static/acid3.html
+  upload: categories/acid3/static/acid3.html
+
+- url: /acid3/empty.css
+  static_files: categories/acid3/static/empty.css
+  upload: categories/acid3/static/empty.css
+  mime_type: text/html
+
+- url: /acid3/empty.xml
+  static_files: categories/acid3/static/empty.xml
+  upload: categories/acid3/static/empty.xml
+  mime_type: application/xml;charset=utf-8
+
+- url: /acid3/empty(.*)
+  static_files: categories/acid3/static/empty\1
+  upload: categories/acid3/static/empty.*
+
+- url: /acid3/font.ttf
+  static_files: categories/acid3/static/font.ttf
+  upload: categories/acid3/static/font.ttf
+  mime_type: application/x-truetype-font
+
+- url: /acid3/font.svg
+  static_files: categories/acid3/static/font.svg
+  upload: categories/acid3/static/font.svg
+  mime_type: image/svg+xml
+
+# Unlike other static files with specific content type, support-a.png needs to
+# be served with status code 404, so it's handled by acid3/handlers.py
+
+- url: /acid3/support-b.png
+  static_files: categories/acid3/static/support-b.png
+  upload: categories/acid3/static/support-b.png
+  mime_type: text/html
+
+- url: /acid3/support-c.png
+  static_files: categories/acid3/static/support-c.png
+  upload: categories/acid3/static/support-c.png
+
+- url: /acid3/svg.xml
+  static_files: categories/acid3/static/svg.xml
+  upload: categories/acid3/static/svg.xml
+  mime_type: image/svg+xml
+
+- url: /acid3/svg.xml
+  static_files: categories/acid3/static/svg.xml
+  upload: categories/acid3/static/svg.xml
+  mime_type: image/svg+xml
+
+- url: /acid3/xhtml(.*)
+  static_files: categories/acid3/static/xhtml\1
+  upload: categories/acid3/static/xhtml.*
+  mime_type: text/xml
+
+- url: /acid3/reference(.*)
+  static_files: categories/acid3/static/reference\1
+  upload: categories/acid3/static/reference.*
+
+# SunSpider & V8 files
+- url: /(sunspider|v8)/(.*).(js|css|png|html)
+  static_files: categories/\1/static/\2.\3
+  upload: categories/(sunspider|v8)/static/.*
 
 # Map anything that doesn't match to our Django bootstrapper.
 - url: /.*
   script: main.py
   login: admin # TODO(elsigh): remove at launch-time
-

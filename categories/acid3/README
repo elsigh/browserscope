@@ -1,0 +1,4 @@
+This directory contains Acid3 tests extracted from http://acid3.acidtests.org/
+
+These tests are ported over to browserscope with permission from
+Ian Hickson, the creator of Acid3 tests.

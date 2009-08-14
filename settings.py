@@ -130,7 +130,8 @@ GAEBAR_MODELS = (
 
 
 # GLOBALS
-CATEGORIES = ['network', 'reflow']
+# Add categories 'v8' and 'sunspider' when they're ready for release
+CATEGORIES = ['network', 'reflow', 'acid3']
 STATS_MEMCACHE_TIMEOUT = 0
 STATS_MEMCACHE_UA_ROW_NS = 'ua_row'
 STATS_SCORE_TRUE = 'yes'
