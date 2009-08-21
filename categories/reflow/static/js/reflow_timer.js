@@ -158,10 +158,10 @@ ReflowTimer.TEST_CLASS_NAME = 'rt-test-classname';
 /**
  * @type {string}
  */
-ReflowTimer.TEST_MULTIPLE_REFLOW_CSSTEXT = 'font-size: 20px !important; ' +
-    'line-height: 10px !important;' +
-    'padding-left: 10px !important;' +
-    'margin-top: 7px; !important';
+ReflowTimer.TEST_MULTIPLE_REFLOW_CSSTEXT = 'font-size: 20px; ' +
+    'line-height: 10px;' +
+    'padding-left: 10px;' +
+    'margin-top: 7px;';
 
 
 /**

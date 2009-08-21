@@ -10,7 +10,7 @@
       {% endfor %}
     {% else %}
       {% for num_css_rule in num_css_rules|as_range %}
-        {{css_selector}} { {{css_text}} }
+        {{css_selector|safe}} { {{css_text}} }
       {% endfor %}
     {% endif %}
     </style>

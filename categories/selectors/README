@@ -1,0 +1,4 @@
+This directory contains the Selector API tests from http://ejohn.org/apps/selectortest
+
+These tests are ported over to browserscope with permission from
+John Resig, the creator of the Selctor API tests.
