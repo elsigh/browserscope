@@ -14,7 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Benchmark Tests Definitions."""
+"""Test Definitions."""
+
+__author__ = 'elsigh@google.com (Lindsey Simon)'
+
 
 import logging
 
@@ -24,7 +27,7 @@ from categories import test_set_base
 _CATEGORY = 'selectors'
 
 
-class Acid3Test(test_set_base.TestBase):
+class SelectorsTest(test_set_base.TestBase):
   TESTS_URL_PATH = '/%s/test' % _CATEGORY
 
   def __init__(self, key, name, doc):
@@ -43,9 +46,9 @@ class Acid3Test(test_set_base.TestBase):
         self,
         key=key,
         name=name,
+        doc=doc,
         url=self.TESTS_URL_PATH,
         score_type='custom',
-        doc=doc,
         min_value=0,
         max_value=100)
 
@@ -63,20 +66,18 @@ class Acid3Test(test_set_base.TestBase):
 
 _TESTS = (
   # key, name, doc
-  SelectorsTest(
-    'score', 'Score', 'Selectors API test score',
-    'passed', 'Passed', 'Selectors API tests passed',
-    'failed', 'Failed', 'Selectors API tests failed',
-  ),
+  SelectorsTest('score', 'Score', 'Selectors API test score'),
+  SelectorsTest('passed', 'Passed', 'Selectors API tests passed'),
+  SelectorsTest('failed', 'Failed', 'Selectors API tests failed')
 )
 
 TEST_SET = test_set_base.TestSet(
     category=_CATEGORY,
-    category_name='Acid3',
+    category_name='CSS Selectors',
     subnav={
       'Test': '/%s/test' % _CATEGORY,
       'About': '/%s/about' % _CATEGORY,
     },
-    home_intro = '''<a href="/selectors/about">Read more about the Selectors API test.</a>''',
+    home_intro = '''<a href="/selectors/about">Read more</a> about the Selectors API test. These tests were written by John Resig and originally published at <a target="_blank" href="http://ejohn.org/apps/selectortest">ejohn.org/apps/selectortest</a>''',
     tests=_TESTS
 )

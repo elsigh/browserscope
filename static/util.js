@@ -92,3 +92,37 @@ Util.getParam = function(param) {
   }
 };
 
+
+/**
+ * @param {IFRAMEElement} iframe
+ * @reutrn {Object} The iframe's document object.
+ */
+Util.getIframeDocument = function(iframe) {
+  var doc;
+  if (iframe.contentDocument) {
+    // For NS6
+    doc = iframe.contentDocument;
+  } else if (iframe.contentWindow) {
+    // For IE5.5 and IE6
+    doc = iframe.contentWindow.document;
+  } else if (iframe.document) {
+    // For IE5
+    doc = iframe.document;
+  }
+  return doc;
+};
+
+/**
+ * Makes it so that links in iframes load in a new tab/window.
+ * @param {IFRAMEElement} iframe
+ */
+Util.fixIframeLinks = function(iframe) {
+  var doc = Util.getIframeDocument(iframe);
+  var links = doc.getElementsByTagName('a');
+  for (var i = 0, link; link = links[i]; i++) {
+    link.onclick = function(e) {
+      this.target = '_blank';
+    }
+  }
+};
+

@@ -1,6 +1,32 @@
 {% extends "testdriver_base.html" %}
 
 {% block body %}
-<iframe height="700px" width="100%" frameborder="0" style="padding-top:1em;" src="static/selectors.html">
-</iframe>
+  {% if autorun %}{% else %}
+    <p>
+      <button id="selectors-run" class="bs-runtest">Run Selectors API Test</button>
+    </p>
+  {% endif %}
+  <iframe
+    id="selectors"
+    onload="Util.fixIframeLinks(document.getElementById('selectors'));"
+    name="selectors" height="700px" width="100%" frameborder="0" src="static/selectors.html"></iframe>
+
+  <script>
+    var runSelectorsTest = function() {
+      window.frames.selectors.runAll();
+    };
+    document.getElementById('selectors-run').onclick = runSelectorsTest;
+
+		function browserscopeBeacon(score, passed, failed) {
+		  // score is a decimal and we need to send beacon an int.
+		  testResults.push('score=' + score.replace('.', ''));
+		  testResults.push('passed=' + passed);
+		  testResults.push('failed=' + failed);
+      SendScore({% if autorun %}{% else %}false{% endif %});
+		}
+
+		{% if autorun %}
+		  runSelectorsTest();
+		{% endif %}
+  </script>
 {% endblock %}
