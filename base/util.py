@@ -414,7 +414,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
         if median == None:
           median = ''
         current_results[test.key]['median'] = median
-        score, display, ua_score = GetScoreAndDisplayValue(test, median)
+        score, display, ua_score = GetScoreAndDisplayValue(test, median, tests)
         current_results[test.key]['score'] = score
         current_results[test.key]['display'] = display
         expando = None
