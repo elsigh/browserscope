@@ -72,6 +72,7 @@ def Render(request, template, params={}, category=None):
     # Select the current page's category.
     if category and category == test_set.category:
       params['app_category'] = test_set.category
+      params['app_category_name'] = test_set.category_name
       params['app_category_index'] = i
 
   if category != None:

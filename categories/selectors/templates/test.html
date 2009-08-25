@@ -1,11 +1,6 @@
 {% extends "testdriver_base.html" %}
 
 {% block body %}
-  {% if autorun %}{% else %}
-    <p>
-      <button id="selectors-run" class="bs-runtest">Run Selectors API Test</button>
-    </p>
-  {% endif %}
   <iframe
     id="selectors"
     onload="Util.fixIframeLinks(document.getElementById('selectors'));"
@@ -15,8 +10,9 @@
     var runSelectorsTest = function() {
       window.frames.selectors.runAll();
     };
-    document.getElementById('selectors-run').onclick = runSelectorsTest;
+    document.getElementById('bs-runtest').onclick = runSelectorsTest;
 
+    // this is a callback from the done() function
 		function browserscopeBeacon(score, passed, failed) {
 		  // score is a decimal and we need to send beacon an int.
 		  testResults.push('score=' + score.replace('.', ''));
