@@ -311,6 +311,7 @@ a.bs-admin {
   empty-cells: show;
   border: 1px solid #ccc;
   border-top-width: 3px;
+  background: #fff;
 }
 .rt-stats thead th a {
   text-decoration: none;

@@ -5,7 +5,7 @@
 <script src="/static/util.js"></script>
 <script src="/static/beacon.js"></script>
 
-<script type="text/javascript">
+<script>
 // Placeholder for subcategory test results
 var testResults = [];
 
@@ -15,7 +15,12 @@ var appCategory = '{{ app_category }}';
 // Add 'v8' and 'sunspider' when they're ready for release
 var testCategories = ['network', 'reflow', 'acid3'];
 
-function SendScore() {
+/**
+ * @param {boolean} opt_redirectToNextPage
+ */
+function SendScore(opt_redirectToNextPage) {
+  var redirectToNextPage = typeof opt_redirectToNextPage != undefined ?
+      opt_redirectToNextPage : true;
   var uriParams = "category=" + appCategory + "&results=" +
     testResults.join(',') + "&csrf_token={{ csrf_token }}";
   var beacon = new Beacon(uriParams);
@@ -37,7 +42,9 @@ function SendScore() {
         nextUrl = nextUrl + '&' + category + '_results=' + results;
       }
     }
-    window.location.href = nextUrl;
+    if (redirectToNextPage) {
+      window.location.href = nextUrl;
+    }
   };
   beacon.send();
 }

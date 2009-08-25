@@ -105,6 +105,11 @@ urlpatterns = patterns('',
   (r'acid3/test$', 'categories.acid3.handlers.Test'),
   (r'acid3/support-a.png$', 'categories.acid3.handlers.SupportAPng'),
 
+  # Selectors API Test URLs
+  (r'selectors/?$', 'categories.selectors.handlers.About'),
+  (r'selectors/about$', 'categories.selectors.handlers.About'),
+  (r'selectors/test$', 'categories.selectors.handlers.Test'),
+
   # v8 Benchmark Suite URLs
   (r'v8/?$', 'categories.v8.handlers.About'),
   (r'v8/about$', 'categories.v8.handlers.About'),

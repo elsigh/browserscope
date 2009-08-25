@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Reflow Test Definitions."""
+"""Rich Text Test Definitions."""
 
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
@@ -25,48 +25,56 @@ from categories import test_set_base
 _CATEGORY = 'richtext'
 
 
-class RichtextTest(object):
+class RichtextTest(test_set_base.TestBase):
   TESTS_URL_PATH = '/%s/test' % _CATEGORY
+
   def __init__(self, key, name, doc):
-    self.key = key
-    self.name = name
-    self.url = '%s?t=%s' % (self.TESTS_URL_PATH, key)
-    self.score_type = 'custom'
-    self.doc = doc
-    self.min_value, self.max_value = 0, 60000
+    """Initialze a test.
 
+    Args:
+      key: key for this in dict's
+      name: a human readable label for display
+      url_name: the name used in the url
+      score_type: 'boolean' or 'custom'
+      doc: a description of the test
+      value_range: (min_value, max_value) as integer values
+      is_hidden_stat: whether or not the test shown in the stats table
+    """
+    test_set_base.TestBase.__init__(
+        self,
+        key=key,
+        name=name,
+        url=self.TESTS_URL_PATH,
+        score_type='custom',
+        doc=doc,
+        min_value=0,
+        max_value=60000)
 
+  def GetScoreAndDisplayValue(self, score):
+    """Returns a tuple with display text for the cell as well as a 1-100 value.
+    """
+    if score == None or score == '':
+      return 0, ''
+
+    display = score
+    return score, display
 
 _TESTS = (
   # key, name, doc
-  RichtextTest('testDisplay', 'Display Block',
-    '''This test takes an element and sets its
-    style.display="none". According to the folks at Mozilla this has
-    the effect of taking an element out of the browser's "render tree" -
-    the in-memory representation of all of results of
-    geometry/positioning calculations for that particular
-    element. Setting an element to display="none" has the additional
-    effect of removing all of an elements children from the render tree
-    as well. Next, the test resets the element's style.display="", which
-    sets the element's display back to its original value. Our thinking
-    was that this operation ought to approximate the cost of reflowing
-    an element on a particular page since the browser would have to
-    recalculate all the positions and sizes for every child within the
-    element as well as make any changes to the overall document that
-    this change would cause to parents and ancestors. This was
-    originally the only test that the Reflow Timer performed, but as you
-    can see from the results, we discovered that not all render engines
-    work like Gecko's and so we began adding more tests.'''),
+  RichtextTest('apply', 'Apply Formatting', '''About this test...'''),
+  RichtextTest('unapply', 'Un-Apply Formatting', '''About this test...'''),
+  RichtextTest('change', 'Change Existing Formatting', '''About this test...'''),
+  RichtextTest('query', 'Query State and Value', '''About this test...'''),
 )
 
 
 TEST_SET = test_set_base.TestSet(
     category=_CATEGORY,
-    category_name='Richtext',
+    category_name='Rich Text',
     tests=_TESTS,
     subnav={
       'Test': '/%s/test' % _CATEGORY,
       'About': '/%s/about' % _CATEGORY
     },
-    home_intro=''
+    home_intro='These are the Rich Text tests...'
 )

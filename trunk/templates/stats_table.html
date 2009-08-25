@@ -46,8 +46,10 @@
                 <td
                   class="rt-score-{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"score" }}"
                   >{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"display" }}
-                  {% if stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"expando" %}
-                    <small>({{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"expando" }})</small>
+                  {% if is_admin %}
+                    {% if stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"expando" %}
+                      <small>({{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"expando" }}ms)</small>
+                    {% endif %}
                   {% endif %}
                 </td>
               {% endfor %}
