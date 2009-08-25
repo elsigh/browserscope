@@ -6,49 +6,64 @@
 <script src="/static/beacon.js"></script>
 
 <script>
-// Placeholder for subcategory test results
-var testResults = [];
+  // Placeholder for subcategory test results
+  var testResults = [];
 
-// Current category (e.g. 'network', 'reflow')
-var appCategory = '{{ app_category }}';
+  var testCategories = [];
+  {% for app_category in app_categories %}
+    testCategories.push('{{ app_category.0 }}');
+  {% endfor %}
 
-// Add 'v8' and 'sunspider' when they're ready for release
-var testCategories = ['network', 'reflow', 'acid3'];
+  function SendScore(opt_redirectToNextPage) {
+    var uriParams = "category={{ app_category }}&results=" +
+        testResults.join(',') + "&csrf_token={{ csrf_token }}";
+    var beacon = new Beacon(uriParams);
+    var results = '{{ app_category }}_results=' + testResults.join(',');
+    {% if autorun %}
 
-/**
- * @param {boolean} opt_redirectToNextPage
- */
-function SendScore(opt_redirectToNextPage) {
-  var redirectToNextPage = typeof opt_redirectToNextPage != undefined ?
-      opt_redirectToNextPage : true;
-  var uriParams = "category=" + appCategory + "&results=" +
-    testResults.join(',') + "&csrf_token={{ csrf_token }}";
-  var beacon = new Beacon(uriParams);
-  beacon.onComplete = function() {
-    var continueUrl = unescape(Util.getParam('continue'));
-    var results = appCategory + '_results=' + testResults.join(',');
-    var nextUrl;
-    if (continueUrl != '') {
-      nextUrl = continueUrl + '&' + results;
-    }
-    else {
-      nextUrl = '/?' + results;
-    }
+      beacon.onComplete = function() {
+        var continueUrl = unescape(Util.getParam('continue'));
+        var nextUrl;
+        if (continueUrl != '') {
+          nextUrl = continueUrl + '&' + results;
+        }
 
-    for (var i = 0; i < testCategories.length; i++) {
-      var category = testCategories[i];
-      var results = Util.getParam(category + '_results');
-      if (results) {
-        nextUrl = nextUrl + '&' + category + '_results=' + results;
+        for (var i = 0; i < testCategories.length; i++) {
+          var category = testCategories[i];
+          var results = Util.getParam(category + '_results');
+          if (results) {
+            nextUrl = nextUrl + '&' + category + '_results=' + results;
+          }
+        }
+        window.location.href = nextUrl;
+      };
+      beacon.send();
+    {% else %}
+      var sendBeacon = document.getElementById('bs-send-beacon');
+      if (sendBeacon.checked) {
+        beacon.send();
       }
-    }
-    if (redirectToNextPage) {
-      window.location.href = nextUrl;
-    }
-  };
-  beacon.send();
-}
+      var seeMyResultsLink = document.getElementById('bs-see-my-results');
+      if (!seeMyResultsLink) {
+        seeMyResultsLink = document.createElement('a');
+        seeMyResultsLink.style.marginLeft = '.5em';
+        seeMyResultsLink.appendChild(document.createTextNode('See my results'));
+        document.getElementById('bs-runtest-c').appendChild(seeMyResultsLink);
+      }
+      seeMyResultsLink.href = '/?' + results;
+    {% endif %}
+  }
 </script>
 {% endblock %}
 
-{% block body %}{% endblock %}
+{% block prebody %}
+  {% if autorun %}{% else %}
+    <p id="bs-runtest-c">
+      <button id="bs-runtest" class="bs-runtest">Run {{ app_category_name }} Test</button>
+      <label for="bs-send-beacon">
+        <input id="bs-send-beacon" type="checkbox" checked="checked">
+        Share my test results
+      </label>
+    </p>
+  {% endif %}
+{% endblock %}

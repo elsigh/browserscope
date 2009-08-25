@@ -73,7 +73,7 @@ _TESTS = (
 
 TEST_SET = test_set_base.TestSet(
     category=_CATEGORY,
-    category_name='CSS Selectors',
+    category_name='Selectors API',
     subnav={
       'Test': '/%s/test' % _CATEGORY,
       'About': '/%s/about' % _CATEGORY,
