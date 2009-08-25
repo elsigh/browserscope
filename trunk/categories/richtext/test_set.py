@@ -28,7 +28,7 @@ _CATEGORY = 'richtext'
 class RichtextTest(test_set_base.TestBase):
   TESTS_URL_PATH = '/%s/test' % _CATEGORY
 
-  def __init__(self, key, name, doc):
+  def __init__(self, key, name, doc, is_hidden_stat=True, category=None):
     """Initialze a test.
 
     Args:
@@ -45,12 +45,17 @@ class RichtextTest(test_set_base.TestBase):
         key=key,
         name=name,
         url=self.TESTS_URL_PATH,
-        score_type='custom',
+        score_type='boolean',
         doc=doc,
         min_value=0,
-        max_value=60000)
+        max_value=1,
+        is_hidden_stat=is_hidden_stat)
 
-  def GetScoreAndDisplayValue(self, score):
+    # This way we can assign tests to a test group, i.e. apply, unapply, etc..
+    if category:
+      self.category = category
+
+  def GetScoreAndDisplayValue(self, median, tests):
     """Returns a tuple with display text for the cell as well as a 1-100 value.
     """
     if score == None or score == '':
@@ -61,10 +66,12 @@ class RichtextTest(test_set_base.TestBase):
 
 _TESTS = (
   # key, name, doc
-  RichtextTest('apply', 'Apply Formatting', '''About this test...'''),
-  RichtextTest('unapply', 'Un-Apply Formatting', '''About this test...'''),
-  RichtextTest('change', 'Change Existing Formatting', '''About this test...'''),
-  RichtextTest('query', 'Query State and Value', '''About this test...'''),
+  RichtextTest('apply', 'Apply Formatting', '''About this test...''', False),
+  RichtextTest('unapply', 'Un-Apply Formatting', '''About this test...''', False),
+  RichtextTest('change', 'Change Existing Formatting', '''About this test...''', False),
+  RichtextTest('query', 'Query State and Value', '''About this test...''', False),
+  # Annie, put the rest of the individual tests here, like ...
+  #RichtextTest('bold', 'Bolding', None, category='apply')
 )
 
 
