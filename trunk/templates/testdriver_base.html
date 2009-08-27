@@ -1,27 +1,23 @@
 {% extends "base.html" %}
 
 {% block head %}
-<!-- Load beacon script -->
 <script src="/static/util.js"></script>
-<!--<script src="/static/beacon.js"></script>-->
 <script src="/static/xhrio.js"></script>
-
 <script>
-  var testCategories = [];
+  var browserscope = {};
+  browserscope.testCategories = [];
   {% for app_category in  app_categories %}
-  testCategories.push('{{ app_category.0 }}');
+  browserscope.testCategories.push('{{ app_category.0 }}');
   {% endfor %}
 
-  // This is the function that all test pages will call.
   /**
+   * This is the function that all test pages will call to beacon.
    * @param {Array} testResults test1=result,test2=result, etc..
    */
-  function SendScore(testResults) {
+  browserscope.sendScore = function(testResults) {
     var uriParams = "category={{ app_category }}&results=" +
         testResults.join(',') + "&csrf_token={{ csrf_token }}";
 
-    //function(url, opt_callback, opt_method, opt_content, opt_headers, opt_timeoutInterval)
-    //var beacon = new Beacon(uriParams);
     var results = '{{ app_category }}_results=' + testResults.join(',');
     {% if autorun %}
       var onComplete = function() {
@@ -31,14 +27,13 @@
           nextUrl = continueUrl + '&' + results;
         }
 
-        for (var i = 0; i < testCategories.length; i++) {
-          var category = testCategories[i];
+        for (var i = 0, n = browserscope.testCategories.legnth; i < n; i++) {
+          var category = browserscope.testCategories[i];
           var results = Util.getParam(category + '_results');
           if (results) {
             nextUrl = nextUrl + '&' + category + '_results=' + results;
           }
         }
-        alert('xhrio onComplete nextUrl: ' + nextUrl);return;
         window.location.href = nextUrl;
       };
       goog.net.XhrIo.send('/beacon', onComplete, 'post', uriParams);
@@ -65,27 +60,38 @@
       var height = Util.getDocumentHeight(doc);
       document.getElementById('bs-test-iframe').style.height = height + 10 + 'px';
     }
-  }
+  };
+
+  browserscope.runTest = function() {
+    document.getElementById('bs-runtest').disabled = true;
+    document.getElementById('bs-test-iframe').src = '{{ test_page }}';
+  };
 </script>
 {% endblock %}
 
-{% block prebody %}
+{% block body %}
   {% if autorun %}{% else %}
     <p id="bs-runtest-c">
       <button
         id="bs-runtest"
         class="bs-runtest"
-        onclick="runTest()"
+        onclick="browserscope.runTest();"
         >Run {{ app_category_name }} Test</button>
-      <script>
-      var runTest = function() {
-        alert('You should rewrite runTest in your test.html file');
-      }
-      </script>
       <label for="bs-send-beacon">
         <input id="bs-send-beacon" type="checkbox" checked="checked">
         Share my test results
       </label>
+      <script>
+        document.getElementById('bs-runtest').disabled = false;
+      </script>
     </p>
   {% endif %}
+
+  <iframe
+    id="bs-test-iframe"
+    name="{{ app_category }}"
+    height="700px"
+    width="100%"
+    frameborder="0"
+    src="/static/clicktorun.html"></iframe>
 {% endblock %}

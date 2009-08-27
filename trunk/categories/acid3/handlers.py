@@ -52,15 +52,15 @@ def About(request):
 @decorators.provide_csrf
 def Test(request):
   """Acid3 Benchmark Performance Tests"""
-
   params = {
-    'page_title': 'Acid3 Test - Test',
+    'page_title': 'Acid3 - Tests',
     'continue': request.GET.get('continue'),
     'autorun': request.GET.get('autorun'),
-    'testurl': request.GET.get('testurl'),
     'csrf_token': request.session.get('csrf_token'),
+    'test_page': '/acid3/acid3.html'
   }
-  return Render(request, 'templates/test.html', params)
+  return util.Render(request, util.TEST_DRIVER_TPL, params, CATEGORY)
+
 
 def SupportAPng(request):
   # AppEngine does not allow disk operations, so the content of support-a.png file is written here.

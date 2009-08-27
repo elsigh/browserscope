@@ -37,16 +37,17 @@ def About(request):
   }
   return util.Render(request, 'templates/about.html', params, CATEGORY)
 
+
 @decorators.provide_csrf
 def Test(request):
   """Selectors API Tests"""
-
   params = {
     'page_title': 'Selectors API - Test',
     'continue': request.GET.get('continue'),
     'autorun': request.GET.get('autorun'),
     'csrf_token': request.session.get('csrf_token'),
+    'test_page': 'static/selectors.html'
   }
-  return util.Render(request, 'templates/test.html', params, CATEGORY)
+  return util.Render(request, util.TEST_DRIVER_TPL, params, CATEGORY)
 
 

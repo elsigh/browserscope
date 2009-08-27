@@ -914,7 +914,7 @@
       }
 
       // Beacon all test results.
-      parent.SendScore(results);
+      parent.browserscope.sendScore(results);
     }
   </script>
   <style>
@@ -926,7 +926,7 @@
     }
   </style>
 </head>
-<body>
+<body onload="runTests()">
   <h1>Apply execCommand</h1>
   <table><tbody id="apply_output"><tr><th>Command</th><th>Status</th><th>Output</th></tr></tbody></table>
   <h1>Unapply execCommand</h1>
