@@ -538,7 +538,9 @@
     function outputApplyResult(command, result) {
       // The apply command "succeeded" if HTML was generated.
       var success = (result != UNSUPPORTED) && result;
-      results.push('a-' + command + '=' + (success ? '1' : '0'));
+      // Note: there will be multiple apply tests in the future, so
+      // start using a naming scheme which allows for that now.
+      results.push('a-' + command + '-0=' + (success ? '1' : '0'));
 
       // Each command is displayed as a table row with 3 columns
       var tr = document.createElement('TR');
