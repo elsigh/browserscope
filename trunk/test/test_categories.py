@@ -81,11 +81,11 @@ class TestCategoriesHandlers(unittest.TestCase):
     for category in settings.CATEGORIES:
       response = self.client.get('/%s/' % category, {},
         **mock_data.UNIT_TEST_UA)
-      self.assertEqual(200, response.status_code)
+      self.assertEqual(200, response.status_code, 'No home for %s' % category)
 
       response = self.client.get('/%s/about' % category, {},
         **mock_data.UNIT_TEST_UA)
-      self.assertEqual(200, response.status_code)
+      self.assertEqual(200, response.status_code, 'No about for %s' % category)
 
 
 class TestCanBeacon(unittest.TestCase):

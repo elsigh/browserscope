@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <title>Rich Text Tests</title>
-  <script src="{{ "js/range.js"|resource_path:"richtext" }}"></script>
+  <script src="/richtext/static/js/range.js"></script>
   <script>
     /**
      * Color class allows cross-browser comparison of values, which can
@@ -48,7 +47,7 @@
       }
       this.valid = this.parse(value);
     }
-      
+
     /**
      * Utility class for converting font sizes to the size
      * attribute in a font tag. Currently only converts px because
@@ -440,7 +439,7 @@
     var TEST_CONTENT = 'foo bar baz';
     /**
      * Word in dummy text that should change. Formatting is sometimes applied
-     * to a single word instead of the entire text node because sometimes a 
+     * to a single word instead of the entire text node because sometimes a
      * style might get applied to the body node instead of wrapped around
      * the text, and that's not what's being tested.
      */
@@ -473,7 +472,7 @@
       }
       return null;
     }
-      
+
     /**
      * Sets the selection to be collapsed at the start of the word,
      * or the start of the editor if no word is passed in.
@@ -501,7 +500,7 @@
       range.select();
     }
 
-    /** 
+    /**
      * Gets the HTML before the text, so that we know how the browser
      * applied a style
      */
@@ -514,7 +513,7 @@
       }
       return editorDoc.body.innerHTML.substring(tagStart, index);
     }
-    
+
     /**
      * Does the test for an apply execCommand.
      */
@@ -535,7 +534,7 @@
 
     /**
      * Outputs the result of the apply command to a table.
-     */      
+     */
     function outputApplyResult(command, result) {
       // The apply command "succeeded" if HTML was generated.
       var success = (result != UNSUPPORTED) && result;
@@ -544,17 +543,17 @@
       // Each command is displayed as a table row with 3 columns
       var tr = document.createElement('TR');
       tr.className = success ? 'success' : 'fail';
-        
+
       // Column 1: command name
       var td = document.createElement('TD');
       td.innerHTML = command;
       tr.appendChild(td);
-        
+
       // Column 2: pass/fail
       td = document.createElement('TD');
       td.innerHTML = success ? 'PASS' : 'FAIL';
       tr.appendChild(td);
-        
+
       // Column 3: generated HTML (for passing commands)
       td = document.createElement('TD');
       // Escape the HTML in the result for printing.
@@ -564,7 +563,7 @@
       var table = document.getElementById('apply_output');
       table.appendChild(tr);
     }
-    
+
     /**
      * Does the test for an unapply execCommand.
      */
@@ -615,33 +614,33 @@
       // The apply command "succeeded" if HTML was removed.
       var success = unapplyCommandSucceeded(command, result);
       results.push('u-' + command + '-' + index + '=' + (success ? '1' : '0'));
-        
+
       // Each command is displayed as a table row with 5 columns
       var tr = document.createElement('TR');
       tr.className = success ? 'success' : 'fail';
-        
+
       // Column 1: command name
       var td = document.createElement('TD');
       td.innerHTML = command;
       tr.appendChild(td);
-        
+
       // Column 2: command name being unapplied
       var td = document.createElement('TD');
       td.innerHTML = UNAPPLY_TESTS[command].unapply || command;
       tr.appendChild(td);
-        
+
       // Column 3: pass/fail
       td = document.createElement('TD');
       td.innerHTML = success ? 'PASS' : 'FAIL';
       tr.appendChild(td);
-        
+
       // Column 4: html being removed
       td = document.createElement('TD');
       // Escape the html for printing.
       var htmlToRemove = UNAPPLY_TESTS[command].tags[index][0].replace(/\</g, '&lt;').replace(/\>/g, '&gt;');
       td.innerHTML = htmlToRemove;
       tr.appendChild(td);
-        
+
       // Column 5: resulting html
       td = document.createElement('TD');
       // Escape the HTML in the result for printing.
@@ -770,7 +769,7 @@
           styleName = 'color';
       }
       var foundExpected = false;
-        
+
       // Loop through all the parent nodes that format the text node,
       // checking that there is exactly one font attribute or
       // style, and that it's set correctly.
@@ -834,7 +833,7 @@
       return foundExpected;
     }
 
-    function outputChangeResult(command, index) {        
+    function outputChangeResult(command, index) {
       // Each command is displayed as a table row with 4 columns
       var tr = document.createElement('TR');
       var success = checkChangeSuccess(command, index);
@@ -845,27 +844,27 @@
       var td = document.createElement('TD');
       td.innerHTML = command;
       tr.appendChild(td);
-        
+
       // Column 2: status
       td = document.createElement('TD');
       td.innerHTML = (success == null) ? '?' : (success == true ? 'PASS' : 'FAIL');
       tr.appendChild(td);
-        
+
       // Column 3: opt_arg
       td = document.createElement('TD');
       td.innerHTML = CHANGE_TESTS[command].tests[index].opt_arg;
       tr.appendChild(td);
-        
+
       // Column 4: original html
       td = document.createElement('TD');
       td.innerHTML = CHANGE_TESTS[command].tests[index].html.replace(/\</g, '&lt;').replace(/\>/g, '&gt;');;
       tr.appendChild(td);
-        
+
       // Column 5: resulting html
       td = document.createElement('TD');
       td.innerHTML = editorDoc.body.innerHTML.replace(/\</g, '&lt;').replace(/\>/g, '&gt;');;
       tr.appendChild(td);
-        
+
       var table = document.getElementById('change_output');
       table.appendChild(tr);
     }
@@ -884,7 +883,7 @@
         var result = doApplyTest(command);
         outputApplyResult(command, result);
       }
-      
+
       // Unapply tests
       for (var command in UNAPPLY_TESTS) {
         for (var i = 0; i < UNAPPLY_TESTS[command].tags.length; i++) {
@@ -892,7 +891,7 @@
           outputUnapplyResult(command, result, i);
         }
       }
-      
+
       // Query tests
       for (var command in QUERY_TESTS) {
         for (var i = 0; i < QUERY_TESTS[command].tests.length; i++) {
@@ -900,7 +899,7 @@
           outputQueryResult(command, i, result);
         }
       }
-      
+
       // Change tests
       for (var command in CHANGE_TESTS) {
         for (var i = 0; i < CHANGE_TESTS[command].tests.length; i++) {
@@ -909,9 +908,8 @@
         }
       }
 
-      // Beacon all test results. TODO--414 uri too long
-      var url = '/beacon?category=richtext&csrf_token={{ csrf_token }}&results=' + results.join(',');
-      new Image().src = url;
+      // Beacon all test results.
+      parent.SendScore(results);
     }
   </script>
   <style>
@@ -923,7 +921,7 @@
     }
   </style>
 </head>
-<body onload="runTests()">
+<body>
   <h1>Apply execCommand</h1>
   <table><tbody id="apply_output"><tr><th>Command</th><th>Status</th><th>Output</th></tr></tbody></table>
   <h1>Unapply execCommand</h1>

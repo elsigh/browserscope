@@ -7,16 +7,16 @@
 <script src="/static/xhrio.js"></script>
 
 <script>
-  // Placeholder for subcategory test results
-  var testResults = [];
-
   var testCategories = [];
-  {% for app_category in app_categories %}
-    testCategories.push('{{ app_category.0 }}');
+  {% for app_category in  app_categories %}
+  testCategories.push('{{ app_category.0 }}');
   {% endfor %}
 
   // This is the function that all test pages will call.
-  function SendScore() {
+  /**
+   * @param {Array} testResults test1=result,test2=result, etc..
+   */
+  function SendScore(testResults) {
     var uriParams = "category={{ app_category }}&results=" +
         testResults.join(',') + "&csrf_token={{ csrf_token }}";
 
@@ -38,6 +38,7 @@
             nextUrl = nextUrl + '&' + category + '_results=' + results;
           }
         }
+        alert('xhrio onComplete nextUrl: ' + nextUrl);return;
         window.location.href = nextUrl;
       };
       goog.net.XhrIo.send('/beacon', onComplete, 'post', uriParams);
@@ -49,12 +50,21 @@
       var seeMyResultsLink = document.getElementById('bs-see-my-results');
       if (!seeMyResultsLink) {
         seeMyResultsLink = document.createElement('a');
+        seeMyResultsLink.id = 'bs-see-my-results';
         seeMyResultsLink.style.marginLeft = '.5em';
-        seeMyResultsLink.appendChild(document.createTextNode('See my results'));
+        seeMyResultsLink.appendChild(document.createTextNode(
+            'See & compare my results'));
         document.getElementById('bs-runtest-c').appendChild(seeMyResultsLink);
       }
       seeMyResultsLink.href = '/?' + results;
     {% endif %}
+
+    // Update the iframe size if there's one
+    var doc = Util.getIframeDocument('bs-test-iframe');
+    if (doc) {
+      var height = Util.getDocumentHeight(doc);
+      document.getElementById('bs-test-iframe').style.height = height + 10 + 'px';
+    }
   }
 </script>
 {% endblock %}
@@ -62,7 +72,16 @@
 {% block prebody %}
   {% if autorun %}{% else %}
     <p id="bs-runtest-c">
-      <button id="bs-runtest" class="bs-runtest">Run {{ app_category_name }} Test</button>
+      <button
+        id="bs-runtest"
+        class="bs-runtest"
+        onclick="runTest()"
+        >Run {{ app_category_name }} Test</button>
+      <script>
+      var runTest = function() {
+        alert('You should rewrite runTest in your test.html file');
+      }
+      </script>
       <label for="bs-send-beacon">
         <input id="bs-send-beacon" type="checkbox" checked="checked">
         Share my test results
