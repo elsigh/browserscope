@@ -46,33 +46,3 @@ def EditableIframe(request):
 
   params = {}
   return shortcuts.render_to_response('richtext/templates/editable.html', params)
-
-@decorators.provide_csrf
-def Apply(request):
-
-  params = {
-    'csrf_token': request.session.get('csrf_token'),
-  }
-  return shortcuts.render_to_response('richtext/templates/apply.html', params)
-
-@decorators.provide_csrf
-def Unapply(request):
-
-  params = {
-    'csrf_token': request.session.get('csrf_token'),
-  }
-  return shortcuts.render_to_response('richtext/templates/unapply.html', params)
-  
-@decorators.provide_csrf
-def QueryCommand(request):
-  params = {
-    'csrf_token': request.session.get('csrf_token'),
-  }
-  return shortcuts.render_to_response('richtext/templates/query.html', params)
-  
-@decorators.provide_csrf
-def Change(request):
-  params = {
-    'csrf_token': request.session.get('csrf_token'),
-  }
-  return shortcuts.render_to_response('richtext/templates/change.html', params)
