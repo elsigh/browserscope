@@ -1,6 +1,25 @@
 {% extends "testdriver_base.html" %}
 
 {% block body %}
-<iframe height="700px" width="100%" frameborder="0" style="padding-top:1em;" src="acid3.html">
-</iframe>
+  <iframe
+    id="{{ app_category }}"
+    name="{{ app_category }}"
+    height="700px"
+    width="100%"
+    frameborder="0"
+    src="acid3.html"></iframe>
+
+
+  <script>
+  // acid3 actually checks this attribute value
+  var setUpAcid3OnloadAttr = function() {
+    var doc = Util.getIframeDocument('{{ app_category }}');
+    doc.body.setAttribute('onload', 'update()  /* this attribute\'s value is tested in one of the tests */');
+  };
+
+  // runTest is stubbed in the testdriver base, so no var here.
+  var runTest = function() {
+    window.frames.acid3.update();
+  };
+  </script>
 {% endblock %}

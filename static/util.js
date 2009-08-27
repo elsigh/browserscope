@@ -95,10 +95,17 @@ Util.getParam = function(param) {
 
 /**
  * @param {IFRAMEElement} iframe
- * @reutrn {Object} The iframe's document object.
+ * @reutrn {string} The iframe's id.
  */
-Util.getIframeDocument = function(iframe) {
+Util.getIframeDocument = function(iframeId) {
   var doc;
+  var iframe = window.frames[iframeId];
+  if (!iframe) {
+    iframe = document.getElementById(iframeId);
+  }
+  if (!iframe) {
+    return;
+  }
   if (iframe.contentDocument) {
     // For NS6
     doc = iframe.contentDocument;
@@ -126,3 +133,13 @@ Util.fixIframeLinks = function(iframe) {
   }
 };
 
+/**
+ * @type {Object} doc A document object.
+ */
+Util.getDocumentHeight = function(doc) {
+  return Math.max(
+    Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight),
+    Math.max(doc.body.offsetHeight, doc.documentElement.offsetHeight),
+    Math.max(doc.body.clientHeight, doc.documentElement.clientHeight)
+  );
+}

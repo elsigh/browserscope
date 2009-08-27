@@ -277,7 +277,7 @@ def ScheduleRecentTestsUpdate():
     logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
 
 
-BAD_BEACON_MSG = 'Nein swine.'
+BAD_BEACON_MSG = 'Error in Beacon: '
 BEACON_COMPLETE_CB_RESPONSE = 'BEACON_COMPLETE = 1;'
 @decorators.check_csrf
 def Beacon(request):
@@ -288,27 +288,27 @@ def Beacon(request):
   # First make sure this IP is not being an overachiever ;)
   ip = request.META.get('REMOTE_ADDR')
   if not CheckThrottleIpAddress(ip):
-    return http.HttpResponseServerError(BAD_BEACON_MSG)
+    return http.HttpResponseServerError(BAD_BEACON_MSG + 'IP')
   # Mask the IP for storage
   ip = hashlib.md5(ip).hexdigest()
 
-  callback = request.GET.get('callback', None)
-  category = request.GET.get('category', None)
-  results_string = request.GET.get('results', None)
+  callback = request.REQUEST.get('callback', None)
+  category = request.REQUEST.get('category', None)
+  results_string = request.REQUEST.get('results', None)
 
   if category is None or results_string is None:
     logging.debug('Got no category or results')
-    return http.HttpResponse(BAD_BEACON_MSG)
+    return http.HttpResponse(BAD_BEACON_MSG + 'Category/Results')
 
   if settings.BUILD == 'production' and category not in settings.CATEGORIES:
     logging.debug('Got a bogus category(%s) in production.' % category)
-    return http.HttpResponse(BAD_BEACON_MSG)
+    return http.HttpResponse(BAD_BEACON_MSG + 'Category in Production')
 
   try:
     test_set = all_test_sets.GetTestSet(category)
   except:
     logging.debug('Could not get a test_set for category: %s' % category)
-    return http.HttpResponse(BAD_BEACON_MSG)
+    return http.HttpResponse(BAD_BEACON_MSG + 'TestSet')
 
   results = ParseResultsParamString(results_string)
   #logging.info('Beacon results: %s' % results)
@@ -316,7 +316,7 @@ def Beacon(request):
   user_agent_string = request.META.get('HTTP_USER_AGENT')
   user = users.get_current_user()
 
-  params = request.GET.get('params', [])
+  params = request.REQUEST.get('params', [])
   if params and params != '':
     params = ParseParamsString(params)
   #logging.info('Beacon params: %s' % params)
@@ -325,7 +325,7 @@ def Beacon(request):
                                          results, params=params, user=user)
 
   if not result_parent:
-    return http.HttpResponse(BAD_BEACON_MSG)
+    return http.HttpResponse(BAD_BEACON_MSG + 'ResultParent')
 
   manage_dirty.ScheduleDirtyUpdate()
   ScheduleRecentTestsUpdate()

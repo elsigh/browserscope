@@ -32,15 +32,29 @@ from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
 
 # Shared stuff
+from categories import all_test_sets
 from base import decorators
+from base import util
+
+
+CATEGORY = 'richtext'
+
+
+def About(request):
+  """About page."""
+  params = {
+    'page_title': 'Selectors API Test - About',
+    'tests': all_test_sets.GetTestSet(CATEGORY).tests,
+  }
+  return util.Render(request, 'templates/about.html', params, CATEGORY)
 
 @decorators.provide_csrf
-def RunTests(request):
-
+def Test(request):
   params = {
     'csrf_token': request.session.get('csrf_token'),
   }
-  return shortcuts.render_to_response('richtext/templates/tests.html', params)
+  return util.Render(request, 'templates/test.html', params, CATEGORY)
+
 
 def EditableIframe(request):
 

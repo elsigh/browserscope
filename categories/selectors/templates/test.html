@@ -2,27 +2,27 @@
 
 {% block body %}
   <iframe
-    id="selectors"
-    onload="Util.fixIframeLinks(document.getElementById('selectors'));"
-    name="selectors" height="700px" width="100%" frameborder="0" src="static/selectors.html"></iframe>
+    id="{{ app_category }}"
+    onload="Util.fixIframeLinks('{{ app_category }}');{% if autorun %}runTest();{% endif %}"
+    name="{{ app_category }}"
+    height="700px"
+    width="100%"
+    frameborder="0"
+    src="static/{{ app_category }}.html"></iframe>
 
   <script>
-    var runSelectorsTest = function() {
+    var runTest = function() {
       window.frames.selectors.runAll();
     };
-    document.getElementById('bs-runtest').onclick = runSelectorsTest;
 
-    // this is a callback from the done() function
-		function browserscopeBeacon(score, passed, failed) {
+    // This is a callback from the done() function in the static/selectors.html page.
+		var sendBrowserscopeScore = function(score, passed, failed) {
 		  // score is a decimal and we need to send beacon an int.
+		  var testResults = [];
 		  testResults.push('score=' + score.replace('.', ''));
 		  testResults.push('passed=' + passed);
 		  testResults.push('failed=' + failed);
-      SendScore({% if autorun %}{% else %}false{% endif %});
+      SendScore(testResults);
 		}
-
-		{% if autorun %}
-		  runSelectorsTest();
-		{% endif %}
   </script>
 {% endblock %}

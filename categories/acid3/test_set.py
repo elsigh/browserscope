@@ -37,7 +37,6 @@ class Acid3Test(test_set_base.TestBase):
       score_type: 'boolean' or 'custom'
       doc: a description of the test
       value_range: (min_value, max_value) as integer values
-      is_hidden_stat: whether or not the test shown in the stats table
     """
     test_set_base.TestBase.__init__(
         self,

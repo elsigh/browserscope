@@ -64,7 +64,7 @@ class TestUtilHandlers(unittest.TestCase):
     csrf_token = self.client.get('/get_csrf').content
     params = {'results': 'testDisply:200', 'csrf_token': csrf_token}
     response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
-    self.assertEqual(util.BAD_BEACON_MSG, response.content)
+    self.assertEqual(util.BAD_BEACON_MSG + 'Category/Results', response.content)
 
 
   def testBeacon(self):
@@ -106,7 +106,7 @@ class TestUtilHandlers(unittest.TestCase):
       'csrf_token': csrf_token
     }
     response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
-    self.assertEqual(util.BAD_BEACON_MSG, response.content)
+    self.assertEqual(util.BAD_BEACON_MSG + 'ResultParent', response.content)
 
     # Did a ResultParent get created? Shouldn't have.
     query = db.Query(ResultParent)
@@ -124,7 +124,7 @@ class TestUtilHandlers(unittest.TestCase):
       'csrf_token': csrf_token
     }
     response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
-    self.assertEqual(util.BAD_BEACON_MSG, response.content)
+    self.assertEqual(util.BAD_BEACON_MSG + 'TestSet', response.content)
 
 
   def testBeaconWithParams(self):

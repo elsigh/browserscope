@@ -3449,8 +3449,9 @@
       if (errors == 0)
         log += "\nNo JS errors and no timing issues.\nWas the rendering pixel-for-pixel perfect too?";
       // Report final score to browserscope
-      parent.testResults.push('score=' + span.firstChild.data);
-      parent.SendScore();
+      var testResults = [];
+      testResults.push('score=' + span.firstChild.data);
+      parent.SendScore(testResults);
     }
   }
   function report(event) {
