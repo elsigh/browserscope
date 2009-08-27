@@ -39,7 +39,7 @@ class TestCategories(unittest.TestCase):
     self.assertEqual(settings.CATEGORIES,
                      [x.category for x in all_test_sets.GetTestSets()])
 
-  # TODO(slamm): Re-enable. This test was failing for CSS Selectors w/
+  # TODO(slamm): Re-enable? This test was failing for "Selectors API" w/
   # AssertionError: 'Css selectors' != 'CSS Selectors'
   #def testCategoryNamesCapitalized(self):
     #for test_set in all_test_sets.GetTestSets():
