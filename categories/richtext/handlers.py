@@ -34,9 +34,12 @@ add_to_builtins('base.custom_filters')
 # Shared stuff
 from base import decorators
 
+@decorators.provide_csrf
 def RunTests(request):
 
-  params = {}
+  params = {
+    'csrf_token': request.session.get('csrf_token'),
+  }
   return shortcuts.render_to_response('richtext/templates/tests.html', params)
 
 def EditableIframe(request):

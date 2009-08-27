@@ -105,7 +105,6 @@
             this.size = null;
         }
       }
-      console.log('in font size: ' + value + ' out font size: ' + this.size);
       this.compare = function(other) {
         return this.size == other.size;
       }
@@ -221,7 +220,7 @@
       'superscript' : {
         tags: [
           ['<sup>', '</sup>'],
-          ['<span style="vertical-align: sup;">', '</span>']]},
+          ['<span style="vertical-align: super;">', '</span>']]},
       'unbookmark' : {
         unapply: 'createbookmark',
         tags: [
@@ -450,6 +449,8 @@
     var UNSUPPORTED = 'UNSUPPORTED';
     /** <br> and <p> are acceptable HTML to be left over from block elements */
     var BLOCK_REMOVE_TAGS = [/\s*<br>\s*/i, /\s*<p>\s*/i];
+    /** Array used to accumulate test results */
+    var results = [];
 
     /**
      * Finds the text node in the given node containing the given word.
@@ -538,6 +539,7 @@
     function outputApplyResult(command, result) {
       // The apply command "succeeded" if HTML was generated.
       var success = (result != UNSUPPORTED) && result;
+      results.push('a-' + command + '=' + (success ? '1' : '0'));
 
       // Each command is displayed as a table row with 3 columns
       var tr = document.createElement('TR');
@@ -612,6 +614,7 @@
     function outputUnapplyResult(command, result, index) {
       // The apply command "succeeded" if HTML was removed.
       var success = unapplyCommandSucceeded(command, result);
+      results.push('u-' + command + '-' + index + '=' + (success ? '1' : '0'));
         
       // Each command is displayed as a table row with 5 columns
       var tr = document.createElement('TR');
@@ -693,6 +696,7 @@
       var tr = document.createElement('TR');
       var success = queryCommandSucceeded(command, index, result);
       tr.className = success ? 'success' : 'fail';
+      results.push('q-' + command + '-' + index + '=' + (success ? '1' : '0'));
 
       // Column 1: command name
       var td = document.createElement('TD');
@@ -835,7 +839,8 @@
       var tr = document.createElement('TR');
       var success = checkChangeSuccess(command, index);
       tr.className = success ? 'success' : 'fail';
-        
+      results.push('c-' + command + '-' + index + '=' + (success ? '1' : '0'));
+
       // Column 1: command name
       var td = document.createElement('TD');
       td.innerHTML = command;
@@ -903,6 +908,10 @@
           outputChangeResult(command, i);
         }
       }
+
+      // Beacon all test results. TODO--414 uri too long
+      var url = '/beacon?category=richtext&csrf_token={{ csrf_token }}&results=' + results.join(',');
+      new Image().src = url;
     }
   </script>
   <style>
