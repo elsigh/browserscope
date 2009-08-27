@@ -336,6 +336,7 @@
       'justifyleft' : {
         type: 'state',
         tests: [
+          {html: 'foo bar baz', expected: false},
           {html: '<div align="left">foo bar baz</div>', expected: true},
           {html: '<p align="left">foo bar baz</p>', expected: true},
           {html: '<div style="text-align: left;">foo bar baz</div>', expected: true}
