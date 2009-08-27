@@ -55,7 +55,7 @@ class RichtextTest(test_set_base.TestBase):
     if category:
       self.category = category
 
-  def GetScoreAndDisplayValue(self, median, tests):
+  def GetScoreAndDisplayValue(self, median, tests=None):
     """Returns a tuple with display text for the cell as well as a 1-100 value.
     """
     if score == None or score == '':

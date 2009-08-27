@@ -57,7 +57,7 @@ class NetworkTest(test_set_base.TestBase):
         min_value=min_value,
         max_value=max_value)
 
-  def GetScoreAndDisplayValue(self, median):
+  def GetScoreAndDisplayValue(self, median, tests=None):
     """Returns a tuple with display text for the cell as well as a 1-100 value.
     i.e. ('1X', 95)
     """
