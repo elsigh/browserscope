@@ -461,7 +461,7 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
             user_agent, params).GetMedianAndNumScores(num_scores=total_runs)
         if median is None:
           median = ''
-        score, display, ua_score = GetScoreAndDisplayValue(test, median)
+        score, display, ua_score = GetScoreAndDisplayValue(test, median, tests)
         user_agent_score += ua_score
         user_agent_results[test.key] = {
             'median': median,
@@ -482,7 +482,7 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
   return stats
 
 
-def GetScoreAndDisplayValue(test, median):
+def GetScoreAndDisplayValue(test, median, tests):
   # Score for the template classnames is a value of 0-10.
   if test.score_type == 'boolean':
     # Boolean scores are 1 or 10.
@@ -495,7 +495,7 @@ def GetScoreAndDisplayValue(test, median):
   elif test.score_type == 'custom':
     # The custom_tests_function returns a score between 1-100 which we'll
     # turn into a 0-10 display.
-    score, display = test.GetScoreAndDisplayValue(median)
+    score, display = test.GetScoreAndDisplayValue(median, tests)
     score = int(round(float('%s.0' % int(score)) / 10))
     #logging.info('got display:%s, score:%s for %s w/ median: %s' %
     #             (display, score, test.key, median))

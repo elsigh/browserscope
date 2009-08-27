@@ -52,11 +52,12 @@ class ReflowTest(test_set_base.TestBase):
 
 
 
-  def GetScoreAndDisplayValue(self, median):
+  def GetScoreAndDisplayValue(self, median, tests=None):
     """Returns a tuple with display text for the cell as well as a 1-100 value.
     i.e. ('1X', 95)
     Args:
       median: The test median.
+      tests: A list of all the tests.
     Returns:
       A tuple of display, score
     """
