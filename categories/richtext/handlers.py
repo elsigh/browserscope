@@ -43,7 +43,7 @@ CATEGORY = 'richtext'
 def About(request):
   """About page."""
   params = {
-    'page_title': 'Selectors API Test - About',
+    'page_title': 'Rich Text Tests - About',
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
   return util.Render(request, 'templates/about.html', params, CATEGORY)
@@ -51,9 +51,13 @@ def About(request):
 @decorators.provide_csrf
 def Test(request):
   params = {
+    'page_title': 'Rich Text - Tests',
+    'continue': request.GET.get('continue'),
+    'autorun': request.GET.get('autorun'),
     'csrf_token': request.session.get('csrf_token'),
+    'test_page': 'static/richtext.html'
   }
-  return util.Render(request, 'templates/test.html', params, CATEGORY)
+  return util.Render(request, util.TEST_DRIVER_TPL, params, CATEGORY)
 
 
 def EditableIframe(request):

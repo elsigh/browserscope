@@ -54,13 +54,10 @@ class SelectorsTest(test_set_base.TestBase):
   def GetScoreAndDisplayValue(self, median, tests=None):
     """Returns a tuple with display text for the cell as well as a 1-100 value.
     """
-    if median == None or median == '':
-      return 0, ''
-
-    median = int(median)
-    score = median
-    display = median
-    return score, display
+    if self.key == 'score':
+      return (90,'whatever man')
+    else:
+      return (median, median)
 
 
 _TESTS = (

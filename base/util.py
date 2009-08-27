@@ -48,6 +48,8 @@ from base import decorators
 from base import manage_dirty
 
 
+TEST_DRIVER_TPL = 'testdriver_base.html'
+
 #@decorators.trusted_tester_required
 def Render(request, template, params={}, category=None):
   """Wrapper function to render templates with global and category vars."""
@@ -75,7 +77,7 @@ def Render(request, template, params={}, category=None):
       params['app_category_name'] = test_set.category_name
       params['app_category_index'] = i
 
-  if category != None:
+  if category != None and template != TEST_DRIVER_TPL:
     template = '%s/%s' % (category, template)
   return shortcuts.render_to_response(template, params)
 

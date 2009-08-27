@@ -222,8 +222,9 @@
     .foo..quux { background: red; color: yellow; }
     .bar. { background: red; color: yellow; }
   </style>
+
   <script>
-	var runAll = function() {
+	window.onload = function(){
 		document.getElementById("toggle").onclick = function(){
 			document.documentElement.className = this.checked ? "unitTest nopass" : "unitTest";
 		};
@@ -300,11 +301,9 @@
 			var r = document.getElementById("results");
 			var li = document.createElement("li");
 			var b = document.createElement("b");
-      var s = ((passed / tests) * 100).toFixed(1);
-      var f = tests - passed;
-			b.appendChild( document.createTextNode( s + "%" ) );
+			b.appendChild( document.createTextNode( ((passed / tests) * 100).toFixed(1) + "%" ) );
 			li.appendChild( b );
-			li.appendChild( document.createTextNode( ": " + passed + " passed, " + f + " failed" ) );
+			li.appendChild( document.createTextNode( ": " + passed + " passed, " + (tests - passed) + " failed" ) );
 			r.appendChild( li );
 
 			for ( var i = 0; i < results.length; i++ ) {
@@ -319,9 +318,13 @@
 			}
 
       // Send the results to BrowserScope.
-      parent.sendBrowserscopeScore(s, passed, f);
+		  var testResults = [
+		    'score=0', // fake test, we'll calculate this on the fly.
+		    'passed=' + passed,
+		    'failed=' + (tests - passed)
+		  ];
+      parent.browserscope.sendScore(testResults);
 		}
-
 
 		function cacheCheck( type, root ) {
 			try {
@@ -732,6 +735,7 @@
     <h3>CSS 3 Selectors tests</h3>
     <p>(c) <a href="http://www.disruptive-innovations.com">Disruptive Innovations</a> 2008<br/>
     Last update: 2008-06-06</p>
+
   </div>
 
   <div class="test target">
@@ -751,6 +755,7 @@
 
   <div class="test attributeValue">
     <div class="blox6 unitTest" align="center" title="attribute value selector"></div>
+
     <div class="blox6 unitTest" foo="&eacute;" title="attribute value selector with an entity in the attribute and an escaped value in the selector"></div>
     <div class="blox6 unitTest" _foo="&eacute;" title="attribute value selector with an entity in the attribute, an escaped value in the selector, and a leading underscore in the attribute name"></div>
   </div>
@@ -760,6 +765,7 @@
     <div class="blox8 unitTest" title="[~=] attribute selector looking for empty string"></div>
     <div class="blox9 unitTest" foo="" title="[~=] attribute selector looking for empty string in empty attribute"></div>
     <div class="blox10 unitTest" foo="foobar" title="[~=] attribute selector looking for 'foo' in 'foobar'"></div>
+
   </div>
 
   <div class="test attrStart">
@@ -770,6 +776,7 @@
   </div>
 
   <div class="test attrEnd">
+
     <div class="unitTest t1" title="[$=] attribute selector"></div>
     <div class="unitTest t2" title="[$=] attribute selector"></div>
     <div class="unitTest t3" align="center" title="[$=] attribute selector looking for empty string"></div>
@@ -779,6 +786,7 @@
   <div class="test attrMiddle">
     <div class="unitTest t1" title="[*=] attribute selector"></div>
     <div class="unitTest t2" title="[*=] attribute selector"></div>
+
     <div class="unitTest t3" align="center" title="[*=] attribute selector looking for empty string"></div>
     <div class="unitTest t4" foo="tagada&eacute;foo" title="[*=] attribute selector looking for &eacute;"></div>
   </div>
@@ -798,6 +806,7 @@
   <div class="test onlyOfType">
     <div class="blox17 unitTest" title=":only-of-type selector"></div>
     <p class="blox18 unitTest" title="negated :only-of-type selector"></p>
+
     <p class="blox18 unitTest" title="negated :only-of-type selector"></p>
   </div>
 
@@ -807,6 +816,7 @@
     <div class="unitTest" title=":nth-child(odd) selector"></div>
     <div class="unitTest" title=":nth-last-child(odd) selector"></div>
     <div class="unitTest" title=":nth-child(odd) selector"></div>
+
     <div class="unitTest" title=":nth-last-child(odd) selector"></div>
   </div>
   <div class="test nthchild2">
@@ -816,6 +826,7 @@
     <div class="unitTest" title=":nth-child(even) selector"></div>
     <div class="unitTest" title=":nth-last-child(even) selector"></div>
     <div class="unitTest" title=":nth-child(even) selector"></div>
+
   </div>
   <div class="test nthchild3">
     <div class="unitTest no" title=":nth-last-child(3n+3) selector"></div>
@@ -834,6 +845,7 @@
     <p class="unitTest" title=":nth-* selector"></p>
     <div class="unitTest" title=":nth-of-type(odd) selector"></div>
     <div class="unitTest" title=":nth-last-of-type(odd) selector"></div>
+
   </div>
   <div class="test nthoftype2">
     <div class="unitTest" title=":nth-last-of-type(even) selector"></div>
@@ -843,6 +855,7 @@
     <p class="unitTest" title=":nth-* selector"></p>
     <div class="unitTest" title=":nth-last-of-type(even) selector"></div>
     <div class="unitTest" title=":nth-of-type(even) selector"></div>
+
   </div>
   <div class="test nthoftype3">
     <div class="unitTest" title=":nth-of-type(3n+1) selector"></div>
@@ -852,6 +865,7 @@
     <p class="unitTest" title=":nth-* selector"></p>
     <div class="unitTest" title=":nth-last-of-type(3n+1) selector"></div>
     <div class="unitTest" title=":nth-of-type(3n+1) selector"></div>
+
     <p class="unitTest" title=":nth-* selector"></p>
     <div class="unitTest" title=":nth-last-of-type(3n+2) selector"></div>
     <div class="unitTest" title=":nth-last-of-type(3n+1) selector"></div>
@@ -871,6 +885,7 @@
 
   <div class="test lastOfType">
     <p class="unitTest" title=":not(:last-of-type)"></p>
+
     <div class="unitTest" title=":not(:last-of-type)"></div>
     <p class="unitTest" title=":last-of-type selector"></p>
     <div class="unitTest" title=":last-of-type selector"></div>
@@ -880,6 +895,7 @@
     <div class="unitTest" title=":only-child where the element is NOT the only child"></div>
     <div class="unitTest" title=":only-child where the element is the only child">
       <div class="unitTest" title=":only-child where the element is the only child"></div>
+
     </div>
   </div>
 
@@ -889,6 +905,7 @@
       <div class="unitTest" title=":only-of-type"></div>
     </div>
     <div class="unitTest" title=":not(only-of-type)"></div>
+
   </div>
 
   <div class="test empty">
@@ -908,6 +925,7 @@
 
   <div class="test attrLang">
     <div class="unitTest t1" title="[|=] where language comes from the document"></div>
+
     <div class="unitTest" lang="fr" title="[|=] where language comes from the element"></div>
     <div class="unitTest t2" lang="en-US" title="[|=] where language comes from the element but is a dialect of the language queried"></div>
     <div class="unitTest t3" lang="es" title="[|=] where language comes from the element but the language queried is a dialect of the element's one so it should not match"></div>
@@ -917,6 +935,7 @@
     <button name="submit" type="submit" value="submit" class="t1"  title=":enabled pseudo-class"><div class="unitTest"></div></button>
     <button name="submit" type="submit" value="submit" class="t2" disabled="true"  title=":enabled pseudo-class"><div class="unitTest"></div></button>
   </div>
+
   <div class="test UI">
     <input class="t3" type="checkbox" checked="true"/><div class="unitTest" title=":checked"></div>
     the previous square should be green when the checkbox is checked and become red when you uncheck it
@@ -927,6 +946,7 @@
   </div>
 
   <div class="test tilda">
+
     <div class="unitTest t1" title="~ combinator"></div>
     <div class="unitTest" title="~ combinator"></div>
     <div class="unitTest" title="~ combinator"></div>
@@ -935,6 +955,7 @@
   </div>
   <div class="test plus">
     <div class="unitTest t1" title="+ combinator"></div>
+
     <div class="unitTest t2" title="+ combinator"></div>
     <div class="unitTest" title="+ combinator"></div>
     <span style="float:left">the last square should be green and become red when the pointer hovers over the FIRST white square</span>
@@ -944,6 +965,7 @@
   <div class="header">
     <h3>CSS 3 Selectors tests</h3>
     <p>(c) <a href="http://www.disruptive-innovations.com">Disruptive Innovations</a> 2008<br/>
+
     Last update: 2008-06-06</p>
   </div>
 
@@ -953,6 +975,7 @@
 
   <div class="test attributeExistence">
     <div class="blox2 unitTest" align="center" title="attribute existence selector"></div>
+
     <div class="blox3 unitTest" align="" title="attribute existence selector with empty string value"></div>
     <div class="blox4 unitTest" valign="center" title="attribute existence selector with almost identical attribute"></div>
     <div class="blox5 unitTest" alignv="center" title="attribute existence selector with almost identical attribute"></div>
@@ -962,6 +985,7 @@
     <div class="blox6 unitTest" align="center" title="attribute value selector"></div>
     <div class="blox6 unitTest" foo="&eacute;" title="attribute value selector with an entity in the attribute and an escaped value in the selector"></div>
     <div class="blox6 unitTest" _foo="&eacute;" title="attribute value selector with an entity in the attribute, an escaped value in the selector, and a leading underscore in the attribute name"></div>
+
   </div>
 
   <div class="test attributeSpaceSeparatedValues">
@@ -972,6 +996,7 @@
   </div>
 
   <div class="test attrStart">
+
     <div class="unitTest t1" title="[^=] attribute selector"></div>
     <div class="unitTest t2" title="[^=] attribute selector"></div>
     <div class="unitTest t3" align="center" title="[^=] attribute selector looking for empty string"></div>
@@ -981,6 +1006,7 @@
   <div class="test attrEnd">
     <div class="unitTest t1" title="[$=] attribute selector"></div>
     <div class="unitTest t2" title="[$=] attribute selector"></div>
+
     <div class="unitTest t3" align="center" title="[$=] attribute selector looking for empty string"></div>
     <div class="unitTest t4" foo="tagada&eacute;" title="[$=] attribute selector looking for &eacute;"></div>
   </div>
@@ -990,6 +1016,7 @@
     <div class="unitTest t2" title="[*=] attribute selector"></div>
     <div class="unitTest t3" align="center" title="[*=] attribute selector looking for empty string"></div>
     <div class="unitTest t4" foo="tagada&eacute;foo" title="[*=] attribute selector looking for &eacute;"></div>
+
   </div>
 
   <div class="test firstChild">
@@ -1000,6 +1027,7 @@
 
   <div class="test not">
     <div class="blox14 unitTest" title="negation pseudo-class with argument being an element type selector"></div>
+
     <div class="blox15 unitTest" foo="blox15" title="negation pseudo-class with argument being an attribute selector"></div>
     <div class="blox16 unitTest" foo="blox15" title="negation pseudo-class accepts only simple selectors for argument"></div>
   </div>
@@ -1018,6 +1046,7 @@
     <div class="unitTest" title=":nth-child(odd) selector"></div>
     <div class="unitTest" title=":nth-last-child(odd) selector"></div>
   </div>
+
   <div class="test nthchild2">
     <div class="unitTest" title=":nth-last-child(even) selector"></div>
     <div class="unitTest" title=":nth-child(even) selector"></div>
@@ -1027,6 +1056,7 @@
     <div class="unitTest" title=":nth-child(even) selector"></div>
   </div>
   <div class="test nthchild3">
+
     <div class="unitTest no" title=":nth-last-child(3n+3) selector"></div>
     <div class="unitTest" title=":nth-child(3n+2) selector"></div>
     <div class="unitTest no" title=":nth-last-child(3n+1) selector"></div>
@@ -1036,6 +1066,7 @@
   </div>
 
   <div class="test nthoftype1">
+
     <div class="unitTest" title=":nth-of-type(odd) selector"></div>
     <p class="unitTest" title=":nth-of-* selector"></p>
     <p class="unitTest" title=":nth-of-* selector"></p>
@@ -1045,6 +1076,7 @@
     <div class="unitTest" title=":nth-last-of-type(odd) selector"></div>
   </div>
   <div class="test nthoftype2">
+
     <div class="unitTest" title=":nth-last-of-type(even) selector"></div>
     <p class="unitTest" title=":nth-of-* selector"></p>
     <p class="unitTest" title=":nth-of-* selector"></p>
@@ -1054,6 +1086,7 @@
     <div class="unitTest" title=":nth-of-type(even) selector"></div>
   </div>
   <div class="test nthoftype3">
+
     <div class="unitTest" title=":nth-of-type(3n+1) selector"></div>
     <p class="unitTest" title=":nth-of-* selector"></p>
     <p class="unitTest" title=":nth-of-* selector"></p>
@@ -1063,6 +1096,7 @@
     <div class="unitTest" title=":nth-of-type(3n+1) selector"></div>
     <p class="unitTest" title=":nth-of-* selector"></p>
     <div class="unitTest" title=":nth-last-of-type(3n+2) selector"></div>
+
     <div class="unitTest" title=":nth-last-of-type(3n+1) selector"></div>
   </div>
 
@@ -1073,6 +1107,7 @@
 
   <div class="test firstOfType">
     <p class="unitTest" title=":first-of-type selector"></p>
+
     <div class="unitTest" title=":first-of-type selector"></div>
     <p class="unitTest" title=":not(:first-of-type)"></p>
     <div class="unitTest" title=":not(:first-of-type)"></div>
@@ -1082,6 +1117,7 @@
     <p class="unitTest" title=":not(:last-of-type)"></p>
     <div class="unitTest" title=":not(:last-of-type)"></div>
     <p class="unitTest" title=":last-of-type selector"></p>
+
     <div class="unitTest" title=":last-of-type selector"></div>
   </div>
 
@@ -1101,6 +1137,7 @@
   </div>
 
   <div class="test empty">
+
     <div class="unitTest isEmpty" title=":empty with empty element"></div>
     <div class="unitTest isNotEmpty" title=":empty but element contains a whitespace"> </div>
     <div class="unitTest isEmpty" title=":empty and element contains an SGML comment"><!-- foo --></div>
@@ -1110,6 +1147,7 @@
 
   <div class="test lang">
     <div id="nofragment" class="unitTest" title=":lang() where language comes from the document"></div>
+
     <div class="unitTest" lang="fr" title=":lang() where language comes from the element"></div>
     <div class="unitTest" lang="en-US" title=":lang() where language comes from the element but is a dialect of the language queried"></div>
     <div class="unitTest t1" lang="es" title=":lang() where language comes from the element but the language queried is a dialect of the element's one so it should not match"></div>
@@ -1119,6 +1157,7 @@
     <div class="unitTest t1" title="[|=] where language comes from the document"></div>
     <div class="unitTest" lang="fr" title="[|=] where language comes from the element"></div>
     <div class="unitTest t2" lang="en-US" title="[|=] where language comes from the element but is a dialect of the language queried"></div>
+
     <div class="unitTest t3" lang="es" title="[|=] where language comes from the element but the language queried is a dialect of the element's one so it should not match"></div>
   </div>
 
@@ -1128,6 +1167,7 @@
   </div>
   <div class="test UI">
     <input class="t3" type="checkbox" checked="true"/><div class="unitTest" title=":checked"></div>
+
     the previous square should be green when the checkbox is checked and become red when you uncheck it
   </div>
   <div class="test UI">
@@ -1138,6 +1178,7 @@
   <div class="test tilda">
     <div class="unitTest t1" title="~ combinator"></div>
     <div class="unitTest" title="~ combinator"></div>
+
     <div class="unitTest" title="~ combinator"></div>
     <div class="unitTest" title="~ combinator"></div>
     <span style="float:left">the three last squares should be green and become red when the pointer hovers over the white square</span>
@@ -1146,6 +1187,7 @@
     <div class="unitTest t1" title="+ combinator"></div>
     <div class="unitTest t2" title="+ combinator"></div>
     <div class="unitTest" title="+ combinator"></div>
+
     <span style="float:left">the last square should be green and become red when the pointer hovers over the FIRST white square</span>
   </div>
 </div>
@@ -1155,6 +1197,7 @@
 	<svg width="12cm" height="4cm" viewBox="0 0 1200 400" version="1.1" id="svg1">
   	<desc id="desc1">Example circle01 - circle filled with red and stroked with blue</desc>
   	<rect id="rect1" x="1" y="1" width="1198" height="398" fill="none" stroke="blue" stroke-width="2"/>
+
   	<circle id="circle1" cx="600" cy="200" r="100" fill="red" stroke="blue" stroke-width="10"  />
 	</svg>
 	<!-- svg elements using svg: -->
@@ -1163,6 +1206,7 @@
   	<svg:rect id="rect2" x="1" y="1" width="1198" height="398" fill="none" stroke="blue" stroke-width="2"/>
   	<svg:circle id="circle2" cx="600" cy="200" r="100" fill="red" stroke="blue" stroke-width="10"  />
 	</svg:svg>
+
 	<!-- svg using an inline xmlns -->
 	<svg width="12cm" height="4cm" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg" version="1.1" id="svg3">
   	<desc id="desc3">Example circle01 - circle filled with red and stroked with blue</desc>
@@ -1172,6 +1216,7 @@
 	</div>
 
 	<h1 id="header">jQuery Test Suite</h1>
+
 	<h2 id="banner"></h2>
 	<h2 id="userAgent"></h2>
 
@@ -1182,6 +1227,7 @@
 	</div>
 	<!-- this iframe is outside the #main so it won't reload constantly wasting time, but it means the tests must be "safe" and clean up after themselves -->
 	<iframe id="loadediframe" name="loadediframe" style="display:none;"></iframe>
+
 	<dl id="dl" style="display:none;">
 	<div id="main" style="display: none;">
 		<p id="firstp">See <a id="simon1" href="http://simon.incutio.com/archive/2003/03/25/#getElementsBySelector" rel="bookmark">this blog entry</a> for more information.</p>
@@ -1207,6 +1253,7 @@
 		<form id="form" action="formaction">
 			<input type="text" name="action" value="Test" id="text1" maxlength="30"/>
 			<input type="text" name="text2" value="Test" id="text2" disabled="disabled"/>
+
 			<input type="radio" name="radio1" id="radio1" value="on"/>
 
 			<input type="radio" name="radio2" id="radio2" checked="checked"/>
@@ -1219,6 +1266,7 @@
 
 			<input type="text" id="name" name="name" value="name" />
 
+
 			<button id="button" name="button">Button</button>
 
 			<textarea id="area1" maxlength="30">foobar</textarea>
@@ -1228,6 +1276,7 @@
 				<option id="option1a" class="emptyopt" value="">Nothing</option>
 				<option id="option1b" value="1">1</option>
 				<option id="option1c" value="2">2</option>
+
 				<option id="option1d" value="3">3</option>
 			</select>
 			<select name="select2" id="select2">
@@ -1235,6 +1284,7 @@
 				<option id="option2a" class="emptyopt" value="">Nothing</option>
 				<option id="option2b" value="1">1</option>
 				<option id="option2c" value="2">2</option>
+
 				<option id="option2d" selected="selected" value="3">3</option>
 			</select>
 			<select name="select3" id="select3" multiple="multiple">
@@ -1242,6 +1292,7 @@
 
 				<option id="option3b" selected="selected" value="1">1</option>
 				<option id="option3c" selected="selected" value="2">2</option>
+
 				<option id="option3d" value="3">3</option>
 			</select>
 
@@ -1253,6 +1304,7 @@
 
 			<span id="台北Táiběi"></span>
 			<span id="台北" lang="中文"></span>
+
 			<span id="utf8class1" class="台北Táiběi 台北"></span>
 			<span id="utf8class2" class="台北"></span>
 			<span id="foo:bar" class="foo:bar"></span>
@@ -1262,6 +1314,7 @@
 
 		</form>
 		<b id="floatTest">Float test.</b>
+
 		<iframe id="iframe" name="iframe"></iframe>
 		<form id="lengthtest">
 			<input type="text" id="length" name="test"/>
@@ -1272,6 +1325,7 @@
 
 		<div id="fx-queue">
 			<div id="fadein" class='chain test'>fadeIn<div>fadeIn</div></div>
+
 			<div id="fadeout" class='chain test out'>fadeOut<div>fadeOut</div></div>
 
 			<div id="show" class='chain test'>show<div>show</div></div>
@@ -1279,6 +1333,7 @@
 
 
 			<div id="togglein" class='chain test'>togglein<div>togglein</div></div>
+
 			<div id="toggleout" class='chain test out'>toggleout<div>toggleout</div></div>
 
 
@@ -1306,6 +1361,7 @@ Z</textarea>
 			<input type="radio" name="R1" value="1" />
 			<input type="radio" name="R1" value="2" />
 			<input type="text" name="My Name" value="me" />
+
 			<input type="reset" name="reset" value="NO" />
 
 			<select name="S1">
@@ -1314,6 +1370,7 @@ Z</textarea>
 				<option value="abc">ABC</option>
 			</select>
 			<select name="S2" multiple="multiple" size="3">
+
 				<option value="abc">ABC</option>
 
 				<option value="abc">ABC</option>
@@ -1321,6 +1378,7 @@ Z</textarea>
 			</select>
 			<select name="S3">
 				<option selected="selected">YES</option>
+
 			</select>
 			<select name="S4">
 
@@ -1330,6 +1388,7 @@ Z</textarea>
 			<input type="submit" name="sub2" value="NO" />
 			<input type="image" name="sub3" value="NO" />
 			<button name="sub4" type="submit" value="NO">NO</button>
+
 			<input name="D1" type="text" value="NO" disabled="disabled" />
 			<input type="checkbox" checked="checked" disabled="disabled" name="D2" value="NO" />
 
@@ -1339,6 +1398,7 @@ Z</textarea>
 			</select>
 		</form>
 		<div id="moretests">
+
 			<form>
 				<div id="checkedtest" style="display:none;">
 
@@ -1348,6 +1408,7 @@ Z</textarea>
 					<input type="checkbox" name="checkedtestcheckboxes" />
 				</div>
 			</form>
+
 			<div id="nonnodes"><span>hi</span> there <!-- mon ami --></div>
 
 			<div id="t2037">
@@ -1355,6 +1416,7 @@ Z</textarea>
 			</div>
 		</div>
 	</div>
+
 	</dl>
 
 	<ol id="tests"></ol>
