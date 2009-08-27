@@ -450,7 +450,9 @@
     /** <br> and <p> are acceptable HTML to be left over from block elements */
     var BLOCK_REMOVE_TAGS = [/\s*<br>\s*/i, /\s*<p>\s*/i];
     /** Array used to accumulate test results */
-    var results = [];
+    // Tack on the actual display tests with bogus data
+    // otherwise the beacon will fail.
+    var results = ['apply=0', 'unapply=0', 'change=0', 'query=0'];
 
     /**
      * Finds the text node in the given node containing the given word.
