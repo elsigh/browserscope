@@ -2,7 +2,7 @@
 
 {% block body %}
   <iframe
-    id="{{ app_category }}"
+    id="bs-test-iframe"
     onload="Util.fixIframeLinks('{{ app_category }}');{% if autorun %}runTest();{% endif %}"
     name="{{ app_category }}"
     height="700px"
@@ -12,16 +12,18 @@
 
   <script>
     var runTest = function() {
+      document.getElementById('bs-runtest').disabled = true;
       window.frames.selectors.runAll();
     };
 
-    // This is a callback from the done() function in the static/selectors.html page.
+    // Callback from the done() function in the static/selectors.html
 		var sendBrowserscopeScore = function(score, passed, failed) {
-		  // score is a decimal and we need to send beacon an int.
-		  var testResults = [];
-		  testResults.push('score=' + score.replace('.', ''));
-		  testResults.push('passed=' + passed);
-		  testResults.push('failed=' + failed);
+		  var testResults = [
+		    // score is a decimal and we need to send beacon an int.
+		    'score=' + score.replace('.', ''),
+		    'passed=' + passed,
+		    'failed=' + failed
+		  ];
       SendScore(testResults);
 		}
   </script>
