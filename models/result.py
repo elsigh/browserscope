@@ -26,7 +26,6 @@ from models.user_agent import UserAgent
 
 import settings
 
-
 class ResultTime(db.Model):
   test = db.StringProperty()
   score = db.IntegerProperty()
@@ -79,6 +78,7 @@ class ResultParent(db.Expando):
     Returns:
       A ResultParent instance.
     """
+    logging.debug('ResultParent.AddResult')
     user_agent = UserAgent.factory(user_agent_string)
     parent = cls(category=test_set.category,
                  ip=ip,
@@ -90,8 +90,8 @@ class ResultParent(db.Expando):
     results = test_set.ParseResults(results)
 
     if len(results) != len(test_set.tests):
-      logging.debug('len(results) != len(test_set.tests) for %s.' %
-                    test_set.category)
+      logging.debug('len(results)[%s] != len(test_set.tests)[%s] for %s.' %
+                    (len(results), len(test_set.tests), test_set.category))
       return
 
 
@@ -119,7 +119,7 @@ class ResultParent(db.Expando):
   def invalidate_ua_memcache(self):
     memcache_ua_keys = ['%s_%s' % (self.category, user_agent)
                         for user_agent in self._get_user_agent_list()]
-    #logging.info('invalidate_ua_memcache, memcache_ua_keys: %s' %
+    #logging.debug('invalidate_ua_memcache, memcache_ua_keys: %s' %
     #             memcache_ua_keys)
     memcache.delete_multi(keys=memcache_ua_keys, seconds=0,
                           namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
@@ -128,8 +128,8 @@ class ResultParent(db.Expando):
     """This is not efficient enough to be used in prod."""
     result_times = self.get_result_times_as_query()
     for result_time in result_times:
-      #logging.info('ResultTime key is %s ' % (result_time.key()))
-      #logging.info('w/ ua: %s' %  result_time.parent().user_agent)
+      #logging.debug('ResultTime key is %s ' % (result_time.key()))
+      #logging.debug('w/ ua: %s' %  result_time.parent().user_agent)
       result_time.increment_all_counts()
 
   def get_result_times_as_query(self):
