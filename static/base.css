@@ -65,9 +65,15 @@ p.bs-youcan {
   margin-left: 40px;
 }
 
+#bs-runtest-c {
+  margin-bottom: 0;
+}
 .bs-runtest {
   font-size: 150%;
   font-weight: bold;
+}
+#bs-test-iframe {
+  margin-top: 1em;
 }
 
 a.bs-admin {

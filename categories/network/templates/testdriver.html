@@ -1,20 +1,22 @@
-{% extends "base.html" %}
-{% block title %}Network Tester{% endblock %}
-{% block style %}
-<style>
-{{ today_style|safe }}
-#tests A { border: 1px solid; padding-left: 4px; padding-right: 4px;
-    margin-left: 4px; margin-right: 4px; text-decoration: none;
-    background: #FFF; }
-#tests A:hover { background: #FEE19E; }
-BODY { background: #EEE; }
-#results { margin-left: 20px; margin-top: 10px; background: #FFF; padding: 8px; border: 2px solid #333; display: none; }
-</style>
-{% endblock %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Network Test Driver</title>
 
-{% block body %}
+    <style>
+    {{ today_style|safe }}
+    #tests A { border: 1px solid; padding-left: 4px; padding-right: 4px;
+        margin-left: 4px; margin-right: 4px; text-decoration: none;
+        background: #FFF; }
+    #tests A:hover { background: #FEE19E; }
+    BODY { background: #EEE; }
+    #results { margin-left: 20px; margin-top: 10px; background: #FFF; padding: 8px; border: 2px solid #333; display: none; }
+    </style>
+  </head>
+  <body>
+
 <div class=contents>
-
 <table border=0 cellpadding=0 cellspacing=0>
   <tr>
     <td valign=top>
@@ -34,7 +36,6 @@ BODY { background: #EEE; }
 </table>
 
 <script src="/static/util.js"></script>
-<script src="/static/beacon.js"></script>
 <script>
 var gbStop = false;
 var giLastTest = -1;
@@ -45,6 +46,7 @@ var gsTests = {{% for test in tests %}
     {{ test.key }}: ["{{ test.name }}", "{{ test.score_type }}", gNumTests++, "{{ test.url_name }}"],{% endfor %}
     end: 0
 };
+
 
 
 function doStart() {
@@ -87,6 +89,7 @@ function doNextTest(iTest) {
 				testResults.push(test + '=' + gaResults[test]);
 			}
 		}
+		/*
 		var uriParams = "category=network&results=" + testResults.join(',') +
 			"&csrf_token={{ csrf_token }}";
 		var beacon = new Beacon(uriParams);
@@ -96,13 +99,15 @@ function doNextTest(iTest) {
 			var nextUrl;
 			if (continueUrl != '') {
 				nextUrl = continueUrl + '&' + results;
-			} 
+			}
 			else {
 				nextUrl = '/?' + results;
 			}
 			window.top.location.href = nextUrl;
 		};
 		beacon.send();
+		*/
+		parent.parent.browserscope.sendScore(testResults);
 	}
 }
 
@@ -164,4 +169,7 @@ else if ( Util.getParam("testurl") ) {
 
 </div><!-- contents -->
 
-{% endblock %}
+
+
+  </body>
+</html>

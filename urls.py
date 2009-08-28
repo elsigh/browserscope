@@ -72,6 +72,7 @@ urlpatterns = patterns('',
   # Network Performance main URLs
   (r'^network/?$', 'categories.network.handlers.Test'),
   (r'^network/test$', 'categories.network.handlers.Test'),
+  (r'^network/frameset$', 'categories.network.handlers.Frameset'),
   (r'^network/about$', 'categories.network.handlers.About'),
   (r'^network/testdriver', 'categories.network.handlers.TestDriver'),
   (r'^network/stats_table$', 'categories.network.handlers.StatsTable'),
