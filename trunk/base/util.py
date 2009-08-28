@@ -368,6 +368,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     opt_tests: list of tests.
     use_memcache: Use memcache or not.
   """
+  use_memcache=False
   version_level = request.GET.get('v', 'top')
   user_agent_group_strings = UserAgentGroup.GetStrings(version_level)
 
@@ -419,7 +420,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
         if median == None:
           median = ''
         current_results[test.key]['median'] = median
-        score, display, ua_score = GetScoreAndDisplayValue(test, median, tests)
+        score, display, ua_score = GetScoreAndDisplayValue(test, median)
         current_results[test.key]['score'] = score
         current_results[test.key]['display'] = display
         expando = None
@@ -466,7 +467,7 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
             user_agent, params).GetMedianAndNumScores(num_scores=total_runs)
         if median is None:
           median = ''
-        score, display, ua_score = GetScoreAndDisplayValue(test, median, tests)
+        score, display, ua_score = GetScoreAndDisplayValue(test, median)
         user_agent_score += ua_score
         user_agent_results[test.key] = {
             'median': median,
@@ -487,7 +488,7 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
   return stats
 
 
-def GetScoreAndDisplayValue(test, median, tests):
+def GetScoreAndDisplayValue(test, median):
   # Score for the template classnames is a value of 0-10.
   if test.score_type == 'boolean':
     # Boolean scores are 1 or 10.
@@ -500,7 +501,13 @@ def GetScoreAndDisplayValue(test, median, tests):
   elif test.score_type == 'custom':
     # The custom_tests_function returns a score between 1-100 which we'll
     # turn into a 0-10 display.
-    score, display = test.GetScoreAndDisplayValue(median, tests)
+    score, display = test.GetScoreAndDisplayValue(median)
+    if not score:
+      score = 90
+    if not display:
+      display = ''
+    logging.info('test.url: %s, key: %s, score %s, display %s' %
+                 (test.url, test.key, score, display))
     score = int(round(float('%s.0' % int(score)) / 10))
     #logging.info('got display:%s, score:%s for %s w/ median: %s' %
     #             (display, score, test.key, median))

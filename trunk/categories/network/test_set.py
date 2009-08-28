@@ -57,11 +57,19 @@ class NetworkTest(test_set_base.TestBase):
         min_value=min_value,
         max_value=max_value)
 
-  def GetScoreAndDisplayValue(self, median, tests=None):
-    """Returns a tuple with display text for the cell as well as a 1-100 value.
-    i.e. ('1X', 95)
+  def GetScoreAndDisplayValue(self, median):
+    """Custom scoring function.
+
+    Args:
+      median: The actual median for this test from all scores
+    Returns:
+      (score, display)
+      Where score is a value between 1-100.
+      And display is the text for the cell.
     """
-    #logging.info('CustomTestsFunction w/ %s, %s' % (test, median))
+    #logging.info('Network.GetScoreAndDisplayValue '
+    #             'test: %s, median: %s, tests: %s' % (self.key, median, tests))
+
     score = 0
     if 'hostconn' == self.key:
       if median <= 2:
