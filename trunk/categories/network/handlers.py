@@ -24,7 +24,6 @@ Example beacon request:
 
 __author__ = 'steve@souders.com (Steve Souders)'
 
-import time
 
 from categories import all_test_sets
 from base import decorators
@@ -35,54 +34,58 @@ from django import http
 CATEGORY = 'network'
 
 
-def Render(request, template_file, params):
-  """Render network test pages."""
-
-  params['epoch'] = int(time.time())
-  return util.Render(request, template_file, params, CATEGORY)
-
-
 def About(request):
   """About page."""
   params = {
     'page_title': 'Network Tests - About',
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
-  return Render(request, 'templates/about.html', params)
-
-
-def Test(request):
-  """Network Performance Tests"""
-
-  params = {
-    'page_title': 'Network Performance Tests',
-    'continue': request.GET.get('continue'),
-    'autorun': request.GET.get('autorun'),
-    'testurl': request.GET.get('testurl'),
-  }
-  return Render(request, 'templates/test.html', params)
+  return util.Render(request, 'templates/about.html', params, CATEGORY)
 
 
 @decorators.provide_csrf
+def Test(request):
+  """Network Performance Tests"""
+
+  test_page = ('frameset?autorun=%s&testurl=%s' %
+               (request.GET.get('autorun', '1'),
+                request.GET.get('testurl', '')))
+  params = {
+    'autorun': request.GET.get('autorun', ''),
+    'continue': request.GET.get('continue', ''),
+    'test_page': test_page,
+    'csrf_token': request.session.get('csrf_token'),
+  }
+  return util.Render(request, util.TEST_DRIVER_TPL, params, CATEGORY)
+
+
+def Frameset(request):
+  params = {
+    'page_title': 'Network Performance - Tests',
+    'autorun': request.GET.get('autorun', 1),
+    'testurl': request.GET.get('testurl', ''),
+  }
+  return util.Render(request, 'templates/test.html', params, CATEGORY)
+
+
 def TestDriver(request):
   """Network Performance Test Driver"""
-
+  tests = all_test_sets.GetTestSet(CATEGORY).tests
+  # tests = [tests[0]]
   params = {
     'page_title': 'Performance Test Driver',
-    'csrf_token': request.session.get('csrf_token'),
-    'tests': all_test_sets.GetTestSet(CATEGORY).tests,
-    'continue': request.GET.get('continue'),
+    'tests': tests,
     'autorun': request.GET.get('autorun'),
     'testurl': request.GET.get('testurl'),
   }
-  return Render(request, 'templates/testdriver.html', params)
+  return util.Render(request, 'templates/testdriver.html', params, CATEGORY)
 
 
 def StatsTable(request):
   params = {
     'stats_table': util.GetStats(request, CATEGORY)
   }
-  return Render(request, 'templates/stats_table.html', params)
+  return util.Render(request, 'templates/stats_table.html', params, CATEGORY)
 
 
 def Faq(request):
@@ -91,7 +94,7 @@ def Faq(request):
   params = {
     'page_title': 'Performance FAQ',
   }
-  return Render(request, 'templates/faq.html', params)
+  return util.Render(request, 'templates/faq.html', params, CATEGORY)
 
 
 def CacheExpires(request):
@@ -100,7 +103,8 @@ def CacheExpires(request):
   params = {
     'page_title': 'Performance Cache Expires Test',
   }
-  return Render(request, 'templates/tests/cache-expires.html', params)
+  return util.Render(request, 'templates/tests/cache-expires.html', params,
+                     CATEGORY)
 
 
 def CacheExpires2(request):
@@ -116,7 +120,8 @@ def CacheExpires2(request):
     'page_title': 'Performance Cache Expires Test',
     'prevt': prevt,
   }
-  return Render(request, 'templates/tests/cache-expires2.html', params)
+  return util.Render(request, 'templates/tests/cache-expires2.html', params,
+                     CATEGORY)
 
 
 def CacheRedirects(request):
@@ -125,7 +130,8 @@ def CacheRedirects(request):
   params = {
     'page_title': 'Performance Cache Redirects Test',
   }
-  return Render(request, 'templates/tests/cache-redirects.html', params)
+  return util.Render(request, 'templates/tests/cache-redirects.html', params,
+                     CATEGORY)
 
 
 def CacheRedirects2(request):
@@ -141,7 +147,8 @@ def CacheRedirects2(request):
     'page_title': 'Performance Cache Redirects Test',
     'prevt': prevt,
   }
-  return Render(request, 'templates/tests/cache-redirects2.html', params)
+  return util.Render(request, 'templates/tests/cache-redirects2.html', params,
+                     CATEGORY)
 
 
 def CacheResourceRedirects(request):
@@ -150,7 +157,8 @@ def CacheResourceRedirects(request):
   params = {
     'page_title': 'Performance Cache Resource Redirects Test',
   }
-  return Render(request, 'templates/tests/cache-resource-redirects.html', params)
+  return util.Render(request, 'templates/tests/cache-resource-redirects.html',
+                     params, CATEGORY)
 
 
 def CacheResourceRedirects2(request):
@@ -166,7 +174,8 @@ def CacheResourceRedirects2(request):
     'page_title': 'Performance Cache Resource Redirects Test',
     'prevt': prevt,
   }
-  return Render(request, 'templates/tests/cache-resource-redirects2.html', params)
+  return util.Render(request, 'templates/tests/cache-resource-redirects2.html',
+                     params, CATEGORY)
 
 
 def ConnectionsPerHostname(request):
@@ -180,7 +189,8 @@ def ConnectionsPerHostname(request):
     'sleep': sleep,
     'latency': latency,
   }
-  return Render(request, 'templates/tests/connections-per-hostname.html', params)
+  return util.Render(request, 'templates/tests/connections-per-hostname.html',
+                     params, CATEGORY)
 
 
 def DataUrls(request):
@@ -189,7 +199,8 @@ def DataUrls(request):
   params = {
     'page_title': 'Performance Data URLs Test',
   }
-  return Render(request, 'templates/tests/data-urls.html', params)
+  return util.Render(request, 'templates/tests/data-urls.html', params,
+                     CATEGORY)
 
 
 def Gzip(request):
@@ -201,7 +212,7 @@ def Gzip(request):
   params = {
     'page_title': 'Performance Gzip Test',
   }
-  return Render(request, 'templates/tests/gzip.html', params)
+  return util.Render(request, 'templates/tests/gzip.html', params, CATEGORY)
 
 
 def InlineScriptAfterStylesheet(request):
@@ -210,7 +221,9 @@ def InlineScriptAfterStylesheet(request):
   params = {
     'page_title': 'Performance Inline Script After Stylesheet Test',
   }
-  return Render(request, 'templates/tests/inline-script-after-stylesheet.html', params)
+  return util.Render(request,
+                     'templates/tests/inline-script-after-stylesheet.html',
+                     params, CATEGORY)
 
 
 def Latency(request):
@@ -219,7 +232,7 @@ def Latency(request):
   params = {
     'page_title': 'Performance Latency Measurement',
   }
-  return Render(request, 'templates/tests/latency.html', params)
+  return util.Render(request, 'templates/tests/latency.html', params, CATEGORY)
 
 
 def LinkPrefetch(request):
@@ -228,7 +241,8 @@ def LinkPrefetch(request):
   params = {
     'page_title': 'Performance Link Prefetch Test',
   }
-  return Render(request, 'templates/tests/link-prefetch.html', params)
+  return util.Render(request, 'templates/tests/link-prefetch.html', params,
+                     CATEGORY)
 
 
 def LinkPrefetch2(request):
@@ -244,7 +258,8 @@ def LinkPrefetch2(request):
     'page_title': 'Performance Link Prefetch Test',
     'prevt': prevt,
   }
-  return Render(request, 'templates/tests/link-prefetch2.html', params)
+  return util.Render(request, 'templates/tests/link-prefetch2.html', params,
+                     CATEGORY)
 
 
 def MaxConnections(request):
@@ -257,7 +272,8 @@ def MaxConnections(request):
     'page_title': 'Performance Max Connections Test',
     'sleep': sleep
   }
-  return Render(request, 'templates/tests/max-connections.html', params)
+  return util.Render(request, 'templates/tests/max-connections.html', params,
+                     CATEGORY)
 
 
 def ScriptsBlock(request):
@@ -266,7 +282,8 @@ def ScriptsBlock(request):
   params = {
     'page_title': 'Performance Scripts Block Test',
   }
-  return Render(request, 'templates/tests/scripts-block.html', params)
+  return util.Render(request, 'templates/tests/scripts-block.html', params,
+                     CATEGORY)
 
 
 def StylesheetsBlock(request):
@@ -275,7 +292,8 @@ def StylesheetsBlock(request):
   params = {
     'page_title': 'Performance Stylesheets Block Test',
   }
-  return Render(request, 'templates/tests/stylesheets-block.html', params)
+  return util.Render(request, 'templates/tests/stylesheets-block.html', params,
+                     CATEGORY)
 
 
 def Admin(request):
@@ -284,7 +302,7 @@ def Admin(request):
   params = {
     'page_title': 'Performance Admin Tools',
   }
-  return Render(request, 'templates/admin/admin.html', params)
+  return util.Render(request, 'templates/admin/admin.html', params, CATEGORY)
 
 
 def ConfirmUa(request):
@@ -293,7 +311,7 @@ def ConfirmUa(request):
   params = {
     'page_title': 'Performance Confirm User-Agents',
   }
-  return Render(request, 'templates/admin/confirm-ua.html')
+  return util.Render(request, 'templates/admin/confirm-ua.html')
 
 
 def Stats(request):

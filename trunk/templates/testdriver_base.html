@@ -15,32 +15,20 @@
    * @param {Array} testResults test1=result,test2=result, etc..
    */
   browserscope.sendScore = function(testResults) {
-    var uriParams = "category={{ app_category }}&results=" +
+    browserscope.testResults = testResults;
+    browserscope.uriResults = '{{ app_category }}_results=' +
+          escape(testResults.join(','));
+
+    var data = "category={{ app_category }}&results=" +
         testResults.join(',') + "&csrf_token={{ csrf_token }}";
 
-    var results = '{{ app_category }}_results=' + testResults.join(',');
     {% if autorun %}
-      var onComplete = function() {
-        var continueUrl = unescape(Util.getParam('continue'));
-        var nextUrl;
-        if (continueUrl != '') {
-          nextUrl = continueUrl + '&' + results;
-        }
-
-        for (var i = 0, n = browserscope.testCategories.legnth; i < n; i++) {
-          var category = browserscope.testCategories[i];
-          var results = Util.getParam(category + '_results');
-          if (results) {
-            nextUrl = nextUrl + '&' + category + '_results=' + results;
-          }
-        }
-        window.location.href = nextUrl;
-      };
-      goog.net.XhrIo.send('/beacon', onComplete, 'post', uriParams);
+      goog.net.XhrIo.send('/beacon', browserscope.onBeaconCompleteAutorun,
+          'post', data);
     {% else %}
       var sendBeacon = document.getElementById('bs-send-beacon');
       if (sendBeacon.checked) {
-        goog.net.XhrIo.send('/beacon', null, 'post', uriParams);
+        goog.net.XhrIo.send('/beacon', null, 'post', data);
       }
       var seeMyResultsLink = document.getElementById('bs-see-my-results');
       if (!seeMyResultsLink) {
@@ -51,7 +39,7 @@
             'See & compare my results'));
         document.getElementById('bs-runtest-c').appendChild(seeMyResultsLink);
       }
-      seeMyResultsLink.href = '/?' + results;
+      seeMyResultsLink.href = '/?' + browserscope.uriResults;
     {% endif %}
 
     // Update the iframe size if there's one
@@ -59,6 +47,39 @@
     if (doc) {
       var height = Util.getDocumentHeight(doc);
       document.getElementById('bs-test-iframe').style.height = height + 10 + 'px';
+    }
+  };
+
+  browserscope.onBeaconCompleteAutorun = function(e) {
+    var continueToNextTest = '{{ continue }}';
+    var len = browserscope.testCategories.length;
+    var nextUrl;
+    if (continueToNextTest) {
+      var nextTest;
+      for (var i = 0, n = len; i < n; i++) {
+        if (browserscope.testCategories[i] == '{{ app_category }}') {
+          // last test?
+          if (i == len - 1) {
+            nextTest = '/?';
+          } else {
+            nextTest = '/' + browserscope.testCategories[i + 1] +
+                '/test?autorun=1&continue=1';
+          }
+        }
+      }
+      nextUrl = nextTest + '&' + browserscope.uriResults;
+
+      // now add on previous test scores
+      for (var i = 0, n = len; i < n; i++) {
+        var category = browserscope.testCategories[i];
+        var results = Util.getParam(category + '_results');
+        if (results) {
+          nextUrl += '&' + category + '_results=' + results;
+        }
+      }
+      window.top.location.href = nextUrl;
+    } else {
+      //console.log('autorun but no continue');
     }
   };
 
@@ -76,7 +97,7 @@
         id="bs-runtest"
         class="bs-runtest"
         onclick="browserscope.runTest();"
-        >Run {{ app_category_name }} Test</button>
+        >Run the {{ app_category_name }} Tests</button>
       <label for="bs-send-beacon">
         <input id="bs-send-beacon" type="checkbox" checked="checked">
         Share my test results
@@ -93,5 +114,5 @@
     height="700px"
     width="100%"
     frameborder="0"
-    src="/static/clicktorun.html"></iframe>
+    src="{% if autorun %}{{ test_page }}{% else %}/static/clicktorun.html{% endif %}"></iframe>
 {% endblock %}

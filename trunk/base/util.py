@@ -23,6 +23,7 @@ import logging
 import random
 import re
 import sys
+import time
 import urllib2
 
 from google.appengine.api import memcache
@@ -50,11 +51,13 @@ from base import manage_dirty
 
 TEST_DRIVER_TPL = 'testdriver_base.html'
 
+
 #@decorators.trusted_tester_required
 def Render(request, template, params={}, category=None):
   """Wrapper function to render templates with global and category vars."""
 
   params['app_title'] = settings.APP_TITLE
+  params['epoch'] = int(time.time())
   params['app_categories'] = []
   params['is_admin'] = users.is_current_user_admin()
   #http://code.google.com/appengine/docs/python/users/userclass.html#User_user_id
