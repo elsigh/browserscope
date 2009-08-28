@@ -11,7 +11,7 @@
   {% for test in tests %}
     <h3 id="rt-{{ test.key }}">{{ test.name }}</h3>
     <p>
-      {{ test.doc }}
+      {{ test.doc|safe }}
     </p>
   {% endfor %}
 
