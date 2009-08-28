@@ -62,10 +62,15 @@ handlers:
   login: admin
   script: main.py
 
+#TODO(elsigh): tmp fix????
 # Static files in categories.
-- url: /(\w+)/static/(.*)
-  static_files: categories/\1/static/\2
-  upload: /.*
+#- url: /(.+)/static/(.*)
+#  static_files: categories/\1/static/\2
+#  upload: /categories/static
+- url: /richtext/static
+  static_dir: categories/richtext/static
+- url: /selectors/static
+  static_dir: categories/selectors/static
 
 
 - url: /favicon.ico

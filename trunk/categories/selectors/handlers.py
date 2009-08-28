@@ -46,7 +46,7 @@ def Test(request):
     'continue': request.GET.get('continue'),
     'autorun': request.GET.get('autorun'),
     'csrf_token': request.session.get('csrf_token'),
-    'test_page': 'static/selectors.html'
+    'test_page': '/selectors/static/selectors.html'
   }
   return util.Render(request, util.TEST_DRIVER_TPL, params, CATEGORY)
 
