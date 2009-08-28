@@ -18,6 +18,7 @@
 
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
+import logging
 
 from categories import test_set_base
 
@@ -28,7 +29,8 @@ _CATEGORY = 'richtext'
 class RichtextTest(test_set_base.TestBase):
   TESTS_URL_PATH = '/%s/test' % _CATEGORY
 
-  def __init__(self, key, name, doc, is_hidden_stat=True, category=None):
+  def __init__(self, key, name, doc, is_hidden_stat=True, category=None,
+               score_type='boolean'):
     """Initialze a test.
 
     Args:
@@ -40,6 +42,7 @@ class RichtextTest(test_set_base.TestBase):
       value_range: (min_value, max_value) as integer values
       is_hidden_stat: whether or not the test shown in the stats table
       category: the category(aka non-hidden test) this test belongs to.
+      score_type: string, boolean or custom.
     """
     self.is_hidden_stat = is_hidden_stat
     test_set_base.TestBase.__init__(
@@ -47,7 +50,7 @@ class RichtextTest(test_set_base.TestBase):
         key=key,
         name=name,
         url=self.TESTS_URL_PATH,
-        score_type='boolean',
+        score_type=score_type,
         doc=doc,
         min_value=0,
         max_value=1)
@@ -56,21 +59,32 @@ class RichtextTest(test_set_base.TestBase):
     if category:
       self.category = category
 
-  def GetScoreAndDisplayValue(self, median, tests=None):
-    """Returns a tuple with display text for the cell as well as a 1-100 value.
-    """
-    if score == None or score == '':
-      return 0, ''
+  def GetScoreAndDisplayValue(self, median):
+    """Custom scoring function.
 
-    display = score
+    Args:
+      median: The actual median for this test from all scores
+    Returns:
+      (score, display)
+      Where score is a value between 1-100.
+      And display is the text for the cell.
+    """
+    logging.info('RichTextTest.GetScoreAndDisplayValue '
+                 'test: %s, median: %s' % (self.key, median))
+    score = median
+    display = median
     return score, display
 
 _TESTS = (
   # key, name, doc
-  RichtextTest('apply', 'Apply Formatting', '''About this test...''', False),
-  RichtextTest('unapply', 'Un-Apply Formatting', '''About this test...''', False),
-  RichtextTest('change', 'Change Existing Formatting', '''About this test...''', False),
-  RichtextTest('query', 'Query State and Value', '''About this test...''', False),
+  RichtextTest('apply', 'Apply Formatting', '''About this test...''',
+               is_hidden_stat=False, score_type='custom'),
+  RichtextTest('unapply', 'Un-Apply Formatting', '''About this test...''',
+               is_hidden_stat=False, score_type='custom'),
+  RichtextTest('change', 'Change Existing Formatting', '''About this test...''',
+               is_hidden_stat=False, score_type='custom'),
+  RichtextTest('query', 'Query State and Value', '''About this test...''',
+               is_hidden_stat=False, score_type='custom'),
   # Individual tests
   RichtextTest('a-backcolor-0', 'backcolor execCommand on plaintext', None, category='apply'),
   RichtextTest('a-bold-0', 'bold execCommand on plaintext', None, category='apply'),
