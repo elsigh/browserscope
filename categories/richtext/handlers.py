@@ -55,7 +55,7 @@ def Test(request):
     'continue': request.GET.get('continue'),
     'autorun': request.GET.get('autorun'),
     'csrf_token': request.session.get('csrf_token'),
-    'test_page': 'static/richtext.html'
+    'test_page': '/richtext/static/richtext.html'
   }
   return util.Render(request, util.TEST_DRIVER_TPL, params, CATEGORY)
 
