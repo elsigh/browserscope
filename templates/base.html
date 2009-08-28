@@ -31,10 +31,10 @@
         {% for tuple in app_categories %}
           <li>
             <a target="_top"
-               href="/{{ tuple|by_key:0 }}/">{{ tuple|by_key:1 }}</a>
+               href="/{{ tuple|by_key:0 }}/test">{{ tuple|by_key:1 }}</a>
             <ul class="bs-compact">
               <li>
-                <a target="_top" href="/{{ tuple|by_key:0 }}/test">Test</a>
+                <a target="_top" href="/{{ tuple|by_key:0 }}/about">About</a>
               </li>
             </ul>
         {% endfor %}
