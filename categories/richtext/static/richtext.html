@@ -537,6 +537,7 @@
 
     /**
      * Outputs the result of the apply command to a table.
+     * @return {boolean} success
      */
     function outputApplyResult(command, result) {
       // The apply command "succeeded" if HTML was generated.
@@ -567,6 +568,7 @@
       tr.appendChild(td);
       var table = document.getElementById('apply_output');
       table.appendChild(tr);
+      return success;
     }
 
     /**
@@ -614,6 +616,7 @@
 
     /**
      * Outputs the result of the unapply command to a table.
+     * @return {boolean} success
      */
     function outputUnapplyResult(command, result, index) {
       // The apply command "succeeded" if HTML was removed.
@@ -654,10 +657,11 @@
       tr.appendChild(td);
       var table = document.getElementById('unapply_output');
       table.appendChild(tr);
+      return success;
     }
 
     /**
-     * Does a queryCommandState or queryCommandValue test for an execCommand
+     * Does a queryCommandState or queryCommandValue test for an execCommand.
      */
     function doQueryTest(command, index) {
       editorDoc.body.innerHTML = QUERY_TESTS[command].tests[index].html;
@@ -695,6 +699,9 @@
       }
     }
 
+    /**
+     * @return {boolean} success
+     */
     function outputQueryResult(command, index, result) {
       // Create table row for results.
       var tr = document.createElement('TR');
@@ -733,6 +740,7 @@
       var table = document.getElementById(
       QUERY_TESTS[command].type == 'state' ? 'querystate_output' : 'queryvalue_output');
       table.appendChild(tr);
+      return success;
     }
 
     function doChangeTest(command, index) {
@@ -838,6 +846,9 @@
       return foundExpected;
     }
 
+    /**
+     * @return {boolean} success
+     */
     function outputChangeResult(command, index) {
       // Each command is displayed as a table row with 4 columns
       var tr = document.createElement('TR');
@@ -872,6 +883,7 @@
 
       var table = document.getElementById('change_output');
       table.appendChild(tr);
+      return success;
     }
 
     function runTests() {
@@ -884,16 +896,28 @@
       }
 
       // Apply tests
+      var apply_score = 0;
+      var apply_count = 0;
+      var unapply_score= 0;
+      var unapply_count = 0;
+      var change_score = 0;
+      var change_count = 0;
+      var query_score = 0;
+      var query_count = 0;
       for (var command in APPLY_TESTS) {
         var result = doApplyTest(command);
-        outputApplyResult(command, result);
+        var success = outputApplyResult(command, result);
+        apply_score += success ? 1 : 0;
+        apply_count++;
       }
 
       // Unapply tests
       for (var command in UNAPPLY_TESTS) {
         for (var i = 0; i < UNAPPLY_TESTS[command].tags.length; i++) {
           var result = doUnapplyTest(command, i);
-          outputUnapplyResult(command, result, i);
+          var success = outputUnapplyResult(command, result, i);
+          unapply_score += success ? 1 : 0;
+          unapply_count++;
         }
       }
 
@@ -901,7 +925,9 @@
       for (var command in QUERY_TESTS) {
         for (var i = 0; i < QUERY_TESTS[command].tests.length; i++) {
           var result = doQueryTest(command, i);
-          outputQueryResult(command, i, result);
+          var success = outputQueryResult(command, i, result);
+          query_score += success ? 1 : 0;
+          query_count++;
         }
       }
 
@@ -909,12 +935,29 @@
       for (var command in CHANGE_TESTS) {
         for (var i = 0; i < CHANGE_TESTS[command].tests.length; i++) {
           doChangeTest(command, i);
-          outputChangeResult(command, i);
+          var success = outputChangeResult(command, i);
+          change_score += success ? 1 : 0;
+          change_count++;
         }
       }
 
       // Beacon all test results.
-      parent.browserscope.sendScore(results);
+      // and construct a shorter version for the results page.
+      document.getElementById('apply-score').innerHTML =
+          apply_score + '/' + apply_count;
+      document.getElementById('unapply-score').innerHTML =
+          unapply_score + '/' + unapply_count;
+      document.getElementById('query-score').innerHTML =
+          query_score + '/' + query_count;
+      document.getElementById('change-score').innerHTML =
+          change_score + '/' + change_count;
+      var continueParams = [
+        'apply=' + apply_score,
+        'unapply=' + unapply_score,
+        'query=' + query_score,
+        'change=' + change_score
+      ];
+      parent.browserscope.sendScore(results, continueParams);
     }
   </script>
   <style>
@@ -924,19 +967,30 @@
     .fail {
       background-color: #ea9999;
     }
+    .score {
+      color: #666;
+    }
   </style>
 </head>
 <body onload="runTests()">
-  <h1>Apply execCommand</h1>
-  <table><tbody id="apply_output"><tr><th>Command</th><th>Status</th><th>Output</th></tr></tbody></table>
-  <h1>Unapply execCommand</h1>
-  <table><tbody id="unapply_output"><tr><th>Command</th><th>Command unapplied</th><th>Status</th><th>HTML Attempted to Unapply</th><th>Resulting HTML</th></tr></tbody></table>
-  <h1>queryCommandState</h1>
-  <table><tbody id="querystate_output"><tr><th>Command</th><th>Status</th><th>HTML</th><th>Expected</th><th>Actual</th></tr></tbody></table>
+  <h1>Apply execCommand <span id="apply-score" class="score"></span></h1>
+  <table id="apply"><tbody id="apply_output"><tr><th>Command</th><th>Status</th><th>Output</th></tr></tbody></table>
+  <h1>Unapply execCommand <span id="unapply-score" class="score"></span></h1>
+  <table id="unapply">
+    <thead><tr><th>Command</th><th>Command unapplied</th><th>Status</th><th>HTML Attempted to Unapply</th><th>Resulting HTML</th></tr></thead>
+    <tbody id="unapply_output"></tbody></table>
+  <h1>queryCommandState <span id="query-score" class="score"></span></h1>
+  <table id="querystate">
+    <thead><tr><th>Command</th><th>Status</th><th>HTML</th><th>Expected</th><th>Actual</th></tr></thead>
+    <tbody id="querystate_output"></tbody></table>
   <h1>queryCommandValue</h1>
-  <table><tbody id="queryvalue_output"><tr><th>Command</th><th>Status</th><th>HTML</th><th>Expected</th><th>Actual</th></tr></tbody></table>
-  <h1>Change formatting execCommand</h1>
-  <table><tbody id="change_output"><tr><th>Command</th><th>Status</th><th>Argument</th><th>Original HTML</th><th>Resulting HTML</th></tr></tbody></table>
+  <table id="queryvalue">
+    <thead><tr><th>Command</th><th>Status</th><th>HTML</th><th>Expected</th><th>Actual</th></tr></thead>
+    <tbody id="queryvalue_output"></tbody></table>
+  <h1>Change formatting execCommand <span id="change-score" class="score"></span></h1>
+  <table id="change">
+    <thead><tr><th>Command</th><th>Status</th><th>Argument</th><th>Original HTML</th><th>Resulting HTML</th></tr></thead>
+    <tbody id="change_output"></tbody></table>
   <iframe name="editor" id="editor" src="editable.html"></iframe>
 </body>
 </html>

@@ -231,41 +231,48 @@ def CheckThrottleIpAddress(ip):
 @decorators.admin_required
 def ClearMemcache(request):
   message = []
-
   continue_url = request.GET.get('continue')
 
-  recent = request.GET.get('recent')
-  if recent:
-    memcache.delete(key=RECENT_TESTS_MEMCACHE_KEY, seconds=0)
-    message.append('Cleared memcache for recent tests')
+  # KABOOM
+  if request.GET.get('all'):
+    memcache.flush_all()
+    message.append('Cleared memcache for all keys.')
 
-  category = request.GET.get('category')
-  if category:
-    categories = category.split(',')
+  # Piecemeal cleanups
   else:
-    categories = settings.CATEGORIES
+    recent = request.GET.get('recent')
+    if recent:
+      memcache.delete(key=RECENT_TESTS_MEMCACHE_KEY, seconds=0)
+      message.append('Cleared memcache for recent tests.')
 
-  ua = request.GET.get('ua')
-  version_level = request.GET.get('v')
-  if ua:
-    user_agent_strings = ua.split(',')
-  elif version_level:
-    user_agent_strings = UserAgentGroup.GetStrings(version_level)
-  else:
-    return http.HttpResponse('Either pass in ua= or v=')
+    category = request.GET.get('category')
+    if category:
+      categories = category.split(',')
+    else:
+      categories = settings.CATEGORIES
 
-  logging.info('categories are: %s' % categories)
-  logging.info('user_agent_strings are: %s' % user_agent_strings)
-  for category in categories:
-    for user_agent in user_agent_strings:
-      memcache_ua_key = '%s_%s' % (category, user_agent)
-      memcache.delete(key=memcache_ua_key, seconds=0,
-                      namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
-      logging.info('Deleting %s in memcache' % memcache_ua_key)
+    ua = request.GET.get('ua')
+    version_level = request.GET.get('v')
+    if ua:
+      user_agent_strings = ua.split(',')
+    elif version_level:
+      user_agent_strings = UserAgentGroup.GetStrings(version_level)
+    else:
+      return http.HttpResponse('Either pass in ua= or v=')
 
-  message.append('Cleared memcache for categories: %s and '
-                 'user_agent_strings: %s' % (categories, user_agent_strings))
+    logging.info('categories are: %s' % categories)
+    logging.info('user_agent_strings are: %s' % user_agent_strings)
+    for category in categories:
+      for user_agent in user_agent_strings:
+        memcache_ua_key = '%s_%s' % (category, user_agent)
+        memcache.delete(key=memcache_ua_key, seconds=0,
+                        namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
+        logging.info('Deleting %s in memcache' % memcache_ua_key)
 
+    message.append('Cleared memcache for categories: %s and '
+                   'user_agent_strings: %s' % (categories, user_agent_strings))
+
+  # All done.
   if continue_url:
     if not re.search('\?', continue_url):
       continue_url += '?'
@@ -368,7 +375,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     opt_tests: list of tests.
     use_memcache: Use memcache or not.
   """
-  use_memcache=False
+  #logging.info('GetStats for %s' % test_set.category)
   version_level = request.GET.get('v', 'top')
   user_agent_group_strings = UserAgentGroup.GetStrings(version_level)
 
@@ -420,7 +427,10 @@ def GetStats(request, test_set, output='html', opt_tests=None,
         if median == None:
           median = ''
         current_results[test.key]['median'] = median
-        score, display, ua_score = GetScoreAndDisplayValue(test, median)
+        score, display, ua_score = GetScoreAndDisplayValue(test, median,
+                                                           current_ua_string,
+                                                           params=test_set.default_params,
+                                                           is_uri_result=True)
         current_results[test.key]['score'] = score
         current_results[test.key]['display'] = display
         expando = None
@@ -451,6 +461,9 @@ def GetStats(request, test_set, output='html', opt_tests=None,
 
 def GetStatsData(category, tests, user_agents, params, use_memcache=True,
                  version_level='top'):
+  """This is the meat and potatoes of the stats."""
+  #use_memcache=False
+  #logging.info('GetStatsData for %s\n %s\n %s\n %s' % (category, tests, user_agents, params))
   stats = {}
   for user_agent in user_agents:
     user_agent_stats = None
@@ -465,9 +478,12 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
       for test in tests:
         median, total_runs = test.GetRanker(
             user_agent, params).GetMedianAndNumScores(num_scores=total_runs)
+        #logging.info('user_agent: %s, total_runs: %s' % (user_agent, total_runs))
         if median is None:
           median = ''
-        score, display, ua_score = GetScoreAndDisplayValue(test, median)
+        score, display, ua_score = GetScoreAndDisplayValue(test, median,
+                                                           user_agent, params,
+                                                           is_uri_result=False)
         user_agent_score += ua_score
         user_agent_results[test.key] = {
             'median': median,
@@ -488,7 +504,8 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
   return stats
 
 
-def GetScoreAndDisplayValue(test, median):
+def GetScoreAndDisplayValue(test, median, user_agent,
+                            params, is_uri_result=False):
   # Score for the template classnames is a value of 0-10.
   if test.score_type == 'boolean':
     # Boolean scores are 1 or 10.
@@ -501,13 +518,14 @@ def GetScoreAndDisplayValue(test, median):
   elif test.score_type == 'custom':
     # The custom_tests_function returns a score between 1-100 which we'll
     # turn into a 0-10 display.
-    score, display = test.GetScoreAndDisplayValue(median)
+    score, display = test.GetScoreAndDisplayValue(median, user_agent, params,
+                                                  is_uri_result)
     if not score:
       score = 90
     if not display:
       display = ''
-    logging.info('test.url: %s, key: %s, score %s, display %s' %
-                 (test.url, test.key, score, display))
+    #logging.info('test.url: %s, key: %s, score %s, display %s' %
+    #             (test.url, test.key, score, display))
     score = int(round(float('%s.0' % int(score)) / 10))
     #logging.info('got display:%s, score:%s for %s w/ median: %s' %
     #             (display, score, test.key, median))

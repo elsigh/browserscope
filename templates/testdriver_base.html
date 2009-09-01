@@ -13,20 +13,25 @@
   /**
    * This is the function that all test pages will call to beacon.
    * @param {Array} testResults test1=result,test2=result, etc..
+   * @param {Array} opt_urlParams Possibly a subset of testResults for sending to the results page.
    */
-  browserscope.sendScore = function(testResults) {
+  browserscope.sendScore = function(testResults, opt_continueParams) {
+    var continueParams = opt_continueParams || null;
     browserscope.testResults = testResults;
     browserscope.uriResults = '{{ app_category }}_results=' +
-          escape(testResults.join(','));
+        (continueParams ?
+            escape(continueParams.join(',')) :
+            escape(testResults.join(',')));
 
     var data = "category={{ app_category }}&results=" +
         testResults.join(',') + "&csrf_token={{ csrf_token }}";
+
+    var sendBeacon = document.getElementById('bs-send-beacon');
 
     {% if autorun %}
       goog.net.XhrIo.send('/beacon', browserscope.onBeaconCompleteAutorun,
           'post', data);
     {% else %}
-      var sendBeacon = document.getElementById('bs-send-beacon');
       if (sendBeacon.checked) {
         goog.net.XhrIo.send('/beacon', null, 'post', data);
       }
@@ -54,7 +59,8 @@
     var continueToNextTest = '{{ continue }}';
     var len = browserscope.testCategories.length;
     var nextUrl;
-    if (continueToNextTest) {
+    if (continueToNextTest != '' &&
+        continueToNextTest != 'None') {
       var nextTest;
       for (var i = 0, n = len; i < n; i++) {
         if (browserscope.testCategories[i] == '{{ app_category }}') {

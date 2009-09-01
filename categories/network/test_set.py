@@ -57,11 +57,12 @@ class NetworkTest(test_set_base.TestBase):
         min_value=min_value,
         max_value=max_value)
 
-  def GetScoreAndDisplayValue(self, median):
+  def GetScoreAndDisplayValue(self, median, user_agent, params=None,
+                              is_uri_result=False):
     """Custom scoring function.
 
     Args:
-      median: The actual median for this test from all scores
+      median: The actual median for this test from all scores.
     Returns:
       (score, display)
       Where score is a value between 1-100.

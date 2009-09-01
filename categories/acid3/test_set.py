@@ -48,7 +48,8 @@ class Acid3Test(test_set_base.TestBase):
         min_value=0,
         max_value=100)
 
-  def GetScoreAndDisplayValue(self, median):
+  def GetScoreAndDisplayValue(self, median, user_agent, params=None,
+                              is_uri_result=False):
     """Returns a tuple with display text for the cell as well as a 1-100 value.
     """
     if median == None or median == '':
