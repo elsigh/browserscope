@@ -45,6 +45,8 @@ class RichtextTest(test_set_base.TestBase):
       score_type: string, boolean or custom.
     """
     self.is_hidden_stat = is_hidden_stat
+    # This way we can assign tests to a test group, i.e. apply, unapply, etc..
+    self.category = category
     test_set_base.TestBase.__init__(
         self,
         key=key,
@@ -55,11 +57,9 @@ class RichtextTest(test_set_base.TestBase):
         min_value=0,
         max_value=1)
 
-    # This way we can assign tests to a test group, i.e. apply, unapply, etc..
-    if category:
-      self.category = category
 
-  def GetScoreAndDisplayValue(self, median):
+  def GetScoreAndDisplayValue(self, median, user_agent, params=None,
+                              is_uri_result=False):
     """Custom scoring function.
 
     Args:
@@ -69,11 +69,32 @@ class RichtextTest(test_set_base.TestBase):
       Where score is a value between 1-100.
       And display is the text for the cell.
     """
-    logging.info('RichTextTest.GetScoreAndDisplayValue '
-                 'test: %s, median: %s' % (self.key, median))
-    score = median
-    display = median
+    #logging.info('RichTextTest.GetScoreAndDisplayValue '
+    #             'test: %s, median: %s' % (self.key, median))
+
+    tests_in_category = self.GetTestsByCategory(self.key)
+    if is_uri_result:
+      display_score = int(median)
+    else:
+      display_score = 0
+      for test in tests_in_category:
+        test_median = test.GetRanker(user_agent, params).GetMedian()
+        if test_median is None:
+          test_median = 0
+        #logging.info('test_median: %s' % test_median)
+        display_score += test_median
+
+    num_tests = len(tests_in_category)
+    score = int(display_score / num_tests)
+    display = '%s/%s' % (display_score, num_tests)
     return score, display
+
+  def GetTestsByCategory(self, category):
+    tests = []
+    for test in _TESTS:
+      if test.category == category:
+        tests.append(test)
+    return tests
 
 _TESTS = (
   # key, name, doc

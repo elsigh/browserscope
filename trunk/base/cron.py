@@ -30,6 +30,7 @@ from models.result import ResultParent
 from models.user_agent import UserAgent
 
 import util
+import settings
 
 
 def UserAgentGroup(request):
@@ -49,5 +50,5 @@ def UpdateRecentTests(request):
   query.order('-created')
   recent_tests = query.fetch(10, 0)
   memcache.set(key=util.RECENT_TESTS_MEMCACHE_KEY, value=recent_tests,
-               time=util.STATS_MEMCACHE_TIMEOUT)
+               time=settings.STATS_MEMCACHE_TIMEOUT)
   return http.HttpResponse('Done')

@@ -46,7 +46,8 @@ class MockTest(test_set_base.TestBase):
         min_value=0,
         max_value=10000)
 
-  def GetScoreAndDisplayValue(self, median):
+  def GetScoreAndDisplayValue(self, median, user_agent=None, params=None,
+                              is_uri_result=False):
     if self.key == 'testDisplay':
       return 86, '%iX' % int((median or 0)/100)
     else:

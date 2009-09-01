@@ -19,10 +19,9 @@
 
     {% for app_category in app_categories %}
       <dt>
-        <a class="bs-btn" href="/{{ app_category|by_key:0 }}/test?autorun=1">{{ app_category|by_key:1 }} Tests</a>
+        <a class="bs-btn" href="/{{ app_category|by_key:0 }}/test">Go to the {{ app_category|by_key:1 }} Tests</a>
       </dt>
       <dd>
-        Run the tests in the <a href="/{{ app_category|by_key:0 }}/">{{ app_category|by_key:1 }}</a> category.
       </dd>
     {% endfor %}
   </dl>
