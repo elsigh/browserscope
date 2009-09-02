@@ -2,6 +2,8 @@
 
 {% block body %}
 
+<img src="/static/img/stethoscope.png" height="256" width="256" align="right" vspace="10" hspace="20" alt="">
+
 <div id="bs-faq">
   <h1>{{ app_title }} FAQ</h1>
 
@@ -14,6 +16,9 @@
     </li>
     <li>
       <a href="#data">Where does the data come from and live?</a>
+    </li>
+    <li>
+      <a href="#bias">Have you considered selection bias in the results?</a>
     </li>
     <li>
       <a href="#signin">Do I need to sign in to run the tests and send in my scores?</a>
@@ -49,6 +54,19 @@
       The data comes from developers and users like you, running the tests in their browsers.
 At the end of the tests, the results are sent back to the Browserscope database which is hosted on <a href="http://code.google.com/appengine">Google App Engine</a>.
 An MD5-hashed version of the IP address that submitted the test is saved to prevent abuse.
+    </dd>
+
+    <dt id="bias">
+      Have you considered selection bias in the results?
+    </dt>
+    <dd>
+      We've given this a lot of thought actually, but we'd always love to hear your views on how to improve the system in this regard.
+      That said, our thoughts are:
+      <ul>
+        <li>A wide variety of users run the tests, giving greater coverage than would be possible from a typical regression test suite.</li>
+        <li>Tests are run under real world conditions. Results are aggregated across all tests, reducing the impact of bias and outliers.</li>
+        <li>Because testing is in the hands of users, it's always up-to-date. As soon as a new browser or web device comes out, it shows up in {{ app_title }}. Often, it shows up beforehand as part of developer beta testing.</li>
+      </ul>
     </dd>
 
     <dt id="signin">

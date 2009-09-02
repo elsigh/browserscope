@@ -38,13 +38,6 @@
     So far <strong>X</strong> users have run the tests <strong>X</strong> times on <strong>X</strong> unique browsers.
   </p>
 </div>
-<!--
-<ul>
-  <li>A wide variety of users run the tests, giving greater coverage than would be possible from a typical regression test suite.</li>
-  <li>Tests are run under real world conditions. Results are aggregated across all tests, reducing the impact of bias and outliers.</li>
-  <li>Because testing is in the hands of users, it's always up-to-date. As soon as a new browser or web device comes out, it shows up in {{ app_title }}. Often, it shows up beforehand as part of developer beta testing.</li>
-</ul>
--->
 
 <h2 id="bs-results-title">Results</h2>
 <div id="bs-results">
@@ -53,9 +46,12 @@
       {% with app_category|by_key:0 as category %}
         <li id="{{ category }}-results">
           <h3>{{ app_category|by_key:1 }}</h3>
-          <!--<p><a class="bs-btn" href="/{{ category }}/test">Run the {{ app_category|by_key:1 }} Tests</a></p>-->
-          <p>{{ intro_text|by_key:category|safe }}</p>
           {{ stats_tables|by_key:category }}
+
+          <div class="bs-results-links">
+            <a href="/{{ category }}/test">Run the {{ app_category|by_key:1 }} Tests</a>
+            <a href="/{{ category }}/about">Read more about the {{ app_category|by_key:1 }} Tests</a>
+          </div>
         </li>
       {% endwith %}
     {% endfor %}

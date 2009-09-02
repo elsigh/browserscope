@@ -175,7 +175,6 @@ def Home(request):
   intro_text = {}
   for test_set in all_test_sets.GetTestSets():
     stats_tables[test_set.category] = GetStats(request, test_set, output='html')
-    intro_text[test_set.category] = test_set.home_intro
 
   message = request.GET.get('message')
 

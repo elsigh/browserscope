@@ -283,9 +283,4 @@ TEST_SET = test_set_base.TestSet(
     category=_CATEGORY,
     category_name='Rich Text',
     tests=_TESTS,
-    subnav={
-      'Test': '/%s/test' % _CATEGORY,
-      'About': '/%s/about' % _CATEGORY
-    },
-    home_intro='These are the Rich Text tests...'
 )

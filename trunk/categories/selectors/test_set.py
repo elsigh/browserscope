@@ -71,10 +71,5 @@ _TESTS = (
 TEST_SET = test_set_base.TestSet(
     category=_CATEGORY,
     category_name='Selectors API',
-    subnav={
-      'Test': '/%s/test' % _CATEGORY,
-      'About': '/%s/about' % _CATEGORY,
-    },
-    home_intro = '''<a href="/selectors/about">Read more</a> about the Selectors API test. These tests were written by John Resig and originally published at <a target="_blank" href="http://ejohn.org/apps/selectortest">ejohn.org/apps/selectortest</a>''',
     tests=_TESTS
 )

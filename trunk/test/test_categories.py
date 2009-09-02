@@ -56,14 +56,6 @@ class TestCategories(unittest.TestCase):
                      'min_value', 'max_value'):
           self.assert_(hasattr(test, attr))
 
-  def testSubnavHasDict(self):
-    for test_set in all_test_sets.GetTestSets():
-      self.assert_(test_set.subnav.items())
-
-  def testHomeIntroductionDefined(self):
-    for test_set in all_test_sets.GetTestSets():
-      self.assert_(test_set.home_intro)
-
 
 class TestCategoriesHandlers(unittest.TestCase):
 

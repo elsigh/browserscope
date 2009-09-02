@@ -213,11 +213,6 @@ TEST_SET = ReflowTestSet(
   category=_CATEGORY,
   category_name='Reflow',
   tests=_TESTS,
-  subnav={
-    'Test': '/%s/test' % _CATEGORY,
-    'About': '/%s/about' % _CATEGORY
-  },
-  home_intro='''Reflow in a web browser refers to the process whereby the render engine calculates positions and geometries of elements in the document for purpose of drawing, or re-drawing, the visual presentation. Because reflow is a user-blocking operation in the browser, it is useful for developers to understand how to improve reflow times and also to understand the effects of various document properties (DOM nesting, CSS specificity, types of style changes) on reflow. <a href="/reflow/about">Read more about reflow and these tests.</a>''',
   # default_params=[
   # 'nested_anchors', 'num_elements=400', 'num_nest=4',
   # 'css_selector=%23g-content%20*', 'num_css_rules=1000',
