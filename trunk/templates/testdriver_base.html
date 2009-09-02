@@ -39,9 +39,10 @@
       if (!seeMyResultsLink) {
         seeMyResultsLink = document.createElement('a');
         seeMyResultsLink.id = 'bs-see-my-results';
+        seeMyResultsLink.className = 'bs-btn';
         seeMyResultsLink.style.marginLeft = '.5em';
         seeMyResultsLink.appendChild(document.createTextNode(
-            'See & compare my results'));
+            'Compare my results »'));
         document.getElementById('bs-runtest-c').appendChild(seeMyResultsLink);
       }
       seeMyResultsLink.href = '/?' + browserscope.uriResults;
@@ -90,7 +91,8 @@
   };
 
   browserscope.runTest = function() {
-    document.getElementById('bs-runtest').disabled = true;
+    document.getElementById('bs-runtest').style.display = 'none';
+    document.getElementById('bs-send-beacon-label').style.display = 'none';
     document.getElementById('bs-test-iframe').src = '{{ test_page }}';
   };
 </script>
@@ -101,16 +103,13 @@
     <p id="bs-runtest-c">
       <button
         id="bs-runtest"
-        class="bs-runtest"
+        class="bs-btn"
         onclick="browserscope.runTest();"
         >Run the {{ app_category_name }} Tests</button>
-      <label for="bs-send-beacon">
+      <label id="bs-send-beacon-label" for="bs-send-beacon">
         <input id="bs-send-beacon" type="checkbox" checked="checked">
         Share my test results
       </label>
-      <script>
-        document.getElementById('bs-runtest').disabled = false;
-      </script>
     </p>
   {% endif %}
 

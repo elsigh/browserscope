@@ -10,6 +10,7 @@
     {% endif %}
     {{ app_title }}
   </title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
   <link
     rel="stylesheet"
     href="{{ "base.css"|resource_path }}"
@@ -19,24 +20,19 @@
 </head>
 
 <body>
-
-  <div id="bs-nav" class="g-section g-tpl-50-50">
+  <h1 id="bs-logo" class="bs-ir">
+    <a target="_top" href="/"><span>{{ app_title }}</span></a>
+  </h1>
+  <div id="bs-nav" class="g-tpl-50-50">
     <div class="g-unit g-first">
       <div class="g-c">
-        <h1>
-          <a target="_top" href="/">{{ app_title }}</a>
-        </h1>
 
         <ul id="bs-nav-cats" class="g-section bs-compact bs-list-horz">
         {% for tuple in app_categories %}
           <li>
             <a target="_top"
                href="/{{ tuple|by_key:0 }}/test">{{ tuple|by_key:1 }}</a>
-            <ul class="bs-compact">
-              <li>
-                <a target="_top" href="/{{ tuple|by_key:0 }}/about">About</a>
-              </li>
-            </ul>
+          </li>
         {% endfor %}
         </ul>
 
@@ -44,17 +40,14 @@
     </div>
     <div class="g-unit">
       <div class="g-c">
-        {% if user %}
-          {{ user.email }} {% if is_admin %}<a href="/admin">admin</a>{% endif %}
-        {% else %}
-          <a target="_top" href="{{ sign_in }}">Sign in</a>
-        {% endif %}
-        |
+
         <a target="_top" href="/faq">FAQ</a>
 
-
         {% if user %}
-          | <a target="_top" href="{{ sign_out }}"> sign out</a>
+          {{ user.email }} {% if is_admin %}<a href="/admin">admin</a>{% endif %}
+          <a target="_top" href="{{ sign_out }}"> sign out</a>
+        {% else %}
+          <a target="_top" href="{{ sign_in }}">Sign in</a>
         {% endif %}
       </div>
     </div>

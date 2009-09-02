@@ -14,8 +14,15 @@
   limitations under the License.
  */
 
+/**
+ * Color Map
+ #4291bf => darkish-blue for buttons and some text.
+ */
+
 body {
   font: 87%/1.4 Arial, sans;
+  padding: 15px;
+  margin: 0;
 }
 
 h3 {
@@ -38,18 +45,39 @@ a:visited {
   padding: 0;
   list-style: none;
 }
+
+.bs-ir span {
+  position: absolute;
+  top: -9999px;
+}
+
 .bs-list-horz li {
   float: left;
 }
 
-.bs-btn {
-  border: 1px solid #999;
-  padding: 2px 4px;
+.bs-btn,
+a.bs-btn {
+  background: #4291bf url(/static/img/gradients.png) 0 -43px repeat-x;
+  border: 0;
+  border-bottom: 1px solid #555;
+  padding: 5px 25px;
   text-decoration: none;
+  color: #fff;
+  font-size: 150%;
+  font-weight: bold;
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  -moz-box-shadow: 0 2px rgba(102, 102, 102, .4);
+  -webkit-box-shadow: 0 2px rgba(102, 102, 102, .4);
 }
 .bs-btn:hover {
-  background: #eee;
+  text-decoration: underline;
+  cursor: pointer;
 }
+.bs-btn-arr {
+  font-size: 80%;
+}
+
 h3 .bs-btn {
   font-size: 80%;
   font-style: normal;
@@ -67,10 +95,6 @@ p.bs-youcan {
 
 #bs-runtest-c {
   margin-bottom: 0;
-}
-.bs-runtest {
-  font-size: 150%;
-  font-weight: bold;
 }
 #bs-test-iframe {
   margin-top: 1em;
@@ -95,76 +119,49 @@ a.bs-admin {
 }
 
 /** TopNav **/
-#bs-nav {
-  background: #eee;
-  border: 1px solid #ddd;
-  -moz-border-radius: 5px;
-  -webkit-border-radius: 5px;
-}
-#bs-nav h1 {
-  font-size: 1em;
+#bs-logo {
   margin: 0;
   float: left;
 }
-#bs-nav h1 a {
-  text-decoration: none;
-  color: #000;
+#bs-logo a {
+  display: block;
+  background: url(/static/img/logo.png) 0 0 no-repeat;
+  width: 232px;
+  height: 39px;
+  margin: 0 20px 0 0;
 }
-#bs-nav h1 a:hover {
-  text-decoration: underline;
+#bs-nav {
+  overflow: hidden;
+  padding: 7px 0;
+  margin: 0 0 30px;
+  background: #e8a63d url(/static/img/gradients.png) 0 0 repeat-x;
+  /*background: #e8a63d;*/
+  -moz-border-radius: 15px;
+  -webkit-border-radius: 15px;
+  -moz-box-shadow: 0 2px rgba(102, 102, 102, .4);
+  -webkit-box-shadow: 0 2px rgba(102, 102, 102, .4);
 }
 #bs-nav .g-c {
   padding: 3px 8px 0;
 }
-
 #bs-nav-cats {
   float: left;
   width: auto;
   margin: 0 0 0 10px;
 }
-#bs-nav-cats a {
-  display: block;
-  line-height: 1;
-  padding: 1px 3px 3px;
-}
-#bs-nav-cats a:hover {
-  background: #ddd;
-}
-
-#bs-nav-cats li ul {
-  position: absolute;
-  padding-top: 2px;
-  display: none;
-  border: 1px solid #ddd;
-  border-top: 0;
-  background: #eee;
-  z-index: 9;
-  width: 5em;
-}
-#bs-nav-cats li:hover ul {
-  display: block;
-}
-#bs-nav-cats li {
+#bs-nav a {
+  color: #eefeee;
+  font-weight: bold;
+  text-decoration: none;
   padding-right: .4em;
   margin-right: .4em;
+}
+#bs-nav a:hover {
+  text-decoration: underline;
 }
 #bs-nav-cats li a {
   width: auto;
   padding: 3px 5px;
-}
-#bs-nav-cats > li a {
-  padding-bottom: 7px;
-}
-
-#bs-nav-cats li li {
-  float: none;
-  border: 0;
-  margin: 0;
-  padding: 0;
-  line-height: 1.4;
-}
-#bs-nav-cats li li a {
-  line-height: 1.4;
 }
 
 /** Footer **/
@@ -239,17 +236,24 @@ a.bs-admin {
 
 
 /** Home Page **/
-
-#bs-home-recent {
+#bs-home-recent-c {
+  border-bottom: 1px solid #666;
   float: right;
-  margin: 15px 40px 5px 5px;
-  border: 1px solid;
+  margin: 0 40px 0 100px;
+}
+#bs-home-recent {
+  border: 10px solid #bebec3;
+  min-height: 200px;
   padding: 8px;
   background: #111;
-  color: #eee;
+  color: #81f446;
   width: 450px;
   padding-top: 0;
   font-family: Courier, mono;
+  -moz-border-radius-topright: 2px;
+  -moz-border-radius-topleft: 2px;
+  -webkit-border-top-right-radius: 2px;
+  -webkit-border-top-left-radius: 2px;
 }
 #bs-home-recent h2 {
   font-size: 1em;
@@ -261,6 +265,24 @@ a.bs-admin {
 }
 #bs-home-recent-tests td {
   padding: 2px;
+}
+#bs-home-intro-c {
+  padding: 0 5px;
+}
+#bs-home-intro {
+  color: #4291bf;
+  font-size: 120%;
+  font-weight: bold;
+  margin: 0;
+  padding-bottom: 5px;
+}
+#bs-home-intro-sub {
+  margin: 0 0 20px;
+  font-weight: bold;
+}
+
+#bs-results-title {
+  border-top: 2px solid #ccc;
 }
 
 #bs-results-cats {

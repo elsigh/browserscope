@@ -2,41 +2,42 @@
 
 {% block body %}
 
-{% if recent_tests %}
-  <div id="bs-home-recent">
-    <h3>
-      recent tests:
-      {% if is_admin %}
-        <a href="/clear_memcache?recent=1&continue=/" class="bs-admin">clear memcache</a>
-      {% endif %}
-    </h3>
-    <table id="bs-home-recent-tests" cellpadding="0" cellspacing="0">
-      {% for test in recent_tests %}
-        <tr>
-          <td>{{ test.created|utc_to_pst|date:"P" }} PST</td>
-          <td>{{ test.created|utc_to_pst|date:"N j" }}</td>
-          <td>{{ test.category }}</td>
-          <td>{{ test.user_agent_pretty }}</td>
-        </tr>
-      {% endfor %}
-    </table>
+<div id="bs-home-intro-c" class="g-section">
+  <div id="bs-home-recent-c">
+    <div id="bs-home-recent">
+      <h3>
+        Recent tests
+        {% if is_admin %}
+          <a href="/clear_memcache?recent=1&continue=/" class="bs-admin">clear memcache</a>
+        {% endif %}
+      </h3>
+      <table id="bs-home-recent-tests" cellpadding="0" cellspacing="0">
+        {% for test in recent_tests %}
+          <tr>
+            <td>{{ test.created|utc_to_pst|date:"P" }} PST</td>
+            <td>{{ test.created|utc_to_pst|date:"N j" }}</td>
+            <td>{{ test.category }}</td>
+            <td>{{ test.user_agent_pretty }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
   </div>
-{% endif %}
 
-
-<h1>{{ app_title }}</h1>
-<p>
-  {{ app_title }} is a community-driven project for profiling web browsers.
-  The goals are to foster innovation by tracking browser compatibility and performance and to be a resource for web developers.
-  The fact that users contribute their results is the most important feature of {{ app_title }} - it's the key for {{ app_title }}'s longevity, accuracy, and currency.
-</p>
-<h3>What can you do here?</h3>
-<p>
-  <strong><a href="/alltests" class="bs-btn bs-runtest">Run the Tests</a></strong>
-</p>
-<p>
-  So far <strong>X</strong> users have run the tests <strong>X</strong> times on <strong>X</strong> unique browsers.
-</p>
+  <p id="bs-home-intro">
+    {{ app_title }} is a community-driven project for profiling web browsers.
+    The goals are to foster innovation by tracking browser compatibility and performance and to be a resource for web developers.
+  </p>
+  <p id="bs-home-intro-sub">
+    Gathering test results from users "in the wild" is the most important and useful feature of {{ app_title }} - and you can participate!
+  </p>
+  <p>
+    <a href="/alltests" class="bs-btn">Run the Tests »</a>
+  </p>
+  <p>
+    So far <strong>X</strong> users have run the tests <strong>X</strong> times on <strong>X</strong> unique browsers.
+  </p>
+</div>
 <!--
 <ul>
   <li>A wide variety of users run the tests, giving greater coverage than would be possible from a typical regression test suite.</li>
@@ -45,7 +46,7 @@
 </ul>
 -->
 
-<h2>Results</h2>
+<h2 id="bs-results-title">Results</h2>
 <div id="bs-results">
   <ul id="bs-results-bycat" class="bs-compact">
     {% for app_category in app_categories %}
