@@ -93,7 +93,7 @@ def ConstructTestPageParamCombinations(params, url_type):
 def About(request):
   """About page."""
   params = {
-    'page_title': 'Reflow Timer - About',
+    'page_title': 'What are the Reflow Tests?',
     'server': util.GetServer(request),
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }

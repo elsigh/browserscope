@@ -42,9 +42,11 @@ CATEGORY = 'richtext'
 
 def About(request):
   """About page."""
+  tests = [test for test in all_test_sets.GetTestSet(CATEGORY).tests
+           if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat]
   params = {
-    'page_title': 'Rich Text Tests - About',
-    'tests': all_test_sets.GetTestSet(CATEGORY).tests,
+    'page_title': 'What are the Rich Text Tests?',
+    'tests': tests,
   }
   return util.Render(request, 'templates/about.html', params, CATEGORY)
 

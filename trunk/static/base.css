@@ -17,6 +17,7 @@
 /**
  * Color Map
  #4291bf => darkish-blue for buttons and some text.
+ #e8a63d => orange for the nav.
  */
 
 body {
@@ -30,13 +31,13 @@ h3 {
 }
 
 a {
- color:#00c;
+ color: #4291bf;
 }
 a:active {
- color: red;
+ color: #e8a63d;
 }
 a:visited {
- color: #00c;
+ color: #4291bf;
 }
 
 /** General styles **/
@@ -56,7 +57,8 @@ a:visited {
 }
 
 .bs-btn,
-a.bs-btn {
+a.bs-btn,
+.bs-btn-disabled {
   background: #4291bf url(/static/img/gradients.png) 0 -43px repeat-x;
   border: 0;
   border-bottom: 1px solid #555;
@@ -69,6 +71,9 @@ a.bs-btn {
   -webkit-border-radius: 8px;
   -moz-box-shadow: 0 2px rgba(102, 102, 102, .4);
   -webkit-box-shadow: 0 2px rgba(102, 102, 102, .4);
+}
+.bs-btn-disabled {
+  background: #222;
 }
 .bs-btn:hover {
   text-decoration: underline;
@@ -133,7 +138,6 @@ a.bs-admin {
 #bs-nav {
   overflow: hidden;
   padding: 7px 0;
-  margin: 0 0 30px;
   background: #e8a63d url(/static/img/gradients.png) 0 0 repeat-x;
   /*background: #e8a63d;*/
   -moz-border-radius: 15px;
@@ -162,6 +166,13 @@ a.bs-admin {
 #bs-nav-cats li a {
   width: auto;
   padding: 3px 5px;
+}
+.bs-bc {
+  margin-left: 7px;
+}
+
+#bs-body {
+  padding: 30px 0 0;
 }
 
 /** Footer **/
