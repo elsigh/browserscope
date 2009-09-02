@@ -98,14 +98,47 @@ class RichtextTest(test_set_base.TestBase):
 
 _TESTS = (
   # key, name, doc
-  RichtextTest('apply', 'Apply Formatting', '''About this test...''',
-               is_hidden_stat=False, score_type='custom'),
-  RichtextTest('unapply', 'Un-Apply Formatting', '''About this test...''',
-               is_hidden_stat=False, score_type='custom'),
-  RichtextTest('change', 'Change Existing Formatting', '''About this test...''',
-               is_hidden_stat=False, score_type='custom'),
-  RichtextTest('query', 'Query State and Value', '''About this test...''',
-               is_hidden_stat=False, score_type='custom'),
+  RichtextTest('apply', 'Apply Formatting',
+  '''These tests use execCommand to apply formatting to plain text.
+  They simply run the execCommand and check if any HTML is generated around the
+  selected text. They do not make a judgement call as to what the correct HTML
+  should be, only that the given visual style is applied. So &lt;b&gt;,
+  &lt;STRONG&gt;, and &lt;span style="font-weight:bold"&gt; are all considered
+  valid output of the bold execCommand. The reason for this is that these tests
+  are for WYSIWYG editing, not semantic editing. There are many execCommands
+  which are not tested here; only the most commonly used commands for rich
+  text editing are included. The output of the execCommand is shown in the last
+  column of the test output.''',
+  is_hidden_stat=False, score_type='custom'),
+  RichtextTest('unapply', 'Un-Apply Formatting',
+  '''These tests put different combinations of HTML into a contenteditable
+  iframe, and then run an execCommand to attempt to remove the formatting the
+  HTML applies. For example, there are tests to check if
+  bold styling from &lt;b&gt;, &lt;strong&gt;, and &lt;span
+  style="font-weight:normal"&gt; are all removed by the bold execCommand.
+  It is important that browsers can remove all variations of a style, not just
+  the variation the browser applies on its own, because it's quite possible
+  that a web application could allow editing with multiple browsers, or that
+  users could paste content into the contenteditable region.
+  These tests currently only run with styleWithCSS set to false. Any HTML
+  which remains after the execCommand runs is shown in the last column of the
+  test output.''',
+  is_hidden_stat=False, score_type='custom'),
+  RichtextTest('change', 'Change Existing Formatting',
+  '''These tests are similar to the unapply tests, except that they're for
+  execCommands which take an argument (fontname, fontsize, etc.). They apply
+  the execCommand to text which already has some formatting, in order to change
+  it. After the execCommand runs, the tests find the text node which was
+  selected, and climb up its ancestor chain to check that the given formatting
+  is only applied once, and that it's the new format and not the old one. The
+  last column of the test output shows the resulting HTML after applying the
+  execCommand.''',
+  is_hidden_stat=False, score_type='custom'),
+  RichtextTest('query', 'Query State and Value',
+  '''These tests run queryCommandState (for execCommands with no argument)
+  and queryCommandValue (for execCommands with an argument) on HTML with
+  various types of formatting.''',
+  is_hidden_stat=False, score_type='custom'),
   # Individual tests
   RichtextTest('a-backcolor-0', 'backcolor execCommand on plaintext', None, category='apply'),
   RichtextTest('a-bold-0', 'bold execCommand on plaintext', None, category='apply'),
