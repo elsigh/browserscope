@@ -359,10 +359,8 @@ a.bs-admin {
   padding: 3px 10px;
 }
 .rt-stats table {
-  border-width: 0;
   empty-cells: show;
-  border: 1px solid #ccc;
-  border-top-width: 3px;
+  border: 1px solid #ddd;
   background: #fff;
 }
 .rt-stats thead th a {
@@ -376,6 +374,9 @@ a.bs-admin {
   border: 1px solid #ddd;
   border-right-width: 0;
   white-space: nowrap;
+}
+.rt-stats thead th {
+  border-right-width: 0;
 }
 .rt-stats tbody:hover td {
 }
