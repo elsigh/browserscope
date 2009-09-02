@@ -66,8 +66,7 @@ TESTS = (
 class MockTestSet(test_set_base.TestSet):
   def __init__(self, category, params=None):
     test_set_base.TestSet.__init__(
-        self, category, category, TESTS, {'subnav1': '/url1'},
-        "Some Home Intro text", default_params=params)
+        self, category, category, TESTS, default_params=params)
     all_test_sets.AddTestSet(self)
 
 

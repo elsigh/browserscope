@@ -71,10 +71,5 @@ _TESTS = (
 TEST_SET = test_set_base.TestSet(
     category=_CATEGORY,
     category_name='Acid3',
-    subnav={
-      'Test': '/%s/test' % _CATEGORY,
-      'About': '/%s/about' % _CATEGORY,
-    },
-    home_intro = '''The Acid3 test page is written to help browser vendors ensure proper support for web standards in their products. <a href="/acid3/about">Read more</a> about the Acid3 test.''',
     tests=_TESTS
 )

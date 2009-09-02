@@ -168,15 +168,5 @@ _CATEGORY = 'network'
 TEST_SET = test_set_base.TestSet(
     category=_CATEGORY,
     category_name='Network',
-    subnav={
-      'Test': '/%s/test' % _CATEGORY,
-      'About': '/%s/about' % _CATEGORY,
-    },
-    home_intro = '''A significant performance bottleneck for web pages is
-      network performance. It's true that network performance depends in
-      part on the user's connection speed and geographic location. But
-      the browser also plays a significant role. By supporting features
-      such as <code>data:</code> URLs, prefetch links, and parallel script
-      downloading, browsers can make all web pages load faster. <a href="/network/about">Read more about the network tests.</a>''',
     tests=_TESTS
 )

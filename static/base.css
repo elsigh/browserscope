@@ -271,7 +271,6 @@ a.bs-admin {
   margin: 0;
 }
 #bs-home-recent-tests {
-  border: 1px solid white;
   width: 100%;
 }
 #bs-home-recent-tests td {
@@ -332,14 +331,15 @@ a.bs-admin {
   border: 3px solid #ddd;
   -moz-border-radius: 4px;
   -webkit-border-radius: 4px;
-  padding: 5px 10px;
+}
+.bs-results-links a {
+  margin: 0 .5em;
 }
 
 /**
  * Results Table
  */
 .rt-stats {
-  margin-bottom: 2em;
   font-size: 90%;
 }
 .rt-stats .rt-v form {

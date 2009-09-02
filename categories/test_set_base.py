@@ -38,8 +38,7 @@ class TestBase(object):
 
 
 class TestSet(object):
-  def __init__(self, category, category_name, tests, subnav, home_intro,
-               default_params=None):
+  def __init__(self, category, category_name, tests, default_params=None):
     """Initialize a test set.
 
     A test set has all the tests for a category.
@@ -48,14 +47,10 @@ class TestSet(object):
       category: a string
       category_name: a string, human-readable
       tests: a list of test instances
-      subnav: a dict of labels to urls
-      home_intro: a string, possibly HTML, to give an introduction
     """
     self.category = category
     self.category_name = category_name
     self.tests = tests
-    self.subnav = subnav
-    self.home_intro = home_intro
     self.default_params = default_params
     self._test_dict = {}
     for test in tests:
