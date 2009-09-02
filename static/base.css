@@ -236,12 +236,13 @@ a.bs-admin {
   zoom: 1;
 }
 
-.g-tpl-50-50 .g-unit {
-  width: 49.999%;
+.g-tpl-75-25 .g-unit {
+  width: 24.999%;
   float: left;
   text-align: right;
 }
-.g-tpl-50-50 .g-first {
+.g-tpl-75-25 .g-first {
+  width: 74.999%;
   text-align: left;
 }
 
@@ -293,8 +294,21 @@ a.bs-admin {
 
 #bs-results-title {
   border-top: 2px solid #ccc;
+  margin-bottom: 0;
+  padding-top: 5px;
 }
 
+.d-msg {
+  color: #e8a63d;
+  font-weight: bold;
+  padding: 0 20px;
+  margin: 0;
+}
+
+
+#bs-results {
+  margin-top: 1em;
+}
 #bs-results-cats {
   overflow: hidden;
   margin-left: .6em;
@@ -311,7 +325,6 @@ a.bs-admin {
 #bs-results-cats span {
   display: block;
   padding: 4px 15px;
-  color: #00c;
   cursor: pointer;
   text-decoration: underline;
 }
@@ -381,6 +394,9 @@ a.bs-admin {
   margin: 0;
   border: 1px solid #ddd;
 }
+.rt-stats th {
+  background: #fff url(/static/img/gradients.png) 0 -163px repeat-x;
+}
 .rt-stats td.rt-a,
 .rt-stats th.rt-a {
   background-color: #ccc;
@@ -389,6 +405,7 @@ a.bs-admin {
 }
 .rt-stats th.rt-a {
   border-top-color: #ccc;
+  background: #ccc url(/static/img/gradients.png) 0 -88px repeat-x;
 }
 
 .rt-stats tfoot em {
@@ -397,22 +414,23 @@ a.bs-admin {
 
 .rt-ua td,
 .rt-stats .rt-ua td.rt-a {
-  background-color: #eeeeff;
+  border-top-color: #4291bf;
+  border-bottom-color: #4291bf;
 }
 
 .rt-res th,
 .rt-res td,
 .rt-res td.rt-a {
-  background-color: lightgreen;
+  border-top-color: #4291bf;
+  border-top-width: 2px;
+  border-bottom-color: #4291bf;
 }
 
 .rt-stats tbody td {
   padding: .4em .3em .4em 1em;
-  background-image: url(/static/img/table_score_bg.png);
-  background-repeat: no-repeat;
 }
-.rt-stats tbody td.rt-tot {
-  background-image: none;
+.rt-score-0 {
+  background: #eee;
 }
 .rt-score-1,
 .rt-score-2,
@@ -420,17 +438,19 @@ a.bs-admin {
 .rt-score-4,
 .rt-score-5,
 .rt-score-6 {
-  background-position: 0 -90px;
+  background: #f7d7d7;
 }
 .rt-score-7 {
-  background-position: 0 -60px;
+  background: #fffdd9;
 }
 .rt-score-8 {
-  background-position: 0 -30px;
+  background: #dffcd8;
 }
-.rt-score-9,
+.rt-score-9 {
+  background: #c0f9b0;
+}
 .rt-score-10 {
-  background-position: 0 0;
+  background: #a3f687;
 }
 
 /** FAQ **/

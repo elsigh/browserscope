@@ -48,9 +48,17 @@ class Acid3Test(test_set_base.TestBase):
         min_value=0,
         max_value=100)
 
-  def GetScoreAndDisplayValue(self, median, user_agent, params=None,
-                              is_uri_result=False):
-    """Returns a tuple with display text for the cell as well as a 1-100 value.
+  def GetScoreAndDisplayValue(self, median, medians=None, is_uri_result=False):
+    """Custom scoring function.
+
+    Args:
+      median: The actual median for this test from all scores.
+      medians: A dict of the medians for all tests indexed by key.
+      is_uri_result: Boolean, if results are in the url, i.e. home page.
+    Returns:
+      (score, display)
+      Where score is a value between 1-100.
+      And display is the text for the cell.
     """
     if median == None or median == '':
       return 0, ''

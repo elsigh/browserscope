@@ -40,6 +40,9 @@
 </div>
 
 <h2 id="bs-results-title">Results</h2>
+{% if message %}
+  <p class="d-msg">{{ message }}</p>
+{% endif %}
 <div id="bs-results">
   <ul id="bs-results-bycat" class="bs-compact">
     {% for app_category in app_categories %}

@@ -33,7 +33,7 @@
 
         {% if stats|by_key:user_agent|by_key:"current_results" %}
           {% with stats|by_key:user_agent|by_key:"current_results" as results %}
-            <tr class="rt-res">
+            <tr>
               <td colspan="{{ tests|length|add:2 }}" class="rt-tot">Your Results &darr;</td>
             </tr>
             <tr class="rt-res">
