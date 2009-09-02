@@ -19,6 +19,7 @@
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 
+from decimal import Decimal
 import logging
 
 from categories import test_set_base
@@ -51,14 +52,46 @@ class SelectorsTest(test_set_base.TestBase):
         min_value=0,
         max_value=100)
 
-  def GetScoreAndDisplayValue(self, median, user_agent, params=None,
-                              is_uri_result=False):
-    """Returns a tuple with display text for the cell as well as a 1-100 value.
+  def GetScoreAndDisplayValue(self, median, medians=None, is_uri_result=False):
+    """Custom scoring function.
+
+    Args:
+      median: The actual median for this test from all scores.
+      medians: A dict of the medians for all tests indexed by key.
+      is_uri_result: Boolean, if results are in the url, i.e. home page.
+    Returns:
+      (score, display)
+      Where score is a value between 1-100.
+      And display is the text for the cell.
     """
+    score = median
+    display = median
     if self.key == 'score':
-      return (90,'whatever man')
-    else:
-      return (median, median)
+      percent = str(Decimal(str(round(100.0 * medians['passed'] /
+                                    (medians['passed'] + medians['failed']),
+                                    1))))
+      score = int(float(percent))
+      display = percent + '%'
+    elif self.key == 'passed':
+      if median >= 2100:
+        score = 95
+      elif median >= 2000:
+        score = 85
+      elif median >= 1950:
+        score = 75
+      else:
+        score = 65
+    elif self.key == 'failed':
+      if median == 0:
+        score = 95
+      elif median <= 5:
+        score = 85
+      elif median <= 20:
+        score = 75
+      else:
+        score = 55
+
+    return (score, display)
 
 
 _TESTS = (

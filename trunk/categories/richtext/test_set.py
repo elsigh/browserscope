@@ -58,12 +58,13 @@ class RichtextTest(test_set_base.TestBase):
         max_value=1)
 
 
-  def GetScoreAndDisplayValue(self, median, user_agent, params=None,
-                              is_uri_result=False):
+  def GetScoreAndDisplayValue(self, median, medians, is_uri_result=False):
     """Custom scoring function.
 
     Args:
-      median: The actual median for this test from all scores
+      median: The actual median for this test from all scores.
+      medians: A dict of the medians for all tests indexed by key.
+      is_uri_result: Boolean, if results are in the url, i.e. home page.
     Returns:
       (score, display)
       Where score is a value between 1-100.

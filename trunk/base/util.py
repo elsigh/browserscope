@@ -106,7 +106,7 @@ def ParseResultsParamString(results_string):
   results = []
   for x in results_string.split(','):
     key, score = x.split('=')
-    results.append({'key': key, 'score': score})
+    results.append({'key': key, 'score': int(score)})
   return results
 
 
@@ -420,28 +420,28 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       stats[current_ua_string] = {}
     stats[current_ua_string]['current_results'] = {}
     current_ua_score = 0
+    medians = {}
     for test in tests:
       if results_dict.has_key(test.key):
         current_results = stats[current_ua_string]['current_results']
         current_results[test.key] = {}
         median = results_dict[test.key]['score']
-        if median == None:
-          median = ''
+        medians[test.key] = median
+
+    for test in tests:
+      if results_dict.has_key(test.key):
+        median = medians[test.key]
         current_results[test.key]['median'] = median
-        score, display, ua_score = GetScoreAndDisplayValue(test, median,
-                                                           current_ua_string,
-                                                           params=test_set.default_params,
-                                                           is_uri_result=True)
+        score, display = GetScoreAndDisplayValue(test, median, medians,
+                                                 is_uri_result=True)
         current_results[test.key]['score'] = score
         current_results[test.key]['display'] = display
         expando = None
         if results_dict[test.key].has_key('expando'):
           expando = results_dict[test.key]['expando']
         current_results[test.key]['expando'] = expando
-        current_ua_score += ua_score
 
-    stats[current_ua_string]['current_score'] = int(current_ua_score /
-                                                    len(tests))
+    stats[current_ua_string]['current_score'] = 90 #TODO(elsigh)
 
   params = {
     'category': test_set.category,
@@ -473,28 +473,32 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
       user_agent_stats = memcache.get(
           key=memcache_ua_key, namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
     if not user_agent_stats:
+      medians = {}
       total_runs = None
       user_agent_results = {}
       user_agent_score = 0
       for test in tests:
         median, total_runs = test.GetRanker(
             user_agent, params).GetMedianAndNumScores(num_scores=total_runs)
+        medians[test.key] = median
+
+      # Now make a second pass with all the medians and call our formatter.
+      for test in tests:
         #logging.info('user_agent: %s, total_runs: %s' % (user_agent, total_runs))
-        if median is None:
-          median = ''
-        score, display, ua_score = GetScoreAndDisplayValue(test, median,
-                                                           user_agent, params,
-                                                           is_uri_result=False)
-        user_agent_score += ua_score
+        score, display = GetScoreAndDisplayValue(test, medians[test.key],
+                                                 medians,
+                                                 is_uri_result=False)
+
         user_agent_results[test.key] = {
-            'median': median,
+            'median': medians[test.key],
             'score': score,
             'display': display,
             }
+
       user_agent_stats = {
           'total_runs': total_runs,
           'results': user_agent_results,
-          'score': user_agent_score / len(tests)
+          'score': GetRowScore(user_agent_results)
           }
       if use_memcache:
         memcache.set(key=memcache_ua_key, value=user_agent_stats,
@@ -505,10 +509,23 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
   return stats
 
 
-def GetScoreAndDisplayValue(test, median, user_agent,
-                            params, is_uri_result=False):
+def GetRowScore(results):
+  """Get the overall score for this UA row data.
+  TODO(elsigh): Make this work.
+  Args:
+    results: See user_agent_results in GetStatsData.
+  """
+  return 90
+
+
+def GetScoreAndDisplayValue(test, median, medians, is_uri_result=False):
+
+  if median is None:
+    score = 0
+    display = ''
+
   # Score for the template classnames is a value of 0-10.
-  if test.score_type == 'boolean':
+  elif test.score_type == 'boolean':
     # Boolean scores are 1 or 10.
     if median == 0:
       score = 1
@@ -517,26 +534,19 @@ def GetScoreAndDisplayValue(test, median, user_agent,
       score = 10
       display = settings.STATS_SCORE_TRUE
   elif test.score_type == 'custom':
-    # The custom_tests_function returns a score between 1-100 which we'll
-    # turn into a 0-10 display.
-    score, display = test.GetScoreAndDisplayValue(median, user_agent, params,
+    score, display = test.GetScoreAndDisplayValue(median, medians,
                                                   is_uri_result)
-    if not score:
-      score = 90
-    if not display:
-      display = ''
     #logging.info('test.url: %s, key: %s, score %s, display %s' %
     #             (test.url, test.key, score, display))
+
+    # The custom_tests_function returns a score between 1-100 which we'll
+    # turn into a 0-10 display.
     score = int(round(float('%s.0' % int(score)) / 10))
+
     #logging.info('got display:%s, score:%s for %s w/ median: %s' %
     #             (display, score, test.key, median))
 
-  # Normalize very low scores per test for calculating an overall score for
-  # the user agent.
-  ua_score = score
-  if ua_score < 5:
-    ua_score = 5
-  return score, display, ua_score
+  return score, display
 
 
 def GetStatsTableHtml(params):
