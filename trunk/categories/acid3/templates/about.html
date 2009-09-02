@@ -1,14 +1,20 @@
 {% extends "base.html" %}
 
-{% block head %}
-
-{% endblock %}
-
 {% block body %}
 
   <h1>{{ page_title }}</h1>
 
   <a href="/acid3/test" class="bs-btn">Go to the Acid3 Tests</a>
 
+  <h2>What is the Acid3 Test?</h2>
+  <p>
+    Acid3 is a test of dynamic browser capabilities which exists to encourage browser vendors to focus on interoperability. It was originally written by Ian Hickson and published on <a href="http://acid3.acidtests.org/">acid3.acidtests.org</a>
+  </p>
+
+  <h2>From the Web Standards Project website on Acid3:</h2>
+  <iframe
+    src="http://www.webstandards.org/action/acid3"
+    width="80%"
+    height="400"></iframe>
 
 {% endblock %}
