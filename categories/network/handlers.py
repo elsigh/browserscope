@@ -37,7 +37,7 @@ CATEGORY = 'network'
 def About(request):
   """About page."""
   params = {
-    'page_title': 'Network Tests - About',
+    'page_title': 'What are the Network Tests?',
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
   return util.Render(request, 'templates/about.html', params, CATEGORY)

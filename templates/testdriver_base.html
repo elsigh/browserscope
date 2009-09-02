@@ -35,17 +35,9 @@
       if (sendBeacon.checked) {
         goog.net.XhrIo.send('/beacon', null, 'post', data);
       }
-      var seeMyResultsLink = document.getElementById('bs-see-my-results');
-      if (!seeMyResultsLink) {
-        seeMyResultsLink = document.createElement('a');
-        seeMyResultsLink.id = 'bs-see-my-results';
-        seeMyResultsLink.className = 'bs-btn';
-        seeMyResultsLink.style.marginLeft = '.5em';
-        seeMyResultsLink.appendChild(document.createTextNode(
-            'Compare my results »'));
-        document.getElementById('bs-runtest-c').appendChild(seeMyResultsLink);
-      }
-      seeMyResultsLink.href = '/?' + browserscope.uriResults;
+      browserscope.runTestButton.className = 'bs-btn';
+      browserscope.runTestButton.innerHTML = 'Compare my results »';
+      browserscope.runTestButton.href = '/?' + browserscope.uriResults;
     {% endif %}
 
     // Update the iframe size if there's one
@@ -91,9 +83,13 @@
   };
 
   browserscope.runTest = function() {
-    document.getElementById('bs-runtest').style.display = 'none';
+    browserscope.runTestButton = document.getElementById('bs-runtest');
+    browserscope.runTestButton.className = 'bs-btn-disabled';
+    browserscope.runTestButton.onclick = '';
+    browserscope.runTestButton.innerHTML = '{{ app_category_name }} Tests Running...';
     document.getElementById('bs-send-beacon-label').style.display = 'none';
     document.getElementById('bs-test-iframe').src = '{{ test_page }}';
+    return false;
   };
 </script>
 {% endblock %}
@@ -101,11 +97,12 @@
 {% block body %}
   {% if autorun %}{% else %}
     <p id="bs-runtest-c">
-      <button
+      <a
         id="bs-runtest"
+        href=""
         class="bs-btn"
-        onclick="browserscope.runTest();"
-        >Run the {{ app_category_name }} Tests</button>
+        onclick="return browserscope.runTest();"
+        >Run the {{ app_category_name }} Tests</a>
       <label id="bs-send-beacon-label" for="bs-send-beacon">
         <input id="bs-send-beacon" type="checkbox" checked="checked">
         Share my test results

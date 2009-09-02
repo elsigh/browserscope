@@ -58,6 +58,8 @@ def Render(request, template, params={}, category=None):
 
   params['app_title'] = settings.APP_TITLE
   params['epoch'] = int(time.time())
+  params['request_path'] = request.path
+  params['request_path_lastbit'] = re.sub('^.+\/([^\/]+$)', '\\1', request.path)
   params['app_categories'] = []
   params['is_admin'] = users.is_current_user_admin()
   #http://code.google.com/appengine/docs/python/users/userclass.html#User_user_id

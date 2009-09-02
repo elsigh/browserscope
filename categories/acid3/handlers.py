@@ -44,7 +44,7 @@ def Render(request, template_file, params):
 def About(request):
   """About page."""
   params = {
-    'page_title': 'Acid3 Test - About',
+    'page_title': 'What is the Acid3 Test?',
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
   return Render(request, 'templates/about.html', params)

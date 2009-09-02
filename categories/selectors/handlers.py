@@ -32,7 +32,7 @@ CATEGORY = 'selectors'
 def About(request):
   """About page."""
   params = {
-    'page_title': 'Selectors API Test - About',
+    'page_title': 'What are the Selectors API Tests?',
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
   return util.Render(request, 'templates/about.html', params, CATEGORY)

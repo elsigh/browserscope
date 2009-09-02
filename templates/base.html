@@ -41,7 +41,7 @@
     <div class="g-unit">
       <div class="g-c">
 
-        <a target="_top" href="/faq">FAQ</a>
+         <a target="_top" href="/faq">FAQ</a>
 
         {% if user %}
           {{ user.email }} {% if is_admin %}<a href="/admin">admin</a>{% endif %}
@@ -53,7 +53,17 @@
     </div>
   </div>
 
-  {% block body %}{% endblock %}
+
+  <div id="bs-body">
+    {% ifequal request_path_lastbit "about" %}
+      <a href="/{{ app_category }}/test" class="bs-bc">Go to the {{ app_category_name }} Tests</a>
+    {% endifequal %}
+    {% ifequal request_path_lastbit "test" %}
+      <a href="/{{ app_category }}/about" class="bs-bc">Read more about the {{ app_category_name }} Tests</a>
+    {% endifequal %}
+
+    {% block body %}{% endblock %}
+  </div>
 
   <div id="bs-foot">
     <a href="/">Home</a> |

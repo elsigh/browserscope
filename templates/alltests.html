@@ -11,7 +11,7 @@
 
   <dl class="bs-youcan">
     <dt>
-      <a class="bs-btn" href="/{{ app_categories.0.0 }}/test?autorun=1&continue=1">Run all Tests</a>
+      <a class="bs-btn" href="/{{ app_categories.0.0 }}/test?autorun=1&continue=1">Run all Tests »</a>
     </dt>
     <dd>
       Click the link above to run the tests across all categories. This will take longer, but gets everything done with one click.
@@ -19,7 +19,7 @@
 
     {% for app_category in app_categories %}
       <dt>
-        <a class="bs-btn" href="/{{ app_category|by_key:0 }}/test">Go to the {{ app_category|by_key:1 }} Tests</a>
+        <a class="bs-btn" href="/{{ app_category|by_key:0 }}/test">Go to the {{ app_category|by_key:1 }} Tests »</a>
       </dt>
       <dd>
       </dd>
