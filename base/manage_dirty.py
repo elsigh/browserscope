@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Manage dirty ResultTimes."""
+"""Manage dirty ResultTime's."""
 
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
@@ -31,6 +31,8 @@ from django import http
 
 from models.result import ResultParent
 from models.result import ResultTime
+
+import settings
 
 
 UPDATE_DIRTY_DONE = 'No more dirty ResultTimes.'
@@ -120,11 +122,18 @@ def UpdateDirty(request):
       dirty_siblings = _GetDirtySiblings(request.GET.get('result_parent_key'))
       if dirty_siblings:
         result_parent = dirty_siblings[0].parent()
-        for result_time in dirty_siblings:
-          # Count the times and mark them !dirty.
-          result_time.increment_all_counts()
-          num_completed += 1
-        result_parent.invalidate_ua_memcache()
+        # Mark non-live test categories as not-dirty, don't rank their scores.
+        if (result_parent.category not in settings.CATEGORIES and
+            settings.BUILD == 'production'):
+          for result_time in dirty_siblings:
+            result_time.dirty = False
+          db.put(dirty_siblings)
+        else:
+          for result_time in dirty_siblings:
+            # Count the times and mark them !dirty.
+            result_time.increment_all_counts()
+            num_completed += 1
+          result_parent.invalidate_ua_memcache()
     except runtime.DeadlineExceededError:
       logging.warn('UpdateDirty DeadlineExceededError; '
                    'number of increment_all_counts completed=%s', num_completed)
