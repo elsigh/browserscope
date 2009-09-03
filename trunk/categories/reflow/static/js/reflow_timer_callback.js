@@ -92,6 +92,57 @@ Util.getParam = function(param) {
   }
 };
 
+
+/**
+ * @param {IFRAMEElement} iframe
+ * @reutrn {string} The iframe's id.
+ */
+Util.getIframeDocument = function(iframeId) {
+  var doc;
+  var iframe = window.frames[iframeId];
+  if (!iframe) {
+    iframe = document.getElementById(iframeId);
+  }
+  if (!iframe) {
+    return;
+  }
+  if (iframe.contentDocument) {
+    // For NS6
+    doc = iframe.contentDocument;
+  } else if (iframe.contentWindow) {
+    // For IE5.5 and IE6
+    doc = iframe.contentWindow.document;
+  } else if (iframe.document) {
+    // For IE5
+    doc = iframe.document;
+  }
+  return doc;
+};
+
+/**
+ * Makes it so that links in iframes load in a new tab/window.
+ * @param {IFRAMEElement} iframe
+ */
+Util.fixIframeLinks = function(iframe) {
+  var doc = Util.getIframeDocument(iframe);
+  var links = doc.getElementsByTagName('a');
+  for (var i = 0, link; link = links[i]; i++) {
+    link.onclick = function(e) {
+      this.target = '_blank';
+    }
+  }
+};
+
+/**
+ * @type {Object} doc A document object.
+ */
+Util.getDocumentHeight = function(doc) {
+  return Math.max(
+    Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight),
+    Math.max(doc.body.offsetHeight, doc.documentElement.offsetHeight),
+    Math.max(doc.body.clientHeight, doc.documentElement.clientHeight)
+  );
+}
 /*
  * Copyright 2009 Google Inc.
  *
@@ -382,10 +433,10 @@ ReflowTimer.TEST_CLASS_NAME = 'rt-test-classname';
 /**
  * @type {string}
  */
-ReflowTimer.TEST_MULTIPLE_REFLOW_CSSTEXT = 'font-size: 20px !important; ' +
-    'line-height: 10px !important;' +
-    'padding-left: 10px !important;' +
-    'margin-top: 7px; !important';
+ReflowTimer.TEST_MULTIPLE_REFLOW_CSSTEXT = 'font-size: 20px; ' +
+    'line-height: 10px;' +
+    'padding-left: 10px;' +
+    'margin-top: 7px;';
 
 
 /**

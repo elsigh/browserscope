@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Manage dirty ResultTime's."""
+"""Manage dirty ResultTimes."""
 
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
@@ -120,17 +120,11 @@ def UpdateDirty(request):
       dirty_siblings = _GetDirtySiblings(request.GET.get('result_parent_key'))
       if dirty_siblings:
         result_parent = dirty_siblings[0].parent()
-        if result_parent.category == 'richtext':
-          # Skip richtext times for now.
-          for result_time in dirty_siblings:
-            result_time.dirty = False
-          db.put(dirty_siblings)
-        else:
-          for result_time in dirty_siblings:
-            # Count the times and mark them !dirty.
-            result_time.increment_all_counts()
-            num_completed += 1
-          result_parent.invalidate_ua_memcache()
+        for result_time in dirty_siblings:
+          # Count the times and mark them !dirty.
+          result_time.increment_all_counts()
+          num_completed += 1
+        result_parent.invalidate_ua_memcache()
     except runtime.DeadlineExceededError:
       logging.warn('UpdateDirty DeadlineExceededError; '
                    'number of increment_all_counts completed=%s', num_completed)
