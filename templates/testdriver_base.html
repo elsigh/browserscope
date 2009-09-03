@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
 {% block head %}
-<script src="/static/util.js"></script>
-<script src="/static/xhrio.js"></script>
+<script src="{{ "util.js"|resource_path }}"></script>
+<script src="{{ "xhrio.js"|resource_path }}"></script>
 <script>
   var browserscope = {};
   browserscope.testCategories = [];

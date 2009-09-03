@@ -16,6 +16,7 @@
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 import logging
+import os
 from datetime import timedelta
 import urllib2
 
@@ -69,6 +70,10 @@ def resource_path(resource, category=None):
     path = '/%s/static/%s' % (category, resource)
   else:
     path = '/static/%s' % resource
+
+  # Add on a version bit so we can use far future expires.
+  path += '?v=%s' % os.environ['CURRENT_VERSION_ID']
+
   return path
 
 

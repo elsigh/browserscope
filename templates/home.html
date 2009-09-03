@@ -47,9 +47,16 @@
   <ul id="bs-results-bycat" class="bs-compact">
     {% for app_category in app_categories %}
       {% with app_category|by_key:0 as category %}
-        <li id="{{ category }}-results">
+        <li
+          id="{{ category }}-results">
           <h3>{{ app_category|by_key:1 }}</h3>
-          {{ stats_tables|by_key:category }}
+          {% ifequal stats_table_category category %}
+            {{ stats_table }}
+          {% else %}
+            <a
+              id="{{ category }}-results-link"
+              href="/?category={{ category }}&{{ results_params }}">View the {{ app_category|by_key:1 }} Results Table</a>
+          {% endifequal %}
 
           <div class="bs-results-links">
             <a href="/{{ category }}/test">Run the {{ app_category|by_key:1 }} Tests</a>
@@ -60,20 +67,50 @@
     {% endfor %}
   </ul>
 </div>
+<script src="{{ "xhrio.js"|resource_path }}"></script>
 <script>
 (function(){
-  var changeCategoryClickHandler = function(e) {
-    var link = this
+  var xhrLoading = {};
+  var changeCategoryClickHandler = function() {
+    var link = this;
     if (selectedCategoryLink == link) {
       return;
     }
     categorySections[selectedCategoryLink.category].style.display = 'none';
     selectedCategoryLink.parentNode.className = '';
+
+    // Reset to be the new one.
     selectedCategoryLink = link;
     selectedCategoryLink.parentNode.className = 'bs-sel';
-    categorySections[selectedCategoryLink.category].style.display = '';
-    e.preventDefault();
+    var el = categorySections[selectedCategoryLink.category];
+    el.style.display = '';
+
+    // XHR if we need to.
+    if (el.innerHTML == '' && !xhrLoading[selectedCategoryLink.category]) {
+      el.className = 'bs-loading';
+      el.innerHTML = 'Loading the ' + selectedCategoryLink.category + ' stats...';
+      xhrLoading[selectedCategoryLink.category] = true;
+      var url = '/?category=' + selectedCategoryLink.category +
+          '&xhr=1&{{ results_params }}';
+      goog.net.XhrIo.send(url, function(e) {
+        loadStatsTableCallback(e, selectedCategoryLink.category);
+      }, 'get', null, null, 10000);
+    }
   };
+  var loadStatsTableCallback = function(e, category) {
+    categorySections[category].className = '';
+    var xhrio = e.target;
+    if (xhrio.isSuccess()) {
+      var html = xhrio.getResponseText();
+      categorySections[category].innerHTML = html;
+    } else {
+      alert('Oops, looks like we encountered a server error. ' +
+          'The appropriate nerd has been notified, feel free to try again.');
+      xhrLoading[category] = false;
+      categorySections[category].innerHTML = '';
+    }
+  };
+
   var categoriesList = document.createElement('ul');
   categoriesList.id = 'bs-results-cats';
   categoriesList.className = 'bs-compact';
@@ -84,7 +121,7 @@
     parent = document.getElementById('{{ app_category|by_key:0 }}-results');
     categorySections['{{ app_category|by_key:0 }}'] = parent;
     categories.push({
-      'cat': '{{ app_category|by_key:0 }}',
+      'key': '{{ app_category|by_key:0 }}',
       'name': '{{ app_category|by_key:1 }}'
     });
     h3 = parent.getElementsByTagName('h3')[0];
@@ -94,26 +131,18 @@
   for (var i = 0, category; category = categories[i]; i++) {
     var link = document.createElement('span');
     var li = document.createElement('li');
-    var re = new RegExp('\\?' + category.cat + '_results=');
+    var re = new RegExp('\\?' + category.key + '_results=');
     li.appendChild(link);
-    link.category = category.cat;
+    link.category = category.key;
     link.appendChild(document.createTextNode(category.name));
     link.onclick = changeCategoryClickHandler;
-    if (i == 0) {
+    if (category.key == '{{ stats_table_category }}') {
       selectedCategoryLink = link;
       selectedCategoryLink.parentNode.className = 'bs-sel';
-    // this will set the selected tab to the first of the result strings.
-    } else if (window.location.href.match(re)) {
-      if (selectedCategoryLink) {
-        selectedCategoryLink.parentNode.className = '';
-        categorySections[selectedCategoryLink.category].style.display = 'none';
-      }
-      selectedCategoryLink = link;
-      selectedCategoryLink.parentNode.className = 'bs-sel';
-      // scroll to the bottom so we can see the results
-      window.scrollTo(0, 99999999)
+    // Otherwise initially wipe out the contents, we'll replace via xhr.
     } else {
-      categorySections[category.cat].style.display = 'none';
+      categorySections[category.key].innerHTML = '';
+      categorySections[category.key].style.display = 'none';
     }
     categoriesList.appendChild(li);
   }
