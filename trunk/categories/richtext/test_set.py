@@ -74,21 +74,26 @@ class RichtextTest(test_set_base.TestBase):
     #             'test: %s, median: %s' % (self.key, median))
 
     tests_in_category = self.GetTestsByCategory(self.key)
+    num_tests = len(tests_in_category)
+
     if is_uri_result:
       display_score = int(median)
     else:
       display_score = 0
       for test in tests_in_category:
         test_median = medians[test.key]
-        if test_median is None:
-          test_median = 0
         #logging.info('test_median: %s' % test_median)
-        display_score += test_median
+        # If test_median is None, we need to be fair and decrement num_tests.
+        # This could happen if we don't have any results for a new test.
+        if test_median is None:
+          num_tests -= 1
+        else:
+          display_score += test_median
 
-    num_tests = len(tests_in_category)
     score = int(display_score / num_tests)
     display = '%s/%s' % (display_score, num_tests)
     return score, display
+
 
   def GetTestsByCategory(self, category):
     tests = []
