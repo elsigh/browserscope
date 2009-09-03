@@ -64,12 +64,14 @@ def Render(request, template, params={}, category=None):
   params['is_admin'] = users.is_current_user_admin()
   #http://code.google.com/appengine/docs/python/users/userclass.html#User_user_id
   current_user = users.get_current_user()
+  logging.info('USER: %s' % current_user)
   if current_user:
     params['user_id'] = current_user.user_id()
     params['is_elsigh'] = current_user.nickname() == 'elsigh'
   else:
     params['is_elsigh'] = False
     params['user_id'] = None
+  params['user'] = current_user
   params['sign_in'] = users.create_login_url(request.get_full_path())
   params['sign_out'] = users.create_logout_url('/')
 
