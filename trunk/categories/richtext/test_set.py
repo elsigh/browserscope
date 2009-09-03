@@ -71,7 +71,9 @@ class RichtextTest(test_set_base.TestBase):
       And display is the text for the cell.
     """
     #logging.info('RichTextTest.GetScoreAndDisplayValue '
-    #             'test: %s, median: %s' % (self.key, median))
+    #             'test: %s, median: %s, medians: %s, '
+    #             'is_uri_result: %s' %
+    #             (self.key, median, medians, is_uri_result))
 
     tests_in_category = self.GetTestsByCategory(self.key)
     num_tests = len(tests_in_category)

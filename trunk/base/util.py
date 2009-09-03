@@ -380,10 +380,14 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   version_level = request.GET.get('v', 'top')
   user_agent_group_strings = UserAgentGroup.GetStrings(version_level)
 
-  tests = [test for test in opt_tests or test_set.tests
-           if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat]
+  tests = opt_tests or test_set.tests
   stats = GetStatsData(test_set.category, tests, user_agent_group_strings,
                        test_set.default_params, use_memcache, version_level)
+
+  # Reset tests now to only be "visible" tests.
+  tests = [test for test in tests
+           if not hasattr(test, 'is_hidden_stat') or
+           not test.is_hidden_stat]
 
   # Looks for a category_results=test1=X,test2=X url GET param.
   results = None
@@ -482,18 +486,23 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
             user_agent, params).GetMedianAndNumScores(num_scores=total_runs)
         medians[test.key] = median
 
-      # Now make a second pass with all the medians and call our formatter.
-      for test in tests:
-        #logging.info('user_agent: %s, total_runs: %s' % (user_agent, total_runs))
-        score, display = GetScoreAndDisplayValue(test, medians[test.key],
-                                                 medians,
-                                                 is_uri_result=False)
 
-        user_agent_results[test.key] = {
+      # Reset tests now to only be "visible" tests.
+      visible_tests = [test for test in tests
+                       if not hasattr(test, 'is_hidden_stat') or
+                       not test.is_hidden_stat]
+      # Now make a second pass with all the medians and call our formatter.
+      for test in visible_tests:
+        if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat:
+          #logging.info('user_agent: %s, total_runs: %s' % (user_agent, total_runs))
+          score, display = GetScoreAndDisplayValue(test, medians[test.key],
+                                                   medians,
+                                                   is_uri_result=False)
+          user_agent_results[test.key] = {
             'median': medians[test.key],
             'score': score,
             'display': display,
-            }
+          }
 
       user_agent_stats = {
           'total_runs': total_runs,
