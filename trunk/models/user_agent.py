@@ -35,13 +35,13 @@ BROWSER_NAV = [
 ]
 
 TOP_USER_AGENT_GROUP_STRINGS = [
-  'Chrome 1', 'Chrome 2', 'Chrome 3',
+  'Chrome 2', 'Chrome 3',
   'Firefox 3.0', 'Firefox 3.5',
   'IE 6', 'IE 7', 'IE 8',
   'Opera 9', 'Opera 10',
   'Safari 3', 'Safari 4'
 ]
-#TOP_USER_AGENT_GROUP_STRINGS = ['Firefox 3.0', 'IE 8']
+#TOP_USER_AGENT_GROUP_STRINGS = ['Firefox 3.0.5', 'Firefox 3.5', 'IE 8']
 
 TOP_USER_AGENT_STRINGS = (
   ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '

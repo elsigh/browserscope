@@ -21,6 +21,7 @@ __author__ = 'elsigh@google.com (Lindsey Simon)'
 import hashlib
 import logging
 import random
+import os
 import re
 import sys
 import time
@@ -55,8 +56,8 @@ TEST_DRIVER_TPL = 'testdriver_base.html'
 #@decorators.trusted_tester_required
 def Render(request, template, params={}, category=None):
   """Wrapper function to render templates with global and category vars."""
-
   params['app_title'] = settings.APP_TITLE
+  params['version_id'] = os.environ['CURRENT_VERSION_ID']
   params['epoch'] = int(time.time())
   params['request_path'] = request.path
   params['request_path_lastbit'] = re.sub('^.+\/([^\/]+$)', '\\1', request.path)
@@ -64,13 +65,12 @@ def Render(request, template, params={}, category=None):
   params['is_admin'] = users.is_current_user_admin()
   #http://code.google.com/appengine/docs/python/users/userclass.html#User_user_id
   current_user = users.get_current_user()
-  logging.info('USER: %s' % current_user)
   if current_user:
     params['user_id'] = current_user.user_id()
     params['is_elsigh'] = current_user.nickname() == 'elsigh'
   else:
-    params['is_elsigh'] = False
     params['user_id'] = None
+    params['is_elsigh'] = False
   params['user'] = current_user
   params['sign_in'] = users.create_login_url(request.get_full_path())
   params['sign_out'] = users.create_logout_url('/')
@@ -167,27 +167,44 @@ RECENT_TESTS_MEMCACHE_KEY = 'recent_tests'
 def Home(request):
   """Our Home page."""
 
-  # If we don't find anything in memcache, we just won't show the recent
-  # tests on the homepage. Should happen VERY rarely.
   recent_tests = memcache.get(key=RECENT_TESTS_MEMCACHE_KEY)
   if not recent_tests:
     ScheduleRecentTestsUpdate()
 
+  results_params = []
+  for category in settings.CATEGORIES:
+    results_val = request.GET.get('%s_results' % category)
+    if results_val:
+      results_params.append('%s_results=%s' % (category, results_val))
+
   stats_tables = {}
-  intro_text = {}
-  for test_set in all_test_sets.GetTestSets():
-    stats_tables[test_set.category] = GetStats(request, test_set, output='html')
+  category = request.GET.get('category')
+  if category:
+    test_set = all_test_sets.GetTestSet(category)
+  else:
+    if len(results_params) > 0:
+      for category in settings.CATEGORIES:
+        if request.GET.get('%s_results' % category):
+          test_set = all_test_sets.GetTestSet(category)
+          break
+  # If we still got no test_set, take the first one in settings.CATEGORIES
+  if not test_set:
+    test_set = all_test_sets.GetTestSet(settings.CATEGORIES[0])
 
-  message = request.GET.get('message')
+  stats_table = GetStats(request, test_set, output='html')
 
-  params = {
-    'page_title': 'Home',
-    'stats_tables': stats_tables,
-    'intro_text': intro_text,
-    'recent_tests': recent_tests,
-    'message': message
-  }
-  return Render(request, 'home.html', params)
+  if request.GET.get('xhr'):
+    return http.HttpResponse(stats_table)
+  else:
+    params = {
+      'page_title': 'Home',
+      'results_params': '&'.join(results_params),
+      'stats_table_category': test_set.category,
+      'stats_table': stats_table,
+      'recent_tests': recent_tests,
+      'message': request.GET.get('message')
+    }
+    return Render(request, 'home.html', params)
 
 
 def Faq(request):
@@ -592,7 +609,11 @@ def SeedDatastore(request):
   """Seed Datastore."""
 
   NUM_RECORDS = 3
-  categories = settings.CATEGORIES
+  category = request.GET.get('category', None)
+  if category:
+    categories = [category]
+  else:
+    categories = ssettings.CATEGORIES
 
   increment_counts = request.GET.get('increment_counts', True)
   if increment_counts == '0':

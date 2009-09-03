@@ -320,6 +320,16 @@ a.bs-admin {
 #bs-results {
   margin-top: 1em;
 }
+
+#bs-results .bs-loading {
+  padding: 5em;
+  text-align: center;
+  text-decoration: blink;
+  font-size: 225%;
+  font-weight: bold;
+  color: #666;
+}
+
 #bs-results-cats {
   overflow: hidden;
   margin-left: .6em;
