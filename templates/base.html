@@ -23,10 +23,9 @@
   <h1 id="bs-logo" class="bs-ir">
     <a target="_top" href="/"><span>{{ app_title }}</span></a>
   </h1>
-  <div id="bs-nav" class="g-tpl-75-25">
+  <div id="bs-nav">
     <div class="g-unit g-first">
       <div class="g-c">
-
         <ul id="bs-nav-cats" class="g-section bs-compact bs-list-horz">
         {% for tuple in app_categories %}
           <li>
@@ -35,19 +34,21 @@
           </li>
         {% endfor %}
         </ul>
-
       </div>
     </div>
     <div class="g-unit">
-      <div class="g-c">
-
-         <a target="_top" href="/faq">FAQ</a>
+      <div id="bs-nav-sub" class="g-c">
 
         {% if user %}
-          {{ user.email }} {% if is_admin %}<a href="/admin">admin</a>{% endif %}
-          <a target="_top" href="{{ sign_out }}"> sign out</a>
+          <span>{{ user.email }}</span>
+        {% endif %}
+
+        <a target="_top" href="/faq">FAQ</a>
+
+        {% if user %}
+          <a target="_top" href="{{ sign_out }}">Sign Out</a>
         {% else %}
-          <a target="_top" href="{{ sign_in }}">Sign in</a>
+          <a target="_top" href="{{ sign_in }}">Sign In</a>
         {% endif %}
       </div>
     </div>
