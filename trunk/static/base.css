@@ -67,6 +67,7 @@ a.bs-btn,
   color: #fff;
   font-size: 150%;
   font-weight: bold;
+  text-shadow: 0 1px 2px #444;
   -moz-border-radius: 8px;
   -webkit-border-radius: 8px;
   -moz-box-shadow: 0 2px rgba(102, 102, 102, .4);
@@ -103,6 +104,8 @@ p.bs-youcan {
 }
 #bs-test-iframe {
   margin-top: 1em;
+  border: 1px solid #ccc;
+  background: #c7e3f0;
 }
 
 a.bs-admin {
@@ -138,8 +141,7 @@ a.bs-admin {
 #bs-nav {
   overflow: hidden;
   padding: 7px 0;
-  background: #e8a63d url(/static/img/gradients.png) 0 0 repeat-x;
-  /*background: #e8a63d;*/
+  background: #f90;
   -moz-border-radius: 15px;
   -webkit-border-radius: 15px;
   -moz-box-shadow: 0 2px rgba(102, 102, 102, .4);
@@ -154,7 +156,9 @@ a.bs-admin {
   margin: 0 0 0 10px;
 }
 #bs-nav a {
-  color: #eefeee;
+  font-size: 1.1em;
+  color: #fff;
+  text-shadow: 0 1px 2px #444;
   font-weight: bold;
   text-decoration: none;
   padding-right: .4em;
@@ -258,10 +262,11 @@ a.bs-admin {
   min-height: 200px;
   padding: 8px;
   background: #111;
-  color: #81f446;
+  color: #0f0;
   width: 450px;
   padding-top: 0;
-  font-family: Courier, mono;
+  font-family: "Andale Mono", "Vera Sans Mono", Courier, mono;
+  text-shadow: 0 0 1px #fff;
   -moz-border-radius-topright: 2px;
   -moz-border-radius-topleft: 2px;
   -webkit-border-top-right-radius: 2px;
@@ -341,7 +346,8 @@ a.bs-admin {
   background-color: #ddd;
 }
 #bs-results-bycat {
-  border: 3px solid #ddd;
+  padding: 3px;
+  background: #ddd;
   -moz-border-radius: 4px;
   -webkit-border-radius: 4px;
 }

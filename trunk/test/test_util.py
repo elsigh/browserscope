@@ -163,6 +163,26 @@ class TestUtilHandlers(unittest.TestCase):
     self.assertEqual(True, result_times[1].dirty)
 
 
+  def testLargeRichTextPostBeacon(self):
+    category = 'richtext'
+    csrf_token = self.client.get('/get_csrf').content
+    params = {
+      'category': category,
+      'results': 'apply=0,unapply=0,change=0,query=0,a-backcolor-0=0,a-bold-0=1,a-createbookmark-0=0,a-createlink-0=1,a-decreasefontsize-0=1,a-fontname-0=1,a-fontsize-0=1,a-forecolor-0=1,a-formatblock-0=1,a-hilitecolor-0=0,a-indent-0=1,a-inserthorizontalrule-0=1,a-inserthtml-0=1,a-insertimage-0=1,a-insertorderedlist-0=1,a-insertunorderedlist-0=1,a-insertparagraph-0=1,a-italic-0=1,a-justifycenter-0=1,a-justifyfull-0=1,a-justifyleft-0=1,a-justifyright-0=1,a-strikethrough-0=1,a-subscript-0=1,a-superscript-0=1,a-underline-0=1,u-bold-0=1,u-bold-1=0,u-bold-2=0,u-italic-0=1,u-italic-1=0,u-italic-2=0,u-outdent-0=1,u-outdent-1=1,u-outdent-2=1,u-outdent-3=1,u-outdent-4=1,u-outdent-5=0,u-removeformat-0=1,u-removeformat-1=0,u-removeformat-2=0,u-strikethrough-0=1,u-strikethrough-1=0,u-strikethrough-2=0,u-strikethrough-3=0,u-subscript-0=1,u-subscript-1=0,u-superscript-0=1,u-superscript-1=0,u-unbookmark-0=0,u-underline-0=1,u-underline-1=0,u-unlink-0=1,q-backcolor-0=0,q-backcolor-1=1,q-backcolor-2=1,q-bold-0=1,q-bold-1=1,q-bold-2=0,q-bold-3=0,q-bold-4=0,q-bold-5=0,q-fontname-0=1,q-fontname-1=0,q-fontname-2=0,q-fontname-3=1,q-fontname-4=1,q-fontsize-0=1,q-fontsize-1=0,q-fontsize-2=0,q-forecolor-0=1,q-forecolor-1=0,q-forecolor-2=0,q-hilitecolor-0=0,q-hilitecolor-1=0,q-hilitecolor-2=0,q-insertorderedlist-0=1,q-insertorderedlist-1=1,q-insertorderedlist-2=1,q-insertunorderedlist-0=1,q-insertunorderedlist-1=1,q-insertunorderedlist-2=1,q-italic-0=1,q-italic-1=1,q-italic-2=0,q-italic-3=0,q-italic-4=0,q-justifycenter-0=1,q-justifycenter-1=1,q-justifycenter-2=1,q-justifycenter-3=0,q-justifyfull-0=1,q-justifyfull-1=1,q-justifyfull-2=1,q-justifyfull-3=0,q-justifyleft-0=0,q-justifyleft-1=1,q-justifyleft-2=1,q-justifyleft-3=1,q-justifyright-0=1,q-justifyright-1=1,q-justifyright-2=1,q-justifyright-3=0,q-strikethrough-0=1,q-strikethrough-1=1,q-strikethrough-2=0,q-strikethrough-3=0,q-strikethrough-4=0,q-strikethrough-5=0,q-subscript-0=1,q-subscript-1=1,q-superscript-0=1,q-superscript-1=1,q-underline-0=1,q-underline-1=1,q-underline-2=0,q-underline-3=0,q-underline-4=0,q-underline-5=1,c-backcolor-0=0,c-backcolor-1=0,c-backcolor-2=0,c-fontname-0=1,c-fontname-1=0,c-fontname-2=0,c-fontname-3=1,c-fontname-4=0,c-fontsize-0=1,c-fontsize-1=0,c-fontsize-2=0,c-forecolor-0=1,c-forecolor-1=0,c-forecolor-2=0,c-hilitecolor-0=0,c-hilitecolor-1=0,c-hilitecolor-2=0',
+      'csrf_token': csrf_token
+    }
+    response = self.client.post('/beacon', params, **mock_data.UNIT_TEST_UA)
+
+    # Did a ResultParent get created?
+    query = db.Query(ResultParent)
+    query.filter('category =', category)
+    result_parent = query.get()
+    self.assertNotEqual(result_parent, None)
+
+    # Were ResultTimes created?
+    result_times = ResultTime.all().ancestor(result_parent)
+
+
 class TestUtilFunctions(unittest.TestCase):
 
   def testCheckThrottleIpAddress(self):
@@ -170,7 +190,7 @@ class TestUtilFunctions(unittest.TestCase):
 
 
   def testParseResultsParamString(self):
-    expected = [{'score': '5', 'key': 'test1'}, {'score': '10', 'key': 'test2'}]
+    expected = [{'score': 5, 'key': 'test1'}, {'score': 10, 'key': 'test2'}]
     parsed_results = util.ParseResultsParamString('test1=5,test2=10')
     are_equal = expected == parsed_results
     # TODO(elsigh): figure this out one day.

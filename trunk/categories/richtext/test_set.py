@@ -79,7 +79,7 @@ class RichtextTest(test_set_base.TestBase):
     else:
       display_score = 0
       for test in tests_in_category:
-        test_median = test.GetRanker(user_agent, params).GetMedian()
+        test_median = medians[test.key]
         if test_median is None:
           test_median = 0
         #logging.info('test_median: %s' % test_median)
