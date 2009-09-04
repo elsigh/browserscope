@@ -57,11 +57,6 @@
               id="{{ category }}-results-link"
               href="/?category={{ category }}&{{ results_params }}">View the {{ app_category|by_key:1 }} Results Table</a>
           {% endifequal %}
-
-          <div class="bs-results-links">
-            <a href="/{{ category }}/test">Run the {{ app_category|by_key:1 }} Tests</a>
-            <a href="/{{ category }}/about">Read more about the {{ app_category|by_key:1 }} Tests</a>
-          </div>
         </li>
       {% endwith %}
     {% endfor %}

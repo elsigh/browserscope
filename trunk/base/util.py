@@ -470,6 +470,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
 
   params = {
     'category': test_set.category,
+    'category_name': test_set.category_name,
     'tests': tests,
     'v': version_level,
     'user_agents': user_agent_group_strings,
