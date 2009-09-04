@@ -83,7 +83,7 @@
     // XHR if we need to.
     if (el.innerHTML == '' && !xhrLoading[selectedCategoryLink.category]) {
       el.className = 'bs-loading';
-      el.innerHTML = 'Loading the ' + selectedCategoryLink.category + ' stats...';
+      el.innerHTML = 'Loading the ' + selectedCategoryLink.category + ' Results...';
       xhrLoading[selectedCategoryLink.category] = true;
       var url = '/?category=' + selectedCategoryLink.category +
           '&xhr=1&{{ results_params }}';

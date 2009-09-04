@@ -362,6 +362,7 @@ def Beacon(request):
 
   manage_dirty.ScheduleDirtyUpdate()
   ScheduleRecentTestsUpdate()
+  #ScheduleUserAgentGroupUpdate()
 
   if callback:
     return http.HttpResponse(BEACON_COMPLETE_CB_RESPONSE)
@@ -399,6 +400,8 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   #logging.info('GetStats for %s' % test_set.category)
   version_level = request.GET.get('v', 'top')
   user_agent_group_strings = UserAgentGroup.GetStrings(version_level)
+  #logging.info('GetStats: v: %s, uas: %s' % (version_level,
+  #             user_agent_group_strings))
 
   tests = opt_tests or test_set.tests
   stats = GetStatsData(test_set.category, tests, user_agent_group_strings,
@@ -421,6 +424,8 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       results_dict = {}
       for result in results:
         results_dict[result['key']] = result
+  if results_uri_string is None:
+    results_uri_string = ''
 
   current_ua_string = None
   current_ua = UserAgent.factory(request.META['HTTP_USER_AGENT'])
@@ -612,12 +617,12 @@ def GetStatsTableHtml(params):
 def SeedDatastore(request):
   """Seed Datastore."""
 
-  NUM_RECORDS = 3
-  category = request.GET.get('category', None)
+  NUM_RECORDS = 1
+  category = request.GET.get('category')
   if category:
     categories = [category]
   else:
-    categories = ssettings.CATEGORIES
+    categories = settings.CATEGORIES
 
   increment_counts = request.GET.get('increment_counts', True)
   if increment_counts == '0':
@@ -628,15 +633,20 @@ def SeedDatastore(request):
     user_agent = UserAgent.factory(ua_string)
     user_agents.append(user_agent)
 
+
   keys = []
-  for test_set in all_test_sets.GetTestSets():
-    #logging.info('CATEGORY: %s' % test_set.category)
+  for category in categories:
+    logging.info('CATEGORY: %s' % category)
+    test_set = all_test_sets.GetTestSet(category)
     params = test_set.default_params
     for user_agent in user_agents:
-      #logging.info(' - USER AGENT: %s' % user_agent.pretty())
+      logging.info(' - USER AGENT: %s' % user_agent.pretty())
+      user_agent.update_groups()
+      logging.info(' - user_agent.update_groups()')
+
       user_agent_list = user_agent.get_string_list()
-      for x in range(1, NUM_RECORDS + 1):
-        #logging.info(' -- i: %s' % x)
+      for i in range(1, NUM_RECORDS + 1):
+        logging.info(' -- i: %s' % i)
         result_parent = ResultParent()
         result_parent.category = test_set.category
         result_parent.user_agent = user_agent
@@ -655,20 +665,20 @@ def SeedDatastore(request):
           result_time.test = test.key
           result_time.score = score
           result_time.put()
-        #logging.info('--------------------')
-        #logging.info(' -- PUT ResultParent & ResultTime')
-        #logging.info('--------------------')
+        logging.info('--------------------')
+        logging.info(' -- PUT ResultParent & ResultTime')
+        logging.info('--------------------')
         if increment_counts:
           result_parent.increment_all_counts()
-          #logging.info('--------------------')
-          #logging.info(' -- INCREMENTED ALL COUNTS')
-          #logging.info('--------------------')
+          logging.info('--------------------')
+          logging.info(' -- INCREMENTED ALL COUNTS')
+          logging.info('--------------------')
 
         keys.append(str(result_parent.key()))
-        #logging.info('--------------------')
-        #logging.info('--------------------')
-        #logging.info('--------------------')
-        #logging.info('--------------------')
+        logging.info('--------------------')
+        logging.info('--------------------')
+        logging.info('--------------------')
+        logging.info('--------------------')
 
   return http.HttpResponseRedirect('?datastore_seeded')
 
