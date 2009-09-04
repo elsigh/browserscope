@@ -13,13 +13,13 @@ http://code.google.com/appengine/downloads.html
 For local development, just startup the server:
 ./pathto/google_appengine/dev_appserver.py --port=8080 browserscope
 
-You should then be able to hit the local application at:
+You should then be able to access the local application at:
 http://localhost:8080/
 
 Note: the first time you hit the homepage it may take a little
 while - that's because it's trying to read out median times for all
-of the tests from a non-extant datastore and write to memcache.
-Just be patient.
+of the tests from a non-existent datastore and write to memcache.
+Just be a lil patient.
 
 You can run the unit tests at:
   http://localhost:8080/test
@@ -37,12 +37,15 @@ Network: Steve Souders <souders@gmail.com>
 Reflow: Lindsey Simon <elsigh@gmail.com>
 
 
-To create a completely new category:
-  * Add your urls to urls.py
-  * Add a controller in controllers/newcategory.py
-  * Add unit tests in test/test_newcategory.py
-  * Add static content in static/newcategory/(js|img|css)
-  * Add your new category to settings.py and make sure that the unit tests pass.
+To create a completely new test category:
+  * Copy one of the existing directories in categories/
+  * Edit your test_set.py, handlers.py
+  * Add your files in templates/ and static/
+  * Update urls.py and settings.CATEGORIES
+  * Follow the examples of other tests re:
+      * beaconing using/testdriver_base
+      * your GetScoreAndDisplayValue method
+      * your GetRowScore method
 
 References:
   * App Engine Docs - http://code.google.com/appengine/docs/python/overview.html
