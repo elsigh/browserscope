@@ -173,11 +173,12 @@ def Home(request):
 
   results_params = []
   for category in settings.CATEGORIES:
-    results_val = request.GET.get('%s_results' % category)
-    if results_val:
-      results_params.append('%s_results=%s' % (category, results_val))
+    results_uri_string = request.GET.get('%s_results' % category)
+    if results_uri_string:
+      results_params.append('%s_results=%s' % (category, results_uri_string))
 
   stats_tables = {}
+  test_set = None
   category = request.GET.get('category')
   if category:
     test_set = all_test_sets.GetTestSet(category)
@@ -410,10 +411,11 @@ def GetStats(request, test_set, output='html', opt_tests=None,
 
   # Looks for a category_results=test1=X,test2=X url GET param.
   results = None
+  results_uri_string = None
   for category in settings.CATEGORIES:
-    results_val = request.GET.get('%s_results' % category)
-    if results_val and category == test_set.category:
-      parsed_results = ParseResultsParamString(results_val)
+    results_uri_string = request.GET.get('%s_results' % category)
+    if results_uri_string and category == test_set.category:
+      parsed_results = ParseResultsParamString(results_uri_string)
       results = test_set.ParseResults(parsed_results)
       # Flattens results into a simple dict.
       results_dict = {}
@@ -475,6 +477,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     'current_user_agent': current_ua_string,
     'stats': stats,
     'params': test_set.default_params,
+    'results_uri_string': results_uri_string
   }
   #logging.info("PARAMS: %s", str(params))
   if output is 'html':

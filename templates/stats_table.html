@@ -5,6 +5,9 @@
       <tr>
         <th scope="col" class="rt-a">
           <form id="rt-stats-{{ category }}-form" action="" method="get">
+            <input type="hidden" name="category" value="{{ category }}">
+            <input type="hidden" name="{{ category }}_results" value="{{ results_uri_string }}">
+            <!-- Sorry for the lame, non-degrading behaviour here. -->
             <select name="v" onchange="document.getElementById('rt-stats-{{ category }}-form').submit();">
               {% for tuple in browser_nav %}
                 {% with tuple|by_key:0 as version %}
@@ -78,7 +81,11 @@
             {% endfor %}
             <td class="rt-tot">
               {% if stats|by_key:user_agent|by_key:"current_results" %}
-                {{ stats|by_key:user_agent|by_key:"total_runs"|add:1 }}
+                {% if stats|by_key:user_agent|by_key:"total_runs" %}
+                  tot:{{ stats|by_key:user_agent|by_key:"total_runs" }} - {{ stats|by_key:user_agent|by_key:"total_runs"|add:1 }}
+                {% else %}
+                  0
+                {% endif %}
               {% else %}
                 {{ stats|by_key:user_agent|by_key:"total_runs" }}
               {% endif %}
