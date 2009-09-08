@@ -486,7 +486,8 @@ def GetStats(request, test_set, output='html', opt_tests=None,
           expando = results_dict[test.key]['expando']
         current_results[test.key]['expando'] = expando
 
-    stats[current_ua_string]['current_score'] = 90 #TODO(elsigh)
+    stats[current_ua_string]['current_score'] = test_set.GetRowScore(
+        current_results)
 
   params = {
     'category': test_set.category,
@@ -550,7 +551,8 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
       user_agent_stats = {
           'total_runs': total_runs,
           'results': user_agent_results,
-          'score': GetRowScore(user_agent_results)
+          'score': all_test_sets.GetTestSet(category).GetRowScore(
+                user_agent_results)
           }
       if use_memcache:
         memcache.set(key=memcache_ua_key, value=user_agent_stats,
@@ -559,15 +561,6 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
     if version_level == 'top' or user_agent_stats['total_runs']:
       stats[user_agent] = user_agent_stats
   return stats
-
-
-def GetRowScore(results):
-  """Get the overall score for this UA row data.
-  TODO(elsigh): Make this work.
-  Args:
-    results: See user_agent_results in GetStatsData.
-  """
-  return 90
 
 
 def GetScoreAndDisplayValue(test, median, medians, is_uri_result=False):
@@ -675,7 +668,7 @@ def SeedDatastore(request):
           if test.score_type == 'boolean':
             score = random.randrange(0, 1)
           elif test.score_type == 'custom':
-            score = random.randrange(5, 2000)
+            score = random.randrange(test.min_value, test.max_value)
           result_time = ResultTime(parent=result_parent)
           result_time.test = test.key
           result_time.score = score
@@ -695,7 +688,8 @@ def SeedDatastore(request):
         logging.info('--------------------')
         logging.info('--------------------')
 
-  return http.HttpResponseRedirect('?datastore_seeded')
+  memcache.flush_all()
+  return http.HttpResponseRedirect('?message=Datastore got seeded.')
 
 
 def UpdateTx(test_time, user_agent):

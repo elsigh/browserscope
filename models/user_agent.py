@@ -46,14 +46,14 @@ TOP_USER_AGENT_GROUP_STRINGS = [
 TOP_USER_AGENT_STRINGS = (
   ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '
    'AppleWebKit/530.1 (KHTML, like Gecko) '
-   'Chrome/1.0.169 Safari/530.1'),
+   'Chrome/2.0.169 Safari/530.1'),
   ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '
    'AppleWebKit/530.1 (KHTML, like Gecko) '
-   'Chrome/2.0.169.1 Safari/530.1'),
+   'Chrome/3.0.169.1 Safari/530.1'),
   ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
    'Gecko/2009011912 Firefox/3.0.3'),
   ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-   'Gecko/2009011912 Firefox/3.1.3'),
+   'Gecko/2009011912 Firefox/3.5.3'),
   ('Mozilla/4.0 '
    '(compatible; MSIE 6.0; Windows NT 5.1; Trident/4.0; '
    '.NET CLR 2.0.50727; .NET CLR 1.1.4322; '

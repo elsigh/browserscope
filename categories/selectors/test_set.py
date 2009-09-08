@@ -101,7 +101,26 @@ _TESTS = (
   SelectorsTest('failed', 'Failed', 'Selectors API tests failed')
 )
 
-TEST_SET = test_set_base.TestSet(
+
+class SelectorsTestSet(test_set_base.TestSet):
+
+  def GetRowScore(self, results):
+    """Get the overall score for this row of results data.
+    Args:
+      results: A dictionary that looks like:
+      {
+        'testkey1': {'score': 1-100, 'median': median, 'display': 'celltext'},
+        'testkey2': {'score': 1-100, 'median': median, 'display': 'celltext'},
+        etc...
+      }
+
+    Returns:
+      A score, 1-100.
+    """
+    #logging.info('%s GetRowScore, results:%s' % (self.category, results))
+    return 90
+
+TEST_SET = SelectorsTestSet(
     category=_CATEGORY,
     category_name='Selectors API',
     tests=_TESTS
