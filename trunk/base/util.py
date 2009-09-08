@@ -486,8 +486,9 @@ def GetStats(request, test_set, output='html', opt_tests=None,
           expando = results_dict[test.key]['expando']
         current_results[test.key]['expando'] = expando
 
-    stats[current_ua_string]['current_score'] = test_set.GetRowScore(
-        current_results)
+    score, display = test_set.GetRowScoreAndDisplayValue(current_results)
+    stats[current_ua_string]['current_score'] = score
+    stats[current_ua_string]['current_display'] = display
 
   params = {
     'category': test_set.category,
@@ -548,11 +549,13 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
             'display': display,
           }
 
+      row_score, row_display = all_test_sets.GetTestSet(
+          category).GetRowScoreAndDisplayValue(user_agent_results)
       user_agent_stats = {
           'total_runs': total_runs,
           'results': user_agent_results,
-          'score': all_test_sets.GetTestSet(category).GetRowScore(
-                user_agent_results)
+          'score': row_score,
+          'display': row_display
           }
       if use_memcache:
         memcache.set(key=memcache_ua_key, value=user_agent_stats,
