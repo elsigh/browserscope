@@ -2,7 +2,7 @@
   <table cellpadding="0" cellspacing="0">
     <thead>
       <tr>
-        <th scope="col" class="rt-a">
+        <th scope="col" class="rt-a" colspan="2">
           <form id="rt-stats-{{ category }}-form" action="" method="get">
             <input type="hidden" name="category" value="{{ category }}">
             <input type="hidden" name="{{ category }}_results" value="{{ results_uri_string }}">
@@ -19,7 +19,7 @@
             </select>
           </form>
           {% if is_admin %}
-            <a href="/clear_memcache?v={{ v }}&category={{ category }}&continue=/" class="bs-admin">clear</a>
+            <a href="/clear_memcache?v={{ v }}&category={{ category }}&continue={{ request_path }}" class="bs-admin">clear</a>
           {% endif %}
         </th>
         {% for test in tests %}
@@ -36,14 +36,21 @@
         {% if stats|by_key:user_agent|by_key:"current_results" %}
           {% with stats|by_key:user_agent|by_key:"current_results" as results %}
             <tr>
-              <td colspan="{{ tests|length|add:2 }}" class="rt-tot">Your Results &darr;</td>
+              <td colspan="{{ tests|length|add:3 }}" class="rt-tot">Your Results &darr;</td>
             </tr>
             <tr class="rt-res">
               <td
                 scope="row"
                 class="rt-a
                        rt-score-{{ stats|by_key:user_agent|by_key:"current_score" }}"
-                >{{ user_agent }}</td>
+                >
+                {{ user_agent }}
+              </td>
+              <td
+                class="rt-a
+                       rt-score-{{ stats|by_key:user_agent|by_key:"current_score" }}">
+                {{ stats|by_key:user_agent|by_key:"current_display" }}
+              </td>
               {% for test in tests %}
                 <td
                   class="rt-score-{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"score" }}"
@@ -66,12 +73,21 @@
               class="rt-ua"
             {% endifequal %}
             >
-            <td scope="row" class="rt-a rt-score-{{ stats|by_key:user_agent|by_key:"score" }}">
+            <td
+              scope="row"
+              class="rt-a rt-score-{{ stats|by_key:user_agent|by_key:"score" }}">
               {{ user_agent }}
               {% if is_admin %}
-                <a href="/clear_memcache?category={{ category }}&ua={{ user_agent }}&continue=/" class="bs-admin">clear</a>
+                <a href="/clear_memcache?category={{ category }}&ua={{ user_agent }}&continue={{ request_path }}" class="bs-admin">clear</a>
               {% endif %}
             </td>
+
+            <td
+              class="rt-a
+                     rt-score-{{ stats|by_key:user_agent|by_key:"score" }}">
+              {{ stats|by_key:user_agent|by_key:"current_display" }}
+            </td>
+
             {% for test in tests %}
               <td
                 class="rt-score-{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"score" }}"
@@ -98,7 +114,7 @@
       {% if params %}
         <tfoot>
           <tr>
-            <td colspan="{{ tests|length|add:2 }}">
+            <td colspan="{{ tests|length|add:3 }}">
               params: <a href="/reflow/test/{{ params|join:"&" }}">{{ params }}</a>
             </td>
           </tr>
