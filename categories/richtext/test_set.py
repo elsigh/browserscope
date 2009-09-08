@@ -171,7 +171,6 @@ _TESTS = (
   RichtextTest('a-insertimage-0', 'insertimage execCommand on plaintext', None, category='apply'),
   RichtextTest('a-insertorderedlist-0', 'insertorderedlist execCommand on plaintext', None, category='apply'),
   RichtextTest('a-insertunorderedlist-0', 'insertunorderedlist execCommand on plaintext', None, category='apply'),
-  RichtextTest('a-insertparagraph-0', 'insertparagraph execCommand on plaintext', None, category='apply'),
   RichtextTest('a-italic-0', 'italic execCommand on plaintext', None, category='apply'),
   RichtextTest('a-italic-1', 'italic execCommand on plaintext, styleWithCSS=true', None, category='apply'),
   RichtextTest('a-justifycenter-0', 'justifycenter execCommand on plaintext', None, category='apply'),
