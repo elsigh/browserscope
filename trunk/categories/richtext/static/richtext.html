@@ -114,9 +114,11 @@
 
     var APPLY_TESTS = {
       'backcolor' : {
-        opt_arg: '#FF0000'},
+        opt_arg: '#FF0000',
+        styleWithCSS: 'background-color'},
       'bold' : {
-        opt_arg: null},
+        opt_arg: null,
+        styleWithCSS: 'font-weight'},
       'createbookmark' : {
         opt_arg: 'bookmark_name'},
       'createlink' : {
@@ -124,19 +126,24 @@
       'decreasefontsize' : {
         opt_arg: null},
       'fontname' : {
-        opt_arg: 'Arial'},
+        opt_arg: 'Arial',
+        styleWithCSS: 'font-family'},
       'fontsize' : {
-        opt_arg: 4},
+        opt_arg: 4,
+        styleWithCSS: 'font-size'},
       'forecolor' : {
-        opt_arg: '#FF0000'},
+        opt_arg: '#FF0000',
+        styleWithCSS: 'color'},
       'formatblock' : {
         opt_arg: 'h1',
         wholeline: true},
       'hilitecolor' : {
-        opt_arg: '#FF0000'},
+        opt_arg: '#FF0000',
+        styleWithCSS: 'background-color'},
       'indent' : {
         opt_arg: null,
-        wholeline: true},
+        wholeline: true,
+        styleWithCSS: 'margin'},
       'inserthorizontalrule' : {
         opt_arg: null,
         collapse: true},
@@ -156,27 +163,36 @@
         opt_arg: null,
         wholeline: true},
       'italic' : {
-        opt_arg: null},
+        opt_arg: null,
+        styleWithCSS: 'font-style'},
       'justifycenter' : {
         opt_arg: null,
-        wholeline: true},
+        wholeline: true,
+        styleWithCSS: 'text-align'},
       'justifyfull' : {
         opt_arg: null,
-        wholeline: true},
+        wholeline: true,
+        styleWithCSS: 'text-align'},
       'justifyleft' : {
         opt_arg: null,
-        wholeline: true},
+        wholeline: true,
+        styleWithCSS: 'text-align'},
       'justifyright' : {
         opt_arg: null,
-        wholeline: true},
+        wholeline: true,
+        styleWithCSS: 'text-align'},
       'strikethrough' : {
-        opt_arg: null},
+        opt_arg: null,
+        styleWithCSS: 'text-decoration'},
       'subscript' : {
-        opt_arg: null},
+        opt_arg: null,
+        styleWithCSS: 'vertical-align'},
       'superscript' : {
-        opt_arg: null},
+        opt_arg: null,
+        styleWithCSS: 'vertical-align'},
       'underline' : {
-        opt_arg: null}};
+        opt_arg: null,
+        styleWithCSS: 'text-decoration'}};
 
     var UNAPPLY_TESTS = {
       'bold' : {
@@ -194,7 +210,6 @@
         block: true,
         tags: [
           ['<blockquote>', '</blockquote>'],
-          ['<BLOCKQUOTE dir=ltr style="MARGIN-RIGHT: 0px">', '</BLOCKQUOTE>'],
           ['<blockquote class="webkit-indent-blockquote" style="margin: 0 0 0 40px; border: none; padding: 0px;">', '</blockquote>'],
           ['<ul><li>', '</li></ul>'],
           ['<ol><li>', '</li></ol>'],
@@ -520,7 +535,13 @@
     /**
      * Does the test for an apply execCommand.
      */
-    function doApplyTest(command) {
+    function doApplyTest(command, styleWithCSS) {
+      // Set styleWithCSS
+      try {
+        editorDoc.execCommand('styleWithCSS', false, styleWithCSS);
+      } catch (ex) {
+        // Ignore errors
+      }
       editorDoc.body.innerHTML = TEST_CONTENT;
       if (APPLY_TESTS[command].collapse) {
         selectStart(TEST_WORD);
@@ -539,12 +560,15 @@
      * Outputs the result of the apply command to a table.
      * @return {boolean} success
      */
-    function outputApplyResult(command, result) {
+    function outputApplyResult(command, result, styleWithCSS) {
       // The apply command "succeeded" if HTML was generated.
       var success = (result != UNSUPPORTED) && result;
-      // Note: there will be multiple apply tests in the future, so
-      // start using a naming scheme which allows for that now.
-      results.push('a-' + command + '-0=' + (success ? '1' : '0'));
+      // Except for styleWithCSS commands, which only succeed if the
+      // expected style was applied.
+      if (styleWithCSS) {
+        success = result && result.toLowerCase().indexOf(APPLY_TESTS[command].styleWithCSS) != -1;
+      }
+      results.push('a-' + command + '-' + (styleWithCSS ? 1 : 0) + '=' + (success ? '1' : '0'));
 
       // Each command is displayed as a table row with 3 columns
       var tr = document.createElement('TR');
@@ -555,16 +579,21 @@
       td.innerHTML = command;
       tr.appendChild(td);
 
-      // Column 2: pass/fail
+      // Column 2: styleWithCSS
+      var td = document.createElement('TD');
+      td.innerHTML = styleWithCSS ? 'true' : 'false';
+      tr.appendChild(td);
+
+      // Column 3: pass/fail
       td = document.createElement('TD');
       td.innerHTML = success ? 'PASS' : 'FAIL';
       tr.appendChild(td);
 
-      // Column 3: generated HTML (for passing commands)
+      // Column 4: generated HTML (for passing commands)
       td = document.createElement('TD');
       // Escape the HTML in the result for printing.
       result = result.replace(/\</g, '&lt;').replace(/\>/g, '&gt;');
-      td.innerHTML = success ? result : '&nbsp;';
+      td.innerHTML = result;
       tr.appendChild(td);
       var table = document.getElementById('apply_output');
       table.appendChild(tr);
@@ -905,10 +934,16 @@
       var query_score = 0;
       var query_count = 0;
       for (var command in APPLY_TESTS) {
-        var result = doApplyTest(command);
-        var success = outputApplyResult(command, result);
+        var result = doApplyTest(command, false);
+        var success = outputApplyResult(command, result, false);
         apply_score += success ? 1 : 0;
         apply_count++;
+        if (APPLY_TESTS[command].styleWithCSS) {
+          var result = doApplyTest(command, true);
+          var success = outputApplyResult(command, result, true);
+          apply_score += success ? 1 : 0;
+          apply_count++;
+        }
       }
 
       // Unapply tests
@@ -974,7 +1009,7 @@
 </head>
 <body onload="runTests()">
   <h1>Apply execCommand <span id="apply-score" class="score"></span></h1>
-  <table id="apply"><tbody id="apply_output"><tr><th>Command</th><th>Status</th><th>Output</th></tr></tbody></table>
+  <table id="apply"><tbody id="apply_output"><tr><th>Command</th><th>styleWithCSS</th><th>Status</th><th>Output</th></tr></tbody></table>
   <h1>Unapply execCommand <span id="unapply-score" class="score"></span></h1>
   <table id="unapply">
     <thead><tr><th>Command</th><th>Command unapplied</th><th>Status</th><th>HTML Attempted to Unapply</th><th>Resulting HTML</th></tr></thead>
