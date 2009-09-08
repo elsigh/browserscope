@@ -89,7 +89,7 @@
           '&xhr=1&{{ results_params }}';
       goog.net.XhrIo.send(url, function(e) {
         loadStatsTableCallback(e, selectedCategoryLink.category);
-      }, 'get', null, null, 10000);
+      }, 'get', null, null, 15000); // 15 second timeout
     }
   };
   var loadStatsTableCallback = function(e, category) {
