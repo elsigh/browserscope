@@ -169,7 +169,8 @@ var goog$userAgent$isVersionCache_ = {}, goog$userAgent$isVersion = function(ver
     output = first
   }return output
 }, goog$dom$getOwnerDocument = function(node) {
-  return node.nodeType == 9 ? node : node.ownerDocument || node.document
+  // Added 'editorDoc' as hack for browsers that don't support node.ownerDocument
+  return node.nodeType == 9 ? node : node.ownerDocument || node.document || editorDoc
 }, goog$dom$DomHelper = function(opt_document) {
   this.document_ = opt_document || goog$global.document || document
 };
