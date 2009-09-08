@@ -119,8 +119,11 @@ class SelectorsTestSet(test_set_base.TestSet):
       Where score is a value between 1-100.
       And display is the text for the cell.
     """
-    #logging.info('%s GetRowScore, results:%s' % (self.category, results))
-    return 90, 'x/x'
+    logging.info('%s GetRowScore, results:%s' % (self.category, results))
+    score = str(int(100.0 * results['passed']['median'] /
+        (results['passed']['median'] + results['failed']['median'])))
+    logging.info('score: %s' % score)
+    return score, ''
 
 TEST_SET = SelectorsTestSet(
     category=_CATEGORY,
