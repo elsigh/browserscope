@@ -377,14 +377,15 @@ a.bs-admin {
  */
 .rt-stats {
   font-size: 90%;
+  padding: 5px;
 }
 .rt-stats .rt-v form {
   padding: 3px 10px;
 }
 .rt-stats table {
   empty-cells: show;
-  border: 1px solid #ddd;
   background: #fff;
+  border-collapse: collapse;
 }
 .rt-stats thead th a {
   text-decoration: none;
@@ -411,7 +412,7 @@ a.bs-admin {
 .rt-stats thead td,
 .rt-stats th,
 .rt-stats tfoot,
-.rt-a {
+.rt-ua {
   font-weight: normal;
   background-color: #eee;
   padding: .4em .3em;
@@ -421,30 +422,49 @@ a.bs-admin {
 .rt-stats th {
   background: #fff url(/static/img/gradients.png) 0 -163px repeat-x;
 }
-.rt-stats td.rt-a,
-.rt-stats th.rt-a {
-  background-color: #ccc;
+.rt-stats td.rt-ua,
+.rt-stats th.rt-ua,
+.rt-stats .rt-ua-s-d {
+  border-right-color: #666;
+  border-left-color: #666;
   white-space: nowrap;
-  border-left-color: #ccc;
 }
-.rt-stats th.rt-a {
-  border-top-color: #ccc;
+.rt-stats td.rt-ua,
+.rt-stats th.rt-ua {
+  border-left-width: 3px;
+}
+.rt-stats th.rt-ua {
+  border-top-color: #666;
+  border-width: 3px;
+  border-bottom-width: 0;
   background: #ccc url(/static/img/gradients.png) 0 -88px repeat-x;
+}
+.rt-stats td.rt-ua {
+  border-right: 0;
+}
+/* score display */
+.rt-stats .rt-ua-s-d {
+  border-right-width: 3px;
+  border-left-width: 0;
+}
+.rt-last td.rt-ua,
+.rt-last td.rt-ua-s-d {
+  border-bottom: 3px solid #666;
 }
 
 .rt-stats tfoot em {
   font-size: 70%;
 }
 
-.rt-ua td,
-.rt-stats .rt-ua td.rt-a {
+.rt-ua-cur td,
+.rt-stats .rt-ua-cur td.rt-ua {
   border-top-color: #4291bf;
   border-bottom-color: #4291bf;
 }
 
 .rt-res th,
 .rt-res td,
-.rt-res td.rt-a {
+.rt-res td.rt-ua {
   border-top-color: #4291bf;
   border-top-width: 2px;
   border-bottom-color: #4291bf;
@@ -453,27 +473,29 @@ a.bs-admin {
 .rt-stats tbody td {
   padding: .4em .3em .4em 1em;
 }
-.rt-score-0 {
+
+/* Test scores */
+.rt-t-s-0 {
   background: #eee;
 }
-.rt-score-1,
-.rt-score-2,
-.rt-score-3,
-.rt-score-4,
-.rt-score-5,
-.rt-score-6 {
+.rt-t-s-1,
+.rt-t-s-2,
+.rt-t-s-3,
+.rt-t-s-4,
+.rt-t-s-5,
+.rt-t-s-6 {
   background: #f7d7d7;
 }
-.rt-score-7 {
+.rt-t-s-7 {
   background: #fffdd9;
 }
-.rt-score-8 {
+.rt-t-s-8 {
   background: #dffcd8;
 }
-.rt-score-9 {
+.rt-t-s-9 {
   background: #c0f9b0;
 }
-.rt-score-10 {
+.rt-t-s-10 {
   background: #a3f687;
 }
 .rt-tot {
