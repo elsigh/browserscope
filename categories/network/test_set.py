@@ -75,12 +75,21 @@ class NetworkTest(test_set_base.TestBase):
 
     score = 0
     if 'hostconn' == self.key:
-      if median <= 2:
-        score = 60
-      elif median <= 4:
-        score = 85
+      if median > 2:
+        score = 100
+      elif median == 2:
+        score = 50
       else:
-        score = 95
+        score = 0
+
+    elif 'maxconn' == self.key:
+      if median > 20:
+        score = 100
+      elif median >= 10:
+        score = 50
+      else:
+        score = 0
+
     return score, str(median)
 
 
@@ -183,8 +192,37 @@ class NetworkTestSet(test_set_base.TestSet):
       A tuple of (score, display)
       Where score is a value between 1-100.
       And display is the text for the cell.
+
+    Logic: (thanks Lindsey ;-)
+
+    totalTests = 0;
+    totalValidTests = 0;
+    totalScore = 0;
+    for testkey in results {
+    	totalTests++;
+    	score = results[testkey]['score'];
+    	if ( NULL != score ) {
+    		totalValidTests++;
+    		if ( score == 100 ) {
+    			totalScore++;
+    		}
+    	}
+    }
+    
+    return (int( 100*(totalScore/totalTests) ), totalScore + '/' + totalValidTests);
+    
+    //   Why do we use totalTests as the divisor for "score", but totalValidTests as the divisor for "display"?
+    //   There are going to be old browsers that are no longer tested. They might have gotten 6/8 (75%) 
+    // back in the old days, but now we've added more tests and they'd be lucky to get 6/12 (50%). If
+    // we compare 6/8 to newer browsers that get 8/12, the old browser would win, even though it would
+    // fail in side-by-side testing, so we have to use totalTests as the divisor for "score".
+    //   But we can't misrepresent the actual tests that were performed, so we have to show the user the
+    // actual number of tests for which we have results, which means using totalValidTests as the divisor
+    // for "display".
+
     """
     #logging.info('%s GetRowScore, results:%s' % (self.category, results))
+
     return (90, '8/11')
 
 
