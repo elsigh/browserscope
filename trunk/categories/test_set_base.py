@@ -18,6 +18,9 @@
 
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
+
+import logging
+
 from models import result_ranker
 
 class TestBase(object):
@@ -32,9 +35,25 @@ class TestBase(object):
     self.max_value = max_value
     self.test_set = test_set
 
+
   def GetRanker(self, user_agent_version, params):
     return result_ranker.Factory(
         self.test_set.category, self, user_agent_version, params)
+
+
+  def GetScoreAndDisplayValue(self, median, medians=None, is_uri_result=False):
+    """Custom scoring function.
+
+    Args:
+      median: The actual median for this test from all scores.
+      medians: A dict of the medians for all tests indexed by key.
+      is_uri_result: Boolean, if results are in the url, i.e. home page.
+    Returns:
+      (score, display)
+      Where score is a value between 1-100.
+      And display is the text for the cell.
+    """
+    return (median, median)
 
 
 class TestSet(object):
@@ -57,8 +76,10 @@ class TestSet(object):
       test.test_set = self  # add back pointer to each test
       self._test_dict[test.key] = test
 
+
   def GetTest(self, test_key):
     return self._test_dict[test_key]
+
 
   def ParseResults(self, results):
     """Rewrite the results dict before saving the results.
@@ -73,4 +94,21 @@ class TestSet(object):
       A list of dictionaries of results.
     """
     return results
+
+
+  def GetRowScore(self, results):
+    """Get the overall score for this row of results data.
+    Args:
+      results: A dictionary that looks like:
+      {
+        'testkey1': {'score': 1-100, 'median': median, 'display': 'celltext'},
+        'testkey2': {'score': 1-100, 'median': median, 'display': 'celltext'},
+        etc...
+      }
+
+    Returns:
+      A score, 1-100.
+    """
+    #logging.info('%s GetRowScore, results:%s' % (self.category, results))
+    return 90
 

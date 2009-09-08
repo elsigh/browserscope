@@ -16,6 +16,7 @@
 
 """Network Tests Definitions."""
 
+import logging
 
 from categories import test_set_base
 
@@ -165,8 +166,27 @@ Doing this avoids an extra HTTP request.
 This test checks if an image inserted using a "data:" URL is rendered correctly.'''),
 )
 
-_CATEGORY = 'network'
-TEST_SET = test_set_base.TestSet(
+
+class NetworkTestSet(test_set_base.TestSet):
+
+  def GetRowScore(self, results):
+    """Get the overall score for this row of results data.
+    Args:
+      results: A dictionary that looks like:
+      {
+        'testkey1': {'score': 1-100, 'median': median, 'display': 'celltext'},
+        'testkey2': {'score': 1-100, 'median': median, 'display': 'celltext'},
+        etc...
+      }
+
+    Returns:
+      A score, 1-100.
+    """
+    #logging.info('%s GetRowScore, results:%s' % (self.category, results))
+    return 90
+
+
+TEST_SET = NetworkTestSet(
     category=_CATEGORY,
     category_name='Network',
     tests=_TESTS

@@ -23,6 +23,7 @@ import functools
 import logging
 import traceback
 
+import django
 from django import http
 from django.shortcuts import render_to_response
 from django.conf import settings

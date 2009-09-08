@@ -302,7 +302,27 @@ _TESTS = (
 )
 
 
-TEST_SET = test_set_base.TestSet(
+
+class RichTextTestSet(test_set_base.TestSet):
+
+  def GetRowScore(self, results):
+    """Get the overall score for this row of results data.
+    Args:
+      results: A dictionary that looks like:
+      {
+        'testkey1': {'score': 1-100, 'median': median, 'display': 'celltext'},
+        'testkey2': {'score': 1-100, 'median': median, 'display': 'celltext'},
+        etc...
+      }
+
+    Returns:
+      A score, 1-100.
+    """
+    #logging.info('%s GetRowScore, results:%s' % (self.category, results))
+    return 90
+
+
+TEST_SET = RichTextTestSet(
     category=_CATEGORY,
     category_name='Rich Text',
     tests=_TESTS,
