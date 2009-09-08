@@ -532,24 +532,28 @@
      * Does the test for an apply execCommand.
      */
     function doApplyTest(command, styleWithCSS) {
-      // Set styleWithCSS
       try {
-        editorDoc.execCommand('styleWithCSS', false, styleWithCSS);
-      } catch (ex) {
-        // Ignore errors
-      }
-      editorDoc.body.innerHTML = TEST_CONTENT;
-      if (APPLY_TESTS[command].collapse) {
-        selectStart(TEST_WORD);
-      } else {
-        selectWord(TEST_WORD);
-      }
-      try {
-        editorDoc.execCommand(command, false, APPLY_TESTS[command].opt_arg);
+        // Set styleWithCSS
+        try {
+          editorDoc.execCommand('styleWithCSS', false, styleWithCSS);
+        } catch (ex) {
+          // Ignore errors
+        }
+        editorDoc.body.innerHTML = TEST_CONTENT;
+        if (APPLY_TESTS[command].collapse) {
+          selectStart(TEST_WORD);
+        } else {
+          selectWord(TEST_WORD);
+        }
+        try {
+          editorDoc.execCommand(command, false, APPLY_TESTS[command].opt_arg);
+        } catch (ex) {
+          return UNSUPPORTED;
+        }
+        return getSurroundingTags(APPLY_TESTS[command].wholeline? TEST_CONTENT : TEST_WORD);
       } catch (ex) {
         return UNSUPPORTED;
       }
-      return getSurroundingTags(APPLY_TESTS[command].wholeline? TEST_CONTENT : TEST_WORD);
     }
 
     /**
@@ -600,20 +604,24 @@
      * Does the test for an unapply execCommand.
      */
     function doUnapplyTest(command, index) {
-      var wordStart = TEST_CONTENT.indexOf(TEST_WORD);
-      editorDoc.body.innerHTML =
-          TEST_CONTENT.substring(0, wordStart) +
-          UNAPPLY_TESTS[command].tags[index][0] +
-          TEST_WORD +
-          UNAPPLY_TESTS[command].tags[index][1] +
-          TEST_CONTENT.substring(wordStart + TEST_WORD.length);
-      selectWord(TEST_WORD);
       try {
-        editorDoc.execCommand(command, false, UNAPPLY_TESTS[command].opt_arg || null);
+        var wordStart = TEST_CONTENT.indexOf(TEST_WORD);
+        editorDoc.body.innerHTML =
+            TEST_CONTENT.substring(0, wordStart) +
+            UNAPPLY_TESTS[command].tags[index][0] +
+            TEST_WORD +
+            UNAPPLY_TESTS[command].tags[index][1] +
+            TEST_CONTENT.substring(wordStart + TEST_WORD.length);
+        selectWord(TEST_WORD);
+        try {
+          editorDoc.execCommand(command, false, UNAPPLY_TESTS[command].opt_arg || null);
+        } catch (ex) {
+          return UNSUPPORTED;
+        }
+        return getSurroundingTags(TEST_WORD);
       } catch (ex) {
         return UNSUPPORTED;
       }
-      return getSurroundingTags(TEST_WORD);
     }
 
     /**
@@ -689,25 +697,29 @@
      * Does a queryCommandState or queryCommandValue test for an execCommand.
      */
     function doQueryTest(command, index) {
-      editorDoc.body.innerHTML = QUERY_TESTS[command].tests[index].html;
-      selectWord(TEST_WORD);
-      // Dummy val that won't match any expected vals, including false.
-      var result = UNSUPPORTED;
-      if (QUERY_TESTS[command].type == 'state') {
-        try {
-          result = editorDoc.queryCommandState(command);
-        } catch (ex) {
-          result = UNSUPPORTED;
+      try {
+        editorDoc.body.innerHTML = QUERY_TESTS[command].tests[index].html;
+        selectWord(TEST_WORD);
+        // Dummy val that won't match any expected vals, including false.
+        var result = UNSUPPORTED;
+        if (QUERY_TESTS[command].type == 'state') {
+          try {
+            result = editorDoc.queryCommandState(command);
+          } catch (ex) {
+            result = UNSUPPORTED;
+          }
+        } else {
+          try {
+            // A return value of false indicates the command is not supported.
+            result = editorDoc.queryCommandValue(command) || UNSUPPORTED;
+          } catch (ex) {
+            result = UNSUPPORTED;
+          }
         }
-      } else {
-        try {
-          // A return value of false indicates the command is not supported.
-          result = editorDoc.queryCommandValue(command) || UNSUPPORTED;
-        } catch (ex) {
-          result = UNSUPPORTED;
-        }
+        return result;
+      } catch (ex) {
+        return UNSUPPORTED;
       }
-      return result;
     }
 
     /**
@@ -769,10 +781,14 @@
     }
 
     function doChangeTest(command, index) {
-      editorDoc.body.innerHTML = CHANGE_TESTS[command].tests[index].html;
-      selectWord(TEST_CONTENT);
       try {
-        editorDoc.execCommand(command, false, CHANGE_TESTS[command].tests[index].opt_arg);
+        editorDoc.body.innerHTML = CHANGE_TESTS[command].tests[index].html;
+        selectWord(TEST_CONTENT);
+        try {
+          editorDoc.execCommand(command, false, CHANGE_TESTS[command].tests[index].opt_arg);
+        } catch (ex) {
+          return UNSUPPORTED;
+        }
       } catch (ex) {
         return UNSUPPORTED;
       }
@@ -912,13 +928,17 @@
     }
 
     function runTests() {
-      editorDoc = document.getElementById('editor').contentWindow.document;
-      // Default styleWithCSS to false, since it's not supported by IE.
+      // Wrap initialization code in a try/catch so we can fail gracefully
+      // on older browsers.
       try {
-        editorDoc.execCommand('styleWithCSS', false, false);
-      } catch (ex) {
-        // Not supported by IE.
-      }
+        editorDoc = document.getElementById('editor').contentWindow.document;
+        // Default styleWithCSS to false, since it's not supported by IE.
+        try {
+          editorDoc.execCommand('styleWithCSS', false, false);
+        } catch (ex) {
+          // Not supported by IE.
+        }
+      } catch (ex) {}
 
       // Apply tests
       var apply_score = 0;
@@ -930,14 +950,22 @@
       var query_score = 0;
       var query_count = 0;
       for (var command in APPLY_TESTS) {
-        var result = doApplyTest(command, false);
-        var success = outputApplyResult(command, result, false);
-        apply_score += success ? 1 : 0;
+        try {
+          var result = doApplyTest(command, false);
+          var success = outputApplyResult(command, result, false);
+          apply_score += success ? 1 : 0;
+        } catch (ex) {
+          // An exception is counted as a failed test, don't increment success.
+        }
         apply_count++;
         if (APPLY_TESTS[command].styleWithCSS) {
-          var result = doApplyTest(command, true);
-          var success = outputApplyResult(command, result, true);
-          apply_score += success ? 1 : 0;
+          try {
+            var result = doApplyTest(command, true);
+            var success = outputApplyResult(command, result, true);
+            apply_score += success ? 1 : 0;
+          } catch (ex) {
+            // An exception is counted as a failed test, don't increment success.
+          }
           apply_count++;
         }
       }
@@ -945,9 +973,13 @@
       // Unapply tests
       for (var command in UNAPPLY_TESTS) {
         for (var i = 0; i < UNAPPLY_TESTS[command].tags.length; i++) {
-          var result = doUnapplyTest(command, i);
-          var success = outputUnapplyResult(command, result, i);
-          unapply_score += success ? 1 : 0;
+          try {
+            var result = doUnapplyTest(command, i);
+            var success = outputUnapplyResult(command, result, i);
+            unapply_score += success ? 1 : 0;
+          } catch (ex) {
+            // An exception is counted as a failed test, don't increment success.
+          }
           unapply_count++;
         }
       }
@@ -955,9 +987,13 @@
       // Query tests
       for (var command in QUERY_TESTS) {
         for (var i = 0; i < QUERY_TESTS[command].tests.length; i++) {
-          var result = doQueryTest(command, i);
-          var success = outputQueryResult(command, i, result);
-          query_score += success ? 1 : 0;
+          try {
+            var result = doQueryTest(command, i);
+            var success = outputQueryResult(command, i, result);
+            query_score += success ? 1 : 0;
+          } catch (ex) {
+            // An exception is counted as a failed test, don't increment success.
+          }
           query_count++;
         }
       }
@@ -965,23 +1001,29 @@
       // Change tests
       for (var command in CHANGE_TESTS) {
         for (var i = 0; i < CHANGE_TESTS[command].tests.length; i++) {
-          doChangeTest(command, i);
-          var success = outputChangeResult(command, i);
-          change_score += success ? 1 : 0;
+          try {
+            doChangeTest(command, i);
+            var success = outputChangeResult(command, i);
+            change_score += success ? 1 : 0;
+          } catch (ex) {
+            // An exception is counted as a failed test, don't increment success.
+          }
           change_count++;
         }
       }
 
       // Beacon all test results.
       // and construct a shorter version for the results page.
-      document.getElementById('apply-score').innerHTML =
-          apply_score + '/' + apply_count;
-      document.getElementById('unapply-score').innerHTML =
-          unapply_score + '/' + unapply_count;
-      document.getElementById('query-score').innerHTML =
-          query_score + '/' + query_count;
-      document.getElementById('change-score').innerHTML =
-          change_score + '/' + change_count;
+      try {
+        document.getElementById('apply-score').innerHTML =
+            apply_score + '/' + apply_count;
+        document.getElementById('unapply-score').innerHTML =
+            unapply_score + '/' + unapply_count;
+        document.getElementById('query-score').innerHTML =
+            query_score + '/' + query_count;
+        document.getElementById('change-score').innerHTML =
+            change_score + '/' + change_count;
+      } catch (ex) {}
       var continueParams = [
         'apply=' + apply_score,
         'unapply=' + unapply_score,
