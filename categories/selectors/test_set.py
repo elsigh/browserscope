@@ -104,7 +104,7 @@ _TESTS = (
 
 class SelectorsTestSet(test_set_base.TestSet):
 
-  def GetRowScore(self, results):
+  def GetRowScoreAndDisplayValue(self, results):
     """Get the overall score for this row of results data.
     Args:
       results: A dictionary that looks like:
@@ -115,10 +115,12 @@ class SelectorsTestSet(test_set_base.TestSet):
       }
 
     Returns:
-      A score, 1-100.
+      A tuple of (score, display)
+      Where score is a value between 1-100.
+      And display is the text for the cell.
     """
     #logging.info('%s GetRowScore, results:%s' % (self.category, results))
-    return 90
+    return 90, ''
 
 TEST_SET = SelectorsTestSet(
     category=_CATEGORY,

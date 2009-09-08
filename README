@@ -45,7 +45,7 @@ To create a completely new test category:
   * Follow the examples of other tests re:
       * beaconing using/testdriver_base
       * your GetScoreAndDisplayValue method
-      * your GetRowScore method
+      * your GetRowScoreAndDisplayValue method
 
 References:
   * App Engine Docs - http://code.google.com/appengine/docs/python/overview.html
