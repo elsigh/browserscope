@@ -486,9 +486,12 @@ def GetStats(request, test_set, output='html', opt_tests=None,
           expando = results_dict[test.key]['expando']
         current_results[test.key]['expando'] = expando
 
-    score, display = test_set.GetRowScoreAndDisplayValue(current_results)
-    stats[current_ua_string]['current_score'] = score
-    stats[current_ua_string]['current_display'] = display
+    current_score, current_display = test_set.GetRowScoreAndDisplayValue(
+        current_results)
+    current_score = Convert100to10Base(current_score)
+
+    stats[current_ua_string]['current_score'] = current_score
+    stats[current_ua_string]['current_display'] = current_display
 
   params = {
     'category': test_set.category,
@@ -554,7 +557,7 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
       user_agent_stats = {
           'total_runs': total_runs,
           'results': user_agent_results,
-          'score': row_score,
+          'score': Convert100to10Base(row_score),
           'display': row_display
           }
       if use_memcache:
@@ -566,8 +569,32 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
   return stats
 
 
-def GetScoreAndDisplayValue(test, median, medians, is_uri_result=False):
+def Convert100to10Base(value):
+  """Converts some value 1-100 to some value 1-10
+  Args:
+    1_100_value: A number, 1-100
+  Returns:
+    A number 1-10
+  """
+  return int(round(float('%s.0' % int(value)) / 10))
 
+
+def GetScoreAndDisplayValue(test, median, medians, is_uri_result=False):
+  """For a test, get its score and display value.
+  A basic version exists here to handle the common boolean case.
+  TODO(slamm,elsigh): Should this be in the test_base?
+  Args:
+    test: A TestBase instance.
+    median: A number, the score median.
+    medians: All the medians in case we need to pass them for normalization.
+    is_uri_result: Boolean, is this a result bit in the url instead of from
+                   the datastore?
+  Returns:
+    (score, display)
+    A tuple of (score, display)
+    Where score is a value between 1-10.
+    And display is the text for the cell.
+  """
   if median is None:
     score = 0
     display = ''
@@ -589,7 +616,7 @@ def GetScoreAndDisplayValue(test, median, medians, is_uri_result=False):
 
     # The custom_tests_function returns a score between 1-100 which we'll
     # turn into a 0-10 display.
-    score = int(round(float('%s.0' % int(score)) / 10))
+    score = Convert100to10Base(score)
 
     #logging.info('got display:%s, score:%s for %s w/ median: %s' %
     #             (display, score, test.key, median))

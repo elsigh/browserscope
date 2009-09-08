@@ -112,5 +112,5 @@ class TestSet(object):
       And display is the text for the cell.
     """
     #logging.info('%s GetRowScore, results:%s' % (self.category, results))
-    return (90, '')
+    return 90, ''
 
