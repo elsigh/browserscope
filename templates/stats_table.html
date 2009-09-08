@@ -2,7 +2,7 @@
   <table cellpadding="0" cellspacing="0">
     <thead>
       <tr>
-        <th scope="col" class="rt-a" colspan="2">
+        <th scope="col" class="rt-ua" colspan="2">
           <form id="rt-stats-{{ category }}-form" action="" method="get">
             <input type="hidden" name="category" value="{{ category }}">
             <input type="hidden" name="{{ category }}_results" value="{{ results_uri_string }}">
@@ -41,19 +41,19 @@
             <tr class="rt-res">
               <td
                 scope="row"
-                class="rt-a
-                       rt-score-{{ stats|by_key:user_agent|by_key:"current_score" }}"
+                class="rt-ua
+                       rt-ua-s-{{ stats|by_key:user_agent|by_key:"current_score" }}"
                 >
                 {{ user_agent }}
               </td>
               <td
-                class="rt-a
-                       rt-score-{{ stats|by_key:user_agent|by_key:"current_score" }}">
+                class="rt-ua-s-d
+                       rt-ua-s-{{ stats|by_key:user_agent|by_key:"current_score" }}">
                 {{ stats|by_key:user_agent|by_key:"current_display" }}
               </td>
               {% for test in tests %}
                 <td
-                  class="rt-score-{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"score" }}"
+                  class="rt-t-s-{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"score" }}"
                   >{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"display" }}
                   {% if is_admin %}
                     {% if stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"expando" %}
@@ -69,13 +69,18 @@
 
         {% if stats|by_key:user_agent|by_key:"results" %}
           <tr
+            class="
             {% ifequal user_agent current_user_agent %}
-              class="rt-ua"
+              rt-ua-cur
             {% endifequal %}
+            {% if forloop.last %}
+              rt-last
+            {% endif %}
+            "
             >
             <td
               scope="row"
-              class="rt-a rt-score-{{ stats|by_key:user_agent|by_key:"score" }}">
+              class="rt-ua rt-ua-s-{{ stats|by_key:user_agent|by_key:"score" }}">
               {{ user_agent }}
               {% if is_admin %}
                 <a href="/clear_memcache?category={{ category }}&ua={{ user_agent }}&continue={{ request_path }}" class="bs-admin">clear</a>
@@ -83,21 +88,21 @@
             </td>
 
             <td
-              class="rt-a
-                     rt-score-{{ stats|by_key:user_agent|by_key:"score" }}">
-              {{ stats|by_key:user_agent|by_key:"current_display" }}
+              class="rt-ua-s-d
+                     rt-ua-s-{{ stats|by_key:user_agent|by_key:"score" }}">
+              {{ stats|by_key:user_agent|by_key:"display" }}
             </td>
 
             {% for test in tests %}
               <td
-                class="rt-score-{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"score" }}"
+                class="rt-t-s-{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"score" }}"
                 >{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"display" }}
               </td>
             {% endfor %}
             <td class="rt-tot">
               {% if stats|by_key:user_agent|by_key:"current_results" %}
                 {% if stats|by_key:user_agent|by_key:"total_runs" %}
-                  tot:{{ stats|by_key:user_agent|by_key:"total_runs" }} - {{ stats|by_key:user_agent|by_key:"total_runs"|add:1 }}
+                  {{ stats|by_key:user_agent|by_key:"total_runs"|add:1 }}
                 {% else %}
                   0
                 {% endif %}
