@@ -59,7 +59,7 @@ def Render(request, template, params={}, category=None):
   params['app_title'] = settings.APP_TITLE
   params['version_id'] = os.environ['CURRENT_VERSION_ID']
   params['epoch'] = int(time.time())
-  params['request_path'] = request.path
+  params['request_path'] = request.get_full_path()
   params['request_path_lastbit'] = re.sub('^.+\/([^\/]+$)', '\\1', request.path)
   params['app_categories'] = []
   params['is_admin'] = users.is_current_user_admin()
@@ -499,7 +499,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     'tests': tests,
     'v': version_level,
     'user_agents': user_agent_group_strings,
-    'request_path': request.path,
+    'request_path': request.get_full_path(),
     'current_user_agent': current_ua_string,
     'stats': stats,
     'params': test_set.default_params,

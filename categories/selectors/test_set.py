@@ -120,7 +120,7 @@ class SelectorsTestSet(test_set_base.TestSet):
       And display is the text for the cell.
     """
     #logging.info('%s GetRowScore, results:%s' % (self.category, results))
-    return 90, ''
+    return 90, 'x/x'
 
 TEST_SET = SelectorsTestSet(
     category=_CATEGORY,
