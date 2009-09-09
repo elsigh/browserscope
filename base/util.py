@@ -265,6 +265,15 @@ def CheckThrottleIpAddress(ip):
 
 
 @decorators.admin_required
+def ShowMemcache(request):
+  stats = memcache.get_stats()
+  response = '<h1>Memcache Stats</h1>'
+  for key, val in stats.items():
+    response += '<h2>%s: %s</h2>' % (key, val)
+  return http.HttpResponse(response)
+
+
+@decorators.admin_required
 def ClearMemcache(request):
   message = []
   continue_url = request.GET.get('continue')
@@ -321,6 +330,7 @@ def ClearMemcache(request):
 def ScheduleRecentTestsUpdate():
   try:
     taskqueue.Task(method='GET').add(queue_name='recent-tests')
+    logging.info('ScheduleRecentTestsUpdate made a task')
   except:
     logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
 
@@ -359,7 +369,7 @@ def Beacon(request):
     return http.HttpResponse(BAD_BEACON_MSG + 'TestSet')
 
   results = ParseResultsParamString(results_string)
-  #logging.info('Beacon results: %s' % results)
+  logging.info('Beacon category: %s\nresults: %s' % (category, results))
 
   user_agent_string = request.META.get('HTTP_USER_AGENT')
   user = users.get_current_user()
@@ -377,12 +387,11 @@ def Beacon(request):
 
   manage_dirty.ScheduleDirtyUpdate()
   ScheduleRecentTestsUpdate()
-  #ScheduleUserAgentGroupUpdate()
 
   if callback:
     return http.HttpResponse(BEACON_COMPLETE_CB_RESPONSE)
   else:
-    # Return a successful empty 204.
+    # Return a successful, empty 204.
     return http.HttpResponse('', status=204)
 
 

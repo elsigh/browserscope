@@ -306,7 +306,6 @@ _TESTS = (
 )
 
 
-
 class RichTextTestSet(test_set_base.TestSet):
 
   def GetRowScoreAndDisplayValue(self, results):
