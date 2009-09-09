@@ -58,6 +58,7 @@ class NetworkTest(test_set_base.TestBase):
         min_value=min_value,
         max_value=max_value)
 
+
   def GetScoreAndDisplayValue(self, median, medians=None, is_uri_result=False):
     """Custom scoring function.
 
@@ -215,6 +216,7 @@ class NetworkTestSet(test_set_base.TestSet):
         total_valid_tests += 1
         if test.score_type == 'boolean' and score == 1:
           total_score += 1
+        # TODO(elsigh): Ask Steve what constitutes a win in the custom tests.
         elif test.score_type == 'custom':
           total_score += 1
 
