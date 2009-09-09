@@ -205,7 +205,6 @@ class NetworkTestSet(test_set_base.TestSet):
     for "display".
 
     """
-    #logging.info('%s GetRowScore, results:%s' % (self.category, results))
     total_tests = 0
     total_valid_tests = 0
     total_score = 0
@@ -214,10 +213,7 @@ class NetworkTestSet(test_set_base.TestSet):
       if results.has_key(test.key):
         score = results[test.key]['score']
         total_valid_tests += 1
-        if test.score_type == 'boolean' and score == 1:
-          total_score += 1
-        # TODO(elsigh): Ask Steve what constitutes a win in the custom tests.
-        elif test.score_type == 'custom' and score == 100:
+        if score == 10:
           total_score += 1
 
     score = int(round(100 * total_score / total_tests))
