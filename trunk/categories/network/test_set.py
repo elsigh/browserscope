@@ -220,7 +220,7 @@ class NetworkTestSet(test_set_base.TestSet):
         elif test.score_type == 'custom' and score == 100:
           total_score += 1
 
-    score = int(100 * (total_score / total_tests))
+    score = int(round(100 * total_score / total_tests))
     display = '%s/%s' % (total_score, total_valid_tests)
 
     return score, display
