@@ -257,6 +257,21 @@ a.bs-admin {
   text-align: left;
 }
 
+html>body .goog-inline-block {
+  display: -moz-inline-box; /* This is ignored by FF3 and later*/
+  display: inline-block; /* This is ignored by pre-FF3 Gecko */
+}
+.goog-inline-block {
+  position: relative;
+  display: inline-block;
+}
+* html .goog-inline-block {
+  display: inline;
+}
+*:first-child+html .goog-inline-block {
+  display: inline;
+}
+
 
 /** Home Page **/
 #bs-home-recent-c {
@@ -302,6 +317,10 @@ a.bs-admin {
 #bs-home-intro-sub {
   margin: 0 0 20px;
   font-weight: bold;
+}
+#bs-home-cur-ua {
+  float: right;
+  font-size: 95%;
 }
 
 #bs-results-title {
@@ -445,12 +464,20 @@ a.bs-admin {
 .rt-stats tfoot em {
   font-size: 70%;
 }
-
+.bs-cur-ua {
+  background: #4291bf;
+  height: 10px;
+  width: 10px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+}
+/*
 .rt-ua-cur td,
 .rt-stats .rt-ua-cur td.rt-ua {
   border-top-color: #4291bf;
   border-bottom-color: #4291bf;
 }
+*/
 
 .rt-res th,
 .rt-res td,

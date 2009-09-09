@@ -194,6 +194,8 @@ def Home(request):
 
   stats_table = GetStats(request, test_set, output='html')
 
+  current_ua = UserAgent.factory(request.META['HTTP_USER_AGENT'])
+
   if request.GET.get('xhr'):
     return http.HttpResponse(stats_table)
   else:
@@ -203,7 +205,8 @@ def Home(request):
       'stats_table_category': test_set.category,
       'stats_table': stats_table,
       'recent_tests': recent_tests,
-      'message': request.GET.get('message')
+      'message': request.GET.get('message'),
+      'current_ua': current_ua.pretty()
     }
     return Render(request, 'home.html', params)
 

@@ -83,6 +83,9 @@
             <td
               scope="row"
               class="rt-ua rt-ua-s-{{ stats|by_key:user_agent|by_key:"score" }}">
+              {% ifequal user_agent current_user_agent %}
+                <span class="bs-cur-ua goog-inline-block"></span>
+              {% endifequal %}
               {{ user_agent }}
               {% if is_admin %}
                 <a href="/clear_memcache?category={{ category }}&ua={{ user_agent }}&continue={{ request_path }}" class="bs-admin">clear</a>

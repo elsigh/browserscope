@@ -35,7 +35,7 @@ BROWSER_NAV = [
 ]
 
 TOP_USER_AGENT_GROUP_STRINGS = [
-  'Chrome 2', 'Chrome 3',
+  'Chrome 2', 'Chrome 3', 'Chrome 4',
   'Firefox 3.0', 'Firefox 3.5',
   'IE 6', 'IE 7', 'IE 8',
   'Opera 9', 'Opera 10',
@@ -43,6 +43,7 @@ TOP_USER_AGENT_GROUP_STRINGS = [
 ]
 #TOP_USER_AGENT_GROUP_STRINGS = ['Firefox 3.0.5', 'Firefox 3.5', 'IE 8']
 
+# Mainly used for SeedDatastore
 TOP_USER_AGENT_STRINGS = (
   ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '
    'AppleWebKit/530.1 (KHTML, like Gecko) '
@@ -50,6 +51,9 @@ TOP_USER_AGENT_STRINGS = (
   ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '
    'AppleWebKit/530.1 (KHTML, like Gecko) '
    'Chrome/3.0.169.1 Safari/530.1'),
+  ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '
+   'AppleWebKit/530.1 (KHTML, like Gecko) '
+   'Chrome/4.0.169.1 Safari/530.1'),
   ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
    'Gecko/2009011912 Firefox/3.0.3'),
   ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
