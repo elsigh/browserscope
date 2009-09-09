@@ -101,8 +101,8 @@ class TestSet(object):
     Args:
       results: A dictionary that looks like:
       {
-        'testkey1': {'score': 1-100, 'median': median, 'display': 'celltext'},
-        'testkey2': {'score': 1-100, 'median': median, 'display': 'celltext'},
+        'testkey1': {'score': 1-10, 'median': median, 'display': 'celltext'},
+        'testkey2': {'score': 1-10, 'median': median, 'display': 'celltext'},
         etc...
       }
 
