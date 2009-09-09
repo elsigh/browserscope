@@ -38,6 +38,14 @@
       browserscope.runTestButton.className = 'bs-btn';
       browserscope.runTestButton.innerHTML = 'Compare my results »';
       browserscope.runTestButton.href = '/?' + browserscope.uriResults;
+      var resultsDisplay = continueParams ?
+            continueParams.join(',') :
+            testResults.join(',');
+      var resultsNode = document.createElement('strong');
+      resultsNode.appendChild(document.createTextNode(
+          '{{ app_category_name }} Tests Done. Score: ' + resultsDisplay));
+      resultsNode.style.marginLeft = '1em';
+      browserscope.runTestButton.parentNode.appendChild(resultsNode);
     {% endif %}
 
     // Update the iframe size if there's one
