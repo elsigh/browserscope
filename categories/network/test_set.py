@@ -217,7 +217,7 @@ class NetworkTestSet(test_set_base.TestSet):
         if test.score_type == 'boolean' and score == 1:
           total_score += 1
         # TODO(elsigh): Ask Steve what constitutes a win in the custom tests.
-        elif test.score_type == 'custom':
+        elif test.score_type == 'custom' and score == 100:
           total_score += 1
 
     score = int(100 * (total_score / total_tests))
