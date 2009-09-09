@@ -646,6 +646,7 @@ def GetStatsTableHtml(params):
   if not re.search('\?', params['request_path']):
     params['request_path'] = params['request_path'] + '?'
   t = loader.get_template('stats_table.html')
+  logging.info('Template Loader got: %s' % t)
   html = t.render(Context(params))
   return html
 
