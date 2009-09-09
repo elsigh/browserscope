@@ -466,6 +466,16 @@
     var results = ['apply=0', 'unapply=0', 'change=0', 'query=0'];
 
     /**
+     *
+     */
+    function resetIframe(newHtml) {
+      // These attributes can get set on the iframe by some errant execCommands
+      editorDoc.body.setAttribute('style', '');
+      editorDoc.body.setAttribute('bgcolor', '');
+      editorDoc.body.innerHTML = newHtml;
+    }
+
+    /**
      * Finds the text node in the given node containing the given word.
      * Returns null if not found.
      */
@@ -539,7 +549,7 @@
         } catch (ex) {
           // Ignore errors
         }
-        editorDoc.body.innerHTML = TEST_CONTENT;
+        resetIframe(TEST_CONTENT);
         if (APPLY_TESTS[command].collapse) {
           selectStart(TEST_WORD);
         } else {
@@ -606,12 +616,12 @@
     function doUnapplyTest(command, index) {
       try {
         var wordStart = TEST_CONTENT.indexOf(TEST_WORD);
-        editorDoc.body.innerHTML =
+        resetIframe(
             TEST_CONTENT.substring(0, wordStart) +
             UNAPPLY_TESTS[command].tags[index][0] +
             TEST_WORD +
             UNAPPLY_TESTS[command].tags[index][1] +
-            TEST_CONTENT.substring(wordStart + TEST_WORD.length);
+            TEST_CONTENT.substring(wordStart + TEST_WORD.length));
         selectWord(TEST_WORD);
         try {
           editorDoc.execCommand(command, false, UNAPPLY_TESTS[command].opt_arg || null);
@@ -698,7 +708,7 @@
      */
     function doQueryTest(command, index) {
       try {
-        editorDoc.body.innerHTML = QUERY_TESTS[command].tests[index].html;
+        resetIframe(QUERY_TESTS[command].tests[index].html);
         selectWord(TEST_WORD);
         // Dummy val that won't match any expected vals, including false.
         var result = UNSUPPORTED;
@@ -782,7 +792,7 @@
 
     function doChangeTest(command, index) {
       try {
-        editorDoc.body.innerHTML = CHANGE_TESTS[command].tests[index].html;
+        resetIframe(CHANGE_TESTS[command].tests[index].html);
         selectWord(TEST_CONTENT);
         try {
           editorDoc.execCommand(command, false, CHANGE_TESTS[command].tests[index].opt_arg);
