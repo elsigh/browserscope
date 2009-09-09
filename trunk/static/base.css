@@ -377,7 +377,7 @@ a.bs-admin {
  */
 .rt-stats {
   font-size: 90%;
-  padding: 5px;
+  margin: 5px;
 }
 .rt-stats .rt-v form {
   padding: 3px 10px;
@@ -396,15 +396,9 @@ a.bs-admin {
 }
 .rt-stats td {
   border: 1px solid #ddd;
-  border-right-width: 0;
   white-space: nowrap;
 }
-.rt-stats thead th {
-  border-right-width: 0;
-}
-.rt-stats tbody:hover td {
-}
-.rt-stats tr:hover td {
+.rt-stats tr[class^="rt-res"]:hover td {
   background-color: #ffffcc;
   border-top-color: #333;
   border-bottom-color: #333;
@@ -412,7 +406,8 @@ a.bs-admin {
 .rt-stats thead td,
 .rt-stats th,
 .rt-stats tfoot,
-.rt-ua {
+.rt-ua,
+.rt-ua-s-d {
   font-weight: normal;
   background-color: #eee;
   padding: .4em .3em;
@@ -421,35 +416,29 @@ a.bs-admin {
 }
 .rt-stats th {
   background: #fff url(/static/img/gradients.png) 0 -163px repeat-x;
+  border-top: 1px solid #ccc;
 }
 .rt-stats td.rt-ua,
 .rt-stats th.rt-ua,
 .rt-stats .rt-ua-s-d {
-  border-right-color: #666;
-  border-left-color: #666;
   white-space: nowrap;
 }
-.rt-stats td.rt-ua,
 .rt-stats th.rt-ua {
-  border-left-width: 3px;
-}
-.rt-stats th.rt-ua {
-  border-top-color: #666;
-  border-width: 3px;
-  border-bottom-width: 0;
   background: #ccc url(/static/img/gradients.png) 0 -88px repeat-x;
+  border-left: 1px solid #ccc;
+  border-right: 3px solid #999;
 }
 .rt-stats td.rt-ua {
   border-right: 0;
+  border-left: 1px solid #ccc;
+}
+.rt-stats .rt-last td {
+  border-bottom-color: #ccc;
 }
 /* score display */
 .rt-stats .rt-ua-s-d {
-  border-right-width: 3px;
-  border-left-width: 0;
-}
-.rt-last td.rt-ua,
-.rt-last td.rt-ua-s-d {
-  border-bottom: 3px solid #666;
+  border-left: 0;
+  border-right: 3px solid #999;
 }
 
 .rt-stats tfoot em {

@@ -32,11 +32,13 @@
     Gathering test results from users "in the wild" is the most important and useful feature of {{ app_title }} - and you can participate!
   </p>
   <p>
-    <a href="/alltests" class="bs-btn">Run the Tests »</a>
+    <a href="/alltests" class="bs-btn">How Does Your Browser Compare? Find Out »</a>
   </p>
+  <!--
   <p>
     So far <strong>X</strong> users have run the tests <strong>X</strong> times on <strong>X</strong> unique browsers.
   </p>
+  -->
 </div>
 
 <h2 id="bs-results-title">Results</h2>
@@ -83,7 +85,8 @@
     // XHR if we need to.
     if (el.innerHTML == '' && !xhrLoading[selectedCategoryLink.category]) {
       el.className = 'bs-loading';
-      el.innerHTML = 'Loading the ' + selectedCategoryLink.category + ' Results...';
+      el.innerHTML = 'Loading the ' + selectedCategoryLink.categoryName +
+          ' Results...';
       xhrLoading[selectedCategoryLink.category] = true;
       var url = '/?category=' + selectedCategoryLink.category +
           '&xhr=1&{{ results_params }}';
@@ -129,6 +132,7 @@
     var re = new RegExp('\\?' + category.key + '_results=');
     li.appendChild(link);
     link.category = category.key;
+    link.categoryName = category.name;
     link.appendChild(document.createTextNode(category.name));
     link.onclick = changeCategoryClickHandler;
     if (category.key == '{{ stats_table_category }}') {

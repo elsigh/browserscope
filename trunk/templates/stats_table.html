@@ -36,7 +36,9 @@
         {% if stats|by_key:user_agent|by_key:"current_results" %}
           {% with stats|by_key:user_agent|by_key:"current_results" as results %}
             <tr>
-              <td colspan="{{ tests|length|add:3 }}" class="rt-tot">Your Results &darr;</td>
+              <td class="rt-ua"></td>
+              <td class="rt-ua-s-d"></td>
+              <td colspan="{{ tests|length|add:1 }}" class="rt-tot">Your Test Results &darr;</td>
             </tr>
             <tr class="rt-res">
               <td
@@ -130,6 +132,6 @@
 </div>
 
 <div class="bs-results-links">
-  <a href="/{{ category }}/test">Run the {{ category_name }} Tests</a>
-  <a href="/{{ category }}/about">Read more about the {{ category_name }} Tests</a>
+  <a href="/{{ category }}/test">Go to the {{ category_name }} Tests</a>
+  <a href="/{{ category }}/about">Learn about the {{ category_name }} Tests</a>
 </div>
