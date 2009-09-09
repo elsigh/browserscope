@@ -102,8 +102,9 @@
       var html = xhrio.getResponseText();
       categorySections[category].innerHTML = html;
     } else {
-      alert('Oops, looks like we encountered a server error. ' +
-          'The appropriate nerd has been notified, feel free to try again.');
+      alert('We encountered an error. ' +
+          'We are indeed aware of this issue, and apologize. ' +
+          'Feel free to try refresh and try again.');
       xhrLoading[category] = false;
       categorySections[category].innerHTML = '';
     }
