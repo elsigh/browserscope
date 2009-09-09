@@ -94,7 +94,11 @@ class Acid3TestSet(test_set_base.TestSet):
       Where score is a value between 1-100.
       And display is the text for the cell.
     """
-    return (results['score']['median'], '')
+    if results['score']['median'] is None:
+      score = 0
+    else:
+      score = results['score']['median']
+    return score, ''
 
 
 TEST_SET = Acid3TestSet(
