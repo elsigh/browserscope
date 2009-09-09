@@ -205,7 +205,7 @@ class NetworkTestSet(test_set_base.TestSet):
     for "display".
 
     """
-    logging.info('%s GetRowScore, results:%s' % (self.category, results))
+    #logging.info('%s GetRowScore, results:%s' % (self.category, results))
     total_tests = 0
     total_valid_tests = 0
     total_score = 0
