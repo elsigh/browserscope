@@ -92,7 +92,13 @@ class RichtextTest(test_set_base.TestBase):
         else:
           display_score += test_median
 
-    score = int(display_score / num_tests)
+    # This really should not happen
+    if num_tests <= 0:
+      num_tests = 1
+      score = 0
+    else:
+      score = int(display_score / num_tests)
+
     display = '%s/%s' % (display_score, num_tests)
     return score, display
 
