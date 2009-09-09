@@ -412,7 +412,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     opt_tests: list of tests.
     use_memcache: Use memcache or not.
   """
-  #logging.info('GetStats for %s' % test_set.category)
+  logging.info('GetStats for %s' % test_set.category)
   version_level = request.GET.get('v', 'top')
   user_agent_group_strings = UserAgentGroup.GetStrings(version_level)
   #logging.info('GetStats: v: %s, uas: %s' % (version_level,
@@ -421,6 +421,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   tests = opt_tests or test_set.tests
   stats = GetStatsData(test_set.category, tests, user_agent_group_strings,
                        test_set.default_params, use_memcache, version_level)
+  logging.info('GetStats got stats: %s' % stats)
 
   # Reset tests now to only be "visible" tests.
   tests = [test for test in tests
@@ -505,7 +506,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     'params': test_set.default_params,
     'results_uri_string': results_uri_string
   }
-  #logging.info("PARAMS: %s", str(params))
+  logging.info("GetStats got params: %s", str(params))
   if output is 'html':
     return GetStatsTableHtml(params)
   else:
@@ -516,7 +517,7 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
                  version_level='top'):
   """This is the meat and potatoes of the stats."""
   #use_memcache=False
-  #logging.info('GetStatsData for %s\n %s\n %s\n %s' % (category, tests, user_agents, params))
+  logging.info('GetStatsData category:%s\n tests:%s\n user_agents:%s\n params:%s\nuse_memcache:%s\nversion_level:%s' % (category, tests, user_agents, params, use_memcache, version_level))
   stats = {}
   for user_agent in user_agents:
     user_agent_stats = None
@@ -524,16 +525,19 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
       memcache_ua_key = '%s_%s' % (category, user_agent)
       user_agent_stats = memcache.get(
           key=memcache_ua_key, namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
+    logging.info('GetStatsData got user_agent_stats:%s from memcache.' %
+                 user_agent_stats)
     if not user_agent_stats:
       medians = {}
       total_runs = None
       user_agent_results = {}
       user_agent_score = 0
       for test in tests:
+        logging.info('GetStatsData working on test: %s' % test)
         median, total_runs = test.GetRanker(
             user_agent, params).GetMedianAndNumScores(num_scores=total_runs)
         medians[test.key] = median
-
+      logging.info('GetStatsData medians pass1: %s' % medians)
 
       # Reset tests now to only be "visible" tests.
       visible_tests = [test for test in tests
@@ -566,6 +570,8 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
                      namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
     if version_level == 'top' or user_agent_stats['total_runs']:
       stats[user_agent] = user_agent_stats
+
+  logging.info('GetStatsData done, stats: %s' % stats)
   return stats
 
 

@@ -120,9 +120,12 @@ class SelectorsTestSet(test_set_base.TestSet):
       And display is the text for the cell.
     """
     #logging.info('%s GetRowScore, results:%s' % (self.category, results))
-    score = str(int(100.0 * results['passed']['median'] /
-        (results['passed']['median'] + results['failed']['median'])))
-    #logging.info('score: %s' % score)
+    if results['passed']['median'] is None or results['failed']['median'] is None:
+      score = 0
+    else:
+      score = str(int(100.0 * results['passed']['median'] /
+          (results['passed']['median'] + results['failed']['median'])))
+      #logging.info('score: %s' % score)
     return score, ''
 
 TEST_SET = SelectorsTestSet(
