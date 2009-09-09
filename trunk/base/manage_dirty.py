@@ -32,6 +32,8 @@ from django import http
 from models.result import ResultParent
 from models.result import ResultTime
 
+from base import decorators
+
 import settings
 
 
@@ -53,10 +55,12 @@ class UpdateDirtyController(db.Model):
   @classmethod
   def IsPaused(cls):
     is_paused = memcache.get(key='paused', namespace=cls.NAMESPACE)
+    logging.info('UpdateDirtyController is_paused: %s' % is_paused)
     if is_paused is None:
       is_paused = cls.get_or_insert(
           key_name=cls.NAMESPACE, is_paused=False).is_paused
       memcache.set(key='paused', value=is_paused, namespace=cls.NAMESPACE)
+    logging.info('UpdateDirtyController returning is_paused: %s' % is_paused)
     return is_paused
 
   @classmethod
@@ -149,6 +153,14 @@ def UpdateDirty(request):
     UpdateDirtyController.ReleaseLock()
 
 
+@decorators.admin_required
+def UnPauseUpdateDirty(request):
+  paused_was = UpdateDirtyController.IsPaused()
+  UpdateDirtyController.SetPaused(False)
+  paused_is = UpdateDirtyController.IsPaused()
+  return http.HttpResponse('UnPauseUpdateDirty Done. Was: %s, Is: %s' %
+                           (paused_was, paused_is))
+
 
 def MakeDirty(request):
   """For testing purposes, make some tests dirty."""
@@ -163,18 +175,25 @@ def MakeDirty(request):
 
 
 def ScheduleDirtyUpdate(result_parent_instance_or_key=None):
+  logging.info('ScheduleDirtyUpdate result_parent_instance_or_key:%s'
+               % result_parent_instance_or_key)
   if UpdateDirtyController.IsPaused():
     # The update will happen when UpdateDirty is unpaused.
+    logging.info('ScheduleDirtyUpdate: UpdateDirtyController.IsPaused')
     return
   try:
     result_parent_key = result_parent_instance_or_key
     if hasattr(result_parent_instance_or_key, 'key'):
       result_parent_key = result_parent_instance_or_key.key()
+    logging.info('ScheduleDirtyUpdate result_parent_key: %s' %
+                 result_parent_key)
     if not result_parent_key:
       result_parent_key = _GetNextDirty()
     if result_parent_key:
       task = taskqueue.Task(
           method='GET', params={'result_parent_key': result_parent_key}).add(queue_name='update-dirty')
+      logging.info('Added update-dirty task for result_parent_key: %s' %
+                   result_parent_key)
     else:
       logging.info('No dirty result times to schedule.')
   except:
