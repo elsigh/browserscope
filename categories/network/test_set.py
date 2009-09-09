@@ -193,37 +193,35 @@ class NetworkTestSet(test_set_base.TestSet):
       Where score is a value between 1-100.
       And display is the text for the cell.
 
-    Logic: (thanks Lindsey ;-)
 
-    totalTests = 0;
-    totalValidTests = 0;
-    totalScore = 0;
-    for testkey in results {
-    	totalTests++;
-    	score = results[testkey]['score'];
-    	if ( NULL != score ) {
-    		totalValidTests++;
-    		if ( score == 100 ) {
-    			totalScore++;
-    		}
-    	}
-    }
-    
-    return (int( 100*(totalScore/totalTests) ), totalScore + '/' + totalValidTests);
-    
-    //   Why do we use totalTests as the divisor for "score", but totalValidTests as the divisor for "display"?
-    //   There are going to be old browsers that are no longer tested. They might have gotten 6/8 (75%) 
-    // back in the old days, but now we've added more tests and they'd be lucky to get 6/12 (50%). If
-    // we compare 6/8 to newer browsers that get 8/12, the old browser would win, even though it would
-    // fail in side-by-side testing, so we have to use totalTests as the divisor for "score".
-    //   But we can't misrepresent the actual tests that were performed, so we have to show the user the
-    // actual number of tests for which we have results, which means using totalValidTests as the divisor
-    // for "display".
+    Why do we use totalTests as the divisor for "score", but totalValidTests as the divisor for "display"?
+    There are going to be old browsers that are no longer tested. They might have gotten 6/8 (75%)
+    back in the old days, but now we've added more tests and they'd be lucky to get 6/12 (50%). If
+    we compare 6/8 to newer browsers that get 8/12, the old browser would win, even though it would
+    fail in side-by-side testing, so we have to use totalTests as the divisor for "score".
+    But we can't misrepresent the actual tests that were performed, so we have to show the user the
+    actual number of tests for which we have results, which means using totalValidTests as the divisor
+    for "display".
 
     """
-    #logging.info('%s GetRowScore, results:%s' % (self.category, results))
+    logging.info('%s GetRowScore, results:%s' % (self.category, results))
+    total_tests = 0
+    total_valid_tests = 0
+    total_score = 0
+    for test in self.tests:
+      total_tests += 1
+      if results.has_key(test.key):
+        score = results[test.key]['score']
+        total_valid_tests += 1
+        if test.score_type == 'boolean' and score == 1:
+          total_score += 1
+        elif test.score_type == 'custom':
+          total_score += 1
 
-    return (90, '8/11')
+    score = int(100 * (total_score / total_tests))
+    display = '%s/%s' % (total_score, total_valid_tests)
+
+    return score, display
 
 
 TEST_SET = NetworkTestSet(
