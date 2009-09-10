@@ -148,7 +148,7 @@ _TESTS = (
   last column of the test output shows the resulting HTML after applying the
   execCommand.''',
   is_hidden_stat=False, score_type='custom'),
-  RichtextTest('query', 'Query State and Value',
+  RichtextTest('query', 'Query Formatting State and Value',
   '''These tests run queryCommandState (for execCommands with no argument)
   and queryCommandValue (for execCommands with an argument) on HTML with
   various types of formatting.''',
