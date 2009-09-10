@@ -274,19 +274,21 @@ def CheckThrottleIpAddress(ip, user_agent_string):
   Returns:
     A Boolean, True if things are aok, False otherwise.
   """
-  key = '%s_%s' % (ip, user_agent_string)
-  timeout = 60
-  runs_per_timeout = len(settings.CATEGORIES)
-
-  runs = memcache.get(key, IP_THROTTLE_NS)
-  #logging.info('CheckThrottleIpAddress runs: %s' % runs)
-  if runs is None:
-    memcache.set(key=key, value=1, time=60, namespace=IP_THROTTLE_NS)
-  elif runs <= runs_per_timeout:
-    memcache.incr(key=key, delta=1,namespace=IP_THROTTLE_NS)
-  else:
-    return False
+  #TODO(elsigh): Don't launch without turning this on.
   return True
+  # key = '%s_%s' % (ip, user_agent_string)
+  # timeout = 60
+  # runs_per_timeout = len(settings.CATEGORIES)
+
+  # runs = memcache.get(key, IP_THROTTLE_NS)
+  # #logging.info('CheckThrottleIpAddress runs: %s' % runs)
+  # if runs is None:
+  #   memcache.set(key=key, value=1, time=60, namespace=IP_THROTTLE_NS)
+  # elif runs <= runs_per_timeout:
+  #   memcache.incr(key=key, delta=1,namespace=IP_THROTTLE_NS)
+  # else:
+  #   return False
+  # return True
 
 
 @decorators.admin_required
@@ -355,7 +357,7 @@ def ClearMemcache(request):
 def ScheduleRecentTestsUpdate():
   try:
     taskqueue.Task(method='GET').add(queue_name='recent-tests')
-    logging.info('ScheduleRecentTestsUpdate made a task')
+    #logging.info('ScheduleRecentTestsUpdate made a task')
   except:
     logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
 
@@ -457,7 +459,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   tests = opt_tests or test_set.tests
   stats = GetStatsData(test_set.category, tests, user_agent_group_strings,
                        test_set.default_params, use_memcache, version_level)
-  logging.info('GetStats got stats: %s' % stats)
+  #logging.info('GetStats got stats: %s' % stats)
 
   # Reset tests now to only be "visible" tests.
   tests = [test for test in tests
@@ -542,7 +544,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     'params': test_set.default_params,
     'results_uri_string': results_uri_string
   }
-  logging.info("GetStats got params: %s", str(params))
+  #logging.info("GetStats got params: %s", str(params))
   if output is 'html':
     return GetStatsTableHtml(params)
   else:
@@ -553,7 +555,7 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
                  version_level='top'):
   """This is the meat and potatoes of the stats."""
   #use_memcache=False
-  logging.info('GetStatsData category:%s\n tests:%s\n user_agents:%s\n params:%s\nuse_memcache:%s\nversion_level:%s' % (category, tests, user_agents, params, use_memcache, version_level))
+  #logging.info('GetStatsData category:%s\n tests:%s\n user_agents:%s\n params:%s\nuse_memcache:%s\nversion_level:%s' % (category, tests, user_agents, params, use_memcache, version_level))
   stats = {}
   for user_agent in user_agents:
     user_agent_stats = None
@@ -561,19 +563,18 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
       memcache_ua_key = '%s_%s' % (category, user_agent)
       user_agent_stats = memcache.get(
           key=memcache_ua_key, namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
-    logging.info('GetStatsData got user_agent_stats:%s from memcache.' %
-                 user_agent_stats)
+    logging.info('GetStatsData memcache user_agent: %s\nuser_agent_stats:%s' % (user_agent, user_agent_stats))
     if not user_agent_stats:
       medians = {}
       total_runs = None
       user_agent_results = {}
       user_agent_score = 0
       for test in tests:
-        logging.info('GetStatsData working on test: %s' % test)
+        #logging.info('GetStatsData working on test: %s' % test)
         median, total_runs = test.GetRanker(
             user_agent, params).GetMedianAndNumScores(num_scores=total_runs)
         medians[test.key] = median
-      logging.info('GetStatsData medians pass1: %s' % medians)
+      logging.info('GetStatsData %s medians pass #1: %s' % (user_agent, medians))
 
       # Reset tests now to only be "visible" tests.
       visible_tests = [test for test in tests
@@ -604,10 +605,11 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
         memcache.set(key=memcache_ua_key, value=user_agent_stats,
                      time=settings.STATS_MEMCACHE_TIMEOUT,
                      namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
+        logging.info('GetStatsData added user_agent %s stats to memcache' % user_agent)
     if version_level == 'top' or user_agent_stats['total_runs']:
       stats[user_agent] = user_agent_stats
 
-  logging.info('GetStatsData done, stats: %s' % stats)
+  #logging.info('GetStatsData done, stats: %s' % stats)
   return stats
 
 

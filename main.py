@@ -31,23 +31,26 @@ InstallAppengineHelperForDjango()
 
 # Google App Engine imports.
 from google.appengine.ext.webapp import util
+from google.appengine.api import users
 
 # Import the part of Django that we use here.
 import django.core.handlers.wsgi
 
+
 def profile_main():
-  # Wrap the main function for profiling
-  import cProfile, pstats
+  # This is the main function for profiling
+  import cProfile, pstats, StringIO
   prof = cProfile.Profile()
   prof = prof.runctx('main()', globals(), locals())
-  print '<pre>'
-  stats = pstats.Stats(prof)
-  stats.sort_stats('time')  # Or cumulative
+  stream = StringIO.StringIO()
+  stats = pstats.Stats(prof, stream=stream)
+  stats.sort_stats('cumulative')  # Or cumulative
   stats.print_stats(80)  # 80 = how many to print
   # The rest is optional.
   # stats.print_callees()
   # stats.print_callers()
-  print '</pre>'
+  logging.info('Profile data:\n%s', stream.getvalue())
+
 
 def main():
   # Ensure the Django zipfile is in the path if required.
@@ -62,8 +65,8 @@ def main():
 
 
 if __name__ == '__main__':
-  use_profiler = False
-  if use_profiler:
+  profile_main = False
+  if profile_main:
     profile_main()
   else:
     main()
