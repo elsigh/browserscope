@@ -262,8 +262,30 @@ def Contribute(request):
   return Render(request, 'contribute.html', params)
 
 
-def CheckThrottleIpAddress(ip):
-  """Will check for over-zealous beacon abusers and bots."""
+IP_THROTTLE_NS = 'IPTHROTTLE'
+def CheckThrottleIpAddress(ip, user_agent_string):
+  """Will check for over-zealous beacon abusers and bots.
+  We only use memcache here, so if we allow some extras in b/c of that, phooey.
+  This throttle allows you to "RunAllTests" once per minute.
+
+  Args:
+    ip: A masked IP address string.
+    user_agent_string: A user agent string.
+  Returns:
+    A Boolean, True if things are aok, False otherwise.
+  """
+  key = '%s_%s' % (ip, user_agent_string)
+  timeout = 60
+  runs_per_timeout = len(settings.CATEGORIES)
+
+  runs = memcache.get(key, IP_THROTTLE_NS)
+  #logging.info('CheckThrottleIpAddress runs: %s' % runs)
+  if runs is None:
+    memcache.set(key=key, value=1, time=60, namespace=IP_THROTTLE_NS)
+  elif runs <= runs_per_timeout:
+    memcache.incr(key=key, delta=1,namespace=IP_THROTTLE_NS)
+  else:
+    return False
   return True
 
 
@@ -348,10 +370,13 @@ def Beacon(request):
   """
   # First make sure this IP is not being an overachiever ;)
   ip = request.META.get('REMOTE_ADDR')
-  if not CheckThrottleIpAddress(ip):
-    return http.HttpResponseServerError(BAD_BEACON_MSG + 'IP')
-  # Mask the IP for storage
+  # Mask the IP. TODO(rc4? instead)
   ip = hashlib.md5(ip).hexdigest()
+
+  user_agent_string = request.META.get('HTTP_USER_AGENT')
+
+  if not CheckThrottleIpAddress(ip, user_agent_string):
+    return http.HttpResponseServerError(BAD_BEACON_MSG + 'IP')
 
   callback = request.REQUEST.get('callback', None)
   category = request.REQUEST.get('category', None)
@@ -374,7 +399,6 @@ def Beacon(request):
   results = ParseResultsParamString(results_string)
   logging.info('Beacon category: %s\nresults: %s' % (category, results))
 
-  user_agent_string = request.META.get('HTTP_USER_AGENT')
   user = users.get_current_user()
 
   params = request.REQUEST.get('params', [])
