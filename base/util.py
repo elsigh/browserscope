@@ -438,7 +438,11 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   """
   logging.info('GetStats for %s' % test_set.category)
   version_level = request.GET.get('v', 'top')
-  user_agent_group_strings = UserAgentGroup.GetStrings(version_level)
+  ua = request.GET.get('ua')
+  if ua:
+    user_agent_group_strings = [ua]
+  else:
+    user_agent_group_strings = UserAgentGroup.GetStrings(version_level)
   #logging.info('GetStats: v: %s, uas: %s' % (version_level,
   #             user_agent_group_strings))
 
