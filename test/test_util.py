@@ -164,9 +164,16 @@ class TestUtilHandlers(unittest.TestCase):
 
 class TestUtilFunctions(unittest.TestCase):
 
-  def testCheckThrottleIpAddress(self):
-    self.assertEqual(True, util.CheckThrottleIpAddress('192.168.1.1'))
+  def setUp(self):
+    memcache.flush_all()
 
+  def testCheckThrottleIpAddress(self):
+    ip = mock_data.UNIT_TEST_UA['REMOTE_ADDR']
+    ua_string = mock_data.UNIT_TEST_UA['HTTP_USER_AGENT']
+    for i in range(len(settings.CATEGORIES) + 1):
+      self.assertEqual(True, util.CheckThrottleIpAddress(ip, ua_string))
+    # The next one should bomb.
+    self.assertEqual(False, util.CheckThrottleIpAddress(ip, ua_string))
 
   def testParseResultsParamString(self):
     expected = [{'score': 5, 'key': 'test1'}, {'score': 10, 'key': 'test2'}]
