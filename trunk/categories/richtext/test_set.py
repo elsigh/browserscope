@@ -323,8 +323,22 @@ class RichTextTestSet(test_set_base.TestSet):
       Where score is a value between 1-100.
       And display is the text for the cell.
     """
-    #logging.info('%s GetRowScore, results:%s' % (self.category, results))
-    return (90, 'x/x')
+    total_passed = 0
+    total_tests = 0
+    for test_key, test_results in results.items():
+      display = test_results['display']
+
+      # If we ever see display = '' we know we can just walk away
+      if display == '':
+        return 0, ''
+
+      passed, total = display.split('/')
+      total_passed += int(passed)
+      total_tests += int(total)
+
+    score = int(round(100 * total_passed / total_tests))
+    display = '%s/%s' % (total_passed, total_tests)
+    return score, display
 
 
 TEST_SET = RichTextTestSet(
