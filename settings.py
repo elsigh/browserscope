@@ -26,9 +26,7 @@ BUILD = 'production'
 if 'Dev' in os.getenv('SERVER_SOFTWARE'):
   BUILD = 'development'
   DEBUG = True
-
-# TODO(elsigh): Set TEMPLATE_DEBUG to DEBUG
-TEMPLATE_DEBUG = True
+TEMPLATE_DEBUG = DEBUG
 
 # good gawd, why does this default to True?
 APPEND_SLASH = False
