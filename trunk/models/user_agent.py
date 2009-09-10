@@ -80,15 +80,18 @@ TOP_USER_AGENT_STRINGS = (
 
 
 class UserAgentParser(object):
-  def __init__(self, pattern, family_replacement=None):
+  def __init__(self, pattern, family_replacement=None, v1_replacement=None):
     """Initialize UserAgentParser.
 
     Args:
       pattern: a regular expression string
       family_replacement: a string to override the matched family (optional)
+      v1_replacement: a string to override the matched v1 (optional)
     """
-    self.user_agent_re = re.compile(pattern)
+    self.pattern = pattern
+    self.user_agent_re = re.compile(self.pattern)
     self.family_replacement = family_replacement
+    self.v1_replacement = v1_replacement
 
   def MatchSpans(self, user_agent_string):
     match_spans = []
@@ -103,74 +106,115 @@ class UserAgentParser(object):
     match = self.user_agent_re.search(user_agent_string)
     if match:
       if self.family_replacement:
-        family = self.family_replacement
+        if re.search(r'\$1', self.family_replacement):
+          family = re.sub(r'\$1', match.group(1), self.family_replacement)
+        else:
+          family = self.family_replacement
       else:
         family = match.group(1)
-      if match.lastindex >= 2:
-        v1 = match.group(2)
-        if match.lastindex >= 3:
-          v2 = match.group(3)
-          if match.lastindex >= 4:
-            v3 = match.group(4)
+
+      if self.v1_replacement:
+        v1 = self.v1_replacement
+      else:
+        if match.lastindex >= 2:
+          v1 = match.group(2)
+
+      if match.lastindex >= 3:
+        v2 = match.group(3)
+        if match.lastindex >= 4:
+          v3 = match.group(4)
     return family, v1, v2, v3
 
 
-browser_names = (
-    'Camino|Chrome|Dillo|Epiphany|Fennec|Flock|'
-    'Galeon|GranParadiso|iCab|Iceape|Iceweasel|Iron|'
-    'K-Meleon|Kazehakase|Konqueror|Lunascape|Lynx|'
-    'Minefield|NetFront|NetNewsWire|Netscape|Opera Mini|'
-    'SeaMonkey|Shiira|Shiretoko|Sleipnir|'
-    'Vienna|Vodafone|WebPilot'
-    )
-browser_slash_v123_names = '%s|Demeter|Fluid|OmniWeb|Sunrise' % browser_names
-browser_slash_v12_names = '%s|Arora|IBrowse|Opera|Phoenix' % browser_names
+
+browser_slash_v123_names = (
+    'Jasmine|ANTGalio|Midori|Fresco|Lobo|Maxthon|Lynx|OmniWeb|Dillo|Camino|'
+    'Demeter|Fluid|Fennec|Shiira|Sunrise|Chrome|Flock|Netscape|Lunascape|'
+    'Epiphany|WebPilot|Vodafone|NetFront|Konqueror|SeaMonkey|Kazehakase|'
+    'Vienna|Iceape|Iceweasel|IceWeasel|Iron|K-Meleon|Sleipnir|Galeon|'
+    'GranParadiso|Opera Mini|iCab|NetNewsWire|Iron')
+
+browser_slash_v12_names = (
+    'Bolt|Jasmine|Maxthon|Lynx|Arora|IBrowse|Dillo|Camino|Shiira|Fennec|'
+    'Phoenix|Chrome|Flock|Netscape|Lunascape|Epiphany|WebPilot|'
+    'Opera Mini|Opera|Vodafone|'
+    'NetFront|Konqueror|SeaMonkey|Kazehakase|Vienna|Iceape|Iceweasel|IceWeasel|'
+    'Iron|K-Meleon|Sleipnir|Galeon|GranParadiso|'
+    'iCab|NetNewsWire|Iron')
 
 _P = UserAgentParser
 USER_AGENT_PARSERS = (
-  # Browser/v1.v2.v3
-  _P(r'(%s)/(\d+)\.(\d+)\.(\d+)' % browser_slash_v123_names),
-  _P(r'(Camino|Fennec|Minefield|Shiretoko)/(\d+)\.(\d+)([ab]\d+[a-z]*)'),
-  _P(r'(Fennec)/(\d+)\.(\d+)(pre)'),
+  #### SPECIAL CASES TOP ####
   # must go before Opera
   _P(r'(Wii)'),
-  # New Opera UA string
-  # http://dev.opera.com/articles/view/opera-ua-string-changes/
-  _P(r'(Opera)\/9\.80.*Version\/(\d+)\.(\d+)'),
+  # must go before Browser/v1.v2 - eg: Minefield/3.1a1pre
+  # TODO(elsigh): ask Steve about "Steve has Firefox (Shiretoko) 3.5.1, we got Firefox (Shiretoko) 3.5.1pre for Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.1pre) Gecko/20090706 Shiretoko/3.5.1pre (.NET CLR 3.5.30729) FirePHP/0.3" - i.e. the additional \.?
+  _P(r'(Namoroka|Shiretoko|Minefield)/(\d+)\.(\d+)\.?([ab]?\d+[a-z]*)',
+     'Firefox ($1)'),
+  _P(r'(Namoroka|Shiretoko|Minefield)/(\d+)\.(\d+)',
+     'Firefox ($1)'),
+  _P(r'(SeaMonkey|Fennec|Camino)/(\d+)\.(\d+)([ab]?\d+[a-z]*)'),
+  # eg: Fennec/0.9pre
+  _P(r'(Fennec)/(\d+)\.(\d+)(pre)'),
+  _P(r'(Navigator)/(\d+)\.(\d+)\.(\d+)', 'Netscape'),
+  _P(r'(Navigator)/(\d+)\.(\d+[ab]\d+)', 'Netscape'),
+  _P(r'(Netscape6)/(\d+)\.(\d+)\.(\d+)', 'Netscape'),
+  _P(r'(MyIBrow)/(\d+)\.(\d+)', 'My Internet Browser'),
+  _P(r'(Firefox).*Tablet browser (\d+)\.(\d+)\.(\d+)', 'MicroB'),
+  # Opera will stop at 9.80 and hide the real version in the Version string.
+  # see: http://dev.opera.com/articles/view/opera-ua-string-changes/
+  _P(r'(Opera)/9.80.*Version\/(\d+)\.(\d+)\.(\d+)'),
+  _P(r'(Opera)/9.80.*Version\/(\d+)\.(\d+)'),
+
+  _P(r'(Firefox)/(\d+)\.(\d+)\.(\d+) \(Swiftfox\)', 'Swiftfox'),
+  _P(r'(Firefox)/(\d+)\.(\d+)\.(\d+pre) \(Swiftfox\)', 'Swiftfox'),
+  _P(r'(Firefox)/(\d+)\.(\d+)([ab]\d+[a-z]*) \(Swiftfox\)', 'Swiftfox'),
+  _P(r'(Firefox)/(\d+)\.(\d+) \(Swiftfox\)', 'Swiftfox'),
+
+  #### END SPECIAL CASES TOP ####
+
+  #### MAIN CASES - this catches > 50% of all browsers ####
+  # Browser/v1.v2.v3
+  _P(r'(%s)/(\d+)\.(\d+)\.(\d+)' % browser_slash_v123_names),
   # Browser/v1.v2
   _P(r'(%s)/(\d+)\.(\d+)' % browser_slash_v12_names),
   # Browser v1.v2.v3 (space instead of slash)
-  _P(r'(iCab|Lunascape|SkipStone|Sleipnir) (\d+)\.(\d+)\.(\d+)'),
+  _P(r'(iRider|Crazy Browser|SkipStone|iCab|Lunascape|Sleipnir) (\d+)\.(\d+)\.(\d+)'),
   # Browser v1.v2 (space instead of slash)
-  _P(r'(Android|iCab|Lunascape|Opera) (\d+)\.(\d+)'),
-  # RECLASSIFY as Netscape
-  _P(r'(Navigator)/(\d+)\.(\d+)\.(\d+)',
-     family_replacement='Netscape'),
-  _P(r'(Firefox).*Tablet browser (\d+)\.(\d+)\.(\d+)',
-     family_replacement='MicroB'),
+  _P(r'(iCab|Lunascape|Opera|Android) (\d+)\.(\d+)'),
+  _P(r'(IEMobile) (\d+)\.(\d+)', 'IE Mobile'),
   # DO THIS AFTER THE EDGE CASES ABOVE!
   _P(r'(Firefox)/(\d+)\.(\d+)\.(\d+)'),
   _P(r'(Firefox)/(\d+)\.(\d+)([ab]\d+[a-z]*)'),
+  _P(r'(Firefox)/(\d+)\.(\d+)(pre)'),
   _P(r'(Firefox)/(\d+)\.(\d+)'),
-  # Special cases.
+  #### END MAIN CASES ####
+
+  #### SPECIAL CASES ####
+  #_P(r''),
+  _P(r'(Obigo)[^\d]*(\d+)'),
+  _P(r'OBIGO[^\d]*(\d+)', 'Obigo'),
   _P(r'(MAXTHON|Maxthon) (\d+)\.(\d+)',
      family_replacement='Maxthon'),
-  _P(r'(Maxthon|MyIE2)'),
+  _P(r'(Maxthon|MyIE2|Uzbl)', v1_replacement='0'),
   _P(r'(PLAYSTATION) (\d+)',
-     family_replacement='Playstation'),
+     family_replacement='PlayStation'),
   _P(r'(BrowseX) \((\d+)\.(\d+)\.(\d+)'),
   _P(r'(Opera)/(\d+)\.(\d+).*Opera Mobi', 'Opera Mobile'),
   _P(r'(POLARIS)/(\d+)\.(\d+)',
      family_replacement='Polaris'),
+  _P(r'(BonEcho)/(\d+)\.(\d+)\.(\d+)', 'Bon Echo'),
   _P(r'(iPhone) OS (\d+)_(\d+)_(\d+)'),
   _P(r'(iPhone) OS (\d+)_(\d+)'),
-  _P(r'(Avant)'),
+  _P(r'(Avant)', v1_replacement='1'),
   _P(r'(Nokia)[EN](\d+)'),
   _P(r'(Nokia)(\d+)'),
   _P(r'(Blackberry)(\d+)'),
   _P(r'(BlackBerry)(\d+)',
      family_replacement='Blackberry'),
   _P(r'(OmniWeb)/v(\d+)\.(\d+)'),
+  _P(r'(Blazer)/(\d+)\.(\d+)', 'Palm Blazer'),
+  _P(r'(Pre)/(\d+)\.(\d+)', 'Palm Pre'),
   _P(r'(Links) \((\d+)\.(\d+)'),
   _P(r'(QtWeb) Internet Browser/(\d+)\.(\d+)'),
   _P(r'(Version)/(\d+)\.(\d+)\.(\d+).*Safari/',
@@ -178,7 +222,7 @@ USER_AGENT_PARSERS = (
   _P(r'(Version)/(\d+)\.(\d+).*Safari/',
      family_replacement='Safari'),
   _P(r'(OLPC)/Update(\d+)\.(\d+)'),
-  _P(r'(OLPC)/Update\.(\d+)'),
+  _P(r'(OLPC)/Update\.(\d+)', v1_replacement='0'),
   _P(r'(MSIE) (\d+)\.(\d+)',
      family_replacement='IE'),
 )
@@ -316,6 +360,7 @@ class UserAgent(db.Model):
     for parser in USER_AGENT_PARSERS:
       family, v1, v2, v3 = parser.Parse(user_agent_string)
       if family:
+        #logging.info('Used pattern: %s' % parser.pattern)
         return family, v1, v2, v3
     return 'Other', None, None, None
 
@@ -339,7 +384,7 @@ class UserAgent(db.Model):
       if v3[0].isdigit():
         return '%s %s.%s.%s' % (family, v1, v2, v3)
       else:
-        return '%s %s.%s %s' % (family, v1, v2, v3)
+        return '%s %s.%s%s' % (family, v1, v2, v3)
     elif v2:
       return '%s %s.%s' % (family, v1, v2)
     elif v1:

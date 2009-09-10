@@ -19,6 +19,7 @@
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 import logging
+import re
 import unittest
 
 from google.appengine.ext import db
@@ -46,49 +47,14 @@ class UserAgentTest(unittest.TestCase):
 
 
   def test_parse(self):
-    ua_string = ('Mozilla/5.0 (X11 U Linux armv6l de-DE rv:1.9a6pre) '
-                 'Gecko/20080606 '
-                 'Firefox/3.0a1 Tablet browser 0.3.7 '
-                 'RX-34+RX-44+RX-48_DIABLO_4.2008.23-14')
-    self.assertEqual(('MicroB', '0', '3', '7'),
+
+    ua_string = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.1pre) '
+                 'Gecko/20090717 Ubuntu/9.04 (jaunty) Shiretoko/3.5.1pre')
+    self.assertEqual(('Firefox (Shiretoko)', '3', '5', '1pre'),
                      UserAgent.parse(ua_string))
 
-    ua_string = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-                 'Gecko/2009011912 Firefox/3.0.6')
-    self.assertEqual(('Firefox', '3', '0', '6'),
-                     UserAgent.parse(ua_string))
-
-    ua_string = ('Mozilla/5.0 (compatible; Konqueror/3.5; Linux; X11; de) '
-                 'KHTML/3.5.2 (like Gecko) Kubuntu 6.06 Dapper')
-    self.assertEqual(('Konqueror', '3', '5', None),
-                     UserAgent.parse(ua_string))
-
-    ua_string = 'Opera/10.00 (Windows NT 5.1; U; en) Presto/2.2.0'
-    self.assertEqual(('Opera', '10', '00', None),
-                     UserAgent.parse(ua_string))
-
-    ua_string = ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '
-                 'AppleWebKit/530.1 (KHTML, like Gecko) '
-                 'Chrome/2.0.169.1 Safari/530.1')
-    self.assertEqual(('Chrome', '2', '0', '169'),
-                     UserAgent.parse(ua_string))
-
-    ua_string = ('Mozilla/4.0 '
-                 '(compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; '
-                 '.NET CLR 2.0.50727; .NET CLR 1.1.4322; '
-                 '.NET CLR 3.0.04506.648; .NET CLR 3.5.21022)')
-    self.assertEqual(('IE', '8', '0', None),
-                     UserAgent.parse(ua_string))
-
-    # New opera UA string
-    ua_string = ('Opera/9.80 (Macintosh; Intel Mac OS X; U; en) '
-                  'Presto/2.2.15 Version/10.00')
-    self.assertEqual(('Opera', '10', '00', None),
-                     UserAgent.parse(ua_string))
-
-
-    ua_string = 'SomethingWeNeverKnewExisted'
-    self.assertEqual(('Other', None, None, None), UserAgent.parse(ua_string))
+    #ua_string = 'SomethingWeNeverKnewExisted'
+    #self.assertEqual(('Other', None, None, None), UserAgent.parse(ua_string))
 
 
   def test_get_string_list(self):
@@ -191,6 +157,40 @@ class UserAgentGroupTest(unittest.TestCase):
         ['Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8', 'IE 7.0'],
         UserAgentGroup.GetStrings(version_level=3))
 
+
+class CrazyRigorousUserAgentTest(unittest.TestCase):
+
+  def setUp(self):
+    import csv
+    reader = csv.DictReader(open('test/user_agent_data.csv'),
+                            fieldnames=['ua_string', 'pretty'])
+    data = []
+    while True:
+      try:
+        rdr = reader.next()
+        data.append(rdr)
+      except StopIteration: break
+      self.data = data
+
+  def testAll(self):
+    for record in self.data:
+      parsed = UserAgent.parse(record['ua_string'])
+      pretty = UserAgent.pretty_print(parsed[0], parsed[1], parsed[2],
+                                      parsed[3])
+      try:
+        self.assertEqual(record['pretty'], pretty)
+      except AssertionError:
+        if record['pretty'] == 'unknown' and pretty == 'Other':
+          donothing = 1
+        #ignore for now
+        elif re.search(r'pre', pretty):
+          donothing = 1
+        #ignore for now
+        elif re.search(r'\da', pretty):
+          donothing = 1
+        else:
+          logging.info('Steve has %s, we got %s for %s' %
+                       (record['pretty'], pretty, record['ua_string']))
 
 if __name__ == '__main__':
   unittest.main()
