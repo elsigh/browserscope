@@ -214,23 +214,9 @@ def Home(request):
 def Faq(request):
   """FAQ"""
 
-
-  # url = "http://code.google.com/p/browserscope/people/list"
-  # try:
-  #   result = urllib2.urlopen(url)
-  # except urllib2.URLError, e:
-  #   result= None
-
-  # if result:
-  #   people_table = result.read()
-  # else:
-  #   people_table = None
-  # logging.info('result: %s' % people_table)
-  people_table = None
   params = {
     'page_title': 'FAQ',
-    'section_urls': '',
-    'people_table': people_table
+    'section_urls': ''
   }
   return Render(request, 'faq.html', params)
 
