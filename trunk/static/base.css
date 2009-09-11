@@ -375,7 +375,7 @@ html>body .goog-inline-block {
   background-color: #ddd;
   border-top: 1px solid #ddd;
 }
-#bs-results-cats .bs-sel span {
+#bs-results-cats .bs-sel a {
   color: #000;
   font-weight: bold;
   text-decoration: none;
@@ -397,6 +397,10 @@ html>body .goog-inline-block {
 /**
  * Results Table
  */
+.rt-stats-static {
+  padding: 5px 10px 0 8px;
+  font-size: 95%;
+}
 .rt-stats {
   font-size: 90%;
   margin: 5px;

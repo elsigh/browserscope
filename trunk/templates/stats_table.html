@@ -6,7 +6,6 @@
           <form id="rt-stats-{{ category }}-v-f" action="" method="get">
             <input type="hidden" name="category" value="{{ category }}">
             <input type="hidden" name="{{ category }}_results" value="{{ results_uri_string }}">
-            <!-- Sorry for the lame, non-degrading behaviour here. -->
             <select id="rt-stats-{{ category }}-v" name="v">
               {% for tuple in browser_nav %}
                 {% with tuple|by_key:0 as version %}

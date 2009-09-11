@@ -58,7 +58,7 @@
           id="{{ category }}-results">
           <h3>{{ app_category|by_key:1 }}</h3>
           {% ifequal stats_table_category category %}
-            {{ stats_table }}
+            {{ stats_table|safe }}
           {% else %}
             <a
               id="{{ category }}-results-link"
@@ -74,12 +74,13 @@
 (function(){
   var xhrLoading = {};
   var hideCategoryFamilySubmit = function(category) {
-    document.getElementById('rt-stats-' + category + '-v-s').style.display = 'none';
+    document.getElementById('rt-stats-' + category +
+        '-v-s').style.display = 'none';
   };
   var changeCategoryClickHandler = function() {
     var link = this;
     if (selectedCategoryLink == link) {
-      return;
+      return false; // prevent href
     }
     var oldCategory = selectedCategoryLink.category;
     categorySections[oldCategory].style.display = 'none';
@@ -98,8 +99,8 @@
     } else {
       el.style.display = '';
     }
-    // prevent the href;
-    return false;
+
+    return false; // prevent href
   };
   var getBrowserFamilyValue = function(category) {
     // Before we clear out the current table, get the browser family.
