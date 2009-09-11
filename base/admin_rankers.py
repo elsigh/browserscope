@@ -176,11 +176,6 @@ def _UpdateRankers(ranker_scores, test_set, bookmark):
       continue
     ranker = result_ranker.ResultRanker.GetOrCreate(
         category, test, user_agent_version, params_str, ranker_version='next')
-    if not bookmark and ranker.TotalRankedScores():
-      logging.warn('RebuildRankers: reset ranker: %s', ', '.join(map(str, [
-          category, test_key, user_agent_version, params_str,
-          'ranker_version="next"'])))
-      ranker.Reset()
     ranker.Update(scores)
 
 
@@ -195,8 +190,8 @@ def RebuildRankers(request):
   category_index = int(request.GET.get('category_index', 0))
   test_index = int(request.GET.get('test_index', 0))
   total_results = int(request.GET.get('total_results', 0))
-  fetch_limit = int(request.GET.get('fetch_limit', 250))
-  ranker_limit = int(request.GET.get('ranker_limit', 100))
+  fetch_limit = int(request.GET.get('fetch_limit', 200))
+  ranker_limit = int(request.GET.get('ranker_limit', 50))
 
   try:
     if not manage_dirty.UpdateDirtyController.IsPaused():
@@ -292,7 +287,7 @@ def UpdateResultParents(request):
         changed_results.append(result)
       if hasattr(result, 'params') and result.params:
         result.params_str = str(test_set_params.Params(
-            [urllib.unquote(x) for x in result.params]))
+            *[urllib.unquote(x) for x in result.params]))
         result.params = []
         changed_results.append(result)
     if changed_results:
