@@ -28,7 +28,7 @@ TIME_ZONE = 'UTC'
 LANGUAGE_CODE = 'en-us'
 SITE_ID = 1
 USE_I18N = False
-SECRET_KEY = 'whoiscr@zyluiscrazyidunno'
+SECRET_KEY = 'browserscopeisnawtverysekkrit'
 SESSION_COOKIE_NAME = APP_TITLE
 TEMPLATE_LOADERS = (
   'django.template.loaders.filesystem.load_template_source',
@@ -55,7 +55,7 @@ INSTALLED_APPS = (
 
 # BROWSERSCOPE SPECIFIC GLOBALS
 CATEGORIES = ['network', 'acid3', 'selectors', 'richtext']
-STATIC_CATEGORIES = []
+STATIC_CATEGORIES = ['richtext']
 STATS_MEMCACHE_TIMEOUT = 0
 STATS_MEMCACHE_UA_ROW_NS = 'ua_row'
 STATS_SCORE_TRUE = 'yes'

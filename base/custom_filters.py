@@ -18,6 +18,7 @@ __author__ = 'elsigh@google.com (Lindsey Simon)'
 import logging
 import os
 from datetime import timedelta
+import re
 import urllib2
 
 from django import template

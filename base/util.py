@@ -426,6 +426,10 @@ def GetCsrf(request):
   return http.HttpResponse(msg)
 
 
+STATIC_MESSAGE = ('<em class="rt-stats-static">This is a recent snapshot '
+                  'of the results - '
+                  'it will be refreshed every few hours. '
+                  'Apologies for the inconvenience, we\'re working on it.</em>')
 def GetStats(request, test_set, output='html', opt_tests=None,
              use_memcache=True):
   """Returns the stats table.
@@ -442,10 +446,11 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   # Enables a "static" bypass mode where we deliver canned html results.
   if (test_set.category in settings.STATIC_CATEGORIES and
       output == 'html' and not users.is_current_user_admin()):
-     t = loader.get_template('static_%s_%s.html' % (test_set.category,
-                                                    version_level))
-     html = t.render(Context(params))
-     return html
+    template_file = ('static_%s_%s.html' %
+                     (test_set.category, version_level))
+    t = loader.get_template(template_file)
+    html = t.render(Context({}))
+    return STATIC_MESSAGE + html
 
   ua = request.GET.get('ua')
   if ua:

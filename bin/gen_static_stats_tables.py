@@ -18,6 +18,7 @@
 
 _author__ = 'elsigh@google.com (Lindsey Simon)'
 
+import getopt
 import logging
 import os
 import sys
@@ -26,34 +27,68 @@ import urllib2
 sys.path.extend(['..', '../../..'])
 import settings
 
-BROWSER_NAV = [
-  # version_level, label
-  ('top', 'Top Browsers'),
-  ('0', 'Browser Families'),
-  ('1', 'Major Versions'),
-  ('2', 'Minor Versions'),
-  ('3', 'All Versions')
-]
+HOST = 'loadtest.latest.ua-profiler.appspot.com'
+
+# Switches for this script.
+# c = categories
+# v = version_level
+CLI_OPTS = ['c=',
+            'v=']
 
 logging.getLogger().setLevel(logging.INFO)
 logging.debug('categories: %s' % settings.CATEGORIES)
 
-HOST = 'elsigh.latest.ua-profiler.appspot.com'
+def main(argv):
+  try:
+    opts, args = getopt.getopt(argv, 'hg:d', CLI_OPTS)
+  except getopt.GetoptError:
+    print 'Cannot parse your flags.'
+    sys.exit(2)
 
-for category in settings.CATEGORIES:
-  for family in BROWSER_NAV:
-    version_level = family[0]
-    url = 'http://%s/?category=%s&v=%s&xhr=1' % (HOST, category, version_level)
-    logging.info('Opening URL: %s' % url)
-    try:
-      response = urllib2.urlopen(url)
-    except urllib2.HTTPError, e:
-      print 'The server couldn\'t fulfill the request.'
-      print 'Error code: ', e.code
-    except urllib2.URLError, e:
-      print 'We failed to reach a server.'
-      print 'Reason: ', e.reason
-    else:
+  # Defaults to do everything.
+  categories = settings.CATEGORIES
+  version_levels = ['top', '0', '1', '2', '3']
+
+  # Parse the arguments.
+  for opt, arg in opts:
+    if opt == '--c':
+      categories = arg.split(',')
+    elif opt == '--v':
+      version_levels = arg.split(',')
+  logging.info('Switches processed, now c=%s, v=%s' %
+               (categories, version_levels))
+
+  for category in categories:
+    for version_level in version_levels:
+      url = ('http://%s/?category=%s&v=%s&xhr=1' %
+             (HOST, category, version_level))
+      # Putting this in a retry-able function so that memcache can happen.
+      def get_response_until_200(try_response_count):
+        print 'Opening URL: %s' % url
+        try:
+          response = urllib2.urlopen(url)
+        except urllib2.HTTPError, e:
+          print ('We gots a %s Error in try #%s, retrying...' %
+                 (e.code, try_response_count))
+          try_response_count += 1
+          get_response_until_200(try_response_count)
+        except urllib2.URLError, e:
+          print 'Death! We failed to reach a server.'
+          print 'Reason: ', e.reason
+          sys.exit(0)
+        else:
+          return response
+      response = get_response_until_200(1)
+
+      filename = ('../templates/static_%s_%s.html' %
+                  (category, version_level))
+      f = open(filename, 'w')
+      print 'Opened %s' % filename
       html = response.read()
-      print html
-    sys.exit(0)
+      f.write(html)
+      f.close()
+      print 'Done.\n'
+
+
+if __name__ == '__main__':
+  main(sys.argv[1:])
