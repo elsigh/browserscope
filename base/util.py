@@ -293,11 +293,10 @@ def Beacon(request):
   """
   # First make sure this IP is not being an overachiever ;)
   ip = request.META.get('REMOTE_ADDR')
-  # Mask the IP. TODO(rc4? instead)
   ip_hash = hashlib.md5(ip).hexdigest()
 
   user_agent_string = request.META.get('HTTP_USER_AGENT')
-  if not CheckThrottleIpAddress(ip, user_agent_string):
+  if not CheckThrottleIpAddress(ip_hash, user_agent_string):
     return http.HttpResponseServerError(BAD_BEACON_MSG + 'IP')
 
   callback = request.REQUEST.get('callback')
