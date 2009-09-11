@@ -50,7 +50,7 @@ class SelectorsTest(test_set_base.TestBase):
         url=self.TESTS_URL_PATH,
         score_type='custom',
         min_value=0,
-        max_value=100)
+        max_value=2200)
 
   def GetScoreAndDisplayValue(self, median, medians=None, is_uri_result=False):
     """Custom scoring function.
