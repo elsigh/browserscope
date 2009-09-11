@@ -272,12 +272,11 @@ html>body .goog-inline-block {
   display: inline;
 }
 
-
 /** Home Page **/
 #bs-home-recent-c {
   border-bottom: 1px solid #666;
   float: right;
-  margin: 0 40px 0 100px;
+  margin: 0 40px;
 }
 #bs-home-recent {
   border: 10px solid #bebec3;
@@ -321,6 +320,7 @@ html>body .goog-inline-block {
 #bs-home-cur-ua {
   float: right;
   font-size: 95%;
+  margin: 20px 15px 0 0;
 }
 
 #bs-results-title {
@@ -363,11 +363,13 @@ html>body .goog-inline-block {
   -webkit-border-top-right-radius: 4px;
   -webkit-border-top-left-radius: 4px;
 }
-#bs-results-cats span {
+#bs-results-cats a {
   display: block;
   padding: 4px 15px;
   cursor: pointer;
   text-decoration: underline;
+  color: #000;
+  outline: 0;
 }
 #bs-results-cats .bs-sel {
   background-color: #ddd;

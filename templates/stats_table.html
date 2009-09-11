@@ -3,11 +3,11 @@
     <thead>
       <tr>
         <th scope="col" class="rt-ua" colspan="2">
-          <form id="rt-stats-{{ category }}-form" action="" method="get">
+          <form id="rt-stats-{{ category }}-v-f" action="" method="get">
             <input type="hidden" name="category" value="{{ category }}">
             <input type="hidden" name="{{ category }}_results" value="{{ results_uri_string }}">
             <!-- Sorry for the lame, non-degrading behaviour here. -->
-            <select name="v" onchange="document.getElementById('rt-stats-{{ category }}-form').submit();">
+            <select id="rt-stats-{{ category }}-v" name="v">
               {% for tuple in browser_nav %}
                 {% with tuple|by_key:0 as version %}
                   <option
@@ -17,6 +17,7 @@
                 {% endwith %}
               {% endfor %}
             </select>
+            <input id="rt-stats-{{ category }}-v-s" type="submit" value="go">
           </form>
           {% if is_admin %}
             <a href="/clear_memcache?v={{ v }}&category={{ category }}&continue={{ request_path }}" class="bs-admin">clear</a>
