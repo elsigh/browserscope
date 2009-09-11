@@ -21,17 +21,18 @@ __author__ = 'slamm@google.com (Stephen Lamm)'
 from google.appengine.ext import db
 
 from categories import test_set_base
+from categories import test_set_params
 from categories import all_test_sets
 from models.user_agent import UserAgent
 from models.result import ResultParent
 from models.result import ResultTime
 
-_UA_STRING = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-              'Gecko/2009011912 Firefox/3.0.6')
-def GetUserAgent():
-  ua = UserAgent.factory(_UA_STRING)
-  return ua
+def GetUserAgentString():
+  return ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
+          'Gecko/2009011912 Firefox/3.0.6')
 
+def GetUserAgent():
+  return UserAgent.factory(GetUserAgentString())
 
 class MockTest(test_set_base.TestBase):
   """Mock test object."""
@@ -80,8 +81,8 @@ class MockTestSet(test_set_base.TestSet):
     all_test_sets.AddTestSet(self)
 
 
-class MockTestSetWithParseResults(MockTestSet):
-  def ParseResults(self, results):
+class MockTestSetWithAdjustResults(MockTestSet):
+  def AdjustResults(self, results):
     for result in results:
       # Add the raw value to be expando'd and store a munged value in score.
       result['expando'] = result['score']
@@ -91,174 +92,53 @@ class MockTestSetWithParseResults(MockTestSet):
 
 def AddFiveResultsAndIncrementAllCounts():
   test_set = MockTestSet('category')
-  user_agent = GetUserAgent()
-  result1 = ResultParent()
-  result1.category = test_set.category
-  result1.user_agent = user_agent
-  result1.user_agent_pretty = user_agent.pretty()
-  result1.ip = '12.2.2.255'
-  result1.put()
-  result1_time1 = ResultTime(parent=result1)
-  result1_time1.test = 'testDisplay'
-  result1_time1.score = 500
-  result1_time2 = ResultTime(parent=result1)
-  result1_time2.test = 'testVisibility'
-  result1_time2.score = 0
-  db.put([result1_time1, result1_time2])
-  result1.increment_all_counts()
-
-  result2 = ResultParent()
-  result2.category = test_set.category
-  result2.user_agent = user_agent
-  result2.user_agent_pretty = user_agent.pretty()
-  result2.ip = '12.2.2.255'
-  result2.put()
-  result2_time1 = ResultTime(parent=result2)
-  result2_time1.test = 'testDisplay'
-  result2_time1.score = 200
-  result2_time2 = ResultTime(parent=result2)
-  result2_time2.test = 'testVisibility'
-  result2_time2.score = 1
-  db.put([result2_time1, result2_time2])
-  result2.increment_all_counts()
-
-  result3 = ResultParent()
-  result3.category = test_set.category
-  result3.user_agent = user_agent
-  result3.user_agent_pretty = user_agent.pretty()
-  result3.ip = '12.2.2.255'
-  result3.put()
-  result3_time = ResultTime(parent=result3)
-  result3_time.test = 'testDisplay'
-  result3_time.score = 300
-  result3_time.put()
-  result3_time = ResultTime(parent=result3)
-  result3_time.test = 'testVisibility'
-  result3_time.score = 2
-  result3_time.put()
-  result3.increment_all_counts()
-
-  result4 = ResultParent()
-  result4.category = test_set.category
-  result4.user_agent = user_agent
-  result4.user_agent_pretty = user_agent.pretty()
-  result4.ip = '12.2.2.255'
-  result4.put()
-  result4_time = ResultTime(parent=result4)
-  result4_time.test = 'testDisplay'
-  result4_time.score = 100
-  result4_time.put()
-  result4_time = ResultTime(parent=result4)
-  result4_time.test = 'testVisibility'
-  result4_time.score = 3
-  result4_time.put()
-  result4.increment_all_counts()
-
-  result5 = ResultParent()
-  result5.category = test_set.category
-  result5.user_agent = user_agent
-  result5.user_agent_pretty = user_agent.pretty()
-  result5.ip = '12.2.2.255'
-  result5.put()
-  result5_time = ResultTime(parent=result5)
-  result5_time.test = 'testDisplay'
-  result5_time.score = 400
-  result5_time.put()
-  result5_time = ResultTime(parent=result5)
-  result5_time.test = 'testVisibility'
-  result5_time.score = 4
-  result5_time.put()
-  result5.increment_all_counts()
-
+  for scores in ((500, 0), (200, 1), (300, 2), (100, 3), (400, 4)):
+    result = ResultParent.AddResult(test_set, '12.2.2.25', GetUserAgentString(),
+                                    'testDisplay=%s,testVisibility=%s' % scores)
+    result.increment_all_counts()
   return test_set
 
-
 def AddThreeResultsWithParamsAndIncrementAllCounts():
-  test_set = MockTestSet('category-w-params', params=['a=b', 'c=d', 'e=f'])
-  user_agent = GetUserAgent()
-
-  result1 = ResultParent()
-  result1.category = test_set.category
-  result1.user_agent = user_agent
-  result1.user_agent_pretty = user_agent.pretty()
-  result1.ip = '12.2.2.255'
-  result1.params = test_set.default_params
-  result1.put()
-  result1_time = ResultTime(parent=result1)
-  result1_time.test = 'testDisplay'
-  result1_time.score = 2
-  result1_time.put()
-  result1.increment_all_counts()
-
-  result2 = ResultParent()
-  result2.category = test_set.category
-  result2.user_agent = user_agent
-  result2.user_agent_pretty = user_agent.pretty()
-  result2.ip = '12.2.2.255'
-  result2.params = test_set.default_params
-  result2.put()
-  result2_time = ResultTime(parent=result2)
-  result2_time.test = 'testDisplay'
-  result2_time.score = 1
-  result2_time.put()
-  result2.increment_all_counts()
-
-  result3 = ResultParent()
-  result3.category = test_set.category
-  result3.user_agent = user_agent
-  result3.user_agent_pretty = user_agent.pretty()
-  result3.ip = '12.2.2.255'
-  result3.params = test_set.default_params
-  result3.put()
-  result3_time = ResultTime(parent=result3)
-  result3_time.test = 'testDisplay'
-  result3_time.score = 200
-  result3_time.put()
-  result3.increment_all_counts()
+  test_set = MockTestSet(
+      'category-w-params',
+      params=test_set_params.Params('w-params', 'a=b', 'c=d', 'e=f'))
+  params_str = str(test_set.default_params)
+  for scores in ((2, 0), (1, 1), (200, 2)):
+    result = ResultParent.AddResult(test_set, '12.2.2.25', GetUserAgentString(),
+                                    'testDisplay=%s,testVisibility=%s' % scores,
+                                    params_str=params_str)
+    result.increment_all_counts()
   return test_set
 
 def AddOneTest():
   test_set = MockTestSet('category-one')
-  user_agent = GetUserAgent()
-  result = ResultParent()
-  result.category = test_set.category
-  result.user_agent = user_agent
-  result.user_agent_pretty = user_agent.pretty()
-  result.ip = '12.2.2.255'
-  result.put()
-  result_time1 = ResultTime(parent=result)
-  result_time1.test = 'testDisplay'
-  result_time1.score = 500
-  result_time2 = ResultTime(parent=result)
-  result_time2.test = 'testVisibility'
-  result_time2.score = 0
-  db.put([result_time1, result_time2])
+  result = ResultParent.AddResult(test_set, '12.2.2.25', GetUserAgentString(),
+                                  'testDisplay=500,testVisibility=0')
   result.increment_all_counts()
   return test_set
 
 def AddOneTestUsingAddResult():
   test_set = MockTestSet('category-addresult')
-  ip = '12.2.2.555'
-  user_agent_string = _UA_STRING
-  results = [{'key': 'testDisplay', 'score': 500},
-             {'key': 'testVisibility', 'score': 200}]
-  parent = ResultParent.AddResult(test_set, ip, user_agent_string, results)
-  return parent
+  result = ResultParent.AddResult(test_set, '12.2.2.25', GetUserAgentString(),
+                                  'testDisplay=500,testVisibility=200')
+  return result
 
-def AddOneTestUsingAddResultWithParseResults():
-  test_set = MockTestSetWithParseResults('category-addresult-withparseresults')
-  ip = '12.2.2.555'
-  user_agent_string = _UA_STRING
-  results = [{'key': 'testDisplay', 'score': 500},
-             {'key': 'testVisibility', 'score': 200}]
-  parent = ResultParent.AddResult(test_set, ip, user_agent_string, results)
-  return parent
+def AddOneTestUsingAddResultWithAdjustResults():
+  test_set = MockTestSetWithAdjustResults('category-addresult-withparseresults')
+  result = ResultParent.AddResult(test_set, '12.2.2.25', GetUserAgentString(),
+                                  'testDisplay=500,testVisibility=200')
+  return result
 
 def AddOneTestUsingAddResultWithExpando():
   test_set = MockTestSet('category-addresult-withexpando')
-  ip = '12.2.2.555'
-  user_agent_string = _UA_STRING
-  results = [{'key': 'testDisplay', 'score': 500, 'expando': 20},
-             {'key': 'testVisibility', 'score': 200, 'expando': 'testeroo'}]
-  parent = ResultParent.AddResult(test_set, ip, user_agent_string, results)
+  def AdjustResults(results):
+    for result in results:
+      if result['key'] == 'testDisplay':
+        result['expando'] = 20
+      elif result['key'] == 'testVisibility':
+        result['expando'] = 'testeroo'
+    return results
+  test_set.AdjustResults = AdjustResults
+  parent = ResultParent.AddResult(test_set, '12.2.2.25', GetUserAgentString(),
+                                  'testDisplay=500,testVisibility=200')
   return parent

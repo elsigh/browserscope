@@ -2,15 +2,15 @@
 <html lang="en">
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>{{ num_elements }} Anchors nested {{num_nest}} deep with {{num_css_rules}} CSS rules and  selector {{css_selector}}</title>
+    <title>{{ params.num_elements }} Anchors nested {{params.num_nest}} deep with {{params.num_css_rules}} CSS rules and  selector {{params.css_selector}}</title>
     <style>
-    {% if css_match_each %}
-      {% for num_css_rule in num_css_rules|as_range %}
-      #g-{{num_css_rule}} { {{css_text}} }
+    {% if params.css_match_each %}
+      {% for num_css_rule in params.num_css_rules|as_range %}
+      #g-{{num_css_rule}} { {{params.css_text}} }
       {% endfor %}
     {% else %}
       {% for num_css_rule in num_css_rules|as_range %}
-        {{css_selector|safe}} { {{css_text}} }
+        {{params.css_selector|safe}} { {{params.css_text}} }
       {% endfor %}
     {% endif %}
     </style>
@@ -25,29 +25,29 @@
   </head>
   <body>
     <input id="csrf_token" type="hidden" value="{{ csrf_token }}">
-    <input id="rt-params" type="hidden" value="{{ params }}">
+    <input id="rt-params" type="hidden" value="{{ params|urlencode }}">
     {% if show_form %}
       <div onclick="toggleForm(this)">show form</div>
       <form id="g-form" style="display:none" action="" method="get">
         <div>
           <label for="g-num-elements">Number of Elements:</label><br>
-          <input id="g-num-elements" name="num_elements" type="text" value="{{num_elements}}" size="5">
+          <input id="g-num-elements" name="num_elements" type="text" value="{{params.num_elements}}" size="5">
         </div>
         <div>
           <label for="g-num_nest">Nest x Deep:</label><br>
-          <input id="g-num_nest" name="num_nest" type="text" value="{{num_nest}}" size="5">
+          <input id="g-num_nest" name="num_nest" type="text" value="{{params.num_nest}}" size="5">
         </div>
         <div>
           <label for="g-num-css-rules">Num CSS Rules</label><br>
-          <input id="g-num-css-rules" name="num_css_rules" type="text" value="{{num_css_rules}}" size="5">
+          <input id="g-num-css-rules" name="num_css_rules" type="text" value="{{params.num_css_rules}}" size="5">
         </div>
         <div>
           <label for="g-css-selector">CSS Selector</label><br>
-          <input id="g-css-selector" name="css_selector" type="text" value="{{css_selector}}" size="40">
+          <input id="g-css-selector" name="css_selector" type="text" value="{{params.css_selector}}" size="40">
         </div>
         <div>
           <label for="g-css-selector">CSS Match Each</label><br>
-          <input id="g-match-each" name="css_match_each" type="checkbox" selected="{{css_match_each}}">
+          <input id="g-match-each" name="css_match_each" type="checkbox" selected="{{params.css_match_each}}">
         </div>
         <div>
           <label for="g-css-text">CSS Text</label><br>

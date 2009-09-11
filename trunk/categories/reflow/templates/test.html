@@ -54,7 +54,7 @@ function runTest() {
 
 
 {% block body %}
-<input id="rt-params" type="hidden" value="{{ params }}">
+<input id="rt-params" type="hidden" value="{{ params|urlencode }}">
 <input id="csrf_token" type="hidden" value="{{ csrf_token }}">
 <h1>{{ page_title }}</h1>
 
@@ -116,14 +116,14 @@ function runTest() {
 
 
 <div id="g-content">
-  {% for num_element in num_elements|as_range %}
-    {% for nest in num_nest|as_range %}<div>{% endfor %}
+  {% for num_element in params.num_elements|as_range %}
+    {% for nest in params.num_nest|as_range %}<div>{% endfor %}
       <p id="g-{{num_element}}">
         <a href="#" class="g-nest-{{nest}}">
           {{ num_element }}
         </a>
       </p>
-    {% for nest in num_nest|as_range %}</div>{% endfor %}
+    {% for nest in params.num_nest|as_range %}</div>{% endfor %}
   {% endfor %}
 </div>
 

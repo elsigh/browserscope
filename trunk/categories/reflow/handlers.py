@@ -29,6 +29,7 @@ from django import http
 from base import decorators
 from base import util
 from categories import all_test_sets
+from categories import test_set_params
 
 # Data structures for reflow testing.
 from bin.reflow.run_reflow_timer import TEST_PAGES
@@ -45,48 +46,24 @@ def ConstructTestPageParamCombinations(params, url_type):
    u'css_selector=%23g-content%20div', u'num_css_rules=0',
    u'css_text=border%3A%201px%20solid%20%230C0%3B%20padding%3A%208px%3B']
   """
-  param_combos = []
   if url_type == 'nested_anchors':
-    for num_elements in params['num_elements']:
-      for num_nest in params['num_nest']:
-        for css_selector in params['css_selector']:
-          for num_css_rules in params['num_css_rules']:
-            for css_text in params['css_text']:
-              params_array = [url_type,
-                              'num_elements=%s' % num_elements,
-                              'num_nest=%s' % num_nest,
-                              'css_selector=%s' % css_selector,
-                              'num_css_rules=%s' % num_css_rules,
-                              'css_text=%s' % css_text]
-              param_combos.append(params_array)
-
-    # def fun(params, params_array):
-    #   for i in range(0, len(params) - 1):
-    #     for param in params[i]:
-    #       params_array[i] = '%s=%s' % (param, params[param][i])
-
-
-    # for i in range(0, len(params) - 1):
-    #   param_combos = fun(params, params_array={})
-
-    # for dict[params.keys()[0]] in params[0]:
-    #   for params.keys()[1] in params[1]:
-    #     for params.keys()[2] in params[2]:
-    #       for params.keys()[3] in params[3]:
-    #         for params.keys()[4] in params[4]:
-    #           params_array = ['reflow',
-    #                           '%s=%s' % (params.keys()[0], num_elements),
-    #                           'num_nest=%s' % num_nest,
-    #                           'css_selector=%s' % css_selector,
-    #                           'num_css_rules=%s' % num_css_rules,
-    #                           'css_text=%s' % css_text]
-    #           params.append(params_array)
-
-
+    param_combos = [[[[[
+        test_set_params.Params(url_type,
+                               'num_elements=%s' % num_elements,
+                               'num_nest=%s' % num_nest,
+                               'css_selector=%s' % css_selector,
+                               'num_css_rules=%s' % num_css_rules,
+                               'css_text=%s' % css_text)
+        for num_elements in params['num_elements']]
+        for num_nest in params['num_nest']]
+        for css_selector in params['css_selector']]
+        for num_css_rules in params['num_css_rules']]
+        for css_text in params['css_text']]
   elif url_type == 'nested_divs' or url_type == 'nested_tables':
-    for num_nest in params['num_nest']:
-      params_array = [url_type, 'num_nest=%s' % num_nest]
-      param_combos.append(params_array)
+    params_combos = [test_set_params.Params(url_type, 'num_nest=%s' % num_nest)
+                     for num_nest in params['num_nest']]
+  else:
+    param_combos = []
   return param_combos
 
 
@@ -113,15 +90,13 @@ def Test(request):
 
   params = {
     'page_title': page_title,
-    'params': ','.join(test_set.default_params),
+    'params': test_set.default_params,
     'test': test,
     'server': util.GetServer(request),
     'autorun': request.GET.get('autorun'),
     'continue': request.GET.get('continue'),
     'csrf_token': request.session.get('csrf_token')
   }
-  params.update(util.ParamsListToDict(test_set.default_params))
-
   return util.Render(request, 'templates/acid1.html', params, CATEGORY)
 
 
@@ -135,44 +110,41 @@ def TestSelectors(request):
   except KeyError:
     test = None
 
-  default_params=[
+  default_params=test_set_params.Params(
     'nested_anchors', 'num_elements=400', 'num_nest=4',
-    'css_selector=%23g-content%20*', 'num_css_rules=1000',
-    'css_text=border%3A%201px%20solid%20%230C0%3B%20padding%3A%208px%3B']
+    'css_selector=#g-content *', 'num_css_rules=1000',
+    'css_text=border: 1px solid #0C0; padding: 8px;')
 
   params = {
     'page_title': page_title,
-    'params': ','.join(default_params),
+    'params': default_params,
     'test': test,
     'server': util.GetServer(request),
     'autorun': request.GET.get('autorun'),
     'continue': request.GET.get('continue'),
     'csrf_token': request.session.get('csrf_token')
   }
-  params.update(util.ParamsListToDict(default_params))
-
   return util.Render(request, 'templates/test.html', params, CATEGORY)
 
 
 def TestGenCss(request):
-
-  default_params=[
-    'css_selector=%23g-content%20div%20*', 'num_css_rules=1000',
-    'css_text=width%3A%20auto']
-  params = request.GET.get('params', default_params)
+  params = test_set_params.Params(
+    'gencss', 'css_selector=#g-content div *', 'num_css_rules=1000',
+    'css_text=width: auto')
+  params_str = request.GET.get('params')
+  if params_str:
+    params = test_set_params.FromString(params_str)
   css = GenCss(params)
   return http.HttpResponse(css)
 
 
 def GenCss(params):
-  css = []
-  params = util.ParamsListToDict(params)
-  if params.has_key('css_match_each'):
-    for num_css_rule in range(num_css_rules):
-      css.append('g-%s { %s }' % (params['num_css_rule'], params['css_text']))
+  if 'css_match_each' in params:
+    css = ['g-%s { %s }' % (params['num_css_rule'], params['css_text'])
+           for num_css_rule in range(num_css_rules)]
   else:
-    for num_css_rule in range(int(params['num_css_rules'])):
-      css.append('%s { %s }' % (params['css_selector'], params['css_text']))
+    css = ['%s { %s }' % (params['css_selector'], params['css_text'])
+           for num_css_rule in range(int(params['num_css_rules']))]
   return ' '.join(css)
 
 
@@ -193,8 +165,6 @@ def StatsChart(request):
   params = TEST_PAGES[url_type]['params'].copy()
   logging.info('params %s' % params)
 
-  default_params = util.ParamsListToDict(test_set.default_params, unquote=False)
-
   # seed a params array with less than all the values to construct a graph.
   if url_type == 'nested_anchors':
     for key, val in params.items():
@@ -204,7 +174,7 @@ def StatsChart(request):
       # unless passed in the url.
       if key != x_axis:
         #param_val = request.GET.get(key, val[len(val) - 1])
-        param_val = request.GET.get(key, default_params[key])
+        param_val = request.GET.get(key, test_set.default_params[key])
         params[key] = [param_val]
 
   param_combos = ConstructTestPageParamCombinations(params, url_type)
@@ -237,29 +207,18 @@ def StatsChart(request):
 
 @decorators.provide_csrf
 def NestedAnchors(request):
-  default_params=[
+  default_params = test_set_params.Params(
      'nested_anchors', 'num_elements=400', 'num_nest=4',
      'css_selector=p', 'num_css_rules=1000',
-     'css_text=border:1px solid green;padding: 5px']
+     'css_text=border:1px solid green;padding: 5px')
   css_match_each = request.GET.get('css_match_each', '')
   show_form = int(request.GET.get('show_form', 0))
   params = {
     'csrf_token': request.session.get('csrf_token'),
     'css_match_each': css_match_each,
-    'show_form': show_form
+    'show_form': show_form,
+    'params': default_params,
   }
-  render_params = ['nested_anchors']
-  test_set = all_test_sets.GetTestSet(CATEGORY)
-  parsed_params = util.ParamsListToDict(default_params)
-  for name, val in parsed_params.items():
-    if val == '':
-      continue
-    value = request.GET.get(name, val)
-    #logging.info('name %s, value: %s' % (name, value))
-    params[name] = value
-    render_params.append('%s=%s' % (name, urllib2.quote(value)))
-  params['params'] = ','.join(render_params)
-
   return util.Render(request, 'templates/nested_anchors.html', params, CATEGORY)
 
 

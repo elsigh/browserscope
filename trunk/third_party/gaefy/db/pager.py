@@ -398,6 +398,8 @@ class PagerQuery(object):
                     bookmark[key] = parse_datetime(value, '%H:%M:%S').time()
                 elif isinstance(prop, db.DateTimeProperty):
                     bookmark[key] = parse_datetime(value, '%Y-%m-%d %H:%M:%S')
+                elif isinstance(prop, db.StringProperty):
+                    bookmark[key] = value
                 else:
                     bookmark[key] = prop.data_type(value)
 
