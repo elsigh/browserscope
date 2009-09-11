@@ -97,7 +97,7 @@ class ScoreDatastore(score_ranker.StorageBase):
 
   def DeleteAll(self):
     query = datastore.Query('ranker_node', keys_only=True)
-    query.Ancestor = self.parent_key
+    query.Ancestor(self.parent_key)
     datastore.Delete(list(query.Run()))
 
   def _RankerNodeKey(self, node_index):

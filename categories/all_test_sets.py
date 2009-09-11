@@ -33,6 +33,12 @@ def GetTestSet(category):
     AddTestSet(_ImportTestSet(category))
   return CATEGORY_TEST_SETS[category]
 
+def HasTestSet(category):
+  try:
+    GetTestSet(category)
+  except ImportError:
+    return False
+  return True
 
 def AddTestSet(test_set):
   """Add a test_set."""

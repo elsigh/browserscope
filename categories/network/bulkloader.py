@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2009 Google Inc.
 #
@@ -18,7 +18,7 @@
 
 Used to load tests from the pre-GAE UA profiler.
 
-The client is bin/network_uploader.py.
+The client is bin/network/uploader.py.
 """
 
 __author__ = 'slamm@google.com (Stephen Lamm)'
@@ -30,14 +30,16 @@ import traceback
 from django import http
 from django.utils import simplejson
 
-from controllers import network
 from models.result import *
 from models.user_agent import UserAgent
 
-from shared import decorators
+from base import decorators
 
 from google.appengine.ext import db
 from google.appengine.runtime import DeadlineExceededError
+
+
+TEST_SET = all_test_sets.GetTestSet('network')
 
 
 def LastLoaderId():
@@ -57,13 +59,15 @@ def ResultLoader(request):
     logging.info('last_loader_id=%d, num results to add=%d',
                  last_loader_id, len(results))
     for result in results:
-      logging.debug("result: %s", result)
       loader_id, ip, user_agent_string, created_timestamp, test_scores = result
       created = datetime.datetime.utcfromtimestamp(created_timestamp)
-      ResultParent.AddResult(network.CATEGORY, ip, user_agent_string,
-                             test_scores, loader_id=loader_id, created=created)
+
+      ResultParent.AddResult(TEST_SET, ip, user_agent_string, test_scores,
+                             loader_id=loader_id, created=created,
+                             is_import=True)
       last_loader_id = loader_id
-  except Exception:
+  except Exception, e:
     logging.info('exception: %s', traceback.format_exc())
-    return http.HttpResponse('exception: %s' % str(e), mimetype='text/plain')
+    return http.HttpResponse('exception: %s' % str(e), mimetype='text/plain',
+                             status=500)
   return http.HttpResponse(str(last_loader_id), mimetype='text/plain')

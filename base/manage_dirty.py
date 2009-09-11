@@ -19,6 +19,7 @@
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
 import logging
+import time
 import traceback
 
 from google.appengine.api import memcache
@@ -51,6 +52,11 @@ class UpdateDirtyController(db.Model):
   def SetPaused(cls, is_paused):
     cls(key_name=cls.NAMESPACE, is_paused=is_paused).put()
     memcache.set(key='paused', value=is_paused, namespace=cls.NAMESPACE)
+    if is_paused:
+      # Allow pending changes to finish
+      while memcache.get(key='lock', namespace=cls.NAMESPACE):
+        time.sleep(1)
+
 
   @classmethod
   def IsPaused(cls):

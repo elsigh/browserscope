@@ -169,7 +169,7 @@ function runTest() {
 
 
 {% block body %}
-<input id="rt-params" type="hidden" value="{{ params }}">
+<input id="rt-params" type="hidden" value="{{ params|urlencode }}">
 <input id="csrf_token" type="hidden" value="{{ csrf_token }}">
 <div id="rt-text">
   <h1>{{ page_title }}</h1>
@@ -203,10 +203,10 @@ function runTest() {
 <div id="g-content">
   <div id="g-content-c">
     <p id="g-intro">
-      Why, look - it's {{ num_elements }} instances of the <a href="/reflow/about#acid1">Acid1 test</a>.
+      Why, look - it's {{ params.num_elements }} instances of the <a href="/reflow/about#acid1">Acid1 test</a>.
     </p>
 
-    {% for i in num_elements|as_range %}
+    {% for i in params.num_elements|as_range %}
       <dl class="acid1-dl">
         <dt class="acid1-dt">
          toggle

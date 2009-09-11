@@ -1,0 +1,110 @@
+user agent id from sample_user_agents.csv,category,results,params
+# Android 1.0
+3078,reflow,"testDisplay=100,testVisibility=87,testNonMatchingClass=77,testFourClassReflows=90,testFourScriptReflows=89,testTwoScriptReflows=89,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+3078,network,"latency=63,hostconn=2,maxconn=4,parscript=1,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+
+# Chrome 1.0.154
+128119,reflow,"testDisplay=100,testVisibility=87,testNonMatchingClass=77,testFourClassReflows=90,testFourScriptReflows=89,testTwoScriptReflows=89,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+128119,reflow,"testDisplay=100,testVisibility=90,testNonMatchingClass=80,testFourClassReflows=100,testFourScriptReflows=200,testTwoScriptReflows=189,testPaddingPx=178,testPaddingLeftPx=184,testFontSizeEm=190,testWidthPercent=119,testBackground=0,testOverflowHidden=60000,testGetOffsetHeight=60000","acid1,num_elements=200"
+128119,network,"latency=63,hostconn=2,maxconn=8,parscript=0,parsheet=1,parcssjs=1,cacheexp=1,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+128119,network,"latency=63,hostconn=4,maxconn=16,parscript=1,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+
+# Chrome 2.0.169
+1001,reflow,"testDisplay=100,testVisibility=10,testNonMatchingClass=77,testFourClassReflows=0,testFourScriptReflows=59999,testTwoScriptReflows=250,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+1001,reflow,"testDisplay=200,testVisibility=20,testNonMatchingClass=77,testFourClassReflows=0,testFourScriptReflows=59998,testTwoScriptReflows=270,testPaddingPx=780,testPaddingLeftPx=4,testFontSizeEm=90,testWidthPercent=119,testBackground=5,testOverflowHidden=66,testGetOffsetHeight=0","acid1,num_elements=200"
+1001,reflow,"testDisplay=500,testVisibility=10,testNonMatchingClass=77,testFourClassReflows=100,testFourScriptReflows=1,testTwoScriptReflows=300,testPaddingPx=7800,testPaddingLeftPx=8,testFontSizeEm=9,testWidthPercent=109,testBackground=4,testOverflowHidden=99,testGetOffsetHeight=1","acid1,num_elements=200"
+1001,network,"latency=63,hostconn=2,maxconn=2,parscript=0,parsheet=1,parcssjs=0,cacheexp=0,cacheredir=0,cacheresredir=1,prefetch=1,gzip=0,du=0"
+1001,network,"latency=36,hostconn=4,maxconn=60,parscript=0,parsheet=1,parcssjs=0,cacheexp=0,cacheredir=1,cacheresredir=0,prefetch=0,gzip=1,du=0"
+1001,network,"latency=96,hostconn=6,maxconn=60,parscript=1,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+
+# Firefox 2.0.0
+2200,reflow,"testDisplay=100,testVisibility=87,testNonMatchingClass=74,testFourClassReflows=95,testFourScriptReflows=100,testTwoScriptReflows=83,testPaddingPx=78,testPaddingLeftPx=88,testFontSizeEm=90,testWidthPercent=1,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+2200,reflow,"testDisplay=100,testVisibility=88,testNonMatchingClass=77,testFourClassReflows=95,testFourScriptReflows=101,testTwoScriptReflows=83,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+2200,reflow,"testDisplay=200,testVisibility=82,testNonMatchingClass=77,testFourClassReflows=90,testFourScriptReflows=100,testTwoScriptReflows=83,testPaddingPx=78,testPaddingLeftPx=82,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+2200,reflow,"testDisplay=200,testVisibility=81,testNonMatchingClass=77,testFourClassReflows=90,testFourScriptReflows=300,testTwoScriptReflows=89,testPaddingPx=71,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=60000,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+2200,network,"latency=63,hostconn=2,maxconn=60,parscript=0,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=0,cacheresredir=1,prefetch=0,gzip=1,du=0"
+2200,network,"latency=63,hostconn=4,maxconn=0,parscript=0,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=1,cacheresredir=0,prefetch=0,gzip=1,du=0"
+2200,network,"latency=63,hostconn=2,maxconn=58,parscript=0,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=0,cacheresredir=1,prefetch=0,gzip=1,du=0"
+2200,network,"latency=80,hostconn=2,maxconn=60,parscript=0,parsheet=1,parcssjs=1,cacheexp=0,cacheredir=1,cacheresredir=1,prefetch=0,gzip=1,du=0"
+
+# Firefox 3.0.5
+125723,reflow,"testDisplay=100,testVisibility=87,testNonMatchingClass=90,testFourClassReflows=90,testFourScriptReflows=100,testTwoScriptReflows=0,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+125723,reflow,"testDisplay=110,testVisibility=67,testNonMatchingClass=90,testFourClassReflows=90,testFourScriptReflows=89,testTwoScriptReflows=60000,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+125723,reflow,"testDisplay=120,testVisibility=77,testNonMatchingClass=90,testFourClassReflows=90,testFourScriptReflows=89,testTwoScriptReflows=50000,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+125723,reflow,"testDisplay=130,testVisibility=77,testNonMatchingClass=77,testFourClassReflows=900,testFourScriptReflows=289,testTwoScriptReflows=20000,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+125723,reflow,"testDisplay=140,testVisibility=57,testNonMatchingClass=77,testFourClassReflows=900,testFourScriptReflows=289,testTwoScriptReflows=89,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+125723,network,"latency=63,hostconn=0,maxconn=0,parscript=0,parsheet=1,parcssjs=1,cacheexp=1,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+125723,network,"latency=63,hostconn=2,maxconn=90,parscript=0,parsheet=1,parcssjs=1,cacheexp=0,cacheredir=1,cacheresredir=0,prefetch=0,gzip=1,du=0"
+125723,network,"latency=43,hostconn=8,maxconn=60,parscript=0,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=1,cacheresredir=0,prefetch=0,gzip=0,du=0"
+125723,network,"latency=63,hostconn=2,maxconn=10,parscript=0,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=1,cacheresredir=1,prefetch=0,gzip=1,du=0"
+125723,network,"latency=63,hostconn=8,maxconn=60,parscript=0,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+
+# Firefox 3.0.6
+267074,reflow,"testDisplay=105,testVisibility=88,testNonMatchingClass=200,testFourClassReflows=110,testFourScriptReflows=10,testTwoScriptReflows=210,testPaddingPx=60000,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+267074,reflow,"testDisplay=105,testVisibility=0,testNonMatchingClass=200,testFourClassReflows=111,testFourScriptReflows=15,testTwoScriptReflows=234,testPaddingPx=11000,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+267074,reflow,"testDisplay=105,testVisibility=0,testNonMatchingClass=201,testFourClassReflows=102,testFourScriptReflows=17,testTwoScriptReflows=256,testPaddingPx=33333,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+267074,network,"latency=43,hostconn=5,maxconn=60,parscript=0,parsheet=1,parcssjs=0,cacheexp=0,cacheredir=0,cacheresredir=0,prefetch=1,gzip=1,du=0"
+267074,network,"latency=43,hostconn=4,maxconn=50,parscript=0,parsheet=1,parcssjs=0,cacheexp=0,cacheredir=0,cacheresredir=1,prefetch=0,gzip=1,du=0"
+267074,network,"latency=13,hostconn=4,maxconn=60,parscript=0,parsheet=1,parcssjs=0,cacheexp=0,cacheredir=0,cacheresredir=0,prefetch=0,gzip=0,du=0"
+
+# IE 6.0
+#2268
+
+# Firefox 3.5 b4
+296635,network,"latency=6,hostconn=1,maxconn=6,parscript=0,parsheet=1,parcssjs=1,cacheexp=0,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+324823,network,"latency=63,hostconn=2,maxconn=60,parscript=0,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+user agent id from sample_user_agents.csv,category,results,params
+# Android 1.0
+3078,reflow,"testDisplay=100,testVisibility=87,testNonMatchingClass=77,testFourClassReflows=90,testFourScriptReflows=89,testTwoScriptReflows=89,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+3078,network,"latency=63,hostconn=2,maxconn=4,parscript=1,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+
+# Chrome 1.0.154
+128119,reflow,"testDisplay=100,testVisibility=87,testNonMatchingClass=77,testFourClassReflows=90,testFourScriptReflows=89,testTwoScriptReflows=89,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+128119,reflow,"testDisplay=100,testVisibility=90,testNonMatchingClass=80,testFourClassReflows=100,testFourScriptReflows=200,testTwoScriptReflows=189,testPaddingPx=178,testPaddingLeftPx=184,testFontSizeEm=190,testWidthPercent=119,testBackground=0,testOverflowHidden=60000,testGetOffsetHeight=60000","acid1,num_elements=200"
+128119,network,"latency=63,hostconn=2,maxconn=8,parscript=0,parsheet=1,parcssjs=1,cacheexp=1,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+128119,network,"latency=63,hostconn=4,maxconn=16,parscript=1,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+
+# Chrome 2.0.169
+1001,reflow,"testDisplay=100,testVisibility=10,testNonMatchingClass=77,testFourClassReflows=0,testFourScriptReflows=59999,testTwoScriptReflows=250,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+1001,reflow,"testDisplay=200,testVisibility=20,testNonMatchingClass=77,testFourClassReflows=0,testFourScriptReflows=59998,testTwoScriptReflows=270,testPaddingPx=780,testPaddingLeftPx=4,testFontSizeEm=90,testWidthPercent=119,testBackground=5,testOverflowHidden=66,testGetOffsetHeight=0","acid1,num_elements=200"
+1001,reflow,"testDisplay=500,testVisibility=10,testNonMatchingClass=77,testFourClassReflows=100,testFourScriptReflows=1,testTwoScriptReflows=300,testPaddingPx=7800,testPaddingLeftPx=8,testFontSizeEm=9,testWidthPercent=109,testBackground=4,testOverflowHidden=99,testGetOffsetHeight=1","acid1,num_elements=200"
+1001,network,"latency=63,hostconn=2,maxconn=2,parscript=0,parsheet=1,parcssjs=0,cacheexp=0,cacheredir=0,cacheresredir=1,prefetch=1,gzip=0,du=0"
+1001,network,"latency=36,hostconn=4,maxconn=60,parscript=0,parsheet=1,parcssjs=0,cacheexp=0,cacheredir=1,cacheresredir=0,prefetch=0,gzip=1,du=0"
+1001,network,"latency=96,hostconn=6,maxconn=60,parscript=1,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+
+# Firefox 2.0.0
+2200,reflow,"testDisplay=100,testVisibility=87,testNonMatchingClass=74,testFourClassReflows=95,testFourScriptReflows=100,testTwoScriptReflows=83,testPaddingPx=78,testPaddingLeftPx=88,testFontSizeEm=90,testWidthPercent=1,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+2200,reflow,"testDisplay=100,testVisibility=88,testNonMatchingClass=77,testFourClassReflows=95,testFourScriptReflows=101,testTwoScriptReflows=83,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+2200,reflow,"testDisplay=200,testVisibility=82,testNonMatchingClass=77,testFourClassReflows=90,testFourScriptReflows=100,testTwoScriptReflows=83,testPaddingPx=78,testPaddingLeftPx=82,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+2200,reflow,"testDisplay=200,testVisibility=81,testNonMatchingClass=77,testFourClassReflows=90,testFourScriptReflows=300,testTwoScriptReflows=89,testPaddingPx=71,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=60000,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+2200,network,"latency=63,hostconn=2,maxconn=60,parscript=0,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=0,cacheresredir=1,prefetch=0,gzip=1,du=0"
+2200,network,"latency=63,hostconn=4,maxconn=0,parscript=0,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=1,cacheresredir=0,prefetch=0,gzip=1,du=0"
+2200,network,"latency=63,hostconn=2,maxconn=58,parscript=0,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=0,cacheresredir=1,prefetch=0,gzip=1,du=0"
+2200,network,"latency=80,hostconn=2,maxconn=60,parscript=0,parsheet=1,parcssjs=1,cacheexp=0,cacheredir=1,cacheresredir=1,prefetch=0,gzip=1,du=0"
+
+# Firefox 3.0.5
+125723,reflow,"testDisplay=100,testVisibility=87,testNonMatchingClass=90,testFourClassReflows=90,testFourScriptReflows=100,testTwoScriptReflows=0,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+125723,reflow,"testDisplay=110,testVisibility=67,testNonMatchingClass=90,testFourClassReflows=90,testFourScriptReflows=89,testTwoScriptReflows=60000,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+125723,reflow,"testDisplay=120,testVisibility=77,testNonMatchingClass=90,testFourClassReflows=90,testFourScriptReflows=89,testTwoScriptReflows=50000,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+125723,reflow,"testDisplay=130,testVisibility=77,testNonMatchingClass=77,testFourClassReflows=900,testFourScriptReflows=289,testTwoScriptReflows=20000,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+125723,reflow,"testDisplay=140,testVisibility=57,testNonMatchingClass=77,testFourClassReflows=900,testFourScriptReflows=289,testTwoScriptReflows=89,testPaddingPx=78,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+125723,network,"latency=63,hostconn=0,maxconn=0,parscript=0,parsheet=1,parcssjs=1,cacheexp=1,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+125723,network,"latency=63,hostconn=2,maxconn=90,parscript=0,parsheet=1,parcssjs=1,cacheexp=0,cacheredir=1,cacheresredir=0,prefetch=0,gzip=1,du=0"
+125723,network,"latency=43,hostconn=8,maxconn=60,parscript=0,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=1,cacheresredir=0,prefetch=0,gzip=0,du=0"
+125723,network,"latency=63,hostconn=2,maxconn=10,parscript=0,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=1,cacheresredir=1,prefetch=0,gzip=1,du=0"
+125723,network,"latency=63,hostconn=8,maxconn=60,parscript=0,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+
+# Firefox 3.0.6
+267074,reflow,"testDisplay=105,testVisibility=88,testNonMatchingClass=200,testFourClassReflows=110,testFourScriptReflows=10,testTwoScriptReflows=210,testPaddingPx=60000,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+267074,reflow,"testDisplay=105,testVisibility=0,testNonMatchingClass=200,testFourClassReflows=111,testFourScriptReflows=15,testTwoScriptReflows=234,testPaddingPx=11000,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+267074,reflow,"testDisplay=105,testVisibility=0,testNonMatchingClass=201,testFourClassReflows=102,testFourScriptReflows=17,testTwoScriptReflows=256,testPaddingPx=33333,testPaddingLeftPx=84,testFontSizeEm=90,testWidthPercent=19,testBackground=4,testOverflowHidden=60,testGetOffsetHeight=0","acid1,num_elements=200"
+267074,network,"latency=43,hostconn=5,maxconn=60,parscript=0,parsheet=1,parcssjs=0,cacheexp=0,cacheredir=0,cacheresredir=0,prefetch=1,gzip=1,du=0"
+267074,network,"latency=43,hostconn=4,maxconn=50,parscript=0,parsheet=1,parcssjs=0,cacheexp=0,cacheredir=0,cacheresredir=1,prefetch=0,gzip=1,du=0"
+267074,network,"latency=13,hostconn=4,maxconn=60,parscript=0,parsheet=1,parcssjs=0,cacheexp=0,cacheredir=0,cacheresredir=0,prefetch=0,gzip=0,du=0"
+
+# IE 6.0
+#2268
+
+# Firefox 3.5 b4
+296635,network,"latency=6,hostconn=1,maxconn=6,parscript=0,parsheet=1,parcssjs=1,cacheexp=0,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"
+324823,network,"latency=63,hostconn=2,maxconn=60,parscript=0,parsheet=1,parcssjs=0,cacheexp=1,cacheredir=0,cacheresredir=0,prefetch=0,gzip=1,du=0"

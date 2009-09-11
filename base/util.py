@@ -25,7 +25,7 @@ import os
 import re
 import sys
 import time
-import urllib2
+import urllib
 
 from google.appengine.api import memcache
 from google.appengine.api import users
@@ -44,8 +44,8 @@ import settings
 
 from models.result import *
 from models.user_agent import *
-from models import result_ranker
 from categories import all_test_sets
+from categories import test_set_params
 from base import decorators
 from base import manage_dirty
 
@@ -96,71 +96,6 @@ def GetServer(request):
   if server_port != '80':
     server = server + ':' + server_port
   return server
-
-
-def ParseResultsParamString(results_string):
-  """Parses a results string.
-  Args:
-    raw_results: a string like 'test1=time1,test2=time2,[...]'.
-  Returns:
-    [{'key': test1, 'score': time1}, {'key': test2, 'score': time2}]
-  """
-  results = []
-  for x in results_string.split(','):
-    key, score = x.split('=')
-    results.append({'key': key, 'score': int(score)})
-  return results
-
-
-# These are things which do not get urlquoted in Javascript, however do
-# get quoted by urllib2.quote. We need to undo that.
-# TODO(elsigh): More research on this - are there others? lame.
-PARSE_PARAMS_JS_EXCEPTIONS = {
-  '*': '%2A'
-}
-def ParamsListToDict(params, unquote=True, quote=False, return_order=False):
-  """Turns a params list into an dict."""
-  parsed_params = {}
-  order = []
-  for param in params:
-    split = param.split('=')
-    # if it's not key=val, then don't put it in the parsed_params.
-    if len(split) != 2:
-      parsed_params[param] = ''
-      order.append(param)
-      continue
-
-    name = split[0]
-    val = split[1]
-    order.append(name)
-
-    if unquote:
-      val = urllib2.unquote(val)
-    if quote:
-      val = urllib2.quote(val)
-      for orig, quoted in PARSE_PARAMS_JS_EXCEPTIONS.items():
-        val = re.sub(quoted, orig, val)
-    parsed_params[name] = val
-
-  if return_order:
-    return parsed_params, order
-  else:
-    return parsed_params
-
-
-def ParseParamsString(params):
-  """Converts a string of params into a list."""
-  raw_params_list = params.split(',')
-  parsed_params, order = ParamsListToDict(raw_params_list, quote=True,
-                                          return_order=True)
-  params = []
-  # Adds back in all the cruft so things match. Ugh.
-  for key in order:
-    if parsed_params[key]:
-      params.append('%s=%s' % (key, parsed_params[key]))
-    else:
-      params.append(key)
-  return params
 
 
 RECENT_TESTS_MEMCACHE_KEY = 'recent_tests'
@@ -334,7 +269,7 @@ def ClearMemcache(request):
   if continue_url:
     if not re.search('\?', continue_url):
       continue_url += '?'
-    continue_url += '&message=' + urllib2.quote(' '.join(message))
+    continue_url += '&message=' + urllib.quote(' '.join(message))
     return http.HttpResponseRedirect(continue_url)
   else:
    return http.HttpResponse('<br>'.join(message))
@@ -359,44 +294,40 @@ def Beacon(request):
   # First make sure this IP is not being an overachiever ;)
   ip = request.META.get('REMOTE_ADDR')
   # Mask the IP. TODO(rc4? instead)
-  ip = hashlib.md5(ip).hexdigest()
+  ip_hash = hashlib.md5(ip).hexdigest()
 
   user_agent_string = request.META.get('HTTP_USER_AGENT')
-
   if not CheckThrottleIpAddress(ip, user_agent_string):
     return http.HttpResponseServerError(BAD_BEACON_MSG + 'IP')
 
-  callback = request.REQUEST.get('callback', None)
-  category = request.REQUEST.get('category', None)
-  results_string = request.REQUEST.get('results', None)
+  callback = request.REQUEST.get('callback')
+  category = request.REQUEST.get('category')
+  results_str = request.REQUEST.get('results')
+  params_str = request.REQUEST.get('params')
 
-  if category is None or results_string is None:
-    logging.debug('Got no category or results')
+  if not category or not results_str:
+    logging.debug('Got no category or results.')
     return http.HttpResponse(BAD_BEACON_MSG + 'Category/Results')
-
   if settings.BUILD == 'production' and category not in settings.CATEGORIES:
+    # Allows local developers to try out category beaconing.
     logging.debug('Got a bogus category(%s) in production.' % category)
     return http.HttpResponse(BAD_BEACON_MSG + 'Category in Production')
-
-  try:
-    test_set = all_test_sets.GetTestSet(category)
-  except:
+  if not all_test_sets.HasTestSet(category):
     logging.debug('Could not get a test_set for category: %s' % category)
     return http.HttpResponse(BAD_BEACON_MSG + 'TestSet')
 
-  results = ParseResultsParamString(results_string)
-  logging.info('Beacon category: %s\nresults: %s' % (category, results))
+  test_set = all_test_sets.GetTestSet(category)
 
-  user = users.get_current_user()
+  logging.info('Beacon category: %s\nresults_str: %s' % (category, results_str))
 
-  params = request.REQUEST.get('params', [])
-  if params and params != '':
-    params = ParseParamsString(params)
-  #logging.info('Beacon params: %s' % params)
+  optional_fields = {}
+  if params_str:
+    optional_fields['params_str'] = urllib.unquote(params_str)
+    #logging.info('Beacon params: %s' % optional_fields['params_str'])
+  optional_fields['user'] = users.get_current_user()
 
-  result_parent = ResultParent.AddResult(test_set, ip, user_agent_string,
-                                         results, params=params, user=user)
-
+  result_parent = ResultParent.AddResult(
+      test_set, ip_hash, user_agent_string, results_str, **optional_fields)
   if not result_parent:
     return http.HttpResponse(BAD_BEACON_MSG + 'ResultParent')
 
@@ -454,85 +385,65 @@ def GetStats(request, test_set, output='html', opt_tests=None,
 
   ua = request.GET.get('ua')
   if ua:
-    user_agent_group_strings = [ua]
+    user_agent_strings = [ua]
   else:
-    user_agent_group_strings = UserAgentGroup.GetStrings(version_level)
+    user_agent_strings = UserAgentGroup.GetStrings(version_level)
+
   #logging.info('GetStats: v: %s, uas: %s' % (version_level,
-  #             user_agent_group_strings))
+  #             user_agent_strings))
 
   tests = opt_tests or test_set.tests
-  stats = GetStatsData(test_set.category, tests, user_agent_group_strings,
-                       test_set.default_params, use_memcache, version_level)
+  params_str = None
+  if test_set.default_params:
+    params_str = str(test_set.default_params)
+  stats = GetStatsData(test_set.category, tests, user_agent_strings,
+                       params_str, use_memcache, version_level)
   #logging.info('GetStats got stats: %s' % stats)
 
   # Reset tests now to only be "visible" tests.
   tests = [test for test in tests
-           if not hasattr(test, 'is_hidden_stat') or
-           not test.is_hidden_stat]
+           if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat]
 
   # Looks for a category_results=test1=X,test2=X url GET param.
   results = None
-  results_uri_string = None
-  for category in settings.CATEGORIES:
-    results_uri_string = request.GET.get('%s_results' % category)
-    if results_uri_string and category == test_set.category:
-      parsed_results = ParseResultsParamString(results_uri_string)
-      results = test_set.ParseResults(parsed_results)
-      # Flattens results into a simple dict.
-      results_dict = {}
-      for result in results:
-        results_dict[result['key']] = result
-  if results_uri_string is None:
-    results_uri_string = ''
+  results_str = request.GET.get('%s_results' % test_set.category, '')
+  if results_str:
+    results = dict((x['key'], x) for x in test_set.ParseResults(results_str))
 
-  current_ua_string = None
+  # Set current_ua_string to one in user_agent_strings
   current_ua = UserAgent.factory(request.META['HTTP_USER_AGENT'])
-  current_ua_list = current_ua.get_string_list()
-
-  # Set the current_ua to a string matching one of the user agents.
-  for group_string in user_agent_group_strings:
-    #logging.info('testing %s vs %s' % (user_agent, current_ua_list))
-    if group_string in current_ua_list:
-      current_ua_string = group_string
+  current_ua_string = current_ua.pretty()
+  for ua_string in user_agent_strings:
+    if current_ua_string.startswith(ua_string):
+      current_ua_string = ua_string
       break
-
-  if not current_ua_string:
-    current_ua_string = current_ua.pretty()
+  else:
+    # current_ua_string was not found in user_agent_strings.
     if results:
-      user_agent_group_strings.append(current_ua_string)
-      user_agent_group_strings.sort()
+      user_agent_strings.append(current_ua_string)
+      user_agent_strings.sort()
 
   # Adds the current results into the stats dict.
   if results:
-    if not stats.has_key(current_ua_string):
-      stats[current_ua_string] = {}
-    stats[current_ua_string]['current_results'] = {}
+    stats.setdefault(current_ua_string, {})
+    current_results = {}
+    stats[current_ua_string]['current_results'] = current_results
     current_ua_score = 0
-    medians = {}
+    medians = dict((test.key, results[test.key]['score']) for test in tests)
     for test in tests:
-      if results_dict.has_key(test.key):
-        current_results = stats[current_ua_string]['current_results']
-        current_results[test.key] = {}
-        median = results_dict[test.key]['score']
-        medians[test.key] = median
-
-    for test in tests:
-      if results_dict.has_key(test.key):
+      if test.key in results:
         median = medians[test.key]
-        current_results[test.key]['median'] = median
-        score, display = GetScoreAndDisplayValue(test, median, medians,
-                                                 is_uri_result=True)
-        current_results[test.key]['score'] = score
-        current_results[test.key]['display'] = display
-        expando = None
-        if results_dict[test.key].has_key('expando'):
-          expando = results_dict[test.key]['expando']
-        current_results[test.key]['expando'] = expando
-
+        score, display = GetScoreAndDisplayValue(
+	    test, median, medians, is_uri_result=True)
+        stats[current_ua_string]['current_results'][test.key] = {
+            'median': median,
+            'score': score,
+            'display': display,
+            'expando': results[test.key].get('expando', None),
+            }
     current_score, current_display = test_set.GetRowScoreAndDisplayValue(
         current_results)
     current_score = Convert100to10Base(current_score)
-
     stats[current_ua_string]['current_score'] = current_score
     stats[current_ua_string]['current_display'] = current_display
 
@@ -541,12 +452,12 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     'category_name': test_set.category_name,
     'tests': tests,
     'v': version_level,
-    'user_agents': user_agent_group_strings,
+    'user_agents': user_agent_strings,
     'request_path': request.get_full_path(),
     'current_user_agent': current_ua_string,
     'stats': stats,
     'params': test_set.default_params,
-    'results_uri_string': results_uri_string
+    'results_uri_string': results_str
   }
   #logging.info("GetStats got params: %s", str(params))
   if output is 'html':
@@ -555,7 +466,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     return params
 
 
-def GetStatsData(category, tests, user_agents, params, use_memcache=True,
+def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
                  version_level='top'):
   """This is the meat and potatoes of the stats."""
   #use_memcache=False
@@ -576,8 +487,14 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
       user_agent_score = 0
       for test in tests:
         #logging.info('GetStatsData working on test: %s' % test)
-        median, total_runs = test.GetRanker(
-            user_agent, params).GetMedianAndNumScores(num_scores=total_runs)
+        ranker = test.GetRanker(user_agent, params_str)
+        if ranker:
+          median, total_runs = ranker.GetMedianAndNumScores(
+            num_scores=total_runs)
+        else:
+          median, total_runs = None, 0
+          logging.warn("GetStatsData: Ranker not found: %s, %s, %s, %s",
+                       category, test.key, user_agent, params_str)
         medians[test.key] = median
       logging.info('GetStatsData %s medians pass #1: %s' % (user_agent, medians))
 
@@ -613,6 +530,7 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
         logging.info('GetStatsData added user_agent %s stats to memcache' % user_agent)
 
     if version_level == 'top' or user_agent_stats['total_runs']:
+      # TODO(slamm): double check what this code needs to do
       stats[user_agent] = user_agent_stats
 
   #logging.info('GetStatsData done, stats: %s' % stats)
@@ -711,48 +629,28 @@ def SeedDatastore(request):
     categories = [category]
   else:
     categories = settings.CATEGORIES
-
   increment_counts = request.GET.get('increment_counts', True)
   if increment_counts == '0':
     increment_counts = False
 
-  user_agents = []
-  for ua_string in TOP_USER_AGENT_STRINGS:
-    user_agent = UserAgent.factory(ua_string)
-    user_agents.append(user_agent)
+  def _GetRandomScore(test):
+    return random.randrange(test.min_value, test.max_value + 1)
 
-
-  keys = []
+  for user_agent_string in TOP_USER_AGENT_STRINGS:
+    user_agent = UserAgent.factor(user_agent_string).update_groups()
+    logging.info(' - user_agent.update_groups()')
   for category in categories:
-    logging.info('CATEGORY: %s' % category)
     test_set = all_test_sets.GetTestSet(category)
-    params = test_set.default_params
-    for user_agent in user_agents:
-      logging.info(' - USER AGENT: %s' % user_agent.pretty())
-      user_agent.update_groups()
-      logging.info(' - user_agent.update_groups()')
-
-      user_agent_list = user_agent.get_string_list()
-      for i in range(1, NUM_RECORDS + 1):
+    for user_agent_string in TOP_USER_AGENT_STRINGS:
+      for i in range(NUM_RECORDS):
         logging.info(' -- i: %s' % i)
-        result_parent = ResultParent()
-        result_parent.category = test_set.category
-        result_parent.user_agent = user_agent
-        result_parent.user_agent_list = user_agent_list
-        result_parent.ip = '1.2.3.4'
-        if params:
-          result_parent.params = params
-        result_parent.put()
-
-        for test in test_set.tests:
-          if test.score_type == 'boolean':
-            score = random.randrange(0, 1)
-          elif test.score_type == 'custom':
-            score = random.randrange(test.min_value, test.max_value)
-          result_time = ResultTime(parent=result_parent)
-          result_time.test = test.key
-          result_time.score = score
-          result_time.put()
+        results_str = ','.join(['%s=%s' % (test.key, _GetRandomScore(test))
+                               for test in test_set.tests])
+        params_str = None
+        if test_set.default_params:
+          params_str = str(test_set.default_params)
+        result_parent = ResultParent.AddResult(
+            test_set, '1.2.3.4', user_agent_string, results_str, params_str)
         logging.info('--------------------')
         logging.info(' -- PUT ResultParent & ResultTime')
         logging.info('--------------------')
@@ -770,28 +668,6 @@ def SeedDatastore(request):
 
   memcache.flush_all()
   return http.HttpResponseRedirect('?message=Datastore got seeded.')
-
-
-def UpdateTx(test_time, user_agent):
-  result_parent = ResultParent()
-  result_parent.category = test_time.category
-  result_parent.user_agent = user_agent
-  result_parent.user_agent_pretty = test_time.user_agent_pretty
-  result_parent.ip = test_time.ip
-  result_parent.created = test_time.created
-  result_parent.params = test_time.params
-  result_parent.put()
-
-  result_time_entities = []
-  for test in test_time.get_tests():
-    if test == 'test_type':
-      continue
-    result_time = ResultTime(parent=result_parent)
-    result_time.test = test
-    result_time.score = int(getattr(test_time, test))
-    result_time_entities.append(result_time)
-    result_time.dirty = False
-  db.put(result_time_entities)
 
 
 @decorators.admin_required

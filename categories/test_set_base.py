@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2009 Google Inc.
 #
@@ -23,6 +23,28 @@ import logging
 
 from models import result_ranker
 
+
+class Error(Exception):
+  """Base exception for test_set_base."""
+  pass
+
+
+class ParseResultsKeyError(Error):
+  """The keys in the result string do not match the defined tests."""
+  def __init__(self, expected, actual):
+    self.expected = expected
+    self.actual = actual
+
+  def __str__(self):
+    return ("Keys mismatch: expected=%s, actual=%s" %
+            (self.expected, self.actual))
+
+
+class ParseResultsValueError(Error):
+  """The values in the result string do not parse as integers."""
+  pass
+
+
 class TestBase(object):
   def __init__(self, key, name, url, score_type, doc, min_value, max_value,
                test_set=None):
@@ -35,11 +57,13 @@ class TestBase(object):
     self.max_value = max_value
     self.test_set = test_set
 
+  def GetRanker(self, user_agent_version, params_str):
+    return result_ranker.GetRanker(
+        self.test_set.category, self, user_agent_version, params_str)
 
-  def GetRanker(self, user_agent_version, params):
-    return result_ranker.Factory(
-        self.test_set.category, self, user_agent_version, params)
-
+  def GetOrCreateRanker(self, user_agent_version, params_str):
+    return result_ranker.GetOrCreateRanker(
+        self.test_set.category, self, user_agent_version, params_str)
 
   def GetScoreAndDisplayValue(self, median, medians=None, is_uri_result=False):
     """Custom scoring function.
@@ -75,26 +99,56 @@ class TestSet(object):
     for test in tests:
       test.test_set = self  # add back pointer to each test
       self._test_dict[test.key] = test
+    self._test_keys = sorted(self._test_dict)
 
 
   def GetTest(self, test_key):
     return self._test_dict[test_key]
 
+  def GetResults(self, results_str, is_import=False):
+    """Parses a results string.
 
-  def ParseResults(self, results):
+    Args:
+      results_str: a string like 'test1=time1,test2=time2,[...]'.
+      is_import: if true, skip checking keys to list of tests
+    Returns:
+      [{'key': test1, 'score': time1}, {'key': test2, 'score': time2}]
+    """
+    parsed_results = self.ParseResults(results_str, is_import)
+    return self.AdjustResults(parsed_results)
+
+  def ParseResults(self, results_str, is_import=False):
+    """Parses a results string.
+
+    Args:
+      results_str: a string like 'test1=time1,test2=time2,[...]'.
+    Returns:
+      [{'key': test1, 'score': time1}, {'key': test2, 'score': time2}]
+    """
+    test_scores = [x.split('=') for x in str(results_str).split(',')]
+    test_keys = sorted([x[0] for x in test_scores])
+    if not is_import and self._test_keys != test_keys:
+      raise ParseResultsKeyError(expected=self._test_keys, actual=test_keys)
+    try:
+      parsed_results = [{'key': key, 'score': int(score)}
+                        for key, score in test_scores]
+    except ValueError:
+      raise ParseResultsValueError
+    return parsed_results
+
+  def AdjustResults(self, results):
     """Rewrite the results dict before saving the results.
 
     Left to implementations to overload.
 
     Args:
-      results: a list of dictionaries of results.
-               i.e. [{'key': test1, 'score': time1},
-                     {'key': test2, 'score': time2}]
+      results: a list of dicts like [{'key': key_1, 'score': score_1}, ...]
     Returns:
-      A list of dictionaries of results.
+      a list of modified dicts like the following:
+      [{'key': key_1, 'score': modified_score_1}, ...]
+
     """
     return results
-
 
   def GetRowScoreAndDisplayValue(self, results):
     """Get the overall score for this row of results data.
@@ -113,4 +167,3 @@ class TestSet(object):
     """
     #logging.info('%s GetRowScore, results:%s' % (self.category, results))
     return 90, ''
-

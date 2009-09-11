@@ -21,6 +21,7 @@ from google.appengine.ext import db
 from google.appengine.api import memcache
 
 from categories import all_test_sets
+from categories import test_set_base
 from models import user_agent
 from models.user_agent import UserAgent
 
@@ -32,21 +33,28 @@ class ResultTime(db.Model):
   dirty = db.BooleanProperty(default=True)
 
   def increment_all_counts(self):
-    for ranker in self.GetRankers():
+    for ranker in self.GetOrCreateRankers():
       ranker.Add(self.score)
     self.dirty = False
     self.put()
 
-  def GetRankers(self):
+  def GetOrCreateRankers(self):
     parent = self.parent()
     test_set = all_test_sets.GetTestSet(parent.category)
     try:
       test = test_set.GetTest(self.test)
     except KeyError:
-      logging.warn('No rankers for test: %s', self.test)
+      logging.warn('Test key not found in test_set: %s', self.test)
     else:
+      params_str = None
+      if parent.params_str:
+        params_str = parent.params_str
+      elif parent.params:
+        # TODO(slamm): Remove after converting params -> params_str
+        params_str = str(test_set_params.Params(
+            [urllib.unquote(x) for x in parent.params]))
       for user_agent_string in parent.user_agent.get_string_list():
-        yield test.GetRanker(user_agent_string, parent.params)
+        yield test.GetOrCreateRanker(user_agent_string, params_str)
 
 
 class ResultParent(db.Expando):
@@ -64,55 +72,54 @@ class ResultParent(db.Expando):
   user_id = db.StringProperty()
   created = db.DateTimeProperty(auto_now_add=True)
   params = db.StringListProperty(default=[])
+  params_str = db.StringProperty(default=None)
 
   @classmethod
-  def AddResult(cls, test_set, ip, user_agent_string, results, **kwds):
+  def AddResult(cls, test_set, ip, user_agent_string, results_str,
+                is_import=False, **kwds):
     """Create result models and stores them as one transaction.
 
     Args:
       test_set: an instance of test_set_base.
       ip: a string to store as the user's IP. This should be hashed beforehand.
       user_agent_string: The full user agent string.
-      results: a list of dictionaries.
-
+      results_str: a string like 'test1=time1,test2=time2,[...]'.
+      kwds: optional fields including 'user' and 'params_str'.
     Returns:
       A ResultParent instance.
     """
     logging.debug('ResultParent.AddResult')
+    if kwds.get('params_str', None) in ('None', ''):
+      # params_str should either unset, None, or a non-empty string
+      raise ValueError
+
     user_agent = UserAgent.factory(user_agent_string)
     parent = cls(category=test_set.category,
                  ip=ip,
                  user_agent=user_agent,
                  user_agent_pretty=user_agent.pretty(),
                  **kwds)
+    try:
+      results = test_set.GetResults(results_str, is_import)
+    except test_set_base.ParseResultsKeyError, e:
+      logging.warn(e)
+      return None
+    except test_set_base.ParseResultsValueError:
+      logging.warn('Results string with bad value(s): %s', results_str)
+      return None
 
-    # Call the TestSet's ParseResults method
-    results = test_set.ParseResults(results)
-
-    if len(results) != len(test_set.tests):
-      logging.debug('len(results)[%s] != len(test_set.tests)[%s] for %s.' %
-                    (len(results), len(test_set.tests), test_set.category))
-      return
-
-
-    for results_dict in results:
-      # Make sure this test is is legit.
-      try:
-        test = test_set.GetTest(results_dict['key'])
-      except:
-        logging.debug('Got a test(%s) not in the test_set for %s' %
-                      (results_dict['key'], test_set.category))
-        return
-
-      # Are there expandos after calling ParseResults?
-      if results_dict.has_key('expando'):
-        parent.__setattr__(str(results_dict['key']), results_dict['expando'])
+    for result in results:
+      if 'expando' in result:
+        # test_set.GetResults may add 'expando' value; save it on the parent.
+        parent.__setattr__(result['key'], result['expando'])
 
     def _AddResultInTransaction():
       parent.put()
-      for results_dict in results:
-        db.put(ResultTime(parent=parent, test=str(results_dict['key']),
-               score=int(results_dict['score'])))
+      for result in results:
+        db.put(ResultTime(parent=parent,
+                          test=result['key'],
+                          score=result['score'],
+                          dirty=not is_import))
     db.run_in_transaction(_AddResultInTransaction)
     return parent
 

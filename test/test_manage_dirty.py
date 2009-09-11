@@ -62,25 +62,11 @@ class TestManageDirty(unittest.TestCase):
     # First, create a "dirty" ResultParent
     ua_string = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
                  'Gecko/2009011912 Firefox/3.0.6')
-    user_agent = UserAgent.factory(ua_string)
 
     test_set = mock_data.MockTestSet(self.CATEGORY)
     category = self.CATEGORY
-    result_parent1 = ResultParent()
-    result_parent1.category = category
-    result_parent1.user_agent = user_agent
-    result_parent1.user_agent_pretty = user_agent.pretty()
-    result_parent1.put()
-
-    result_time1 = ResultTime(parent=result_parent1)
-    result_time1.test = 'testDisplay'
-    result_time1.score = 500
-    result_time1.put()
-
-    result_time2 = ResultTime(parent=result_parent1)
-    result_time2.test = 'testVisibility'
-    result_time2.score = 3
-    result_time2.put()
+    ResultParent.AddResult(test_set, '12.2.2.11', ua_string,
+                           'testDisplay=500,testVisibility=3')
 
     response = self.client.get('/admin/update_dirty', {},
         **mock_data.UNIT_TEST_UA)
@@ -98,7 +84,7 @@ class TestManageDirty(unittest.TestCase):
     self.assertEqual([False, False],
                      [x.dirty for x in result_times])
 
-    ranker = result_ranker.Factory(
+    ranker = result_ranker.GetRanker(
         category, test_set.GetTest('testDisplay'), 'Firefox 3')
     self.assertEqual(1, ranker.TotalRankedScores())
     self.assertEqual(500, ranker.GetMedian())

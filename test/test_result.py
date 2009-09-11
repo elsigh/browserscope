@@ -30,19 +30,19 @@ class ResultTest(unittest.TestCase):
   def testTotalRankedScores(self):
     test_set = mock_data.AddOneTest()
 
-    ranker = result_ranker.Factory(
+    ranker = result_ranker.GetRanker(
         test_set.category, test_set.GetTest('testDisplay'), 'Firefox 3')
     self.assertEqual(1, ranker.TotalRankedScores())
 
-    ranker = result_ranker.Factory(
+    ranker = result_ranker.GetRanker(
         test_set.category, test_set.GetTest('testDisplay'), 'Firefox 3.0')
     self.assertEqual(1, ranker.TotalRankedScores())
 
-    ranker = result_ranker.Factory(
+    ranker = result_ranker.GetRanker(
         test_set.category, test_set.GetTest('testVisibility'), 'Firefox 3')
     self.assertEqual(1, ranker.TotalRankedScores())
 
-    ranker = result_ranker.Factory(
+    ranker = result_ranker.GetRanker(
         test_set.category, test_set.GetTest('testDisplay'), 'Firefox 3.0.6')
     self.assertEqual(1, ranker.TotalRankedScores())
 
@@ -50,11 +50,11 @@ class ResultTest(unittest.TestCase):
   def testGetMedian(self):
     test_set = mock_data.AddFiveResultsAndIncrementAllCounts()
 
-    ranker = result_ranker.Factory(
+    ranker = result_ranker.GetRanker(
         test_set.category, test_set.GetTest('testDisplay'), 'Firefox 3')
     self.assertEqual(300, ranker.GetMedian())
 
-    ranker = result_ranker.Factory(
+    ranker = result_ranker.GetRanker(
         test_set.category, test_set.GetTest('testVisibility'), 'Firefox 3')
     self.assertEqual(2, ranker.GetMedian())
     self.assertEqual((2, 5), ranker.GetMedianAndNumScores())
@@ -63,9 +63,9 @@ class ResultTest(unittest.TestCase):
   def testGetMedianWithParams(self):
     test_set = mock_data.AddThreeResultsWithParamsAndIncrementAllCounts()
 
-    ranker = result_ranker.Factory(
+    ranker = result_ranker.GetRanker(
         test_set.category, test_set.GetTest('testDisplay'), 'Firefox 3',
-        test_set.default_params)
+        str(test_set.default_params))
     self.assertEqual(2, ranker.GetMedian())
 
 
@@ -79,8 +79,8 @@ class ResultTest(unittest.TestCase):
     self.assertEqual(200, result_times[1].score)
 
 
-  def testAddResultForTestSetWithParseResults(self):
-    parent = mock_data.AddOneTestUsingAddResultWithParseResults()
+  def testAddResultForTestSetWithAdjustResults(self):
+    parent = mock_data.AddOneTestUsingAddResultWithAdjustResults()
     self.assertEqual(500, parent.testDisplay)
     self.assertEqual(200, parent.testVisibility)
     result_times = parent.get_result_times()
@@ -101,5 +101,3 @@ class ResultTest(unittest.TestCase):
     self.assertEqual(500, result_times[0].score)
     self.assertEqual('testVisibility', result_times[1].test)
     self.assertEqual(200, result_times[1].score)
-
-

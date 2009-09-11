@@ -9,7 +9,7 @@
   </head>
   <body>
     <input id="csrf_token" type="hidden" value="{{ csrf_token }}">
-    <input id="rt-params" type="hidden" value="{{ params }}">
+    <input id="rt-params" type="hidden" value="{{ params|urlencode }}">
     <a href="/tests/index.html">Tests Home</a>
     <div id="g-content">
       {% for template in templates %}

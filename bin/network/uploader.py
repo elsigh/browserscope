@@ -19,7 +19,6 @@
 
 This script queries MySQL and sends network scores to the GAE.
 
-TODO: Login as admin.
 """
 
 __author__ = 'slamm@google.com (Stephen Lamm)'
@@ -60,7 +59,7 @@ SCORE_COLUMNS = (
     )
 
 MAX_TEST_ID_SQL = """
-  SELECT MAX(testid) FROM tests;
+  SELECT MAX(testid) FROM testsdev;
 """
 TEST_RESULTS_SQL = """
   SELECT
@@ -69,8 +68,7 @@ TEST_RESULTS_SQL = """
     useragent,
     ip,
     %(score_columns)s
-  FROM tests
-  LEFT JOIN useragents USING (useragentid)
+  FROM testsdev
   WHERE testid > %(last_test_id)s
   ORDER BY testid
   LIMIT %(batch_size)s;
@@ -101,9 +99,9 @@ def Results(db, last_test_id, batch_size):
     if not user_agent_string:
       logging.info('Skipping test with no useragent: testid=%s', test_id)
       continue
-    test_scores = [(name, value) for name, value
-                   in zip(SCORE_COLUMNS, row[4:])
-                   if value is not None]
+    test_scores = ','.join(['%s=%s' % (name, value) for name, value
+                            in zip(SCORE_COLUMNS, row[4:])
+                            if value is not None])
     results.append([
         test_id,
         ip,
@@ -166,11 +164,19 @@ def main(argv):
   logging.info('Last test id on source server: %d', max_test_id)
   retries = 0
   num_entries = 0
+  start = datetime.datetime.now()
   while last_test_id < max_test_id:
-    logging.info('last_test_id=%s, batch_size=%s, max_test_id=%s',
-                 last_test_id, BATCH_SIZE, max_test_id)
     results = Results(db, last_test_id, BATCH_SIZE)
+    batch_start = datetime.datetime.now()
     last_test_id = sender.Send(results)
+    batch_end = datetime.datetime.now()
+    num_entries += BATCH_SIZE
+    logging.info('total=%s, total_time=%s, batch_time=%s, last_test_id=%s,'
+                 ' batch_size=%s, max_test_id=%s',
+                 num_entries,
+                 str(batch_end - start)[:-7],
+                 str(batch_end - batch_start)[:-7],
+                 last_test_id, BATCH_SIZE, max_test_id)
     if last_test_id:
       retries = 0
     else:
