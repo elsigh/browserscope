@@ -477,21 +477,6 @@ html>body .goog-inline-block {
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
 }
-/*
-.rt-ua-cur td,
-.rt-stats .rt-ua-cur td.rt-ua {
-  border-top-color: #4291bf;
-  border-bottom-color: #4291bf;
-}
-*/
-
-.rt-res th,
-.rt-res td,
-.rt-res td.rt-ua {
-  border-top-color: #4291bf;
-  border-top-width: 2px;
-  border-bottom-color: #4291bf;
-}
 
 .rt-stats tbody td {
   padding: .4em .3em .4em 1em;
