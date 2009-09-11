@@ -20,6 +20,7 @@ __author__ = 'slamm@google.com (Stephen Lamm)'
 
 import logging
 import urllib
+import hashlib
 
 from google.appengine.runtime import DeadlineExceededError
 from google.appengine.api import datastore
@@ -279,19 +280,23 @@ def UpdateResultParents(request):
   try:
     prev_bookmark, results, next_bookmark = query.fetch(100, bookmark)
     total_scanned += len(results)
-    changed_results = []
+    changed_results = set()
     for result in results:
       if hasattr(result, 'user_agent_list') and result.user_agent_list:
         result.user_agent_pretty = result.user_agent_list[-1]
         result.user_agent_list = []
-        changed_results.append(result)
+        changed_results.add(result)
       if hasattr(result, 'params') and result.params:
         result.params_str = str(test_set_params.Params(
             *[urllib.unquote(x) for x in result.params]))
         result.params = []
-        changed_results.append(result)
+        changed_results.add(result)
+      if '.' in result.ip:
+        ip_hash = hashlib.md5(result.ip).hexdigest()
+        result.ip = ip_hash
+        changed_results.add(result)
     if changed_results:
-      db.put(changed_results)
+      db.put(list(changed_results))
       total_updated += len(changed_results)
   except DeadlineExceededError:
     logging.warn('DeadlineExceededError in UpdateResultParents:'
