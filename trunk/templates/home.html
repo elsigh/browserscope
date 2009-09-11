@@ -41,7 +41,6 @@
   -->
 </div>
 
-<h2 id="bs-results-title">Results</h2>
 <div id="bs-home-cur-ua">
   <span class="bs-cur-ua goog-inline-block"></span>
   We think you're using <strong>{{ current_ua }}</strong>. <a
@@ -74,81 +73,119 @@
 <script>
 (function(){
   var xhrLoading = {};
+  var hideCategoryFamilySubmit = function(category) {
+    document.getElementById('rt-stats-' + category + '-v-s').style.display = 'none';
+  };
   var changeCategoryClickHandler = function() {
     var link = this;
     if (selectedCategoryLink == link) {
       return;
     }
-    categorySections[selectedCategoryLink.category].style.display = 'none';
+    var oldCategory = selectedCategoryLink.category;
+    categorySections[oldCategory].style.display = 'none';
     selectedCategoryLink.parentNode.className = '';
 
     // Reset to be the new one.
     selectedCategoryLink = link;
+    var newCategory = selectedCategoryLink.category;
     selectedCategoryLink.parentNode.className = 'bs-sel';
-    var el = categorySections[selectedCategoryLink.category];
-    el.style.display = '';
+    var el = categorySections[newCategory];
 
     // XHR if we need to.
-    if (el.innerHTML == '' && !xhrLoading[selectedCategoryLink.category]) {
-      el.className = 'bs-loading';
-      el.innerHTML = 'Loading the ' + selectedCategoryLink.categoryName +
-          ' Results...';
-      xhrLoading[selectedCategoryLink.category] = true;
-      var url = '/?category=' + selectedCategoryLink.category +
-          '&xhr=1&{{ results_params }}';
-      goog.net.XhrIo.send(url, function(e) {
-        loadStatsTableCallback(e, selectedCategoryLink.category);
-      }, 'get', null, null, 15000); // 15 second timeout
+    if (el.innerHTML == '' && !xhrLoading[newCategory]) {
+      xhrCategoryResults(newCategory,
+          getBrowserFamilyValue(oldCategory));
+    } else {
+      el.style.display = '';
     }
+    // prevent the href;
+    return false;
   };
+  var getBrowserFamilyValue = function(category) {
+    // Before we clear out the current table, get the browser family.
+    var browserFamilySelect = document.getElementById('rt-stats-'
+        + category + '-v');
+    var browserFamilyValue = browserFamilySelect.options[
+        browserFamilySelect.options.selectedIndex].value;
+    return browserFamilyValue;
+  };
+  var xhrCategoryResults = function(category, browserFamilyValue) {
+    var el = categorySections[category];
+    var categoryName = categoryNames[category];
+    el.style.display = '';
+    el.className = 'bs-loading';
+    el.innerHTML = 'Loading the ' + categoryName + ' Results...';
+    xhrLoading[category] = true;
+
+    // results_params are their possibly recently gotten results.
+    var url = '/?category=' + category +
+        '&xhr=1&v=' + browserFamilyValue + '&{{ results_params }}';
+    goog.net.XhrIo.send(url, function(e) {
+      loadStatsTableCallback(e, category);
+    }, 'get', null, null, 15000); // 15 second timeout
+  };
+  var browserFamilyChangeHandler = function() {
+    var category = selectedCategoryLink.category
+    xhrCategoryResults(category, getBrowserFamilyValue(category));
+  };
+  var setUpBrowserFamilyForm = function(category) {
+    document.getElementById('rt-stats-' + category +
+        '-v-s').style.display = 'none';
+    document.getElementById('rt-stats-' + category +
+        '-v').onchange = browserFamilyChangeHandler;
+  }
   var loadStatsTableCallback = function(e, category) {
     categorySections[category].className = '';
     var xhrio = e.target;
     if (xhrio.isSuccess()) {
       var html = xhrio.getResponseText();
       categorySections[category].innerHTML = html;
+      setUpBrowserFamilyForm(category);
     } else {
       alert('We encountered an error. ' +
           'We are indeed aware of this issue, and apologize. ' +
-          'Feel free to try refresh and try again.');
+          'Feel free to try again.');
       xhrLoading[category] = false;
-      categorySections[category].innerHTML = '';
+      categorySections[category].innerHTML = 'Oh snap, we\'re sorry.';
     }
   };
+
+  // hide the current form button, etc..
+  setUpBrowserFamilyForm('{{ stats_table_category }}');
 
   var categoriesList = document.createElement('ul');
   categoriesList.id = 'bs-results-cats';
   categoriesList.className = 'bs-compact';
   var categories = [];
   var categorySections = {};
+  var categoryNames = {};
   var parent, h3;
   {% for app_category in app_categories %}
     parent = document.getElementById('{{ app_category|by_key:0 }}-results');
     categorySections['{{ app_category|by_key:0 }}'] = parent;
-    categories.push({
-      'key': '{{ app_category|by_key:0 }}',
-      'name': '{{ app_category|by_key:1 }}'
-    });
+    categoryNames['{{ app_category|by_key:0 }}'] = '{{ app_category|by_key:1 }}'
+    categories.push('{{ app_category|by_key:0 }}');
     h3 = parent.getElementsByTagName('h3')[0];
     parent.removeChild(h3);
   {% endfor %}
   var selectedCategoryLink;
   for (var i = 0, category; category = categories[i]; i++) {
-    var link = document.createElement('span');
+    var link = document.createElement('a');
+    link.href = '/?category=' + category + '&{{ results_params }}';
     var li = document.createElement('li');
-    var re = new RegExp('\\?' + category.key + '_results=');
+    var re = new RegExp('\\?' + category + '_results=');
     li.appendChild(link);
-    link.category = category.key;
-    link.categoryName = category.name;
-    link.appendChild(document.createTextNode(category.name));
+    link.category = category;
+    link.categoryName = categoryNames[category];
+    link.appendChild(document.createTextNode(categoryNames[category]));
     link.onclick = changeCategoryClickHandler;
-    if (category.key == '{{ stats_table_category }}') {
+    if (category == '{{ stats_table_category }}') {
       selectedCategoryLink = link;
       selectedCategoryLink.parentNode.className = 'bs-sel';
     // Otherwise initially wipe out the contents, we'll replace via xhr.
     } else {
-      categorySections[category.key].innerHTML = '';
-      categorySections[category.key].style.display = 'none';
+      categorySections[category].innerHTML = '';
+      categorySections[category].style.display = 'none';
     }
     categoriesList.appendChild(li);
   }
