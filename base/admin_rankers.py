@@ -291,7 +291,7 @@ def UpdateResultParents(request):
             *[urllib.unquote(x) for x in result.params]))
         result.params = []
         changed_results.add(result)
-      if '.' in result.ip:
+      if result.ip and '.' in result.ip:
         ip_hash = hashlib.md5(result.ip).hexdigest()
         result.ip = ip_hash
         changed_results.add(result)
