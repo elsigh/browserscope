@@ -148,7 +148,6 @@ USER_AGENT_PARSERS = (
   # must go before Opera
   _P(r'(Wii)'),
   # must go before Browser/v1.v2 - eg: Minefield/3.1a1pre
-  # TODO(elsigh): ask Steve about "Steve has Firefox (Shiretoko) 3.5.1, we got Firefox (Shiretoko) 3.5.1pre for Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.1pre) Gecko/20090706 Shiretoko/3.5.1pre (.NET CLR 3.5.30729) FirePHP/0.3" - i.e. the additional \.?
   _P(r'(Namoroka|Shiretoko|Minefield)/(\d+)\.(\d+)\.?([ab]?\d+[a-z]*)',
      'Firefox ($1)'),
   _P(r'(Namoroka|Shiretoko|Minefield)/(\d+)\.(\d+)',
