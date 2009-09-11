@@ -438,6 +438,15 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   """
   logging.info('GetStats for %s' % test_set.category)
   version_level = request.GET.get('v', 'top')
+
+  # Enables a "static" bypass mode where we deliver canned html results.
+  if (test_set.category in settings.STATIC_CATEGORIES and
+      output == 'html' and not users.is_current_user_admin()):
+     t = loader.get_template('static_%s_%s.html' % (test_set.category,
+                                                    version_level))
+     html = t.render(Context(params))
+     return html
+
   ua = request.GET.get('ua')
   if ua:
     user_agent_group_strings = [ua]
@@ -553,7 +562,8 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
       memcache_ua_key = '%s_%s' % (category, user_agent)
       user_agent_stats = memcache.get(
           key=memcache_ua_key, namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
-    logging.info('GetStatsData memcache user_agent: %s\nuser_agent_stats:%s' % (user_agent, user_agent_stats))
+    logging.info('GetStatsData memcache user_agent: %s\nuser_agent_stats:%s' %
+                 (user_agent, user_agent_stats))
     if not user_agent_stats:
       medians = {}
       total_runs = None
@@ -596,6 +606,7 @@ def GetStatsData(category, tests, user_agents, params, use_memcache=True,
                      time=settings.STATS_MEMCACHE_TIMEOUT,
                      namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
         logging.info('GetStatsData added user_agent %s stats to memcache' % user_agent)
+
     if version_level == 'top' or user_agent_stats['total_runs']:
       stats[user_agent] = user_agent_stats
 
