@@ -55,7 +55,8 @@ class RichtextTest(test_set_base.TestBase):
         score_type=score_type,
         doc=doc,
         min_value=0,
-        max_value=1)
+        max_value=1,
+        cell_align='center')
 
 
   def GetScoreAndDisplayValue(self, median, medians, is_uri_result=False):

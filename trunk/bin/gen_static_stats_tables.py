@@ -24,7 +24,9 @@ import os
 import sys
 import urllib2
 
-sys.path.extend(['..', '../../..'])
+AE_SDK_PATH = '../../google_appengine/'
+sys.path.extend(['..', AE_SDK_PATH])
+
 import settings
 
 HOST = 'loadtest.latest.ua-profiler.appspot.com'
@@ -71,13 +73,14 @@ def main(argv):
           print ('We gots a %s Error in try #%s, retrying...' %
                  (e.code, try_response_count))
           try_response_count += 1
-          get_response_until_200(try_response_count)
+          return get_response_until_200(try_response_count)
         except urllib2.URLError, e:
           print 'Death! We failed to reach a server.'
           print 'Reason: ', e.reason
           sys.exit(0)
         else:
           return response
+
       response = get_response_until_200(1)
 
       filename = ('../templates/static_%s_%s.html' %

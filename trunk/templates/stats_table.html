@@ -56,6 +56,7 @@
               </td>
               {% for test in tests %}
                 <td
+                  align="{{ test.cell_align }}"
                   class="rt-t-s-{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"score" }}"
                   >{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"display" }}
                   {% if is_admin %}
@@ -101,6 +102,7 @@
 
             {% for test in tests %}
               <td
+                align="{{ test.cell_align }}"
                 class="rt-t-s-{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"score" }}"
                 >{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"display" }}
               </td>
