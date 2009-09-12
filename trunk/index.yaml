@@ -49,7 +49,7 @@ indexes:
   - name: __key__
     direction: desc
 
-# Used 20 times in query history.
+# Used 22 times in query history.
 - kind: UserAgentGroup
   properties:
   - name: v

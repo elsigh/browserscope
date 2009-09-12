@@ -74,26 +74,30 @@
 (function(){
   var xhrLoading = {};
   var hideCategoryFamilySubmit = function(category) {
-    document.getElementById('rt-stats-' + category +
+    document.getElementById('rt-' + category +
         '-v-s').style.display = 'none';
   };
   var changeCategoryClickHandler = function() {
-    var link = this;
-    if (selectedCategoryLink == link) {
+    var isErrorClick = this.parentNode.className == 'rt-err';
+    // this is some anchor with .category
+    if (selectedCategoryLink == this && !isErrorClick) {
       return false; // prevent href
     }
+
     var oldCategory = selectedCategoryLink.category;
     categorySections[oldCategory].style.display = 'none';
     selectedCategoryLink.parentNode.className = '';
 
     // Reset to be the new one.
+    var link = categoryTabLinks[this.category];
     selectedCategoryLink = link;
     var newCategory = selectedCategoryLink.category;
     selectedCategoryLink.parentNode.className = 'bs-sel';
     var el = categorySections[newCategory];
 
     // XHR if we need to.
-    if (el.innerHTML == '' && !xhrLoading[newCategory]) {
+    if ((isErrorClick || el.innerHTML == '') &&
+        !xhrLoading[newCategory]) {
       xhrCategoryResults(newCategory,
           getBrowserFamilyValue(oldCategory));
     } else {
@@ -103,18 +107,20 @@
     return false; // prevent href
   };
   var getBrowserFamilyValue = function(category) {
-    // Before we clear out the current table, get the browser family.
-    var browserFamilySelect = document.getElementById('rt-stats-'
-        + category + '-v');
-    var browserFamilyValue = browserFamilySelect.options[
-        browserFamilySelect.options.selectedIndex].value;
+    var browserFamilyValue;
+    var browserFamilySelect =
+        document.getElementById('rt-' + category + '-v');
+    if (browserFamilySelect) {
+      browserFamilyValue = browserFamilySelect.options[
+          browserFamilySelect.options.selectedIndex].value;
+    }
     return browserFamilyValue;
   };
   var xhrCategoryResults = function(category, browserFamilyValue) {
     var el = categorySections[category];
     var categoryName = categoryNames[category];
     el.style.display = '';
-    el.className = 'bs-loading';
+    el.className = 'rt-loading';
     el.innerHTML = 'Loading the ' + categoryName + ' Results...';
     xhrLoading[category] = true;
 
@@ -122,32 +128,38 @@
     var url = '/?category=' + category +
         '&xhr=1&v=' + browserFamilyValue + '&{{ results_params }}';
     goog.net.XhrIo.send(url, function(e) {
-      loadStatsTableCallback(e, category);
-    }, 'get', null, null, 15000); // 15 second timeout
+      loadStatsTableCallback(e, category, url);
+    }, 'get', null, null, 15000); // 15000 = 15 second timeout
   };
   var browserFamilyChangeHandler = function() {
     var category = selectedCategoryLink.category
     xhrCategoryResults(category, getBrowserFamilyValue(category));
   };
   var setUpBrowserFamilyForm = function(category) {
-    document.getElementById('rt-stats-' + category +
+    document.getElementById('rt-' + category +
         '-v-s').style.display = 'none';
-    document.getElementById('rt-stats-' + category +
+    document.getElementById('rt-' + category +
         '-v').onchange = browserFamilyChangeHandler;
   }
-  var loadStatsTableCallback = function(e, category) {
-    categorySections[category].className = '';
+  var loadStatsTableCallback = function(e, category, url) {
     var xhrio = e.target;
     if (xhrio.isSuccess()) {
+      categorySections[category].className = '';
       var html = xhrio.getResponseText();
       categorySections[category].innerHTML = html;
       setUpBrowserFamilyForm(category);
     } else {
-      alert('We encountered an error. ' +
-          'We are indeed aware of this issue, and apologize. ' +
-          'Feel free to try again.');
+      categorySections[category].className = 'rt-err';
+      categorySections[category].innerHTML =
+          '<div>Crud. We encountered a problem on our server.</div>' +
+          '<div>We are aware of the issue, and apologize.</div>';
+      var link = document.createElement('a');
+      link.category = category;
+      link.onclick = changeCategoryClickHandler;
+      link.href = url;
+      link.innerHTML = 'Feel free to try again.';
+      categorySections[category].appendChild(link);
       xhrLoading[category] = false;
-      categorySections[category].innerHTML = 'Oh snap, we\'re sorry.';
     }
   };
 
@@ -160,6 +172,7 @@
   var categories = [];
   var categorySections = {};
   var categoryNames = {};
+  var categoryTabLinks = {};
   var parent, h3;
   {% for app_category in app_categories %}
     parent = document.getElementById('{{ app_category|by_key:0 }}-results');
@@ -177,9 +190,9 @@
     var re = new RegExp('\\?' + category + '_results=');
     li.appendChild(link);
     link.category = category;
-    link.categoryName = categoryNames[category];
     link.appendChild(document.createTextNode(categoryNames[category]));
     link.onclick = changeCategoryClickHandler;
+    categoryTabLinks[category] = link;
     if (category == '{{ stats_table_category }}') {
       selectedCategoryLink = link;
       selectedCategoryLink.parentNode.className = 'bs-sel';
