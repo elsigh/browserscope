@@ -17,6 +17,7 @@
 import os
 import logging
 import sys
+from google.appengine.api import users
 
 
 APP_TITLE = 'Browserscope'
@@ -65,7 +66,8 @@ STATS_SCORE_FALSE = 'no'
 DEBUG = False
 BUILD = 'production'
 SERVER_SOFTWARE = os.getenv('SERVER_SOFTWARE')
-if SERVER_SOFTWARE is not None and 'Dev' in SERVER_SOFTWARE:
+if (users.is_current_user_admin() or
+    (SERVER_SOFTWARE is not None and 'Dev' in SERVER_SOFTWARE)):
   BUILD = 'development'
   DEBUG = True
 TEMPLATE_DEBUG = DEBUG

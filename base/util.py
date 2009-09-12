@@ -185,9 +185,11 @@ def Contribute(request):
 
 IP_THROTTLE_NS = 'IPTHROTTLE'
 def CheckThrottleIpAddress(ip, user_agent_string):
-  """Will check for over-zealous beacon abusers and bots.
+  """Prevent beacon abuse.
+  This throttle allows you to "RunAllTests" 10 times per day per IP and
+  major browser. i.e. the key is something like 1.1.1.1_Opera 10
+
   We only use memcache here, so if we allow some extras in b/c of that, phooey.
-  This throttle allows you to "RunAllTests" once per minute.
 
   Args:
     ip: A masked IP address string.
@@ -195,21 +197,20 @@ def CheckThrottleIpAddress(ip, user_agent_string):
   Returns:
     A Boolean, True if things are aok, False otherwise.
   """
-  #TODO(elsigh): Don't launch without turning this on.
-  return True
-  # key = '%s_%s' % (ip, user_agent_string)
-  # timeout = 60
-  # runs_per_timeout = len(settings.CATEGORIES)
 
-  # runs = memcache.get(key, IP_THROTTLE_NS)
-  # #logging.info('CheckThrottleIpAddress runs: %s' % runs)
-  # if runs is None:
-  #   memcache.set(key=key, value=1, time=60, namespace=IP_THROTTLE_NS)
-  # elif runs <= runs_per_timeout:
-  #   memcache.incr(key=key, delta=1,namespace=IP_THROTTLE_NS)
-  # else:
-  #   return False
-  # return True
+  key = '%s_%s' % (ip, user_agent_string)
+  timeout = 86400 # 60 * 60 * 24
+  runs_per_timeout = len(settings.CATEGORIES)
+
+  runs = memcache.get(key, IP_THROTTLE_NS)
+  #logging.info('CheckThrottleIpAddress runs: %s' % runs)
+  if runs is None:
+    memcache.set(key=key, value=1, time=60, namespace=IP_THROTTLE_NS)
+  elif runs <= runs_per_timeout:
+    memcache.incr(key=key, delta=1,namespace=IP_THROTTLE_NS)
+  else:
+    return False
+  return True
 
 
 @decorators.admin_required
@@ -485,17 +486,23 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
       user_agent_results = {}
       user_agent_score = 0
       for test in tests:
-        #logging.info('GetStatsData working on test: %s' % test)
+        #logging.info('GetStatsData working on test: %s, ua: %s' %
+        #             (test.key, user_agent))
         ranker = test.GetRanker(user_agent, params_str)
-        if ranker:
+        if ranker and total_runs != 0:
           median, total_runs = ranker.GetMedianAndNumScores(
             num_scores=total_runs)
+          logging.info('median: %s, total_runs: %s' % (median, total_runs))
         else:
           median, total_runs = None, 0
-          logging.warn("GetStatsData: Ranker not found: %s, %s, %s, %s",
-                       category, test.key, user_agent, params_str)
+          # TODO(elsigh): Temporarily hiding this to see if things run faster.
+          # if not ranker:
+          #   logging.warn('GetStatsData: Ranker not found: %s, %s, %s, %s',
+          #                category, test.key, user_agent, params_str)
+          # else:
+          #   logging.info('test_runs was 0, so we can infer no tests '
+          #                'for this user_agent.')
         medians[test.key] = median
-      logging.info('GetStatsData %s medians pass #1: %s' % (user_agent, medians))
 
       # Reset tests now to only be "visible" tests.
       visible_tests = [test for test in tests
@@ -636,7 +643,7 @@ def SeedDatastore(request):
     return random.randrange(test.min_value, test.max_value + 1)
 
   for user_agent_string in TOP_USER_AGENT_STRINGS:
-    user_agent = UserAgent.factor(user_agent_string).update_groups()
+    user_agent = UserAgent.factory(user_agent_string).update_groups()
     logging.info(' - user_agent.update_groups()')
   for category in categories:
     test_set = all_test_sets.GetTestSet(category)

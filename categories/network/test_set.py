@@ -28,7 +28,7 @@ class NetworkTest(test_set_base.TestBase):
   TESTS_URL_PATH = '/%s/tests' % _CATEGORY
 
   def __init__(self, key, name, url_name, score_type, doc,
-               value_range=None, is_hidden_stat=False):
+               value_range=None, is_hidden_stat=False, cell_align='center'):
     """Initialze a network test.
 
     Args:
@@ -56,7 +56,8 @@ class NetworkTest(test_set_base.TestBase):
         score_type=score_type,
         doc=doc,
         min_value=min_value,
-        max_value=max_value)
+        max_value=max_value,
+        cell_align=cell_align)
 
 
   def GetScoreAndDisplayValue(self, median, medians=None, is_uri_result=False):
@@ -113,12 +114,14 @@ If you have low latency (fast network connection), the tests are run faster.''',
 two connections per hostname.
 Pages that had 10 or 20 resources served from a single hostname loaded slowly because the resources were downloaded two-at-a-time.
 Browsers have been increasing the number of connections opened per hostname, for example, IE went from 2 in IE7 to 6 in IE8.
-This test measures how many HTTP/1.1 connections are opened for the browser being tested.'''),
+This test measures how many HTTP/1.1 connections are opened for the browser being tested.''',
+    cell_align='right'),
   NetworkTest(
     'maxconn', 'Max Connections', 'max-connections', 'custom',
     '''The previous test measures maximum connections for a single hostname.
 This test measures the maximum number of connections a browser will open total - across all hostnames.
-The upper limit is 60, so if a browser actually supports more than that it'll still show up as 60.'''),
+The upper limit is 60, so if a browser actually supports more than that it'll still show up as 60.''',
+    cell_align='right'),
   NetworkTest(
     'parscript', 'Parallel Scripts', 'scripts-block', 'boolean',
     '''When most browsers start downloading an external script, they wait until the script is done downloading, parsed, and executed
