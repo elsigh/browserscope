@@ -341,15 +341,6 @@ html>body .goog-inline-block {
   margin-top: 1em;
 }
 
-#bs-results .bs-loading {
-  padding: 5em;
-  text-align: center;
-  text-decoration: blink;
-  font-size: 225%;
-  font-weight: bold;
-  color: #666;
-}
-
 #bs-results-cats {
   overflow: hidden;
   margin-left: .6em;
@@ -397,41 +388,44 @@ html>body .goog-inline-block {
 /**
  * Results Table
  */
-.rt-stats-static {
+.rt-static {
   padding: 5px 10px 0 8px;
   font-size: 95%;
 }
-.rt-stats {
+.rt {
   font-size: 90%;
   margin: 5px;
 }
-.rt-stats .rt-v form {
+.rt .rt-v form {
   padding: 3px 10px;
 }
-.rt-stats table {
+.rt table {
   empty-cells: show;
   background: #fff;
   border-collapse: collapse;
 }
-.rt-stats thead th a {
+.rt thead th a {
   text-decoration: none;
   color: #000;
 }
-.rt-stats thead th a:hover {
+.rt thead th a:hover {
   text-decoration: underline;
 }
-.rt-stats td {
+.rt tbody td {
+  padding: .4em;
+}
+.rt td {
   border: 1px solid #ddd;
   white-space: nowrap;
 }
-.rt-stats tr[class^="rt-res"]:hover td {
+.rt tr[class^="rt-res"]:hover td {
   background-color: #ffffcc;
   border-top-color: #333;
   border-bottom-color: #333;
 }
-.rt-stats thead td,
-.rt-stats th,
-.rt-stats tfoot,
+.rt thead td,
+.rt th,
+.rt tfoot,
 .rt-ua,
 .rt-ua-s-d {
   font-weight: normal;
@@ -440,36 +434,37 @@ html>body .goog-inline-block {
   margin: 0;
   border: 1px solid #ddd;
 }
-.rt-stats th {
-  background: #fff url(/static/img/gradients.png) 0 -163px repeat-x;
+.rt th {
+  background: #eee url(/static/img/gradients.png) 0 -163px repeat-x;
   border-top: 1px solid #ccc;
 }
-.rt-stats td.rt-ua,
-.rt-stats th.rt-ua,
-.rt-stats .rt-ua-s-d {
+.rt td.rt-ua,
+.rt th.rt-ua,
+.rt .rt-ua-s-d {
   white-space: nowrap;
 }
-.rt-stats th.rt-ua {
-  background: #ccc url(/static/img/gradients.png) 0 -88px repeat-x;
+.rt th.rt-ua {
+  background: #eee url(/static/img/gradients.png) 0 -88px repeat-x;
   border-left: 1px solid #ccc;
-  border-right: 3px solid #999;
+  border-right: 3px solid #bbb;
 }
-.rt-stats td.rt-ua {
+.rt td.rt-ua {
   border-right: 0;
   border-left: 1px solid #ccc;
 }
-.rt-stats .rt-last td {
+.rt .rt-last td {
   border-bottom-color: #ccc;
 }
 /* score display */
-.rt-stats .rt-ua-s-d {
+.rt .rt-ua-s-d {
   border-left: 0;
-  border-right: 3px solid #999;
+  border-right: 3px solid #bbb;
 }
 
-.rt-stats tfoot em {
+.rt tfoot em {
   font-size: 70%;
 }
+
 .bs-cur-ua {
   background: #4291bf;
   height: 10px;
@@ -478,9 +473,18 @@ html>body .goog-inline-block {
   -moz-border-radius: 5px;
 }
 
-.rt-stats tbody td {
-  padding: .4em;
+.rt-loading,
+.rt-err {
+  padding: 5em;
+  text-align: center;
+  font-size: 200%;
+  font-weight: bold;
+  color: #666;
 }
+.rt-loading {
+  background: url(/static/img/loading.gif) 50% 34% no-repeat;
+}
+
 
 /* Test scores */
 .rt-t-s-0 {
