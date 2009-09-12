@@ -478,8 +478,15 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
       memcache_ua_key = '%s_%s' % (category, user_agent)
       user_agent_stats = memcache.get(
           key=memcache_ua_key, namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
-    logging.info('GetStatsData memcache user_agent: %s\nuser_agent_stats:%s' %
-                 (user_agent, user_agent_stats))
+
+    # Just for logging
+    if user_agent_stats is None:
+      logging.info('Going into the rankers for %s..' % user_agent)
+    else:
+      logging.info('GetStatsData from memcache\nuser_agent: '
+                   '%s\nuser_agent_stats:%s' %
+                   (user_agent, len(user_agent_stats)))
+
     if not user_agent_stats:
       medians = {}
       total_runs = None
@@ -489,10 +496,14 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
         #logging.info('GetStatsData working on test: %s, ua: %s' %
         #             (test.key, user_agent))
         ranker = test.GetRanker(user_agent, params_str)
+
+        # If we get here on loop 2 and total_runs is 0, then we should skip
+        # trying to look for data, because this is a user agent that has not
+        # run this test category.
         if ranker and total_runs != 0:
           median, total_runs = ranker.GetMedianAndNumScores(
             num_scores=total_runs)
-          logging.info('median: %s, total_runs: %s' % (median, total_runs))
+          #logging.info('median: %s, total_runs: %s' % (median, total_runs))
         else:
           median, total_runs = None, 0
           # TODO(elsigh): Temporarily hiding this to see if things run faster.
