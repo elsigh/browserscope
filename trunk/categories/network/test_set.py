@@ -123,17 +123,17 @@ This test measures the maximum number of connections a browser will open total -
 The upper limit is 60, so if a browser actually supports more than that it'll still show up as 60.''',
     cell_align='right'),
   NetworkTest(
-    'parscript', 'Parallel Scripts', 'scripts-block', 'boolean',
+    'parscript', '|| Scripts', 'scripts-block', 'boolean',
     '''When most browsers start downloading an external script, they wait until the script is done downloading, parsed, and executed
 before starting any other downloads. Although <i>parsing and executing</i> scripts in order is important for maintaining code dependencies,
 it's possible to safely <i>download</i> scripts in parallel with other resources in the page (including other scripts).
 This test determines if scripts can be downloaded in parallel with other resources in the page.'''),
   NetworkTest(
-    'parsheet', 'Parallel CSS', 'stylesheets-block', 'boolean',
+    'parsheet', '|| CSS', 'stylesheets-block', 'boolean',
     '''Similar to scripts, some browsers block all downloads once they start downloading a stylesheet.
 This test determines if stylesheets can be downloaded in parallel with other resources in the page.'''),
   NetworkTest(
-    'parcssjs', 'Parallel CSS and Inline Script',
+    'parcssjs', '|| CSS and Inline Script',
     'inline-script-after-stylesheet', 'boolean',
     '''A lesser known performance problem is the problems caused when a stylesheet is followed by an inline script block.
 If a browser doesn't block when downloading stylesheets (as measured by the previous test), then a stylesheet followed by
@@ -197,7 +197,6 @@ class NetworkTestSet(test_set_base.TestSet):
       Where score is a value between 1-100.
       And display is the text for the cell.
 
-
     Why do we use totalTests as the divisor for "score", but totalValidTests as the divisor for "display"?
     There are going to be old browsers that are no longer tested. They might have gotten 6/8 (75%)
     back in the old days, but now we've added more tests and they'd be lucky to get 6/12 (50%). If
@@ -216,9 +215,13 @@ class NetworkTestSet(test_set_base.TestSet):
       if results.has_key(test.key):
         score = results[test.key]['score']
         total_valid_tests += 1
+        # boolean 1 = 10, and steve's custom score for hostconn & maxconn map
+        # simply to 10 for good, 5 for ok, and 0 for fail, but we only award
+        # a point for a 10 on those.
         if score == 10:
           total_score += 1
 
+    logging.info('%s, %s, %s' % (total_score, total_tests, total_valid_tests))
     score = int(round(100 * total_score / total_tests))
     display = '%s/%s' % (total_score, total_valid_tests)
 

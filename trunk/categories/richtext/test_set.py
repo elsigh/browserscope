@@ -98,9 +98,12 @@ class RichtextTest(test_set_base.TestBase):
       num_tests = 1
       score = 0
     else:
-      score = int(display_score / num_tests)
+      score = int(100.0 * display_score / num_tests)
+
 
     display = '%s/%s' % (display_score, num_tests)
+    logging.info('richtext %s score: %s, display: %s' %
+                 (median, score, display))
     return score, display
 
 
@@ -177,6 +180,7 @@ _TESTS = (
   RichtextTest('a-inserthtml-0', 'inserthtml execCommand on plaintext', None, category='apply'),
   RichtextTest('a-insertimage-0', 'insertimage execCommand on plaintext', None, category='apply'),
   RichtextTest('a-insertorderedlist-0', 'insertorderedlist execCommand on plaintext', None, category='apply'),
+  RichtextTest('a-insertparagraph-0', 'insertparagraph execCommand on plaintext', None, category='apply'),
   RichtextTest('a-insertunorderedlist-0', 'insertunorderedlist execCommand on plaintext', None, category='apply'),
   RichtextTest('a-italic-0', 'italic execCommand on plaintext', None, category='apply'),
   RichtextTest('a-italic-1', 'italic execCommand on plaintext, styleWithCSS=true', None, category='apply'),
@@ -267,6 +271,7 @@ _TESTS = (
   RichtextTest('q-justifyleft-0', 'queryCommandState for justifyleft on text left-aligned by Firefox', None, category='query'),
   RichtextTest('q-justifyleft-1', 'queryCommandState for justifyleft on text left-aligned by IE', None, category='query'),
   RichtextTest('q-justifyleft-2', 'queryCommandState for justifyleft on text left-aligned by webkit', None, category='query'),
+  RichtextTest('q-justifyleft-3', 'queryCommandState for justifyleft on text left-aligned by webkit', None, category='query'),
   RichtextTest('q-justifyright-0', 'queryCommandState for justifyright on plain text', None, category='query'),
   RichtextTest('q-justifyright-1', 'queryCommandState for justifyright on text right-aligned by Firefox', None, category='query'),
   RichtextTest('q-justifyright-2', 'queryCommandState for justifyright on text right-aligned by IE', None, category='query'),

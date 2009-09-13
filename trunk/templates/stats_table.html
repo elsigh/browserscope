@@ -35,10 +35,10 @@
 
         {% if stats|by_key:user_agent|by_key:"current_results" %}
           {% with stats|by_key:user_agent|by_key:"current_results" as results %}
-            <tr>
-              <td class="rt-ua"></td>
+            <tr class="rt-ua-s-hdr">
+              <td class="rt-ua">Your Test Results &darr;</td>
               <td class="rt-ua-s-d"></td>
-              <td colspan="{{ tests|length|add:1 }}" class="rt-tot">Your Test Results &darr;</td>
+              <td colspan="{{ tests|length|add:1 }}"></td>
             </tr>
             <tr class="rt-res">
               <td

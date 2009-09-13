@@ -66,13 +66,7 @@ class SelectorsTest(test_set_base.TestBase):
     """
     score = median
     display = median
-    if self.key == 'score':
-      percent = str(Decimal(str(round(100.0 * medians['passed'] /
-                                    (medians['passed'] + medians['failed']),
-                                    1))))
-      score = int(float(percent))
-      display = percent + '%'
-    elif self.key == 'passed':
+    if self.key == 'passed':
       if median >= 2100:
         score = 95
       elif median >= 2000:
@@ -96,7 +90,7 @@ class SelectorsTest(test_set_base.TestBase):
 
 _TESTS = (
   # key, name, doc
-  SelectorsTest('score', 'Score', 'Selectors API test score'),
+  #SelectorsTest('score', 'Score', 'Selectors API test score'),
   SelectorsTest('passed', 'Passed', 'Selectors API tests passed'),
   SelectorsTest('failed', 'Failed', 'Selectors API tests failed')
 )
@@ -122,11 +116,20 @@ class SelectorsTestSet(test_set_base.TestSet):
     #logging.info('%s GetRowScore, results:%s' % (self.category, results))
     if results['passed']['median'] is None or results['failed']['median'] is None:
       score = 0
+      display = ''
     else:
       score = str(int(100.0 * results['passed']['median'] /
           (results['passed']['median'] + results['failed']['median'])))
+
+      num = round(100.0 * results['passed']['median'] /
+                                    (results['passed']['median'] + results['failed']['median']),
+                                    1)
+      logging.info('num: %s', num)
+      #percent = str(Decimal(str()))
+      score = int(num)
+      display = str(num) + '%'
       #logging.info('score: %s' % score)
-    return score, ''
+    return score, display
 
 TEST_SET = SelectorsTestSet(
     category=_CATEGORY,

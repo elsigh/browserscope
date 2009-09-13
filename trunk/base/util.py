@@ -408,7 +408,9 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   results = None
   results_str = request.GET.get('%s_results' % test_set.category, '')
   if results_str:
-    results = dict((x['key'], x) for x in test_set.ParseResults(results_str))
+    results = dict((x['key'], x)
+                   for x in test_set.ParseResults(results_str,
+                       is_import_or_uri_results_str=True))
 
   # Set current_ua_string to one in user_agent_strings
   current_ua = UserAgent.factory(request.META['HTTP_USER_AGENT'])
@@ -481,10 +483,9 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
 
     # Just for logging
     if user_agent_stats is None:
-      logging.info('Going into the rankers for %s..' % user_agent)
+      logging.info('Diving into the rankers for %s...' % user_agent)
     else:
-      logging.info('GetStatsData from memcache\nuser_agent: '
-                   '%s\nuser_agent_stats:%s' %
+      logging.info('GetStatsData memcache ua: %s\n, len(uastats)stats:%s' %
                    (user_agent, len(user_agent_stats)))
 
     if not user_agent_stats:
@@ -497,49 +498,65 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
         #             (test.key, user_agent))
         ranker = test.GetRanker(user_agent, params_str)
 
-        # If we get here on loop 2 and total_runs is 0, then we should skip
-        # trying to look for data, because this is a user agent that has not
-        # run this test category.
-        if ranker and total_runs != 0:
+        if ranker:
+          #start_time = time.time()
           median, total_runs = ranker.GetMedianAndNumScores(
             num_scores=total_runs)
-          #logging.info('median: %s, total_runs: %s' % (median, total_runs))
-        else:
-          median, total_runs = None, 0
-          # TODO(elsigh): Temporarily hiding this to see if things run faster.
-          # if not ranker:
-          #   logging.warn('GetStatsData: Ranker not found: %s, %s, %s, %s',
-          #                category, test.key, user_agent, params_str)
-          # else:
-          #   logging.info('test_runs was 0, so we can infer no tests '
-          #                'for this user_agent.')
-        medians[test.key] = median
+          medians[test.key] = median
+          #end_time = time.time()
+          #logging.info('GetStatsData test: %s, delta: %s' %
+          #              (test.key, (end_time - start_time)))
+          #logging.info('Got median: %s, total_runs: %s' % (median, total_runs))
 
-      # Reset tests now to only be "visible" tests.
+        # If total_runs is 0, or we find no ranker, then we should skip
+        # trying to look for data, because this is a user agent that has not
+        # run this test category.
+        if total_runs == 0 or not ranker:
+          medians = None
+          logging.info('Breaking out of the loop!')
+          if not ranker:
+            logging.warn('GetStatsData: Ranker not found: %s, %s, %s, %s',
+                         category, test.key, user_agent, params_str)
+          else:
+            logging.info('test_runs was 0, so we can infer no tests '
+                         'for this user_agent.')
+          break
+
+      # Reset tests now to only be the "visible" tests.
       visible_tests = [test for test in tests
                        if not hasattr(test, 'is_hidden_stat') or
                        not test.is_hidden_stat]
-      # Now make a second pass with all the medians and call our formatter.
+
+      # Now make a second pass with all the medians and call our formatter,
+      # GetScoreAndDisplayValue.
       for test in visible_tests:
         if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat:
           #logging.info('user_agent: %s, total_runs: %s' % (user_agent, total_runs))
-          score, display = GetScoreAndDisplayValue(test, medians[test.key],
-                                                   medians,
-                                                   is_uri_result=False)
-          user_agent_results[test.key] = {
-            'median': medians[test.key],
-            'score': score,
-            'display': display,
-          }
+          if medians is None:
+            user_agent_results[test.key] = {
+              'median': None,
+              'score': 0,
+              'display': '',
+            }
+          else:
+            score, display = GetScoreAndDisplayValue(test, medians[test.key],
+                                                     medians,
+                                                     is_uri_result=False)
+            user_agent_results[test.key] = {
+              'median': medians[test.key],
+              'score': score,
+              'display': display,
+            }
 
+      #logging.info('GetRowScoreAndDisplayValue for ua: %s' % user_agent)
       row_score, row_display = all_test_sets.GetTestSet(
           category).GetRowScoreAndDisplayValue(user_agent_results)
       user_agent_stats = {
-          'total_runs': total_runs,
-          'results': user_agent_results,
-          'score': Convert100to10Base(row_score),
-          'display': row_display
-          }
+        'total_runs': total_runs,
+        'results': user_agent_results,
+        'score': Convert100to10Base(row_score),
+        'display': row_display
+      }
       if use_memcache:
         memcache.set(key=memcache_ua_key, value=user_agent_stats,
                      time=settings.STATS_MEMCACHE_TIMEOUT,

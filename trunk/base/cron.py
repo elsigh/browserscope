@@ -49,6 +49,13 @@ def UpdateRecentTests(request):
   query = db.Query(ResultParent)
   query.order('-created')
   recent_tests = query.fetch(10, 0)
+
+  # need to get the score for a test
+  for recent_test in recent_tests:
+    score, display = recent_test.get_score_and_display()
+    recent_test.score = score
+    recent_test.display = display
+
   memcache.set(key=util.RECENT_TESTS_MEMCACHE_KEY, value=recent_tests,
                time=settings.STATS_MEMCACHE_TIMEOUT)
   return http.HttpResponse('Done')

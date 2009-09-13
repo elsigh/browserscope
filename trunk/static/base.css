@@ -101,7 +101,7 @@ p.bs-youcan {
 }
 
 #bs-runtest-c {
-  margin-bottom: 0;
+  margin: 0;
 }
 #bs-test-iframe {
   margin-top: 1em;
@@ -179,7 +179,8 @@ a.bs-admin {
   padding: 3px 5px;
 }
 .bs-bc {
-  margin-left: 7px;
+  float: right;
+  margin-right: 7px;
 }
 
 #bs-body {
@@ -434,6 +435,11 @@ html>body .goog-inline-block {
   margin: 0;
   border: 1px solid #ddd;
 }
+.rt-ua-s-hdr td {
+  background: #4291bf;
+  color: #fff;
+  font-weight: bold;
+}
 .rt th {
   background: #eee url(/static/img/gradients.png) 0 -163px repeat-x;
   border-top: 1px solid #ccc;
@@ -488,27 +494,29 @@ html>body .goog-inline-block {
 
 /* Test scores */
 .rt-t-s-0 {
-  background: #eee;
+  background: #fff;
 }
 .rt-t-s-1,
 .rt-t-s-2,
 .rt-t-s-3,
 .rt-t-s-4,
-.rt-t-s-5,
-.rt-t-s-6 {
+.rt-t-s-5 {
   background: #f7d7d7;
 }
-.rt-t-s-7 {
+.rt-t-s-6 {
   background: #fffdd9;
 }
-.rt-t-s-8 {
+.rt-t-s-7 {
   background: #dffcd8;
 }
-.rt-t-s-9 {
+.rt-t-s-8 {
   background: #c0f9b0;
 }
-.rt-t-s-10 {
+.rt-t-s-9 {
   background: #a3f687;
+}
+.rt-t-s-10 {
+  background-color: #eee;
 }
 
 .rt-ua-s-0 {

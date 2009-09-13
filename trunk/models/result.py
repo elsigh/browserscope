@@ -154,3 +154,33 @@ class ResultParent(db.Expando):
     In the past, we stored user_agent_list.
     """
     return UserAgent.parse_to_string_list(self.user_agent_pretty)
+
+  def get_score_and_display(self):
+    """Gets a row score for this ResultParent data set from the test_set.
+    """
+    test_set = all_test_sets.GetTestSet(self.category)
+    result_times = self.get_result_times()
+    #logging.info('test_set: %s, %s' % (test_set, result_times))
+
+    results = {}
+    medians = {}
+    for result_time in result_times:
+      medians[result_time.test] = result_time.score
+    for result_time in result_times:
+      test = test_set.GetTest(result_time.test)
+      if test is None:
+        continue
+      #logging.info('result_time: %s, score: %s, medians: %s' % (result_time, result_time.score, medians))
+      score, display = test.GetScoreAndDisplayValue(result_time.score,
+          medians)
+      #logging.info('score: %s, display: %s' % (score, display))
+      results[result_time.test] = {
+        'score': score,
+        'median': result_time.score,
+        'display': display
+      }
+    row_score, row_display = test_set.GetRowScoreAndDisplayValue(results)
+    #logging.info('row_score: %s, row_display: %s' % (row_score, row_display))
+    return row_score, row_display
+
+

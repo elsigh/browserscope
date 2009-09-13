@@ -14,10 +14,16 @@
       <table id="bs-home-recent-tests" cellpadding="0" cellspacing="0">
         {% for test in recent_tests %}
           <tr>
-            <td>{{ test.created|utc_to_pst|date:"P" }} PST</td>
-            <td>{{ test.created|utc_to_pst|date:"N j" }}</td>
-            <td>{{ test.category }}</td>
+            <td>{{ test.created|utc_to_pst|date:"P" }}</td>
             <td>{{ test.user_agent_pretty }}</td>
+            <td>{{ test.category }}</td>
+            <td>
+              {% if test.display %}
+                {{ test.display }}
+              {% else %}
+                {{ test.score }}
+              {% endif %}
+            </td>
           </tr>
         {% endfor %}
       </table>

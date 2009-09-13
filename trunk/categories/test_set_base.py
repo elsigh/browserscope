@@ -104,7 +104,19 @@ class TestSet(object):
 
 
   def GetTest(self, test_key):
-    return self._test_dict[test_key]
+    """Gets the test from the tests dict. If a key is passed in and there's
+    no test for it, which can happen if there's still data in the datastore
+    but someone has deleted that test from the test_set, then return None.
+    Args:
+      test_key: string A test key.
+    Returns:
+      test: A TestBase instance or None
+    """
+    if self._test_dict.has_key(test_key):
+      test = self._test_dict[test_key]
+    else:
+      test = None
+    return test
 
   def GetResults(self, results_str, is_import=False):
     """Parses a results string.
@@ -118,17 +130,18 @@ class TestSet(object):
     parsed_results = self.ParseResults(results_str, is_import)
     return self.AdjustResults(parsed_results)
 
-  def ParseResults(self, results_str, is_import=False):
+  def ParseResults(self, results_str, is_import_or_uri_results_str=False):
     """Parses a results string.
 
     Args:
       results_str: a string like 'test1=time1,test2=time2,[...]'.
+      is_import_or_uri_results_str: Skips the key test.
     Returns:
       [{'key': test1, 'score': time1}, {'key': test2, 'score': time2}]
     """
     test_scores = [x.split('=') for x in str(results_str).split(',')]
     test_keys = sorted([x[0] for x in test_scores])
-    if not is_import and self._test_keys != test_keys:
+    if not is_import_or_uri_results_str and self._test_keys != test_keys:
       raise ParseResultsKeyError(expected=self._test_keys, actual=test_keys)
     try:
       parsed_results = [{'key': key, 'score': int(score)}
