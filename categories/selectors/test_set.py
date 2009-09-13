@@ -85,7 +85,7 @@ class SelectorsTest(test_set_base.TestBase):
       else:
         score = 55
 
-    return (score, display)
+    return score, display
 
 
 _TESTS = (

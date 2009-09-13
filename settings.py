@@ -57,6 +57,7 @@ INSTALLED_APPS = (
 # BROWSERSCOPE SPECIFIC GLOBALS
 CATEGORIES = ['network', 'acid3', 'selectors', 'richtext']
 STATIC_CATEGORIES = ['richtext']
+STATIC_MODE = 'html' # can be pickle or html
 STATS_MEMCACHE_TIMEOUT = 0
 STATS_MEMCACHE_UA_ROW_NS = 'ua_row'
 STATS_SCORE_TRUE = 'yes'

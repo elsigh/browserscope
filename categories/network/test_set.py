@@ -133,7 +133,7 @@ This test determines if scripts can be downloaded in parallel with other resourc
     '''Similar to scripts, some browsers block all downloads once they start downloading a stylesheet.
 This test determines if stylesheets can be downloaded in parallel with other resources in the page.'''),
   NetworkTest(
-    'parcssjs', '|| CSS and Inline Script',
+    'parcssjs', '|| CSS + Inline Script',
     'inline-script-after-stylesheet', 'boolean',
     '''A lesser known performance problem is the problems caused when a stylesheet is followed by an inline script block.
 If a browser doesn't block when downloading stylesheets (as measured by the previous test), then a stylesheet followed by

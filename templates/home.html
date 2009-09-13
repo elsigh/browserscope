@@ -132,7 +132,7 @@
 
     // results_params are their possibly recently gotten results.
     var url = '/?category=' + category +
-        '&xhr=1&v=' + browserFamilyValue + '&{{ results_params }}';
+        '&o=xhr&v=' + browserFamilyValue + '&{{ results_params }}';
     goog.net.XhrIo.send(url, function(e) {
       loadStatsTableCallback(e, category, url);
     }, 'get', null, null, 15000); // 15000 = 15 second timeout

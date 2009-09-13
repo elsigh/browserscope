@@ -84,7 +84,10 @@ class RichtextTest(test_set_base.TestBase):
     else:
       display_score = 0
       for test in tests_in_category:
-        test_median = medians[test.key]
+        if medians.has_key(test.key):
+          test_median = medians[test.key]
+        else:
+          test_median = None
         #logging.info('test_median: %s' % test_median)
         # If test_median is None, we need to be fair and decrement num_tests.
         # This could happen if we don't have any results for a new test.
@@ -180,7 +183,6 @@ _TESTS = (
   RichtextTest('a-inserthtml-0', 'inserthtml execCommand on plaintext', None, category='apply'),
   RichtextTest('a-insertimage-0', 'insertimage execCommand on plaintext', None, category='apply'),
   RichtextTest('a-insertorderedlist-0', 'insertorderedlist execCommand on plaintext', None, category='apply'),
-  RichtextTest('a-insertparagraph-0', 'insertparagraph execCommand on plaintext', None, category='apply'),
   RichtextTest('a-insertunorderedlist-0', 'insertunorderedlist execCommand on plaintext', None, category='apply'),
   RichtextTest('a-italic-0', 'italic execCommand on plaintext', None, category='apply'),
   RichtextTest('a-italic-1', 'italic execCommand on plaintext, styleWithCSS=true', None, category='apply'),
@@ -271,7 +273,6 @@ _TESTS = (
   RichtextTest('q-justifyleft-0', 'queryCommandState for justifyleft on text left-aligned by Firefox', None, category='query'),
   RichtextTest('q-justifyleft-1', 'queryCommandState for justifyleft on text left-aligned by IE', None, category='query'),
   RichtextTest('q-justifyleft-2', 'queryCommandState for justifyleft on text left-aligned by webkit', None, category='query'),
-  RichtextTest('q-justifyleft-3', 'queryCommandState for justifyleft on text left-aligned by webkit', None, category='query'),
   RichtextTest('q-justifyright-0', 'queryCommandState for justifyright on plain text', None, category='query'),
   RichtextTest('q-justifyright-1', 'queryCommandState for justifyright on text right-aligned by Firefox', None, category='query'),
   RichtextTest('q-justifyright-2', 'queryCommandState for justifyright on text right-aligned by IE', None, category='query'),
