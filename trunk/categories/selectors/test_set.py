@@ -124,7 +124,7 @@ class SelectorsTestSet(test_set_base.TestSet):
       num = round(100.0 * results['passed']['median'] /
                                     (results['passed']['median'] + results['failed']['median']),
                                     1)
-      logging.info('num: %s', num)
+      #logging.info('num: %s', num)
       #percent = str(Decimal(str()))
       score = int(num)
       display = str(num) + '%'

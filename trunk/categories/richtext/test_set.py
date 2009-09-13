@@ -103,10 +103,9 @@ class RichtextTest(test_set_base.TestBase):
     else:
       score = int(100.0 * display_score / num_tests)
 
-
     display = '%s/%s' % (display_score, num_tests)
-    logging.info('richtext %s score: %s, display: %s' %
-                 (median, score, display))
+    #logging.info('richtext %s score: %s, display: %s' %
+    #             (median, score, display))
     return score, display
 
 
@@ -340,6 +339,7 @@ class RichTextTestSet(test_set_base.TestSet):
         return 0, ''
 
       passed, total = display.split('/')
+      #logging.info('passed: %s, total: %s' % (passed, total))
       total_passed += int(passed)
       total_tests += int(total)
 
