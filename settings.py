@@ -47,6 +47,7 @@ ROOT_PATH = os.path.dirname(__file__)
 TEMPLATE_DIRS = (
   os.path.join(ROOT_PATH, 'templates'),
   os.path.join(ROOT_PATH, 'categories'),
+  os.path.join(ROOT_PATH, 'static_mode'),
 )
 INSTALLED_APPS = (
   'appengine_django',
@@ -56,8 +57,8 @@ INSTALLED_APPS = (
 
 # BROWSERSCOPE SPECIFIC GLOBALS
 CATEGORIES = ['network', 'acid3', 'selectors', 'richtext']
-STATIC_CATEGORIES = ['richtext']
-STATIC_MODE = 'html' # can be pickle or html
+STATIC_CATEGORIES = ['network']
+STATIC_MODE = 'pickle' # can be pickle or html
 STATS_MEMCACHE_TIMEOUT = 0
 STATS_MEMCACHE_UA_ROW_NS = 'ua_row'
 STATS_SCORE_TRUE = 'yes'

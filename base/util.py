@@ -366,7 +366,7 @@ def GetCsrf(request):
   return http.HttpResponse(msg)
 
 
-STATIC_MESSAGE = ('<em class="rt-stats-static">This is a recent snapshot '
+STATIC_MESSAGE = ('<em class="rt-static">This is a recent snapshot '
                   'of the results - '
                   'it will be refreshed every few hours. '
                   'Apologies for the inconvenience, we\'re working on it.</em>')
@@ -387,8 +387,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   if (test_set.category in settings.STATIC_CATEGORIES and
       settings.STATIC_MODE == 'html' and
       output == 'html' and not users.is_current_user_admin()):
-    template_file = ('static_%s_%s.html' %
-                     (test_set.category, version_level))
+    template_file = ('%s_%s.html' % (test_set.category, version_level))
     t = loader.get_template(template_file)
     html = t.render(Context({}))
     return STATIC_MESSAGE + html
@@ -413,12 +412,13 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   if (test_set.category in settings.STATIC_CATEGORIES and
       settings.STATIC_MODE == 'pickle' and
       output == 'html' and not users.is_current_user_admin()):
-    pickle_file = ('static_%s_%s.py' %
-                   (test_set.category, version_level))
+    static_msg = STATIC_MESSAGE
+    pickle_file = ('static_mode/%s_%s.py' % (test_set.category, version_level))
     f = open(pickle_file, 'r')
     stats_data = pickle.load(f)
     f.close()
   else:
+    static_msg = None
     stats_data = GetStatsData(test_set.category, tests, user_agent_strings,
                               params_str, use_memcache, version_level)
   #logging.info('GetStats got stats_data: %s' % stats_data)
@@ -479,6 +479,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   params = {
     'category': test_set.category,
     'category_name': test_set.category_name,
+    'static_msg': static_msg,
     'tests': tests,
     'v': version_level,
     'user_agents': user_agent_strings,
