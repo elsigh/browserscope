@@ -36,16 +36,17 @@
         goog.net.XhrIo.send('/beacon', null, 'post', data);
       }
       browserscope.runTestButton.className = 'bs-btn';
-      browserscope.runTestButton.innerHTML = 'Compare my results »';
+      browserscope.runTestButton.innerHTML = 'Done! Compare your results »';
       browserscope.runTestButton.href = '/?' + browserscope.uriResults;
       var resultsDisplay = continueParams ?
             continueParams.join(',') :
             testResults.join(',');
-      var resultsNode = document.createElement('strong');
-      resultsNode.appendChild(document.createTextNode(
-          '{{ app_category_name }} Tests Done. Score: ' + resultsDisplay));
-      resultsNode.style.marginLeft = '1em';
-      browserscope.runTestButton.parentNode.appendChild(resultsNode);
+      var scoreNode = document.createElement('div');
+      var thanks = sendBeacon.checked ? 'Thanks for contributing! ' : '';
+      scoreNode.appendChild(document.createTextNode(
+          thanks + 'Your results: ' + resultsDisplay));
+      scoreNode.style.margin = '.7em 0 0 1em';
+      browserscope.runTestButton.parentNode.appendChild(scoreNode);
     {% endif %}
 
     // Update the iframe size if there's one
@@ -96,7 +97,9 @@
     browserscope.runTestButton.onclick = '';
     browserscope.runTestButton.innerHTML = '{{ app_category_name }} Tests Running...';
     document.getElementById('bs-send-beacon-label').style.display = 'none';
-    document.getElementById('bs-test-iframe').src = '{{ test_page }}';
+    var rand = Math.floor(Math.random() * 10000000);
+    document.getElementById('bs-test-iframe').src = '{{ test_page }}?r=' +
+        rand;
     return false;
   };
 </script>

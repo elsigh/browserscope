@@ -60,7 +60,9 @@
       <a href="/{{ app_category }}/test" class="bs-bc">Go to the {{ app_category_name }} Tests</a>
     {% endifequal %}
     {% ifequal request_path_lastbit "test" %}
-      <a href="/{{ app_category }}/about" class="bs-bc">Read more about the {{ app_category_name }} Tests</a>
+      {% if autorun %}{% else %}
+        <a href="/{{ app_category }}/about" class="bs-bc">Read more about the {{ app_category_name }} Tests</a>
+      {% endif %}
     {% endifequal %}
 
     {% block body %}{% endblock %}

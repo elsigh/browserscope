@@ -65,7 +65,7 @@ class Acid3Test(test_set_base.TestBase):
 
     median = int(median)
     score = median
-    display = median
+    display = '%s/%s' % (median, '100')
     return score, display
 
 
