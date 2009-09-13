@@ -1,9 +1,9 @@
-{% if static_msg %}{{ static_msg|safe }}{% endif %}
+{% spaceless %}
 <div id="rt-{{ category }}" class="rt">
   <table cellpadding="0" cellspacing="0">
     <thead>
       <tr>
-        <th scope="col" class="rt-ua" colspan="2">
+        <th scope="col" class="rt-ua">
           <form id="rt-{{ category }}-v-f" action="" method="get">
             <input type="hidden" name="category" value="{{ category }}">
             <input type="hidden" name="{{ category }}_results" value="{{ results_uri_string }}">
@@ -19,10 +19,9 @@
             </select>
             <input id="rt-{{ category }}-v-s" type="submit" value="go">
           </form>
-          {% if is_admin %}
-            <a href="/clear_memcache?v={{ v }}&category={{ category }}&continue={{ request_path }}" class="bs-admin">clear</a>
-          {% endif %}
+          name
         </th>
+        <th class="rt-ua-s-d">score</th>
         {% for test in tests %}
           <th scope="col">
             <a href="{{ test.url }}">{{ test.name }}</a>
@@ -33,7 +32,6 @@
     </thead>
     <tbody>
       {% for user_agent in user_agents %}
-
         {% if stats|by_key:user_agent|by_key:"current_results" %}
           {% with stats|by_key:user_agent|by_key:"current_results" as results %}
             <tr class="rt-ua-s-hdr">
@@ -91,7 +89,7 @@
               {% endifequal %}
               {{ user_agent }}
               {% if is_admin %}
-                <a href="/clear_memcache?category={{ category }}&ua={{ user_agent }}&continue={{ request_path }}" class="bs-admin">clear</a>
+                <!--<a href="/clear_memcache?category={{ category }}&ua={{ user_agent }}&continue={{ request_path }}" class="bs-admin">clear</a>-->
               {% endif %}
             </td>
 
@@ -141,4 +139,8 @@
 <div class="bs-results-links">
   <a href="/{{ category }}/test">Go to the {{ category_name }} Tests</a>
   <a href="/{{ category }}/about">Learn about the {{ category_name }} Tests</a>
+  {% if is_admin %}
+    <a href="/clear_memcache?v={{ v }}&category={{ category }}&continue={{ request_path }}" class="bs-admin">clear {{ category }} {{ v }} memcache</a>
+  {% endif %}
 </div>
+{% endspaceless %}
