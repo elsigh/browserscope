@@ -35,7 +35,8 @@ HOST = 'loadtest.latest.ua-profiler.appspot.com'
 # c = categories
 # v = version_level
 CLI_OPTS = ['c=',
-            'v=']
+            'v=',
+            'o=']
 
 logging.getLogger().setLevel(logging.INFO)
 logging.debug('categories: %s' % settings.CATEGORIES)
@@ -50,6 +51,7 @@ def main(argv):
   # Defaults to do everything.
   categories = settings.CATEGORIES
   version_levels = ['top', '0', '1', '2', '3']
+  output_types = ['xhr', 'pickle']
 
   # Parse the arguments.
   for opt, arg in opts:
@@ -57,12 +59,14 @@ def main(argv):
       categories = arg.split(',')
     elif opt in ['--v', '-v']:
       version_levels = arg.split(',')
+    elif opt in ['--o', '-o']:
+      output_types = arg.split(',')
   logging.info('Switches processed, now c=%s, v=%s' %
                (categories, version_levels))
 
   for category in categories:
     for version_level in version_levels:
-      for output in ['xhr', 'pickle']:
+      for output in output_types:
         url = ('http://%s/?category=%s&v=%s&o=%s' %
                (HOST, category, version_level, output))
         # Putting this in a retry-able function so that memcache can happen.
@@ -89,7 +93,7 @@ def main(argv):
         elif output == 'pickle':
           extension = 'py'
 
-        filename = ('../templates/static_%s_%s.%s' %
+        filename = ('../static_mode/%s_%s.%s' %
                     (category, version_level, extension))
         f = open(filename, 'w')
         print 'Opened %s' % filename
