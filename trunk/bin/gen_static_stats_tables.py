@@ -67,7 +67,7 @@ def main(argv):
   for category in categories:
     for version_level in version_levels:
       for output in output_types:
-        url = ('http://%s/?category=%s&v=%s&o=%s' %
+        url = ('http://%s/?sc=1&category=%s&v=%s&o=%s' %
                (HOST, category, version_level, output))
         # Putting this in a retry-able function so that memcache can happen.
         def get_response_until_200(try_response_count):

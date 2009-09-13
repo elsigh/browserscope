@@ -382,11 +382,12 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   """
   logging.info('GetStats for %s' % test_set.category)
   version_level = request.GET.get('v', 'top')
+  skip_cache = request.GET.get('sc')
 
   # Enables a "static" bypass mode where we deliver canned html results.
   if (test_set.category in settings.STATIC_CATEGORIES and
       settings.STATIC_MODE == 'html' and
-      output == 'html' and not users.is_current_user_admin()):
+      output == 'html' and not skip_cache):
     template_file = ('%s_%s.html' % (test_set.category, version_level))
     t = loader.get_template(template_file)
     html = t.render(Context({}))
@@ -411,7 +412,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   # but read the datastore-heavy data part from a static, pickled file.
   if (test_set.category in settings.STATIC_CATEGORIES and
       settings.STATIC_MODE == 'pickle' and
-      output == 'html' and not users.is_current_user_admin()):
+      output == 'html' and not skip_cache):
     static_msg = STATIC_MESSAGE
     pickle_file = ('static_mode/%s_%s.py' % (test_set.category, version_level))
     f = open(pickle_file, 'r')
