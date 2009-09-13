@@ -59,6 +59,7 @@ def Render(request, template, params={}, category=None):
   """Wrapper function to render templates with global and category vars."""
   params['app_title'] = settings.APP_TITLE
   params['version_id'] = os.environ['CURRENT_VERSION_ID']
+  params['build'] = settings.BUILD
   params['epoch'] = int(time.time())
   params['request_path'] = request.get_full_path()
   params['request_path_lastbit'] = re.sub('^.+\/([^\/]+$)', '\\1', request.path)

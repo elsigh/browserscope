@@ -160,23 +160,27 @@ class ResultParent(db.Expando):
     """
     test_set = all_test_sets.GetTestSet(self.category)
     result_times = self.get_result_times()
-    #logging.info('test_set: %s, %s' % (test_set, result_times))
+    #logging.info('cat: %s, test_set: %s, %s' %
+    #             (self.category, test_set, len(result_times)))
 
     results = {}
     medians = {}
+    visible_tests = []
     for result_time in result_times:
       medians[result_time.test] = result_time.score
-    for result_time in result_times:
       test = test_set.GetTest(result_time.test)
       if test is None:
         continue
+      if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat:
+        visible_tests.append(test)
+
+    for test in visible_tests:
       #logging.info('result_time: %s, score: %s, medians: %s' % (result_time, result_time.score, medians))
-      score, display = test.GetScoreAndDisplayValue(result_time.score,
-          medians)
+      score, display = test.GetScoreAndDisplayValue(None, medians)
       #logging.info('score: %s, display: %s' % (score, display))
-      results[result_time.test] = {
+      results[test] = {
         'score': score,
-        'median': result_time.score,
+        'median': None,
         'display': display
       }
     row_score, row_display = test_set.GetRowScoreAndDisplayValue(results)
