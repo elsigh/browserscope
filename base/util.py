@@ -99,7 +99,9 @@ def GetServer(request):
     server = server + ':' + server_port
   return server
 
-
+STATIC_MESSAGE = ('<em class="rt-static">This is a recent snapshot '
+                  'of the results - '
+                  'it will be refreshed every few hours.</em>')
 RECENT_TESTS_MEMCACHE_KEY = 'recent_tests'
 def Home(request):
   """Our Home page."""
@@ -129,7 +131,8 @@ def Home(request):
           break
   # If we still got no test_set, take the first one in settings.CATEGORIES
   if not test_set:
-    test_set = all_test_sets.GetTestSet(settings.CATEGORIES[0])
+    category = settings.CATEGORIES[0]
+    test_set = all_test_sets.GetTestSet(category)
 
   # Tell GetStats what to output.
   if output == 'pickle':
@@ -138,6 +141,9 @@ def Home(request):
     stats_output = 'html'
   stats_table = GetStats(request, test_set, output=stats_output)
 
+  # Show a static message above the table.
+  if category in settings.STATIC_CATEGORIES and output in ['xhr', 'html']:
+    stats_table = '%s%s' % (STATIC_MESSAGE, stats_table)
 
   if output in ['xhr', 'pickle']:
     return http.HttpResponse(stats_table)
@@ -366,10 +372,6 @@ def GetCsrf(request):
   return http.HttpResponse(msg)
 
 
-STATIC_MESSAGE = ('<em class="rt-static">This is a recent snapshot '
-                  'of the results - '
-                  'it will be refreshed every few hours. '
-                  'Apologies for the inconvenience, we\'re working on it.</em>')
 def GetStats(request, test_set, output='html', opt_tests=None,
              use_memcache=True):
   """Returns the stats table.
@@ -382,25 +384,28 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   """
   logging.info('GetStats for %s' % test_set.category)
   version_level = request.GET.get('v', 'top')
-  skip_cache = request.GET.get('sc')
+  override_static_mode = request.GET.get('sc') # sc for skip cache
+
+  # Check for static mode here to enable other optimizations.
+  static_mode = None
+  if (test_set.category in settings.STATIC_CATEGORIES and
+      output == 'html' and not override_static_mode):
+    static_mode = settings.STATIC_MODE
 
   # Enables a "static" bypass mode where we deliver canned html results.
-  if (test_set.category in settings.STATIC_CATEGORIES and
-      settings.STATIC_MODE == 'html' and
-      output == 'html' and not skip_cache):
+  if (static_mode == 'html'):
     template_file = ('%s_%s.html' % (test_set.category, version_level))
     t = loader.get_template(template_file)
-    html = t.render(Context({}))
-    return STATIC_MESSAGE + html
+    return t.render(Context({}))
 
-  ua = request.GET.get('ua')
-  if ua:
-    user_agent_strings = [ua]
-  else:
-    user_agent_strings = UserAgentGroup.GetStrings(version_level)
-
-  #logging.info('GetStats: v: %s, uas: %s' % (version_level,
-  #             user_agent_strings))
+  if not static_mode:
+    ua_by_param = request.GET.get('ua')
+    if ua_by_param:
+      user_agent_strings = [ua_by_param]
+    else:
+      user_agent_strings = UserAgentGroup.GetStrings(version_level)
+    #logging.info('GetStats: v: %s, uas: %s' % (version_level,
+    #             user_agent_strings))
 
   tests = opt_tests or test_set.tests
   params_str = None
@@ -410,16 +415,16 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   # Enables a "static" pickle mode so that we still run the data through
   # the template processor (enabling us to display a user's test results)
   # but read the datastore-heavy data part from a static, pickled file.
-  if (test_set.category in settings.STATIC_CATEGORIES and
-      settings.STATIC_MODE == 'pickle' and
-      output == 'html' and not skip_cache):
-    static_msg = STATIC_MESSAGE
+  if (static_mode == 'pickle'):
     pickle_file = ('static_mode/%s_%s.py' % (test_set.category, version_level))
     f = open(pickle_file, 'r')
     stats_data = pickle.load(f)
     f.close()
+    user_agent_strings = stats_data.keys()
+    user_agent_strings.sort(key=str.lower)
+    #logging.info('Pickled stats_data: %s' % stats_data)
+    #logging.info('pickled ua_strings: %s' % user_agent_strings)
   else:
-    static_msg = None
     stats_data = GetStatsData(test_set.category, tests, user_agent_strings,
                               params_str, use_memcache, version_level)
   #logging.info('GetStats got stats_data: %s' % stats_data)
@@ -450,8 +455,8 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   else:
     # current_ua_string was not found in user_agent_strings.
     if results:
-      user_agent_strings.append(current_ua_string)
-      user_agent_strings.sort()
+      user_agent_strings.append(str(current_ua_string))
+      user_agent_strings.sort(key=str.lower)
 
   # Adds the current results into the stats_data dict.
   if results:
@@ -477,10 +482,11 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     stats_data[current_ua_string]['current_score'] = current_score
     stats_data[current_ua_string]['current_display'] = current_display
 
+  #logging.info('stats_data now: %s' % stats_data)
+  #logging.info('user_agent_strings: %s' % user_agent_strings)
   params = {
     'category': test_set.category,
     'category_name': test_set.category_name,
-    'static_msg': static_msg,
     'tests': tests,
     'v': version_level,
     'user_agents': user_agent_strings,
@@ -591,10 +597,14 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
         memcache.set(key=memcache_ua_key, value=user_agent_stats,
                      time=settings.STATS_MEMCACHE_TIMEOUT,
                      namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
-        logging.info('GetStatsData added user_agent %s stats to memcache' % user_agent)
+        logging.info('GetStatsData added user_agent %s stats to memcache' %
+                     user_agent)
 
+    # This adds the result dict to the output dict for this ua.
+    # We check for version_level == 'top' b/c we always add every top ua
+    # to the final dict. Otherwise, we look and see if there are any
+    # test runs (total_runs) for this ua, if not, we don't add them in.
     if version_level == 'top' or user_agent_stats['total_runs']:
-      # TODO(slamm): double check what this code needs to do
       stats[user_agent] = user_agent_stats
 
   #logging.info('GetStatsData done, stats: %s' % stats)

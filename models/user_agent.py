@@ -38,8 +38,9 @@ TOP_USER_AGENT_GROUP_STRINGS = [
   'Chrome 2', 'Chrome 3', 'Chrome 4',
   'Firefox 3.0', 'Firefox 3.5',
   'IE 6', 'IE 7', 'IE 8',
-  'Opera 9', 'Opera 10',
-  'Safari 3', 'Safari 4'
+  'iPhone 2.2',
+  'Opera 9.64', 'Opera 10',
+  'Safari 3.2', 'Safari 4.0'
 ]
 #TOP_USER_AGENT_GROUP_STRINGS = ['Firefox 3.0.5', 'Firefox 3.5', 'IE 8']
 
@@ -241,7 +242,7 @@ class UserAgentGroup(db.Model):
     user_agent_strings = memcache.get(key=memcache_key)
     if user_agent_strings and string not in user_agent_strings:
       user_agent_strings.append(string)
-      user_agent_strings.sort()
+      user_agent_strings.sort(key=str.lower)
       memcache.set(key=memcache_key, value=user_agent_strings)
 
   @staticmethod
@@ -253,14 +254,15 @@ class UserAgentGroup(db.Model):
       memcache_key = UserAgentGroup._MakeMemcacheKey(version_level)
       user_agent_strings = memcache.get(key=memcache_key)
       if not user_agent_strings:
-        query = UserAgentGroup.gql(
-            'WHERE v = :1 ORDER BY string', version_level)
-        user_agent_strings = [x.string for x in query.fetch(1000, 0)]
+        query = UserAgentGroup.gql('WHERE v = :1', version_level)
+        # Needs the string cast to avoid a unicode error on sort with str.lower.
+        user_agent_strings = [str(x.string) for x in query.fetch(1000, 0)]
         if len(user_agent_strings) > 900:
           # TODO: Handle more than 1000 user agents strings in a group.
           logging.warn('UserAgentGroup: Group will max out at 1000:'
                        ' version_level=%s, len(user_agent_strings)=%s',
                        version_level, len(user_agent_strings))
+        user_agent_strings.sort(key=str.lower)
         memcache.set(key=memcache_key, value=user_agent_strings)
     return user_agent_strings
 

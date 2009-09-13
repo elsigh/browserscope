@@ -210,7 +210,11 @@ class NetworkTestSet(test_set_base.TestSet):
     total_tests = 0
     total_valid_tests = 0
     total_score = 0
-    for test in self.tests:
+    tests = self.tests
+    visible_tests = [test for test in tests
+                       if not hasattr(test, 'is_hidden_stat') or
+                       not test.is_hidden_stat]
+    for test in visible_tests:
       total_tests += 1
       if results.has_key(test.key):
         score = results[test.key]['score']
@@ -221,7 +225,7 @@ class NetworkTestSet(test_set_base.TestSet):
         if score == 10:
           total_score += 1
 
-    logging.info('%s, %s, %s' % (total_score, total_tests, total_valid_tests))
+    #logging.info('%s, %s, %s' % (total_score, total_tests, total_valid_tests))
     score = int(round(100 * total_score / total_tests))
     display = '%s/%s' % (total_score, total_valid_tests)
 

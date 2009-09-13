@@ -142,10 +142,13 @@
     xhrCategoryResults(category, getBrowserFamilyValue(category));
   };
   var setUpBrowserFamilyForm = function(category) {
+    // hide submit
     document.getElementById('rt-' + category +
         '-v-s').style.display = 'none';
-    document.getElementById('rt-' + category +
-        '-v').onchange = browserFamilyChangeHandler;
+    var select = document.getElementById('rt-' + category + '-v');
+    select.onchange = browserFamilyChangeHandler;
+    // ensure refresh doesn't make it look wrong
+    document.getElementById('rt-' + category + '-v-f').reset();
   }
   var loadStatsTableCallback = function(e, category, url) {
     var xhrio = e.target;

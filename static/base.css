@@ -449,10 +449,22 @@ html>body .goog-inline-block {
 .rt .rt-ua-s-d {
   white-space: nowrap;
 }
+.rt td.rt-ua,
+.rt th.rt-ua {
+  text-align: left;
+}
+.rt .rt-ua-s-d {
+  text-align: right;
+}
 .rt th.rt-ua {
   background: #eee url(/static/img/gradients.png) 0 -88px repeat-x;
   border-left: 1px solid #ccc;
-  border-right: 3px solid #bbb;
+  border-right: 0;
+  vertical-align: bottom;
+}
+.rt th.rt-ua-s-d {
+  background: #eee url(/static/img/gradients.png) 0 -88px repeat-x;
+  vertical-align: bottom;
 }
 .rt td.rt-ua {
   border-right: 0;

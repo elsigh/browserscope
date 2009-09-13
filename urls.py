@@ -40,6 +40,7 @@ urlpatterns = patterns('',
   (r'^admin/unpause_dirty$', 'base.manage_dirty.UnPauseUpdateDirty'),
   (r'^admin/make_dirty$', 'base.manage_dirty.MakeDirty'),
   (r'^admin/user_agents.csv$', 'base.util.UserAgents'),
+  (r'^admin/ua_groups$', 'base.admin.GetUserAgentGroupStrings'),
 
   # Cron admin scripts
   (r'^cron/user_agent_group$', 'base.cron.UserAgentGroup'),

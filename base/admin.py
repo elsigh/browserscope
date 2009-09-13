@@ -124,3 +124,12 @@ def Stats(request):
     'page_title': 'Stats',
   }
   return util.Render(request, 'admin/stats.html', params)
+
+
+@decorators.admin_required
+def GetUserAgentGroupStrings(request):
+  version_level = request.GET.get('v', 'top')
+  user_agent.UserAgentGroup.ClearMemcache(version_level)
+  ua_strings = user_agent.UserAgentGroup.GetStrings(version_level)
+  return http.HttpResponse('<br>'.join(ua_strings))
+

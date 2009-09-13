@@ -73,8 +73,10 @@ class SelectorsTest(test_set_base.TestBase):
         score = 85
       elif median >= 1950:
         score = 75
-      else:
+      elif median >= 1800:
         score = 65
+      else:
+        score = 50
     elif self.key == 'failed':
       if median == 0:
         score = 95
@@ -83,8 +85,8 @@ class SelectorsTest(test_set_base.TestBase):
       elif median <= 20:
         score = 75
       else:
-        score = 55
-
+        score = 50
+    #logging.info('score %s, display %s' % (score, display))
     return score, display
 
 
@@ -127,8 +129,12 @@ class SelectorsTestSet(test_set_base.TestSet):
       #logging.info('num: %s', num)
       #percent = str(Decimal(str()))
       score = int(num)
-      display = str(num) + '%'
-      #logging.info('score: %s' % score)
+      if score == 0:
+        score = 10
+        display = '0%'
+      else:
+        display = str(num) + '%'
+    logging.info('Row score: %s' % score)
     return score, display
 
 TEST_SET = SelectorsTestSet(
