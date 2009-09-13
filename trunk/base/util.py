@@ -22,6 +22,7 @@ import hashlib
 import logging
 import random
 import os
+import pickle
 import re
 import sys
 import time
@@ -106,6 +107,8 @@ def Home(request):
   if not recent_tests:
     ScheduleRecentTestsUpdate()
 
+  output = request.GET.get('o', 'html')
+
   results_params = []
   for category in settings.CATEGORIES:
     results_uri_string = request.GET.get('%s_results' % category)
@@ -127,13 +130,18 @@ def Home(request):
   if not test_set:
     test_set = all_test_sets.GetTestSet(settings.CATEGORIES[0])
 
-  stats_table = GetStats(request, test_set, output='html')
+  # Tell GetStats what to output.
+  if output == 'pickle':
+    stats_output = 'pickle'
+  else:
+    stats_output = 'html'
+  stats_table = GetStats(request, test_set, output=stats_output)
 
-  current_ua = UserAgent.factory(request.META['HTTP_USER_AGENT'])
 
-  if request.GET.get('xhr'):
+  if output in ['xhr', 'pickle']:
     return http.HttpResponse(stats_table)
   else:
+    current_ua = UserAgent.factory(request.META['HTTP_USER_AGENT'])
     params = {
       'page_title': 'Home',
       'results_params': '&'.join(results_params),
@@ -367,7 +375,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   Args:
     request: a request object.
     test_set: a TestSet instance.
-    output: Output type html or else you get a dict of params.
+    output: Output type html or pickle or else you get a dict of params.
     opt_tests: list of tests.
     use_memcache: Use memcache or not.
   """
@@ -376,6 +384,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
 
   # Enables a "static" bypass mode where we deliver canned html results.
   if (test_set.category in settings.STATIC_CATEGORIES and
+      settings.STATIC_MODE == 'html' and
       output == 'html' and not users.is_current_user_admin()):
     template_file = ('static_%s_%s.html' %
                      (test_set.category, version_level))
@@ -396,9 +405,26 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   params_str = None
   if test_set.default_params:
     params_str = str(test_set.default_params)
-  stats = GetStatsData(test_set.category, tests, user_agent_strings,
-                       params_str, use_memcache, version_level)
-  #logging.info('GetStats got stats: %s' % stats)
+
+  # Enables a "static" pickle mode so that we still run the data through
+  # the template processor (enabling us to display a user's test results)
+  # but read the datastore-heavy data part from a static, pickled file.
+  if (test_set.category in settings.STATIC_CATEGORIES and
+      settings.STATIC_MODE == 'pickle' and
+      output == 'html' and not users.is_current_user_admin()):
+    pickle_file = ('static_%s_%s.py' %
+                   (test_set.category, version_level))
+    f = open(pickle_file, 'r')
+    stats_data = pickle.load(f)
+    f.close()
+  else:
+    stats_data = GetStatsData(test_set.category, tests, user_agent_strings,
+                              params_str, use_memcache, version_level)
+  #logging.info('GetStats got stats_data: %s' % stats_data)
+
+  # If the output is pickle, we are done and need to return a string.
+  if output == 'pickle':
+    return pickle.dumps(stats_data)
 
   # Reset tests now to only be "visible" tests.
   tests = [test for test in tests
@@ -425,11 +451,11 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       user_agent_strings.append(current_ua_string)
       user_agent_strings.sort()
 
-  # Adds the current results into the stats dict.
+  # Adds the current results into the stats_data dict.
   if results:
-    stats.setdefault(current_ua_string, {})
+    stats_data.setdefault(current_ua_string, {})
     current_results = {}
-    stats[current_ua_string]['current_results'] = current_results
+    stats_data[current_ua_string]['current_results'] = current_results
     current_ua_score = 0
     medians = dict((test.key, results[test.key]['score']) for test in tests)
     for test in tests:
@@ -437,7 +463,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
         median = medians[test.key]
         score, display = GetScoreAndDisplayValue(
 	    test, median, medians, is_uri_result=True)
-        stats[current_ua_string]['current_results'][test.key] = {
+        stats_data[current_ua_string]['current_results'][test.key] = {
             'median': median,
             'score': score,
             'display': display,
@@ -446,8 +472,8 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     current_score, current_display = test_set.GetRowScoreAndDisplayValue(
         current_results)
     current_score = Convert100to10Base(current_score)
-    stats[current_ua_string]['current_score'] = current_score
-    stats[current_ua_string]['current_display'] = current_display
+    stats_data[current_ua_string]['current_score'] = current_score
+    stats_data[current_ua_string]['current_display'] = current_display
 
   params = {
     'category': test_set.category,
@@ -457,7 +483,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     'user_agents': user_agent_strings,
     'request_path': request.get_full_path(),
     'current_user_agent': current_ua_string,
-    'stats': stats,
+    'stats': stats_data,
     'params': test_set.default_params,
     'results_uri_string': results_str
   }
@@ -485,7 +511,7 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
     if user_agent_stats is None:
       logging.info('Diving into the rankers for %s...' % user_agent)
     else:
-      logging.info('GetStatsData memcache ua: %s\n, len(uastats)stats:%s' %
+      logging.info('GetStatsData memcache ua: %s, len(uastats)stats:%s' %
                    (user_agent, len(user_agent_stats)))
 
     if not user_agent_stats:
@@ -512,15 +538,16 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
         # trying to look for data, because this is a user agent that has not
         # run this test category.
         if total_runs == 0 or not ranker:
-          medians = None
-          logging.info('Breaking out of the loop!')
           if not ranker:
             logging.warn('GetStatsData: Ranker not found: %s, %s, %s, %s',
                          category, test.key, user_agent, params_str)
+            medians[test.key] = None
           else:
             logging.info('test_runs was 0, so we can infer no tests '
                          'for this user_agent.')
-          break
+            medians = None
+            logging.info('Breaking out of the loop!')
+            break
 
       # Reset tests now to only be the "visible" tests.
       visible_tests = [test for test in tests

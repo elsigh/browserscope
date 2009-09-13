@@ -419,11 +419,11 @@ html>body .goog-inline-block {
   border: 1px solid #ddd;
   white-space: nowrap;
 }
-.rt tr[class^="rt-res"]:hover td {
-  background-color: #ffffcc;
-  border-top-color: #333;
+/*
+.rt tr:hover td {
   border-bottom-color: #333;
 }
+*/
 .rt thead td,
 .rt th,
 .rt tfoot,
@@ -516,7 +516,7 @@ html>body .goog-inline-block {
   background: #a3f687;
 }
 .rt-t-s-10 {
-  background-color: #eee;
+  background-color: #a3f687;
 }
 
 .rt-ua-s-0 {
@@ -526,18 +526,20 @@ html>body .goog-inline-block {
 .rt-ua-s-2,
 .rt-ua-s-3,
 .rt-ua-s-4,
-.rt-ua-s-5,
-.rt-ua-s-6 {
+.rt-ua-s-5 {
   background-color: #f7d7d7;
 }
-.rt-ua-s-7 {
+.rt-ua-s-6 {
   background-color: #fffdd9;
 }
-.rt-ua-s-8 {
+.rt-ua-s-7 {
   background-color: #dffcd8;
 }
-.rt-ua-s-9 {
+.rt-ua-s-8 {
   background-color: #c0f9b0;
+}
+.rt-ua-s-9 {
+  background-color: #a3f687;
 }
 .rt-ua-s-10 {
   background-color: #a3f687;

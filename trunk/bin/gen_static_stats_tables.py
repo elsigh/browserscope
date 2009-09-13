@@ -53,44 +53,50 @@ def main(argv):
 
   # Parse the arguments.
   for opt, arg in opts:
-    if opt == '--c':
+    if opt in ['--c', '-c']:
       categories = arg.split(',')
-    elif opt == '--v':
+    elif opt in ['--v', '-v']:
       version_levels = arg.split(',')
   logging.info('Switches processed, now c=%s, v=%s' %
                (categories, version_levels))
 
   for category in categories:
     for version_level in version_levels:
-      url = ('http://%s/?category=%s&v=%s&xhr=1' %
-             (HOST, category, version_level))
-      # Putting this in a retry-able function so that memcache can happen.
-      def get_response_until_200(try_response_count):
-        print 'Opening URL: %s' % url
-        try:
-          response = urllib2.urlopen(url)
-        except urllib2.HTTPError, e:
-          print ('We gots a %s Error in try #%s, retrying...' %
-                 (e.code, try_response_count))
-          try_response_count += 1
-          return get_response_until_200(try_response_count)
-        except urllib2.URLError, e:
-          print 'Death! We failed to reach a server.'
-          print 'Reason: ', e.reason
-          sys.exit(0)
-        else:
-          return response
+      for output in ['xhr', 'pickle']:
+        url = ('http://%s/?category=%s&v=%s&o=%s' %
+               (HOST, category, version_level, output))
+        # Putting this in a retry-able function so that memcache can happen.
+        def get_response_until_200(try_response_count):
+          print 'Opening URL: %s' % url
+          try:
+            response = urllib2.urlopen(url)
+          except urllib2.HTTPError, e:
+            print ('Darn, %s Error in try #%s, retrying...' %
+                   (e.code, try_response_count))
+            try_response_count += 1
+            return get_response_until_200(try_response_count)
+          except urllib2.URLError, e:
+            print 'Death! We failed to reach a server.'
+            print 'Reason: ', e.reason
+            sys.exit(0)
+          else:
+            return response
 
-      response = get_response_until_200(1)
+        response = get_response_until_200(1)
 
-      filename = ('../templates/static_%s_%s.html' %
-                  (category, version_level))
-      f = open(filename, 'w')
-      print 'Opened %s' % filename
-      html = response.read()
-      f.write(html)
-      f.close()
-      print 'Done.\n'
+        if output == 'xhr':
+          extension = 'html'
+        elif output == 'pickle':
+          extension = 'py'
+
+        filename = ('../templates/static_%s_%s.%s' %
+                    (category, version_level, extension))
+        f = open(filename, 'w')
+        print 'Opened %s' % filename
+        html = response.read()
+        f.write(html)
+        f.close()
+        print 'Done.\n'
 
 
 if __name__ == '__main__':
