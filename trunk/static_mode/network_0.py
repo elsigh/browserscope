@@ -3456,7 +3456,7 @@ p988
 (dp989
 S'total_runs'
 p990
-L115L
+L116L
 sS'score'
 p991
 I5
@@ -5597,7 +5597,7 @@ p1599
 (dp1600
 S'total_runs'
 p1601
-L8381L
+L8382L
 sS'score'
 p1602
 I7

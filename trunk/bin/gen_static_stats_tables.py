@@ -30,6 +30,7 @@ sys.path.extend(['..', AE_SDK_PATH])
 import settings
 
 HOST = 'loadtest.latest.ua-profiler.appspot.com'
+HOST = 'www.browserscope.org'
 
 # Switches for this script.
 # c = categories
