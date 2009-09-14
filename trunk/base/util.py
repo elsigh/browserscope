@@ -420,7 +420,9 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     f = open(pickle_file, 'r')
     stats_data = pickle.load(f)
     f.close()
-    user_agent_strings = stats_data.keys()
+    # TODO(elsigh): figure out why my string casts in other spots don't
+    # make this redundant.
+    user_agent_strings = [str(ua) for ua in stats_data.keys()]
     user_agent_strings.sort(key=str.lower)
     #logging.info('Pickled stats_data: %s' % stats_data)
     #logging.info('pickled ua_strings: %s' % user_agent_strings)
@@ -604,8 +606,9 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
     # We check for version_level == 'top' b/c we always add every top ua
     # to the final dict. Otherwise, we look and see if there are any
     # test runs (total_runs) for this ua, if not, we don't add them in.
+    # Casting user_agent as str here prevents unicode errors when unpickling.
     if version_level == 'top' or user_agent_stats['total_runs']:
-      stats[user_agent] = user_agent_stats
+      stats[str(user_agent)] = user_agent_stats
 
   #logging.info('GetStatsData done, stats: %s' % stats)
   return stats

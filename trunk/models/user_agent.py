@@ -241,7 +241,7 @@ class UserAgentGroup(db.Model):
     memcache_key = UserAgentGroup._MakeMemcacheKey(version_level)
     user_agent_strings = memcache.get(key=memcache_key)
     if user_agent_strings and string not in user_agent_strings:
-      user_agent_strings.append(string)
+      user_agent_strings.append(str(string))
       user_agent_strings.sort(key=str.lower)
       memcache.set(key=memcache_key, value=user_agent_strings)
 
