@@ -4,7 +4,7 @@ p1
 (dp2
 S'total_runs'
 p3
-L11L
+L18L
 sS'score'
 p4
 I9
@@ -61,7 +61,7 @@ p22
 (dp23
 S'total_runs'
 p24
-L2L
+L5L
 sS'score'
 p25
 I8
@@ -232,7 +232,7 @@ p85
 (dp86
 S'total_runs'
 p87
-L2L
+L3L
 sS'score'
 p88
 I7
@@ -346,7 +346,7 @@ p127
 (dp128
 S'total_runs'
 p129
-L8L
+L18L
 sS'score'
 p130
 I8
@@ -403,7 +403,7 @@ p148
 (dp149
 S'total_runs'
 p150
-L6L
+L9L
 sS'score'
 p151
 I7
@@ -414,23 +414,23 @@ S'unapply'
 p154
 (dp155
 g151
-I6
+I5
 sS'median'
 p156
 L0L
 sS'display'
 p157
-S'15/26'
+S'14/26'
 p158
 ssS'apply'
 p159
 (dp160
 g151
-I5
+I6
 sg156
 L0L
 sg157
-S'21/41'
+S'24/41'
 p161
 ssS'change'
 p162
@@ -450,17 +450,17 @@ I9
 sg156
 L0L
 sg157
-S'57/65'
+S'56/65'
 p167
 sssg157
-S'98/149'
+S'99/149'
 p168
 ssS'Opera 10'
 p169
 (dp170
 S'total_runs'
 p171
-L5L
+L9L
 sS'score'
 p172
 I6
@@ -507,17 +507,17 @@ I7
 sg177
 L0L
 sg178
-S'44/65'
+S'43/65'
 p188
 sssg178
-S'90/149'
+S'89/149'
 p189
 ssS'iPhone 2.2'
 p190
 (dp191
 S'total_runs'
 p192
-L1L
+L2L
 sS'score'
 p193
 I7
@@ -531,7 +531,7 @@ g193
 I3
 sS'median'
 p198
-I0
+L0L
 sS'display'
 p199
 S'9/26'
@@ -542,7 +542,7 @@ p201
 g193
 I7
 sg198
-I0
+L0L
 sg199
 S'28/41'
 p203
@@ -552,7 +552,7 @@ p204
 g193
 I10
 sg198
-I0
+L0L
 sg199
 S'17/17'
 p206
@@ -562,7 +562,7 @@ p207
 g193
 I8
 sg198
-I0
+L0L
 sg199
 S'50/65'
 p209
@@ -574,7 +574,7 @@ p211
 (dp212
 S'total_runs'
 p213
-L8L
+L10L
 sS'score'
 p214
 I8
@@ -631,7 +631,7 @@ p232
 (dp233
 S'total_runs'
 p234
-L13L
+L26L
 sS'score'
 p235
 I8
@@ -688,7 +688,7 @@ p253
 (dp254
 S'total_runs'
 p255
-L3L
+L4L
 sS'score'
 p256
 I7

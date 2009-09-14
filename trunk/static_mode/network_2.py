@@ -837,10 +837,10 @@ p239
 (dp240
 S'total_runs'
 p241
-L62L
+L65L
 sS'score'
 p242
-I8
+I9
 sS'results'
 p243
 (dp244
@@ -2743,7 +2743,7 @@ p785
 (dp786
 S'total_runs'
 p787
-L51L
+L52L
 sS'score'
 p788
 I7
@@ -2862,7 +2862,7 @@ p819
 (dp820
 S'total_runs'
 p821
-L4L
+L10L
 sS'score'
 p822
 I7
@@ -2876,10 +2876,10 @@ g822
 I10
 sS'median'
 p827
-L60L
+L59L
 sS'display'
 p828
-S'60'
+S'59'
 p829
 ssS'parscript'
 p830
@@ -4049,7 +4049,7 @@ p1156
 (dp1157
 S'total_runs'
 p1158
-L196L
+L197L
 sS'score'
 p1159
 I8
@@ -6430,10 +6430,10 @@ p1838
 (dp1839
 S'total_runs'
 p1840
-L306L
+L307L
 sS'score'
 p1841
-I3
+I4
 sS'results'
 p1842
 (dp1843
@@ -8456,7 +8456,7 @@ p2419
 (dp2420
 S'total_runs'
 p2421
-L1244L
+L1247L
 sS'score'
 p2422
 I6
@@ -10122,7 +10122,7 @@ p2895
 (dp2896
 S'total_runs'
 p2897
-L86L
+L88L
 sS'score'
 p2898
 I7
@@ -10360,7 +10360,7 @@ p2963
 (dp2964
 S'total_runs'
 p2965
-L5559L
+L5562L
 sS'score'
 p2966
 I6
@@ -10598,7 +10598,7 @@ p3031
 (dp3032
 S'total_runs'
 p3033
-L1028L
+L1050L
 sS'score'
 p3034
 I9
@@ -10835,7 +10835,7 @@ p3098
 (dp3099
 S'total_runs'
 p3100
-L377L
+L378L
 sS'score'
 p3101
 I6
@@ -11073,7 +11073,7 @@ p3166
 (dp3167
 S'total_runs'
 p3168
-L14L
+L15L
 sS'score'
 p3169
 I7
@@ -11191,7 +11191,7 @@ p3199
 (dp3200
 S'total_runs'
 p3201
-L35L
+L44L
 sS'score'
 p3202
 I8
@@ -12972,7 +12972,7 @@ p3705
 (dp3706
 S'total_runs'
 p3707
-L14L
+L15L
 sS'score'
 p3708
 I6
@@ -13446,7 +13446,7 @@ p3839
 (dp3840
 S'total_runs'
 p3841
-L340L
+L345L
 sS'score'
 p3842
 I6
@@ -13684,7 +13684,7 @@ p3907
 (dp3908
 S'total_runs'
 p3909
-L18L
+L19L
 sS'score'
 p3910
 I6
@@ -14041,7 +14041,7 @@ p4009
 (dp4010
 S'total_runs'
 p4011
-L412L
+L425L
 sS'score'
 p4012
 I7
@@ -16296,10 +16296,10 @@ p4650
 (dp4651
 S'total_runs'
 p4652
-L659L
+L660L
 sS'score'
 p4653
-I3
+I4
 sS'results'
 p4654
 (dp4655
@@ -23884,7 +23884,7 @@ p6809
 (dp6810
 S'total_runs'
 p6811
-L33L
+L35L
 sS'score'
 p6812
 I6
@@ -24360,7 +24360,7 @@ p6945
 (dp6946
 S'total_runs'
 p6947
-L474L
+L478L
 sS'score'
 p6948
 I8
@@ -26375,10 +26375,10 @@ p7515
 (dp7516
 S'total_runs'
 p7517
-L5L
+L6L
 sS'score'
 p7518
-I4
+I5
 sS'results'
 p7519
 (dp7520
