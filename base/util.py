@@ -148,7 +148,8 @@ def Home(request):
   if output in ['xhr', 'pickle']:
     return http.HttpResponse(stats_table)
   else:
-    current_ua = UserAgent.factory(request.META['HTTP_USER_AGENT'])
+    current_ua_string = request.META['HTTP_USER_AGENT']
+    current_ua = UserAgent.factory(current_ua_string)
     params = {
       'page_title': 'Home',
       'results_params': '&'.join(results_params),
@@ -156,7 +157,8 @@ def Home(request):
       'stats_table': stats_table,
       'recent_tests': recent_tests,
       'message': request.GET.get('message'),
-      'current_ua': current_ua.pretty()
+      'current_ua': current_ua.pretty(),
+      'current_ua_string': current_ua_string
     }
     return Render(request, 'home.html', params)
 
