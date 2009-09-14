@@ -159,36 +159,56 @@ class ResultParent(db.Expando):
   def get_score_and_display(self):
     """Gets a row score for this ResultParent data set from the test_set.
     """
-    test_set = all_test_sets.GetTestSet(self.category)
-    result_times = self.get_result_times()
-    #logging.info('cat: %s, test_set: %s, %s' %
-    #             (self.category, test_set, len(result_times)))
+    # look in memcache first
+    memcache_key = str(self.key())
+    score_ns = 'SCORE_DISPLAY'
 
-    results = {}
-    medians = {}
-    visible_tests = []
-    for result_time in result_times:
-      #logging.info('result_time.test: %s, .score: %s, key: %s' %
-      #             (result_time.test, result_time.score, result_time.key()))
-      medians[result_time.test] = result_time.score
-      test = test_set.GetTest(result_time.test)
-      if test is None:
-        continue
-      if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat:
-        visible_tests.append(test)
+    score_display = memcache.get(memcache_key, score_ns)
+    if score_display:
+      row_score = score_display['score']
+      row_display = score_display['display']
+      logging.info('get_score_and_display memcache for score: %s, display: %s' %
+                   (row_score, row_display))
+    else:
+      test_set = all_test_sets.GetTestSet(self.category)
+      result_times = self.get_result_times()
+      #logging.info('cat: %s, test_set: %s, %s' %
+      #             (self.category, test_set, len(result_times)))
 
-    for test in visible_tests:
-      score, display = base.util.GetScoreAndDisplayValue(
-          test, medians[test.key], medians)
-      #logging.info('%s score %s, display: %s' % (test.key, score, display))
-      results[test.key] = {
-        'score': score,
-        'median': result_time.score,
-        'display': display
+      results = {}
+      medians = {}
+      visible_tests = []
+      for result_time in result_times:
+        #logging.info('result_time.test: %s, .score: %s, key: %s' %
+        #             (result_time.test, result_time.score, result_time.key()))
+        medians[result_time.test] = result_time.score
+        test = test_set.GetTest(result_time.test)
+        if test is None:
+          continue
+        if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat:
+          visible_tests.append(test)
+
+      for test in visible_tests:
+        score, display = base.util.GetScoreAndDisplayValue(
+            test, medians[test.key], medians)
+        #logging.info('%s score %s, display: %s' % (test.key, score, display))
+        results[test.key] = {
+          'score': score,
+          'median': medians[test.key],
+          'display': display
+        }
+      row_score, row_display = test_set.GetRowScoreAndDisplayValue(results)
+      #logging.info('get_score_and_display, row_score: %s, row_display: %s' %
+      #             (row_score, row_display))
+      score_display = {
+        'score': row_score,
+        'display': row_display
       }
-    row_score, row_display = test_set.GetRowScoreAndDisplayValue(results)
-    #logging.info('get_score_and_display, row_score: %s, row_display: %s' %
-    #             (row_score, row_display))
+      memcache.set(key=memcache_key, value=score_display, time=600,
+          namespace=score_ns)
+      logging.info('set memcache for key: %s, score: %s, display: %s' %
+                   (memcache_key, score, display))
+
     return row_score, row_display
 
 

@@ -101,7 +101,7 @@ def GetServer(request):
 
 STATIC_MESSAGE = ('<em class="rt-static">This is a recent snapshot '
                   'of the results - '
-                  'it will be refreshed every few hours.</em>')
+                  'it will be refreshed every hour.</em>')
 RECENT_TESTS_MEMCACHE_KEY = 'recent_tests'
 def Home(request):
   """Our Home page."""

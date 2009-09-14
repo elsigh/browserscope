@@ -24,6 +24,7 @@ APP_TITLE = 'Browserscope'
 APPEND_SLASH = False
 ADMINS = (('Lindsey Simon', 'elsigh@gmail.com'))
 MANAGERS = ADMINS
+SERVER_EMAIL = 'lsimon@commoner.com'
 DATABASE_ENGINE = 'appengine'
 TIME_ZONE = 'UTC'
 LANGUAGE_CODE = 'en-us'
