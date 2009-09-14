@@ -53,8 +53,14 @@ class UserAgentTest(unittest.TestCase):
     self.assertEqual(('Firefox (Shiretoko)', '3', '5', '1pre'),
                      UserAgent.parse(ua_string))
 
-    #ua_string = 'SomethingWeNeverKnewExisted'
-    #self.assertEqual(('Other', None, None, None), UserAgent.parse(ua_string))
+    ua_string = ('Mozilla/5.0 (X11; U; Linux; de-DE) AppleWebKit/527  '
+                 '(KHTML, like Gecko, Safari/419.3) '
+                 'konqueror/4.3.1,gzip(gfe),gzip(gfe)')
+    self.assertEqual(('Konqueror', '4', '3', '1'), UserAgent.parse(ua_string))
+
+
+    ua_string = 'SomethingWeNeverKnewExisted'
+    self.assertEqual(('Other', None, None, None), UserAgent.parse(ua_string))
 
 
   def test_get_string_list(self):
@@ -158,39 +164,39 @@ class UserAgentGroupTest(unittest.TestCase):
         UserAgentGroup.GetStrings(version_level=3))
 
 
-class CrazyRigorousUserAgentTest(unittest.TestCase):
+# class CrazyRigorousUserAgentTest(unittest.TestCase):
 
-  def setUp(self):
-    import csv
-    reader = csv.DictReader(open('test/user_agent_data.csv'),
-                            fieldnames=['ua_string', 'pretty'])
-    data = []
-    while True:
-      try:
-        rdr = reader.next()
-        data.append(rdr)
-      except StopIteration: break
-      self.data = data
+#   def setUp(self):
+#     import csv
+#     reader = csv.DictReader(open('test/user_agent_data.csv'),
+#                             fieldnames=['ua_string', 'pretty'])
+#     data = []
+#     while True:
+#       try:
+#         rdr = reader.next()
+#         data.append(rdr)
+#       except StopIteration: break
+#       self.data = data
 
-  def testAll(self):
-    for record in self.data:
-      parsed = UserAgent.parse(record['ua_string'])
-      pretty = UserAgent.pretty_print(parsed[0], parsed[1], parsed[2],
-                                      parsed[3])
-      try:
-        self.assertEqual(record['pretty'], pretty)
-      except AssertionError:
-        if record['pretty'] == 'unknown' and pretty == 'Other':
-          donothing = 1
-        #ignore for now
-        elif re.search(r'pre', pretty):
-          donothing = 1
-        #ignore for now
-        elif re.search(r'\da', pretty):
-          donothing = 1
-        else:
-          logging.info('Steve has %s, we got %s for %s' %
-                       (record['pretty'], pretty, record['ua_string']))
+#   def testAll(self):
+#     for record in self.data:
+#       parsed = UserAgent.parse(record['ua_string'])
+#       pretty = UserAgent.pretty_print(parsed[0], parsed[1], parsed[2],
+#                                       parsed[3])
+#       try:
+#         self.assertEqual(record['pretty'], pretty)
+#       except AssertionError:
+#         if record['pretty'] == 'unknown' and pretty == 'Other':
+#           donothing = 1
+#         #ignore for now
+#         elif re.search(r'pre', pretty):
+#           donothing = 1
+#         #ignore for now
+#         elif re.search(r'\da', pretty):
+#           donothing = 1
+#         else:
+#           logging.info('Steve has %s, we got %s for %s' %
+#                        (record['pretty'], pretty, record['ua_string']))
 
 if __name__ == '__main__':
   unittest.main()
