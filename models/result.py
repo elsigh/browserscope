@@ -26,6 +26,7 @@ from models import user_agent
 from models.user_agent import UserAgent
 
 import settings
+import base
 
 class ResultTime(db.Model):
   test = db.StringProperty()
@@ -167,6 +168,8 @@ class ResultParent(db.Expando):
     medians = {}
     visible_tests = []
     for result_time in result_times:
+      #logging.info('result_time.test: %s, .score: %s, key: %s' %
+      #             (result_time.test, result_time.score, result_time.key()))
       medians[result_time.test] = result_time.score
       test = test_set.GetTest(result_time.test)
       if test is None:
@@ -175,16 +178,17 @@ class ResultParent(db.Expando):
         visible_tests.append(test)
 
     for test in visible_tests:
-      #logging.info('result_time: %s, score: %s, medians: %s' % (result_time, result_time.score, medians))
-      score, display = test.GetScoreAndDisplayValue(None, medians)
-      #logging.info('score: %s, display: %s' % (score, display))
-      results[test] = {
+      score, display = base.util.GetScoreAndDisplayValue(
+          test, medians[test.key], medians)
+      #logging.info('%s score %s, display: %s' % (test.key, score, display))
+      results[test.key] = {
         'score': score,
-        'median': None,
+        'median': result_time.score,
         'display': display
       }
     row_score, row_display = test_set.GetRowScoreAndDisplayValue(results)
-    #logging.info('row_score: %s, row_display: %s' % (row_score, row_display))
+    #logging.info('get_score_and_display, row_score: %s, row_display: %s' %
+    #             (row_score, row_display))
     return row_score, row_display
 
 

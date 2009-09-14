@@ -66,6 +66,7 @@ class Acid3Test(test_set_base.TestBase):
     median = int(median)
     score = median
     display = '%s/%s' % (median, '100')
+    #logging.info('acid3 %s, %s' % (score, display))
     return score, display
 
 
@@ -94,7 +95,8 @@ class Acid3TestSet(test_set_base.TestSet):
       Where score is a value between 1-100.
       And display is the text for the cell.
     """
-    if results['score']['median'] is None:
+    #logging.info('acid3 getrowscore results: %s' % results)
+    if not results.has_key('score') or results['score']['median'] is None:
       score = 0
     else:
       score = results['score']['median']
