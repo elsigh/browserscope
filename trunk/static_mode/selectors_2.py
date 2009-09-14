@@ -179,7 +179,7 @@ p66
 (dp67
 S'total_runs'
 p68
-L6L
+L7L
 sS'score'
 p69
 I10
@@ -214,10 +214,10 @@ p79
 (dp80
 S'total_runs'
 p81
-L1L
+L2L
 sS'score'
 p82
-I0
+I1
 sS'results'
 p83
 (dp84
@@ -225,7 +225,7 @@ S'failed'
 p85
 (dp86
 g82
-I6
+I5
 sS'median'
 p87
 L2164L
@@ -236,13 +236,13 @@ ssS'passed'
 p89
 (dp90
 g82
-I7
+I5
 sg87
 L0L
 sg88
 L0L
 sssg88
-S'0.0%'
+S'0%'
 p91
 ssS'iPhone 3.0'
 p92
@@ -354,7 +354,7 @@ p131
 (dp132
 S'total_runs'
 p133
-L2L
+L3L
 sS'score'
 p134
 I8
@@ -389,7 +389,7 @@ p144
 (dp145
 S'total_runs'
 p146
-L7L
+L8L
 sS'score'
 p147
 I1
@@ -424,7 +424,7 @@ p157
 (dp158
 S'total_runs'
 p159
-L40L
+L47L
 sS'score'
 p160
 I10
@@ -459,7 +459,7 @@ p170
 (dp171
 S'total_runs'
 p172
-L3L
+L4L
 sS'score'
 p173
 I10
@@ -564,7 +564,7 @@ p209
 (dp210
 S'total_runs'
 p211
-L16L
+L19L
 sS'score'
 p212
 I10
@@ -809,7 +809,7 @@ p300
 (dp301
 S'total_runs'
 p302
-L17L
+L20L
 sS'score'
 p303
 I10

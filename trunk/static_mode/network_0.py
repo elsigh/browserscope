@@ -362,7 +362,7 @@ p104
 (dp105
 S'total_runs'
 p106
-L1972L
+L1976L
 sS'score'
 p107
 I7
@@ -2623,7 +2623,7 @@ p750
 (dp751
 S'total_runs'
 p752
-L1236L
+L1241L
 sS'score'
 p753
 I6
@@ -3932,7 +3932,7 @@ p1124
 (dp1125
 S'total_runs'
 p1126
-L4944L
+L4947L
 sS'score'
 p1127
 I5
@@ -5597,7 +5597,7 @@ p1599
 (dp1600
 S'total_runs'
 p1601
-L8408L
+L8416L
 sS'score'
 p1602
 I7
@@ -6906,7 +6906,7 @@ p1974
 (dp1975
 S'total_runs'
 p1976
-L186L
+L187L
 sS'score'
 p1977
 I7
