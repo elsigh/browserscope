@@ -562,6 +562,15 @@ html>body .goog-inline-block {
   text-align: right;
 }
 
+/* down arrow */
+.goog-tablesorter-sorted:after {
+  content: "\2193";
+}
+/* up arrow */
+.goog-tablesorter-sorted-reverse:after {
+  content: "\2191";
+}
+
 /** FAQ **/
 #bs-faq dt {
   font-size: 130%;

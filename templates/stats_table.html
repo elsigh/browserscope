@@ -1,6 +1,6 @@
 {% spaceless %}
 <div id="rt-{{ category }}" class="rt">
-  <table cellpadding="0" cellspacing="0">
+  <table id="rt-{{ category }}-t" cellpadding="0" cellspacing="0">
     <thead>
       <tr>
         <th scope="col" class="rt-ua">
@@ -24,7 +24,7 @@
         <th class="rt-ua-s-d">score</th>
         {% for test in tests %}
           <th scope="col">
-            <a href="{{ test.url }}">{{ test.name }}</a>
+            {{ test.name }}
           </th>
         {% endfor %}
         <th># Tests</th>
@@ -34,7 +34,7 @@
       {% for user_agent in user_agents %}
         {% if stats|by_key:user_agent|by_key:"current_results" %}
           {% with stats|by_key:user_agent|by_key:"current_results" as results %}
-            <tr class="rt-ua-s-hdr">
+            <tr id="rt-{{ category }}-ua-s-r" class="rt-ua-s-hdr">
               <td class="rt-ua">Your Test Results &darr;</td>
               <td class="rt-ua-s-d"></td>
               <td colspan="{{ tests|length|add:1 }}"></td>
