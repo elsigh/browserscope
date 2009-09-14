@@ -2467,12 +2467,14 @@
         doc.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"><title><\/title><span><\/span><script type=\"text/javascript\"><\/script>");
         doc.close();
         assertEquals(doc.childNodes.length, 2, "wrong number of children in #document (first test)");
-        assertEquals(doc.firstChild.name, "HTML", "name wrong (first test)");
+        assertEquals(doc.firstChild.name.toUpperCase(), "HTML", "name wrong (first test)");
+        // changed 2009-08-13 to add .toUpperCase() for HTML5 compat
         assertEquals(doc.firstChild.publicId, "-//W3C//DTD HTML 4.0 Transitional//EN", "publicId wrong (first test)");
         if ((doc.firstChild.systemId != null) && (doc.firstChild.systemId != ""))
           fail("systemId wrong (first test)");
         if (('internalSubset' in doc.firstChild) || doc.firstChild.internalSubset)
           assertEquals(doc.firstChild.internalSubset, null, "internalSubset wrong (first test)");
+
         assertEquals(doc.documentElement.childNodes.length, 2, "wrong number of children in HTML (first test)");
         assertEquals(doc.documentElement.firstChild.nodeName, "HEAD", "misplaced HEAD element (first test)");
         assertEquals(doc.documentElement.firstChild.childNodes.length, 1, "wrong number of children in HEAD (first test)");
