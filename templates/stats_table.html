@@ -22,7 +22,9 @@
           name
         </th>
         <th class="rt-ua-s-d">
-          score
+          {% ifequal category "acid3" %}{% else %}
+            score
+          {% endifequal %}
         </th>
 
         {% for test in tests %}
