@@ -130,7 +130,7 @@ p52
 (dp53
 S'total_runs'
 p54
-L6L
+L7L
 sS'score'
 p55
 I10
@@ -155,7 +155,7 @@ p62
 (dp63
 S'total_runs'
 p64
-L3L
+L4L
 sS'score'
 p65
 I9
@@ -255,7 +255,7 @@ p102
 (dp103
 S'total_runs'
 p104
-L3L
+L4L
 sS'score'
 p105
 I7
@@ -280,7 +280,7 @@ p112
 (dp113
 S'total_runs'
 p114
-L7L
+L8L
 sS'score'
 p115
 I7
@@ -305,7 +305,7 @@ p122
 (dp123
 S'total_runs'
 p124
-L25L
+L32L
 sS'score'
 p125
 I9
@@ -330,7 +330,7 @@ p132
 (dp133
 S'total_runs'
 p134
-L4L
+L5L
 sS'score'
 p135
 I10
@@ -405,7 +405,7 @@ p162
 (dp163
 S'total_runs'
 p164
-L16L
+L19L
 sS'score'
 p165
 I10
@@ -580,7 +580,7 @@ p232
 (dp233
 S'total_runs'
 p234
-L19L
+L22L
 sS'score'
 p235
 I10

@@ -346,7 +346,7 @@ p127
 (dp128
 S'total_runs'
 p129
-L4L
+L5L
 sS'score'
 p130
 I6
@@ -574,7 +574,7 @@ p211
 (dp212
 S'total_runs'
 p213
-L2L
+L3L
 sS'score'
 p214
 I7
@@ -631,7 +631,7 @@ p232
 (dp233
 S'total_runs'
 p234
-L10L
+L11L
 sS'score'
 p235
 I8
@@ -678,17 +678,17 @@ I9
 sg240
 L0L
 sg241
-S'61/65'
+S'59/65'
 p251
 sssg241
-S'119/149'
+S'117/149'
 p252
 ssS'Firefox 3.5'
 p253
 (dp254
 S'total_runs'
 p255
-L26L
+L34L
 sS'score'
 p256
 I8
@@ -745,7 +745,7 @@ p274
 (dp275
 S'total_runs'
 p276
-L2L
+L3L
 sS'score'
 p277
 I8
@@ -916,7 +916,7 @@ p337
 (dp338
 S'total_runs'
 p339
-L18L
+L22L
 sS'score'
 p340
 I9
@@ -1315,7 +1315,7 @@ p484
 (dp485
 S'total_runs'
 p486
-L18L
+L24L
 sS'score'
 p487
 I8

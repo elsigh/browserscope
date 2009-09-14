@@ -39,7 +39,7 @@ p14
 (dp15
 S'total_runs'
 p16
-L48L
+L56L
 sS'score'
 p17
 I10
@@ -74,7 +74,7 @@ p27
 (dp28
 S'total_runs'
 p29
-L27L
+L31L
 sS'score'
 p30
 I10
@@ -144,7 +144,7 @@ p53
 (dp54
 S'total_runs'
 p55
-L8L
+L10L
 sS'score'
 p56
 I10
@@ -214,7 +214,7 @@ p79
 (dp80
 S'total_runs'
 p81
-L8L
+L9L
 sS'score'
 p82
 I10
@@ -249,7 +249,7 @@ p92
 (dp93
 S'total_runs'
 p94
-L19L
+L22L
 sS'score'
 p95
 I10
