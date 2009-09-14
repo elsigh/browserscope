@@ -240,10 +240,17 @@ class UserAgentGroup(db.Model):
     # Now add string to memcache entry if it exists. Otherwise, skip.
     memcache_key = UserAgentGroup._MakeMemcacheKey(version_level)
     user_agent_strings = memcache.get(key=memcache_key)
+    #logging.info('uas %s, user_agent_strings: %s' % (string, user_agent_strings))
     if user_agent_strings and string not in user_agent_strings:
+
+      # TODO(elsigh): figure out why my string casts in other spots don't
+      # make this redundant.
+      user_agent_strings = [str(ua) for ua in user_agent_strings]
+
       user_agent_strings.append(str(string))
       user_agent_strings.sort(key=str.lower)
-      memcache.set(key=memcache_key, value=user_agent_strings)
+      mset = memcache.set(key=memcache_key, value=user_agent_strings)
+
 
   @staticmethod
   def GetStrings(version_level):
@@ -322,8 +329,12 @@ class UserAgent(db.Model):
     """
     string_list = self.get_string_list()
     max_string_index = len(string_list) - 1
+    #logging.info('update_groups w/ string_list: %s, msi: %s' %
+    #             (string_list, max_string_index))
     for v in (0, 1, 2, 3):
-      string = string_list[min(v, max_string_index)]
+      ua_string = string_list[min(v, max_string_index)]
+      #logging.info('v=%s, uas: %s' % (v, ua_string))
+      string = ua_string
       UserAgentGroup.AddString(v, string)
 
 
