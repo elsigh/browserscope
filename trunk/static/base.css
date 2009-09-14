@@ -185,7 +185,7 @@ a.bs-admin {
   font-weight: bold;
   text-decoration: none;
   padding-right: .4em;
-  margin-right: .4em;
+  margin-right: .2em;
   white-space: nowrap;
 }
 #bs-nav a:hover {
@@ -198,6 +198,7 @@ a.bs-admin {
 #bs-nav-cats li a {
   width: auto;
   padding: 3px 5px;
+  margin-right: .6em;
 }
 .bs-bc {
   float: right;
