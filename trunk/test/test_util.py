@@ -173,7 +173,8 @@ class TestUtilFunctions(unittest.TestCase):
   def testCheckThrottleIpAddress(self):
     ip = mock_data.UNIT_TEST_UA['REMOTE_ADDR']
     ua_string = mock_data.UNIT_TEST_UA['HTTP_USER_AGENT']
-    for i in range(len(settings.CATEGORIES) + 1):
+    for i in range(11):
+      logging.info('try: %s' % i)
       self.assertTrue(util.CheckThrottleIpAddress(ip, ua_string))
     # The next one should bomb.
     self.assertFalse(util.CheckThrottleIpAddress(ip, ua_string))
