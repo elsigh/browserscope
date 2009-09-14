@@ -35,9 +35,10 @@ import settings
 
 def UserAgentGroup(request):
   key = request.GET.get('key')
+  dbkey = db.Key(key)
   if not key:
     return http.HttpResponse('No key')
-  user_agent = UserAgent.get(db.Key(key))
+  user_agent = UserAgent.get(dbkey)
   if user_agent:
     user_agent.update_groups()
     return http.HttpResponse('Done with UserAgent key=%s' % key)
