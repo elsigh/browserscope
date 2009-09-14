@@ -52,7 +52,7 @@ def main(argv):
   # Defaults to do everything.
   categories = settings.CATEGORIES
   version_levels = ['top', '0', '1', '2', '3']
-  output_types = ['xhr', 'pickle']
+  output_types = ['pickle'] # 'xhr' for html
 
   # Parse the arguments.
   for opt, arg in opts:
