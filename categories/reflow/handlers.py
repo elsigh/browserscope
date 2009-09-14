@@ -84,7 +84,6 @@ def Test(request):
   test_set = all_test_sets.GetTestSet(CATEGORY)
   try:
     test = test_set.GetTest(test_key)
-    page_title += ' %s' % test.name
   except KeyError:
     test = None
 
