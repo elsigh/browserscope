@@ -716,13 +716,16 @@ def SeedDatastore(request):
     return random.randrange(test.min_value, test.max_value + 1)
 
   for user_agent_string in TOP_USER_AGENT_STRINGS:
-    user_agent = UserAgent.factory(user_agent_string).update_groups()
-    logging.info(' - user_agent.update_groups()')
+    user_agent = UserAgent.factory(user_agent_string)
+    user_agent.update_groups()
+    logging.info(' - update_groups: %s', user_agent.pretty())
   for category in categories:
     test_set = all_test_sets.GetTestSet(category)
+    logging.info(' -- category: %s', category)
     for user_agent_string in TOP_USER_AGENT_STRINGS:
+      logging.info(' ---- browser: %s',
+                   UserAgent.factory(user_agent_string).pretty())
       for i in range(NUM_RECORDS):
-        logging.info(' -- i: %s' % i)
         results_str = ','.join(['%s=%s' % (test.key, _GetRandomScore(test))
                                for test in test_set.tests])
         params_str = None
@@ -730,20 +733,11 @@ def SeedDatastore(request):
           params_str = str(test_set.default_params)
         result_parent = ResultParent.AddResult(
             test_set, '1.2.3.4', user_agent_string, results_str, params_str)
-        logging.info('--------------------')
-        logging.info(' -- PUT ResultParent & ResultTime')
-        logging.info('--------------------')
+        logging.info(' ------ AddResult, %s of %s: %s',
+                     i + 1, NUM_RECORDS, results_str)
         if increment_counts:
           result_parent.increment_all_counts()
-          logging.info('--------------------')
-          logging.info(' -- INCREMENTED ALL COUNTS')
-          logging.info('--------------------')
-
-        keys.append(str(result_parent.key()))
-        logging.info('--------------------')
-        logging.info('--------------------')
-        logging.info('--------------------')
-        logging.info('--------------------')
+          logging.info(' ------ INCREMENTED ALL COUNTS')
 
   memcache.flush_all()
   return http.HttpResponseRedirect('?message=Datastore got seeded.')
