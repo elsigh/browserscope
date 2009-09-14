@@ -16773,7 +16773,7 @@ p4790
 (dp4791
 S'total_runs'
 p4792
-L52L
+L53L
 sS'score'
 p4793
 I5
@@ -26154,10 +26154,10 @@ p7467
 (dp7468
 S'total_runs'
 p7469
-L1027L
+L1028L
 sS'score'
 p7470
-I8
+I9
 sS'results'
 p7471
 (dp7472
