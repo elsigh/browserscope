@@ -81,8 +81,15 @@ class UpdateDirtyController(db.Model):
 
   @classmethod
   def ReleaseLock(cls):
-    """Release UpdateDirty lock."""
-    memcache.delete(key='lock', namespace=cls.NAMESPACE)
+    """Release UpdateDirty lock.
+    The return value is 0 (DELETE_NETWORK_FAILURE) on network failure,
+    1 (DELETE_ITEM_MISSING) if the server tried to delete the item but didn't
+    have it, and 2 (DELETE_SUCCESSFUL) if the item was actually deleted. This
+    can be used as a boolean value, where a network failure is the only bad
+    condition.
+    @see http://code.google.com/appengine/docs/python/memcache/functions.html
+    """
+    return memcache.delete(key='lock', namespace=cls.NAMESPACE)
 
 
 def GetDirtyResultTimeQuery(ancestor=None):
@@ -166,6 +173,12 @@ def UnPauseUpdateDirty(request):
   paused_is = UpdateDirtyController.IsPaused()
   return http.HttpResponse('UnPauseUpdateDirty Done. Was: %s, Is: %s' %
                            (paused_was, paused_is))
+
+
+@decorators.admin_required
+def ReleaseLock(request):
+  released = UpdateDirtyController.ReleaseLock()
+  return http.HttpResponse('Released Lock with return: %s' % released)
 
 
 def MakeDirty(request):

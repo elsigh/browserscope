@@ -39,7 +39,7 @@ indexes:
   - name: params_str,user_agent_pretty
   - name: __key__
 
-# Used 27 times in query history.
+# Used 30 times in query history.
 - kind: ResultTime
   ancestor: yes
 

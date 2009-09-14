@@ -106,7 +106,11 @@
 {% endblock %}
 
 {% block body %}
-  {% if autorun %}{% else %}
+  {% if autorun %}
+    <div id="bs-autorun-msg">
+      You are currently running the Browserscope tests in Autorun mode ...
+    </div>
+  {% else %}
     <p id="bs-runtest-c">
       <a
         id="bs-runtest"

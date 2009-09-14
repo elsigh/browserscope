@@ -100,6 +100,26 @@ p.bs-youcan {
   margin-left: 40px;
 }
 
+#bs-autorun-msg {
+  background: #aaa;
+  color: #fff;
+  opacity: .9;
+  border: 1px solid #333;
+  border-top: 0;
+  font-weight: bold;
+  padding: 10px 20px 15px;
+  position: absolute;
+  z-index: 99;
+  top: 0;
+  left: 33%;
+  text-shadow: 0 1px 2px #444;
+  -moz-box-shadow: 0 2px rgba(102, 102, 102, .4);
+  -webkit-box-shadow: 0 2px rgba(102, 102, 102, .4);
+  -moz-border-radius-bottomright: 15px;
+  -moz-border-radius-bottomleft: 15px;
+  -webkit-border-bottom-right-radius: 15px;
+  -webkit-border-bottom-left-radius: 15px;
+}
 #bs-runtest-c {
   margin: 0;
 }
@@ -406,12 +426,8 @@ html>body .goog-inline-block {
   background: #fff;
   border-collapse: collapse;
 }
-.rt thead th a {
-  text-decoration: none;
-  color: #000;
-}
-.rt thead th a:hover {
-  text-decoration: underline;
+.rt thead th {
+  cursor: pointer;
 }
 .rt tbody td {
   padding: .4em;
