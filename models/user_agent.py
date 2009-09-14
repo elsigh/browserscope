@@ -171,6 +171,9 @@ USER_AGENT_PARSERS = (
   _P(r'(Firefox)/(\d+)\.(\d+)([ab]\d+[a-z]*) \(Swiftfox\)', 'Swiftfox'),
   _P(r'(Firefox)/(\d+)\.(\d+) \(Swiftfox\)', 'Swiftfox'),
 
+  # catches lower case konqueror
+  _P(r'(konqueror)/(\d+)\.(\d+)\.(\d+)', 'Konqueror'),
+
   #### END SPECIAL CASES TOP ####
 
   #### MAIN CASES - this catches > 50% of all browsers ####
