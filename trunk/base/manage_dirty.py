@@ -39,8 +39,8 @@ import settings
 
 
 UPDATE_DIRTY_DONE = 'No more dirty ResultTimes.'
-_UPDATE_DIRTY_FETCH_LIMIT = 100
-
+UPDATE_DIRTY_ADDED_TASK = 'Added task to update more dirty.'
+UPDATE_DIRTY_RESULT_TIME_LIMIT = 20
 
 class UpdateDirtyController(db.Model):
   NAMESPACE = 'cron_update_dirty'
@@ -92,39 +92,62 @@ class UpdateDirtyController(db.Model):
     return memcache.delete(key='lock', namespace=cls.NAMESPACE)
 
 
-def GetDirtyResultTimeQuery(ancestor=None):
-  """Return a query for ResultTime's with dirty=True.
+class DirtyResultTimesQuery(object):
+  """Iterate through dirty ResultTimes grouped by ResultParents."""
 
-  Args:
-    ancestor: a ResultParent instance or Key instance
-  Returns:
-    a Query instance
-  """
-  query = ResultTime.all().filter('dirty =', True)
-  if ancestor:
-    query.ancestor(ancestor)
-  return query
+  def __init__(self, encoded_result_parent_key=None):
+    """Initialize a DirtyResultTimesQuery.
 
+    Args:
+      encoded_result_parent_key: a string encoded ResultParent key
+    """
+    self.result_parent_key = None
+    if encoded_result_parent_key:
+      self.result_parent_key = db.Key(encoded_result_parent_key)
+    else:
+      self.result_parent_key = self._GetResultParentKey()
 
-def _GetNextDirty():
-  result_parent_key = None
-  dirty_result_time = GetDirtyResultTimeQuery().get()
-  if dirty_result_time:
-    result_parent_key = dirty_result_time.parent_key()
-  return result_parent_key
+  @classmethod
+  def _GetQuery(cls, result_parent_key=None):
+    """Return a query for ResultTime's with dirty=True.
 
-
-def _GetDirtySiblings(encoded_result_parent_key):
-  dirty_siblings = None
-  if encoded_result_parent_key:
-    result_parent_key = db.Key(encoded_result_parent_key)
-    dirty_query = GetDirtyResultTimeQuery(result_parent_key)
-    dirty_siblings = dirty_query.fetch(_UPDATE_DIRTY_FETCH_LIMIT)
-  else:
-    result_parent_key = _GetNextDirty()
+    Args:
+      result_parent_key: a ResultParent instance or Key instance
+    Returns:
+      a Query instance
+    """
+    query = ResultTime.all().filter('dirty =', True)
     if result_parent_key:
-      dirty_siblings = GetDirtyResultTimeQuery(result_parent_key)
-  return dirty_siblings
+      query.ancestor(result_parent_key)
+    return query
+
+  @classmethod
+  def _GetResultParentKey(cls):
+    result_parent_key = None
+    dirty_result_time = cls._GetQuery().get()
+    if dirty_result_time:
+      result_parent_key = dirty_result_time.parent_key()
+    return result_parent_key
+
+  def Fetch(self):
+    dirty_result_times = []
+    if self.result_parent_key:
+      query = self._GetQuery(self.result_parent_key)
+      dirty_result_times = query.fetch(UPDATE_DIRTY_RESULT_TIME_LIMIT + 1)
+      if len(dirty_result_times) < UPDATE_DIRTY_RESULT_TIME_LIMIT + 1:
+        self.result_parent_key = None
+      else:
+        dirty_result_times.pop()
+      return dirty_result_times
+
+  def IsResultParentDone(self):
+    return self.result_parent_key is None
+
+  def NextResultParentKey(self):
+    if self.result_parent_key:
+      return self.result_parent_key
+    else:
+      return self._GetResultParentKey()
 
 
 def UpdateDirty(request):
@@ -136,28 +159,30 @@ def UpdateDirty(request):
   try:
     num_completed = 0
     try:
-      dirty_siblings = _GetDirtySiblings(request.GET.get('result_parent_key'))
-      if dirty_siblings:
-        result_parent = dirty_siblings[0].parent()
+      dirty_query = DirtyResultTimesQuery(request.GET.get('result_parent_key'))
+      dirty_result_times = dirty_query.Fetch()
+      if dirty_result_times:
+        result_parent = dirty_result_times[0].parent()
         # Mark non-live test categories as not-dirty, don't rank their scores.
         if (result_parent.category not in settings.CATEGORIES and
             settings.BUILD == 'production'):
-          for result_time in dirty_siblings:
+          for result_time in dirty_result_times:
             result_time.dirty = False
-          db.put(dirty_siblings)
+          db.put(dirty_result_times)
         else:
-          for result_time in dirty_siblings:
+          for result_time in dirty_result_times:
             # Count the times and mark them !dirty.
             result_time.increment_all_counts()
             num_completed += 1
-          result_parent.invalidate_ua_memcache()
+          if dirty_query.IsResultParentDone():
+            result_parent.invalidate_ua_memcache()
     except runtime.DeadlineExceededError:
       logging.warn('UpdateDirty DeadlineExceededError; '
                    'number of increment_all_counts completed=%s', num_completed)
-    next_result_parent_key = _GetNextDirty()
+    next_result_parent_key = dirty_query.NextResultParentKey()
     if next_result_parent_key:
       ScheduleDirtyUpdate(next_result_parent_key)
-      return http.HttpResponse('UpdateDirty: added task to update more.')
+      return http.HttpResponse(UPDATE_DIRTY_ADDED_TASK)
     else:
       return http.HttpResponse(UPDATE_DIRTY_DONE)
   except:
@@ -207,11 +232,12 @@ def ScheduleDirtyUpdate(result_parent_instance_or_key=None):
     logging.info('ScheduleDirtyUpdate result_parent_key: %s' %
                  result_parent_key)
     if not result_parent_key:
-      result_parent_key = _GetNextDirty()
+      result_parent_key = DirtyResultTimesQuery().NextResultParentKey()
     if result_parent_key:
-      task = taskqueue.Task(
-          method='GET', params={'result_parent_key': result_parent_key}).add(queue_name='update-dirty')
-      logging.info('Added update-dirty task for result_parent_key: %s' %
+      task = taskqueue.Task(method='GET',
+                            params={'result_parent_key': result_parent_key}
+                            ).add(queue_name='update-dirty')
+      logging.info('Added update-dirty task for result_parent_key: %s',
                    result_parent_key)
     else:
       logging.info('No dirty result times to schedule.')
