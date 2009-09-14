@@ -116,7 +116,8 @@ class SelectorsTestSet(test_set_base.TestSet):
       And display is the text for the cell.
     """
     #logging.info('%s GetRowScore, results:%s' % (self.category, results))
-    if results['passed']['median'] is None or results['failed']['median'] is None:
+    if (not results.has_key('passed') or results['passed']['median'] is None or
+        results['failed']['median'] is None):
       score = 0
       display = ''
     else:
@@ -134,7 +135,7 @@ class SelectorsTestSet(test_set_base.TestSet):
         display = '0%'
       else:
         display = str(num) + '%'
-    logging.info('Row score: %s' % score)
+    #logging.info('Row score: %s' % score)
     return score, display
 
 TEST_SET = SelectorsTestSet(

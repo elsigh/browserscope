@@ -73,7 +73,7 @@ class NetworkTest(test_set_base.TestBase):
       And display is the text for the cell.
     """
     #logging.info('Network.GetScoreAndDisplayValue '
-    #             'test: %s, median: %s, tests: %s' % (self.key, median, tests))
+    #             'test: %s, median: %s, medians: %s' % (self.key, median, len(medians)))
 
     score = 0
     if 'hostconn' == self.key:
@@ -91,7 +91,6 @@ class NetworkTest(test_set_base.TestBase):
         score = 50
       else:
         score = 0
-
     return score, str(median)
 
 
@@ -207,6 +206,8 @@ class NetworkTestSet(test_set_base.TestSet):
     for "display".
 
     """
+    #logging.info('network getrowscore results: %s' % results)
+
     total_tests = 0
     total_valid_tests = 0
     total_score = 0
@@ -218,6 +219,7 @@ class NetworkTestSet(test_set_base.TestSet):
       total_tests += 1
       if results.has_key(test.key):
         score = results[test.key]['score']
+        #logging.info('test: %s, score: %s' % (test.key, score))
         total_valid_tests += 1
         # boolean 1 = 10, and steve's custom score for hostconn & maxconn map
         # simply to 10 for good, 5 for ok, and 0 for fail, but we only award
