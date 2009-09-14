@@ -162,4 +162,4 @@ handlers:
 # Map anything that doesn't match to our Django bootstrapper.
 - url: /.*
   script: main.py
-  login: admin # TODO(elsigh): remove at launch-time
+  #login: admin # TODO(elsigh): remove at launch-time

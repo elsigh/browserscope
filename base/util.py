@@ -215,7 +215,7 @@ def CheckThrottleIpAddress(ip, user_agent_string):
 
   key = '%s_%s' % (ip, user_agent_string)
   timeout = 86400 # 60 * 60 * 24
-  runs_per_timeout = len(settings.CATEGORIES)
+  runs_per_timeout = 10
 
   runs = memcache.get(key, IP_THROTTLE_NS)
   #logging.info('CheckThrottleIpAddress runs: %s' % runs)
