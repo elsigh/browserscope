@@ -159,6 +159,10 @@ handlers:
   static_files: categories/\1/static/\2.\3
   upload: categories/(sunspider|v8)/static/.*
 
+# App Stats
+- url: /stats.*
+  script: appstats/ui.py
+
 # Map anything that doesn't match to our Django bootstrapper.
 - url: /.*
   script: main.py
