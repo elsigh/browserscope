@@ -22,7 +22,7 @@ from google.appengine.api import users
 
 APP_TITLE = 'Browserscope'
 APPEND_SLASH = False
-ADMINS = (('Lindsey Simon', 'elsigh@gmail.com'))
+ADMINS = (('Lindsey Simon', 'elsigh@gmail.com'), ('Stephen', 'steve.lamm@gmail.com'))
 MANAGERS = ADMINS
 SERVER_EMAIL = 'lsimon@commoner.com'
 DATABASE_ENGINE = 'appengine'
