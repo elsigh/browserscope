@@ -172,16 +172,22 @@
     document.getElementById('rt-' + category + '-v-f').reset();
   };
   var alphaCaseInsensitiveCompare = function(a, b) {
-    a = a.toLowerCase();
-    b = b.toLowerCase();
-    return a > b ? 1 : a < b ? -1 : 0;
+    // turns 9/10 into 9
+    if (a.match(/\//) && b.match(/\//)) {
+      a = a.replace(/\/.*/, '');
+      b = b.replace(/\/.*/, '');
+      return goog.ui.TableSorter.numericSort(a, b);
+    } else {
+      a = a.toLowerCase();
+      b = b.toLowerCase();
+      return a > b ? 1 : a < b ? -1 : 0;
+    }
+
   };
   var onTableSort = function(e) {
     var tableSorter = e.target;
-    console.debug('yoyo sort', tableSorter);
     var yourResultsRow = document.getElementById('rt-' +
         tableSorter.category + '-ua-s-r');
-    console.log(yourResultsRow);
     if (yourResultsRow) {
       yourResultsRow.style.display = 'none';
     }
@@ -192,6 +198,12 @@
     var tableSorter = new goog.ui.TableSorter();
     tableSorter.category = category;
     tableSorter.setDefaultSortFunction(alphaCaseInsensitiveCompare);
+    // we know # tests should be numeric sort
+    var thead = table.getElementsByTagName('thead')[0];
+    var ths = thead.getElementsByTagName('th');
+    var numTestsIndex = ths.length - 1;
+    tableSorter.setSortFunction(numTestsIndex,
+        goog.ui.TableSorter.numericSort);
     tableSorter.decorate(table);
     goog.events.listen(tableSorter,
         goog.ui.TableSorter.EventType.SORT, onTableSort, false);
