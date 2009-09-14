@@ -141,22 +141,13 @@
     var category = selectedCategoryLink.category
     xhrCategoryResults(category, getBrowserFamilyValue(category));
   };
-  var setUpBrowserFamilyForm = function(category) {
-    // hide submit
-    document.getElementById('rt-' + category +
-        '-v-s').style.display = 'none';
-    var select = document.getElementById('rt-' + category + '-v');
-    select.onchange = browserFamilyChangeHandler;
-    // ensure refresh doesn't make it look wrong
-    document.getElementById('rt-' + category + '-v-f').reset();
-  }
   var loadStatsTableCallback = function(e, category, url) {
     var xhrio = e.target;
     if (xhrio.isSuccess()) {
       categorySections[category].className = '';
       var html = xhrio.getResponseText();
       categorySections[category].innerHTML = html;
-      setUpBrowserFamilyForm(category);
+      initCategory(category);
     } else {
       categorySections[category].className = 'rt-err';
       categorySections[category].innerHTML =
@@ -171,9 +162,47 @@
       xhrLoading[category] = false;
     }
   };
+  var setUpBrowserFamilyForm = function(category) {
+    // hide submit
+    document.getElementById('rt-' + category +
+        '-v-s').style.display = 'none';
+    var select = document.getElementById('rt-' + category + '-v');
+    select.onchange = browserFamilyChangeHandler;
+    // ensure refresh doesn't make it look wrong
+    document.getElementById('rt-' + category + '-v-f').reset();
+  };
+  var alphaCaseInsensitiveCompare = function(a, b) {
+    a = a.toLowerCase();
+    b = b.toLowerCase();
+    return a > b ? 1 : a < b ? -1 : 0;
+  };
+  var onTableSort = function(e) {
+    var tableSorter = e.target;
+    console.debug('yoyo sort', tableSorter);
+    var yourResultsRow = document.getElementById('rt-' +
+        tableSorter.category + '-ua-s-r');
+    console.log(yourResultsRow);
+    if (yourResultsRow) {
+      yourResultsRow.style.display = 'none';
+    }
+  };
+  var setUpSortableTable = function(category) {
+    var table = document.getElementById('rt-' + category + '-t');
+    if (!table) { return; }
+    var tableSorter = new goog.ui.TableSorter();
+    tableSorter.category = category;
+    tableSorter.setDefaultSortFunction(alphaCaseInsensitiveCompare);
+    tableSorter.decorate(table);
+    goog.events.listen(tableSorter,
+        goog.ui.TableSorter.EventType.SORT, onTableSort, false);
+  };
+  var initCategory = function(category) {
+    setUpBrowserFamilyForm(category);
+    setUpSortableTable(category);
+  };
 
   // hide the current form button, etc..
-  setUpBrowserFamilyForm('{{ stats_table_category }}');
+  initCategory('{{ stats_table_category }}');
 
   var categoriesList = document.createElement('ul');
   categoriesList.id = 'bs-results-cats';
