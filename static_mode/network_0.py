@@ -1,5 +1,5 @@
 (dp0
-VPlayStation
+S'PlayStation'
 p1
 (dp2
 S'total_runs'
@@ -118,7 +118,7 @@ g11
 sssg10
 S'4/11'
 p34
-ssVObigo
+ssS'Obigo'
 p35
 (dp36
 S'total_runs'
@@ -238,7 +238,7 @@ p68
 sssg44
 S'1/11'
 p69
-ssVDemeter
+ssS'Demeter'
 p70
 (dp71
 S'total_runs'
@@ -357,12 +357,12 @@ g11
 sssg79
 S'7/11'
 p103
-ssVChrome
+ssS'Chrome'
 p104
 (dp105
 S'total_runs'
 p106
-L1958L
+L1972L
 sS'score'
 p107
 I7
@@ -477,7 +477,7 @@ p137
 sssg113
 S'8/11'
 p138
-ssVJasmine
+ssS'Jasmine'
 p139
 (dp140
 S'total_runs'
@@ -596,7 +596,7 @@ g149
 sssg148
 S'5/11'
 p172
-ssVSeaMonkey
+ssS'SeaMonkey'
 p173
 (dp174
 S'total_runs'
@@ -716,7 +716,7 @@ p206
 sssg182
 S'7/11'
 p207
-ssVMaxthon
+ssS'Maxthon'
 p208
 (dp209
 S'total_runs'
@@ -835,12 +835,12 @@ g137
 sssg217
 S'4/11'
 p241
-ssVCamino
+ssS'Camino'
 p242
 (dp243
 S'total_runs'
 p244
-L50L
+L52L
 sS'score'
 p245
 I6
@@ -954,7 +954,7 @@ g206
 sssg251
 S'7/11'
 p275
-ssVOther
+ssS'Other'
 p276
 (dp277
 S'total_runs'
@@ -1073,7 +1073,7 @@ g206
 sssg285
 S'7/11'
 p309
-ssVGranParadiso
+ssS'GranParadiso'
 p310
 (dp311
 S'total_runs'
@@ -1192,7 +1192,7 @@ g137
 sssg319
 S'7/11'
 p343
-ssVWebPilot
+ssS'WebPilot'
 p344
 (dp345
 S'total_runs'
@@ -1312,12 +1312,12 @@ p377
 sssg353
 S'5/11'
 p378
-ssVAndroid
+ssS'Android'
 p379
 (dp380
 S'total_runs'
 p381
-L46L
+L47L
 sS'score'
 p382
 I7
@@ -1430,7 +1430,7 @@ g11
 sssg388
 S'8/11'
 p411
-ssVOLPC
+ssS'OLPC'
 p412
 (dp413
 S'total_runs'
@@ -1549,7 +1549,7 @@ g206
 sssg421
 S'7/11'
 p445
-ssVVienna
+ssS'Vienna'
 p446
 (dp447
 S'total_runs'
@@ -1668,7 +1668,7 @@ g11
 sssg455
 S'7/11'
 p479
-ssVSleipnir
+ssS'Sleipnir'
 p480
 (dp481
 S'total_runs'
@@ -1787,7 +1787,7 @@ g137
 sssg489
 S'5/11'
 p513
-ssVNetFront
+ssS'NetFront'
 p514
 (dp515
 S'total_runs'
@@ -1905,7 +1905,7 @@ g45
 sssg523
 S'3/11'
 p546
-ssVNokia
+ssS'Nokia'
 p547
 (dp548
 S'total_runs'
@@ -2024,7 +2024,7 @@ g45
 sssg556
 S'4/11'
 p580
-ssVFresco
+ssS'Fresco'
 p581
 (dp582
 S'total_runs'
@@ -2143,7 +2143,7 @@ g137
 sssg590
 S'7/11'
 p614
-ssVFluid
+ssS'Fluid'
 p615
 (dp616
 S'total_runs'
@@ -2262,7 +2262,7 @@ g11
 sssg624
 S'7/11'
 p648
-ssVK-Meleon
+ssS'K-Meleon'
 p649
 (dp650
 S'total_runs'
@@ -2381,7 +2381,7 @@ g206
 sssg658
 S'7/11'
 p682
-ssVShiira
+ssS'Shiira'
 p683
 (dp684
 S'total_runs'
@@ -2500,7 +2500,7 @@ g11
 sssg692
 S'7/11'
 p716
-ssVBolt
+ssS'Bolt'
 p717
 (dp718
 S'total_runs'
@@ -2618,12 +2618,12 @@ g149
 sssg726
 S'5/11'
 p749
-ssVSafari
+ssS'Safari'
 p750
 (dp751
 S'total_runs'
 p752
-L1223L
+L1236L
 sS'score'
 p753
 I6
@@ -2737,7 +2737,7 @@ g11
 sssg759
 S'7/11'
 p783
-ssViCab
+ssS'iCab'
 p784
 (dp785
 S'total_runs'
@@ -2856,7 +2856,7 @@ g11
 sssg793
 S'7/11'
 p817
-ssVGaleon
+ssS'Galeon'
 p818
 (dp819
 S'total_runs'
@@ -2975,7 +2975,7 @@ g137
 sssg827
 S'7/11'
 p851
-ssVVodafone
+ssS'Vodafone'
 p852
 (dp853
 S'total_runs'
@@ -3093,7 +3093,7 @@ g45
 sssg861
 S'4/11'
 p884
-ssVPolaris
+ssS'Polaris'
 p885
 (dp886
 S'total_runs'
@@ -3213,7 +3213,7 @@ p918
 sssg894
 S'9/11'
 p919
-ssVNetscape
+ssS'Netscape'
 p920
 (dp921
 S'total_runs'
@@ -3332,7 +3332,7 @@ g206
 sssg929
 S'5/11'
 p953
-ssVIceweasel
+ssS'Iceweasel'
 p954
 (dp955
 S'total_runs'
@@ -3451,7 +3451,7 @@ g137
 sssg963
 S'7/11'
 p987
-ssVKonqueror
+ssS'Konqueror'
 p988
 (dp989
 S'total_runs'
@@ -3569,7 +3569,7 @@ g149
 sssg997
 S'6/11'
 p1020
-ssVMyIE2
+ssS'MyIE2'
 p1021
 (dp1022
 S'total_runs'
@@ -3689,7 +3689,7 @@ p1054
 sssg1030
 S'7/11'
 p1055
-ssVKazehakase
+ssS'Kazehakase'
 p1056
 (dp1057
 S'total_runs'
@@ -3808,7 +3808,7 @@ g137
 sssg1065
 S'7/11'
 p1089
-ssVIceape
+ssS'Iceape'
 p1090
 (dp1091
 S'total_runs'
@@ -3927,12 +3927,12 @@ g206
 sssg1099
 S'7/11'
 p1123
-ssVOpera
+ssS'Opera'
 p1124
 (dp1125
 S'total_runs'
 p1126
-L4940L
+L4944L
 sS'score'
 p1127
 I5
@@ -4046,7 +4046,7 @@ g11
 sssg1133
 S'6/11'
 p1157
-ssVAvant
+ssS'Avant'
 p1158
 (dp1159
 S'total_runs'
@@ -4165,7 +4165,7 @@ g206
 sssg1167
 S'4/11'
 p1191
-ssVQtWeb
+ssS'QtWeb'
 p1192
 (dp1193
 S'total_runs'
@@ -4284,7 +4284,7 @@ g206
 sssg1201
 S'7/11'
 p1225
-ssViRider
+ssS'iRider'
 p1226
 (dp1227
 S'total_runs'
@@ -4403,7 +4403,7 @@ g206
 sssg1235
 S'6/11'
 p1259
-ssVMicroB
+ssS'MicroB'
 p1260
 (dp1261
 S'total_runs'
@@ -4522,7 +4522,7 @@ g11
 sssg1269
 S'8/11'
 p1293
-ssVEpiphany
+ssS'Epiphany'
 p1294
 (dp1295
 S'total_runs'
@@ -4641,7 +4641,7 @@ g137
 sssg1303
 S'8/11'
 p1327
-ssVPhoenix
+ssS'Phoenix'
 p1328
 (dp1329
 S'total_runs'
@@ -4760,7 +4760,7 @@ g206
 sssg1337
 S'5/11'
 p1361
-ssVBlackberry
+ssS'Blackberry'
 p1362
 (dp1363
 S'total_runs'
@@ -4878,7 +4878,7 @@ g11
 sssg1371
 S'6/11'
 p1394
-ssVIron
+ssS'Iron'
 p1395
 (dp1396
 S'total_runs'
@@ -4997,15 +4997,15 @@ g137
 sssg1404
 S'9/11'
 p1428
-ssVMidori
+ssS'Midori'
 p1429
 (dp1430
 S'total_runs'
 p1431
-L5L
+L6L
 sS'score'
 p1432
-I4
+I5
 sS'results'
 p1433
 (dp1434
@@ -5116,7 +5116,7 @@ g206
 sssg1438
 S'5/11'
 p1462
-ssVOmniWeb
+ssS'OmniWeb'
 p1463
 (dp1464
 S'total_runs'
@@ -5235,15 +5235,15 @@ g11
 sssg1472
 S'7/11'
 p1496
-ssVIE
+ssS'IE'
 p1497
 (dp1498
 S'total_runs'
 p1499
-L1348L
+L1355L
 sS'score'
 p1500
-I3
+I4
 sS'results'
 p1501
 (dp1502
@@ -5354,7 +5354,7 @@ g206
 sssg1506
 S'4/11'
 p1530
-ssVANTGalio
+ssS'ANTGalio'
 p1531
 (dp1532
 S'total_runs'
@@ -5473,7 +5473,7 @@ g557
 sssg1540
 S'3/11'
 p1564
-ssVIceWeasel
+ssS'IceWeasel'
 p1565
 (dp1566
 S'total_runs'
@@ -5592,12 +5592,12 @@ g137
 sssg1574
 S'10/11'
 p1598
-ssVFirefox
+ssS'Firefox'
 p1599
 (dp1600
 S'total_runs'
 p1601
-L8382L
+L8408L
 sS'score'
 p1602
 I7
@@ -5711,7 +5711,7 @@ g137
 sssg1608
 S'8/11'
 p1632
-ssVLunascape
+ssS'Lunascape'
 p1633
 (dp1634
 S'total_runs'
@@ -5830,7 +5830,7 @@ g137
 sssg1642
 S'10/11'
 p1666
-ssVLinks
+ssS'Links'
 p1667
 (dp1668
 S'total_runs'
@@ -5950,7 +5950,7 @@ p1701
 sssg1676
 S'8/11'
 p1702
-ssVSwiftfox
+ssS'Swiftfox'
 p1703
 (dp1704
 S'total_runs'
@@ -6069,7 +6069,7 @@ g137
 sssg1712
 S'8/11'
 p1736
-ssVWii
+ssS'Wii'
 p1737
 (dp1738
 S'total_runs'
@@ -6188,7 +6188,7 @@ g206
 sssg1746
 S'5/11'
 p1770
-ssVUzbl
+ssS'Uzbl'
 p1771
 (dp1772
 S'total_runs'
@@ -6307,12 +6307,12 @@ g206
 sssg1780
 S'5/11'
 p1804
-ssVNetNewsWire
+ssS'NetNewsWire'
 p1805
 (dp1806
 S'total_runs'
 p1807
-L19L
+L20L
 sS'score'
 p1808
 I6
@@ -6426,7 +6426,7 @@ g11
 sssg1814
 S'7/11'
 p1838
-ssVArora
+ssS'Arora'
 p1839
 (dp1840
 S'total_runs'
@@ -6545,7 +6545,7 @@ g206
 sssg1848
 S'7/11'
 p1872
-ssVFlock
+ssS'Flock'
 p1873
 (dp1874
 S'total_runs'
@@ -6664,7 +6664,7 @@ g137
 sssg1882
 S'8/11'
 p1906
-ssVFennec
+ssS'Fennec'
 p1907
 (dp1908
 S'total_runs'
@@ -6782,7 +6782,7 @@ g11
 sssg1916
 S'8/11'
 p1939
-ssVSunrise
+ssS'Sunrise'
 p1940
 (dp1941
 S'total_runs'
@@ -6901,12 +6901,12 @@ g11
 sssg1949
 S'7/11'
 p1973
-ssViPhone
+ssS'iPhone'
 p1974
 (dp1975
 S'total_runs'
 p1976
-L177L
+L186L
 sS'score'
 p1977
 I7

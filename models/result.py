@@ -204,7 +204,7 @@ class ResultParent(db.Expando):
         'score': row_score,
         'display': row_display
       }
-      memcache.set(key=memcache_key, value=score_display, time=600,
+      memcache.set(key=memcache_key, value=score_display, time=300,
           namespace=score_ns)
       logging.info('set memcache for key: %s, score: %s, display: %s' %
                    (memcache_key, score, display))
