@@ -547,7 +547,7 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
   """This is the meat and potatoes of the stats."""
   #use_memcache=False
   #logging.info('GetStatsData category:%s\n tests:%s\n user_agents:%s\n params:%s\nuse_memcache:%s\nversion_level:%s' % (category, tests, user_agents, params, use_memcache, version_level))
-  stats = {}
+  stats = {'total_runs': 0}
   for user_agent in user_agents:
     user_agent_stats = None
     if use_memcache:
@@ -646,8 +646,9 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
     # Casting user_agent as str here prevents unicode errors when unpickling.
     if version_level == 'top' or user_agent_stats['total_runs']:
       stats[str(user_agent)] = user_agent_stats
+      stats['total_runs'] += user_agent_stats['total_runs']
 
-  #logging.info('GetStatsData done, stats: %s' % stats)
+  #logging.info('GetStatsData done, stats: %s' % stats['total_runs'])
   return stats
 
 

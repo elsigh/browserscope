@@ -147,5 +147,8 @@
   {% if is_admin %}
     <a href="/clear_memcache?v={{ v }}&category={{ category }}&continue={{ request_path }}" class="bs-admin">clear {{ category }} {{ v }} memcache</a>
   {% endif %}
+  {% if stats|by_key:"total_runs" %}
+    {{ stats|by_key:"total_runs" }} tests from {{ stats|length|add:"-1"}} browsers
+  {% endif %}
 </div>
 {% endspaceless %}
