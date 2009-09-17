@@ -2467,14 +2467,12 @@
         doc.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"><title><\/title><span><\/span><script type=\"text/javascript\"><\/script>");
         doc.close();
         assertEquals(doc.childNodes.length, 2, "wrong number of children in #document (first test)");
-        assertEquals(doc.firstChild.name.toUpperCase(), "HTML", "name wrong (first test)");
-        // changed 2009-08-13 to add .toUpperCase() for HTML5 compat
+        assertEquals(doc.firstChild.name.toUpperCase(), "HTML", "name wrong (first test)"); // changed 2009-08-13 to add .toUpperCase() for HTML5 compat
         assertEquals(doc.firstChild.publicId, "-//W3C//DTD HTML 4.0 Transitional//EN", "publicId wrong (first test)");
         if ((doc.firstChild.systemId != null) && (doc.firstChild.systemId != ""))
           fail("systemId wrong (first test)");
         if (('internalSubset' in doc.firstChild) || doc.firstChild.internalSubset)
           assertEquals(doc.firstChild.internalSubset, null, "internalSubset wrong (first test)");
-
         assertEquals(doc.documentElement.childNodes.length, 2, "wrong number of children in HTML (first test)");
         assertEquals(doc.documentElement.firstChild.nodeName, "HEAD", "misplaced HEAD element (first test)");
         assertEquals(doc.documentElement.firstChild.childNodes.length, 1, "wrong number of children in HEAD (first test)");
@@ -2487,8 +2485,8 @@
         doc.open();
         doc.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\"><title><\/title><span><script type=\"text/javascript\"><\/script><\/span>");
         doc.close();
-        assertEquals(doc.childNodes.length, 2, "wrong number of children in #document (first test)");
-        assertEquals(doc.firstChild.name, "HTML", "name wrong (second test)");
+        assertEquals(doc.childNodes.length, 2, "wrong number of children in #document (second test)");
+        assertEquals(doc.firstChild.name.toUpperCase(), "HTML", "name wrong (second test)"); // changed 2009-08-13 to add .toUpperCase() for HTML5 compat
         assertEquals(doc.firstChild.publicId, "-//W3C//DTD HTML 4.01 Transitional//EN", "publicId wrong (second test)");
         assertEquals(doc.firstChild.systemId, "http://www.w3.org/TR/html4/loose.dtd", "systemId wrong (second test)");
         if (('internalSubset' in doc.firstChild) || doc.firstChild.internalSubset)
@@ -3453,7 +3451,7 @@
       // Report final score to browserscope
       var testResults = [];
       testResults.push('score=' + span.firstChild.data);
-      parent.browserscope.sendScore(testResults);
+      parent.sendScore(testResults);
     }
   }
   function report(event) {

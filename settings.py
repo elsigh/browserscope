@@ -22,7 +22,8 @@ from google.appengine.api import users
 
 APP_TITLE = 'Browserscope'
 APPEND_SLASH = False
-ADMINS = (('Lindsey Simon', 'elsigh@gmail.com'), ('Stephen', 'steve.lamm@gmail.com'))
+ADMINS = (('Lindsey Simon', 'elsigh@gmail.com'),
+          ('Stephen', 'steve.lamm@gmail.com'))
 MANAGERS = ADMINS
 SERVER_EMAIL = 'lsimon@commoner.com'
 DATABASE_ENGINE = 'appengine'
@@ -59,8 +60,12 @@ INSTALLED_APPS = (
 
 # BROWSERSCOPE SPECIFIC GLOBALS
 CATEGORIES = ['network', 'acid3', 'selectors', 'richtext']
+
 STATIC_CATEGORIES = ['richtext']
-STATIC_MODE = 'pickle' # can be pickle or html
+# Where we'll read the static files from. Either 'local' or an url.
+#STATIC_SRC = 'local'
+STATIC_SRC = 'http://static.latest.ua-profiler.appspot.com/static_mode'
+
 STATS_MEMCACHE_TIMEOUT = 0
 STATS_MEMCACHE_UA_ROW_NS = 'ua_row'
 STATS_SCORE_TRUE = 'yes'

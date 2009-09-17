@@ -23,7 +23,7 @@
 
 <body>
   <h1 id="bs-logo" class="bs-ir">
-    <a target="_top" href="/"><span>{{ app_title }}</span></a>
+    <a href="/" target="_top"><span>{{ app_title }}</span></a>
   </h1>
   <div id="bs-nav">
     <div class="g-unit g-first">
@@ -31,8 +31,7 @@
         <ul id="bs-nav-cats" class="g-section bs-compact bs-list-horz">
         {% for tuple in app_categories %}
           <li>
-            <a target="_top"
-               href="/{{ tuple|by_key:0 }}/test">{{ tuple|by_key:1 }}</a>
+            <a href="/{{ tuple|by_key:0 }}/test" target="_top">{{ tuple|by_key:1 }}</a>
           </li>
         {% endfor %}
         </ul>
@@ -45,12 +44,12 @@
           <span>{{ user.nickname }}</span>
         {% endif %}
 
-        <a target="_top" href="/faq">FAQ</a>
+        <a href="/faq" target="_top">FAQ</a>
 
         {% if user %}
-          <a target="_top" href="{{ sign_out }}">Sign Out</a>
+          <a href="{{ sign_out }}" target="_top" >Sign Out</a>
         {% else %}
-          <a target="_top" href="{{ sign_in }}">Sign In</a>
+          <a href="{{ sign_in }}" target="_top" >Sign In</a>
         {% endif %}
       </div>
     </div>
@@ -59,25 +58,25 @@
 
   <div id="bs-body">
     {% ifequal request_path_lastbit "about" %}
-      <a href="/{{ app_category }}/test" class="bs-bc">Go to the {{ app_category_name }} Tests</a>
-    {% endifequal %}
-    {% ifequal request_path_lastbit "test" %}
-      {% if autorun %}{% else %}
-        <a href="/{{ app_category }}/about" class="bs-bc">Read more about the {{ app_category_name }} Tests</a>
-      {% endif %}
+      <a
+        href="/{{ app_category }}/test"
+        class="bs-bc"
+        target="_top">Go to the {{ app_category_name }} Tests</a>
     {% endifequal %}
 
     {% block body %}{% endblock %}
   </div>
 
-  <div id="bs-foot">
-    <a href="/">Home</a> |
-    <a href="/faq">FAQ</a> |
-    <a href="http://code.google.com/p/browserscope/source/checkout">Code</a> |
-    <a href="http://code.google.com/p/browserscope/issues/list">Submit a Bug</a> |
-    <a href="http://groups.google.com/group/browserscope">Mailing List</a> |
-    <a href="mailto:browserscope@googlegroups.com">Contact</a>
-  </div>
+  {% if hide_footer %}{% else %}
+    <div id="bs-foot">
+      <a href="/" target="_top">Home</a> |
+      <a href="/faq" target="_top">FAQ</a> |
+      <a href="http://code.google.com/p/browserscope/source/checkout" target="_top">Code</a> |
+      <a href="http://code.google.com/p/browserscope/issues/list" target="_top">Submit a Bug</a> |
+      <a href="http://groups.google.com/group/browserscope" target="_top">Mailing List</a> |
+      <a href="mailto:browserscope@googlegroups.com" target="_top">Contact</a>
+    </div>
+  {% endif %}
 
   {% ifequal build "production" %}
     <script>

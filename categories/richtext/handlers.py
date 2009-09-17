@@ -50,17 +50,6 @@ def About(request):
   }
   return util.Render(request, 'templates/about.html', params, CATEGORY)
 
-@decorators.provide_csrf
-def Test(request):
-  params = {
-    'page_title': 'Rich Text - Tests',
-    'continue': request.GET.get('continue'),
-    'autorun': request.GET.get('autorun'),
-    'csrf_token': request.session.get('csrf_token'),
-    'test_page': '/richtext/static/richtext.html'
-  }
-  return util.Render(request, util.TEST_DRIVER_TPL, params, CATEGORY)
-
 
 def EditableIframe(request):
 

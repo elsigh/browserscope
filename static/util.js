@@ -77,14 +77,16 @@ Util.isInternetExplorer = function() {
 
 /**
  * Read url param value from href.
- * @param {string} param The param to look for
+ * @param {string} param The param to look for.
+ * @param {boolean} opt_win Use top instead of the current window.
  * @return {string} The value of the param or an empty string.
  */
-Util.getParam = function(param) {
+Util.getParam = function(param, opt_win) {
+  var win = opt_win || window;
   param = param.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]');
   var regexString = '[\\?&]' + param + '=([^&#]*)';
   var regex = new RegExp(regexString);
-  var results = regex.exec(window.location.href);
+  var results = regex.exec(win.location.href);
   if (results == null) {
     return '';
   } else {

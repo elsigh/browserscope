@@ -82,7 +82,8 @@ class TestBase(object):
 
 
 class TestSet(object):
-  def __init__(self, category, category_name, tests, default_params=None):
+  def __init__(self, category, category_name, tests, default_params=None,
+               test_page=None):
     """Initialize a test set.
 
     A test set has all the tests for a category.
@@ -96,12 +97,15 @@ class TestSet(object):
     self.category_name = category_name
     self.tests = tests
     self.default_params = default_params
+    self.test_page = test_page
+    if self.test_page is None:
+      # i.e. default is like /acid3/acid3.html
+      self.test_page = '/%s/static/%s.html' % (self.category, self.category)
     self._test_dict = {}
     for test in tests:
       test.test_set = self  # add back pointer to each test
       self._test_dict[test.key] = test
     self._test_keys = sorted(self._test_dict)
-
 
   def GetTest(self, test_key):
     """Gets the test from the tests dict. If a key is passed in and there's

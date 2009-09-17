@@ -106,5 +106,6 @@ class Acid3TestSet(test_set_base.TestSet):
 TEST_SET = Acid3TestSet(
     category=_CATEGORY,
     category_name='Acid3',
-    tests=_TESTS
+    tests=_TESTS,
+    test_page='/%s/%s.html' % (_CATEGORY, _CATEGORY)
 )
