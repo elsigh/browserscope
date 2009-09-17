@@ -32,6 +32,7 @@ from google.appengine.api import memcache
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.api.labs import taskqueue
+from google.appengine.api import urlfetch
 
 import django
 from django import http
@@ -51,7 +52,7 @@ from base import decorators
 from base import manage_dirty
 
 
-TEST_DRIVER_TPL = 'testdriver_base.html'
+TEST_DRIVER_TPL = 'test_driver.html'
 
 
 #@decorators.trusted_tester_required
@@ -89,6 +90,37 @@ def Render(request, template, params={}, category=None):
   if category != None and template != TEST_DRIVER_TPL:
     template = '%s/%s' % (category, template)
   return shortcuts.render_to_response(template, params)
+
+
+def CategoryTest(request):
+  """Loads the test frameset for a category."""
+  category = re.sub('\/test.*', '', request.path)[1:]
+  test_set = all_test_sets.GetTestSet(category)
+  params = {
+    'category': test_set.category,
+    'page_title': '%s - Tests' % test_set.category_name,
+    'continue': request.GET.get('continue', ''),
+    'autorun': request.GET.get('autorun', ''),
+    'test_page': test_set.test_page
+  }
+  return shortcuts.render_to_response('test_frameset.html', params)
+
+
+@decorators.provide_csrf
+def CategoryTestDriver(request):
+  """Loads the test driver for a category."""
+  category = request.GET.get('category')
+  test_set = all_test_sets.GetTestSet(category)
+  params = {
+    'category': test_set.category,
+    'page_title': '%s - Test Driver' % test_set.category_name,
+    'continue': request.GET.get('continue', ''),
+    'autorun': request.GET.get('autorun', ''),
+    'test_page': test_set.test_page,
+    'csrf_token': request.session.get('csrf_token'),
+    'hide_footer': True
+  }
+  return Render(request, TEST_DRIVER_TPL, params, category)
 
 
 def GetServer(request):
@@ -386,19 +418,13 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   """
   logging.info('GetStats for %s' % test_set.category)
   version_level = request.GET.get('v', 'top')
-  override_static_mode = request.GET.get('sc') # sc for skip cache
 
   # Check for static mode here to enable other optimizations.
-  static_mode = None
+  override_static_mode = request.GET.get('sc') # sc for skip cache
+  static_mode = False
   if (test_set.category in settings.STATIC_CATEGORIES and
       output == 'html' and not override_static_mode):
-    static_mode = settings.STATIC_MODE
-
-  # Enables a "static" bypass mode where we deliver canned html results.
-  if (static_mode == 'html'):
-    template_file = ('%s_%s.html' % (test_set.category, version_level))
-    t = loader.get_template(template_file)
-    return t.render(Context({}))
+    static_mode = True
 
   if not static_mode:
     ua_by_param = request.GET.get('ua')
@@ -417,11 +443,20 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   # Enables a "static" pickle mode so that we still run the data through
   # the template processor (enabling us to display a user's test results)
   # but read the datastore-heavy data part from a static, pickled file.
-  if (static_mode == 'pickle'):
-    pickle_file = ('static_mode/%s_%s.py' % (test_set.category, version_level))
-    f = open(pickle_file, 'r')
-    stats_data = pickle.load(f)
-    f.close()
+  if static_mode:
+    if settings.STATIC_SRC == 'local':
+      pickle_file = ('static_mode/%s_%s.py' % (test_set.category,
+                                               version_level))
+      f = open(pickle_file, 'r')
+      stats_data = pickle.load(f)
+      f.close()
+    else:
+      url = ('%s/%s_%s.py' % (settings.STATIC_SRC, test_set.category,
+                             version_level))
+      result = urlfetch.fetch(url)
+      pickled_data = result.content
+      stats_data = pickle.loads(pickled_data)
+
     # TODO(elsigh): figure out why my string casts in other spots don't
     # make this redundant.
     user_agent_strings = [str(ua) for ua in stats_data.keys()]

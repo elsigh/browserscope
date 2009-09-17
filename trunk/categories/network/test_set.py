@@ -237,5 +237,6 @@ class NetworkTestSet(test_set_base.TestSet):
 TEST_SET = NetworkTestSet(
     category=_CATEGORY,
     category_name='Network',
-    tests=_TESTS
+    tests=_TESTS,
+    test_page='/%s/frameset' % _CATEGORY
 )

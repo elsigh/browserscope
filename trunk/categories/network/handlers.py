@@ -33,6 +33,8 @@ from django import http
 
 CATEGORY = 'network'
 
+TEST_PAGE = '/%s/frameset' % CATEGORY
+
 
 def About(request):
   """About page."""
@@ -41,22 +43,6 @@ def About(request):
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
   return util.Render(request, 'templates/about.html', params, CATEGORY)
-
-
-@decorators.provide_csrf
-def Test(request):
-  """Network Performance Tests"""
-
-  test_page = ('frameset?autorun=%s&testurl=%s' %
-               (request.GET.get('autorun', '1'),
-                request.GET.get('testurl', '')))
-  params = {
-    'autorun': request.GET.get('autorun', ''),
-    'continue': request.GET.get('continue', ''),
-    'test_page': test_page,
-    'csrf_token': request.session.get('csrf_token'),
-  }
-  return util.Render(request, util.TEST_DRIVER_TPL, params, CATEGORY)
 
 
 def Frameset(request):

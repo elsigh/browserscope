@@ -5,9 +5,10 @@
 <script src="{{ "xhrio.js"|resource_path }}"></script>
 <script>
   var browserscope = {};
+  browserscope.testFrame = parent.frames['bs-test-frame'];
   browserscope.testCategories = [];
   {% for app_category in  app_categories %}
-  browserscope.testCategories.push('{{ app_category.0 }}');
+    browserscope.testCategories.push('{{ app_category.0 }}');
   {% endfor %}
 
   /**
@@ -37,6 +38,7 @@
       }
       browserscope.runTestButton.className = 'bs-btn';
       browserscope.runTestButton.innerHTML = 'Done! Compare your results »';
+      browserscope.runTestButton.target = '_top';
       browserscope.runTestButton.href = '/?' + browserscope.uriResults;
       var resultsDisplay = continueParams ?
             continueParams.join(',') :
@@ -50,11 +52,7 @@
     {% endif %}
 
     // Update the iframe size if there's one
-    var doc = Util.getIframeDocument('bs-test-iframe');
-    if (doc) {
-      var height = Util.getDocumentHeight(doc);
-      document.getElementById('bs-test-iframe').style.height = height + 10 + 'px';
-    }
+    parent['bs-test-frame'].scrollTo(0, 0);
   };
 
   browserscope.onBeaconCompleteAutorun = function(e) {
@@ -80,7 +78,8 @@
       // now add on previous test scores
       for (var i = 0, n = len; i < n; i++) {
         var category = browserscope.testCategories[i];
-        var results = Util.getParam(category + '_results');
+        var results = Util.getParam(category + '_results',
+            window.top);
         if (results) {
           nextUrl += '&' + category + '_results=' + results;
         }
@@ -92,15 +91,18 @@
   };
 
   browserscope.runTest = function() {
-    browserscope.runTestButton = document.getElementById('bs-runtest');
-    browserscope.runTestButton.className = 'bs-btn-disabled';
-    browserscope.runTestButton.onclick = '';
-    browserscope.runTestButton.innerHTML = '{{ app_category_name }} Tests Running...';
-    document.getElementById('bs-send-beacon-label').style.display = 'none';
     var rand = Math.floor(Math.random() * 10000000);
-    document.getElementById('bs-test-iframe').src = '{{ test_page }}?r=' +
-        rand;
-    return false;
+    var categoryTestUrl = '{{ test_page }}?r=' + rand;
+    browserscope.testFrame.location.href = categoryTestUrl;
+
+    browserscope.runTestButton = document.getElementById('bs-runtest');
+    if (browserscope.runTestButton) {
+      browserscope.runTestButton.className = 'bs-btn-disabled';
+      browserscope.runTestButton.onclick = '';
+      browserscope.runTestButton.innerHTML = '{{ app_category_name }} Tests Running...';
+      document.getElementById('bs-send-beacon-label').style.display = 'none';
+      return false;
+    }
   };
 </script>
 {% endblock %}
@@ -110,7 +112,14 @@
     <div id="bs-autorun-msg">
       You are currently running the Browserscope tests in Autorun mode ...
     </div>
+    <script>
+      browserscope.runTest();
+    </script>
   {% else %}
+    <a
+      href="/{{ app_category }}/about"
+      class="bs-bc"
+      target="_top">Read more about the {{ app_category_name }} Tests</a>
     <p id="bs-runtest-c">
       <a
         id="bs-runtest"
@@ -124,12 +133,4 @@
       </label>
     </p>
   {% endif %}
-
-  <iframe
-    id="bs-test-iframe"
-    name="{{ app_category }}"
-    height="700px"
-    width="100%"
-    frameborder="0"
-    src="{% if autorun %}{{ test_page }}{% else %}/static/clicktorun.html{% endif %}"></iframe>
 {% endblock %}

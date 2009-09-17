@@ -322,9 +322,8 @@
 		    'passed=' + passed,
 		    'failed=' + (tests - passed)
 		  ];
-      parent.browserscope.sendScore(testResults);
+      parent.sendScore(testResults);
 		}
-
 		function cacheCheck( type, root ) {
 			try {
 				var pre = root.querySelectorAll( "div" ), preLength = pre.length;

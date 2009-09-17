@@ -57,16 +57,17 @@ urlpatterns = patterns('',
 
   # UNIT TEST URLs
   # TODO(elsigh): try to do a custom urls.py for unit tests?
-  (r'^fake_check_csrf',  'base.util.FakeCheckCsrf'),
+  (r'^fake_check_csrf', 'base.util.FakeCheckCsrf'),
 
+  # Category Test Handlers, i.e. /network/test
+  (r'^[^\/]+/test$', 'base.util.CategoryTest'),
+  (r'^category_test_driver$', 'base.util.CategoryTestDriver'),
 
   #############################################################################
   ## CATEGORY URLS BELOW
   #############################################################################
 
   # Reflow Timer URLs
-  (r'^reflows?/?$', 'categories.reflow.handlers.Test'),
-  (r'^reflow/test$', 'categories.reflow.handlers.Test'),
   (r'^reflow/about$', 'categories.reflow.handlers.About'),
   (r'^reflow/test_selectors$', 'categories.reflow.handlers.TestSelectors'),
   (r'^reflow/test_gen_css$', 'categories.reflow.handlers.TestGenCss'),
@@ -78,8 +79,6 @@ urlpatterns = patterns('',
   (r'^reflow/locations', 'categories.reflow.handlers.Locations'),
 
   # Network Performance main URLs
-  (r'^network/?$', 'categories.network.handlers.Test'),
-  (r'^network/test$', 'categories.network.handlers.Test'),
   (r'^network/frameset$', 'categories.network.handlers.Frameset'),
   (r'^network/about$', 'categories.network.handlers.About'),
   (r'^network/testdriver', 'categories.network.handlers.TestDriver'),
@@ -109,29 +108,19 @@ urlpatterns = patterns('',
   (r'^network/loader', 'categories.network.bulkloader.ResultLoader'),
 
   # Acid3 Test URLs
-  (r'acid3/?$', 'categories.acid3.handlers.Test'),
-  (r'acid3/test$', 'categories.acid3.handlers.Test'),
   (r'acid3/about$', 'categories.acid3.handlers.About'),
   (r'acid3/support-a.png$', 'categories.acid3.handlers.SupportAPng'),
 
   # Selectors API Test URLs
-  (r'selectors/?$', 'categories.selectors.handlers.Test'),
-  (r'selectors/test$', 'categories.selectors.handlers.Test'),
   (r'selectors/about$', 'categories.selectors.handlers.About'),
 
   # v8 Benchmark Suite URLs
-  (r'v8/?$', 'categories.v8.handlers.Test'),
-  (r'v8/test$', 'categories.v8.handlers.Test'),
   (r'v8/about$', 'categories.v8.handlers.About'),
 
   # SunSpider Benchmark Suite URLs
-  (r'sunspider/?$', 'categories.sunspider.handlers.Test'),
-  (r'sunspider/test$', 'categories.sunspider.handlers.Test'),
   (r'sunspider/about$', 'categories.sunspider.handlers.About'),
 
   # Rich text urls
-  (r'^richtext/?$', 'categories.richtext.handlers.Test'),
-  (r'^richtext/test', 'categories.richtext.handlers.Test'),
   (r'^richtext/about$', 'categories.richtext.handlers.About'),
 
 )

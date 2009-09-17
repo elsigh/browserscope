@@ -41,6 +41,7 @@ def Render(request, template_file, params):
   params['epoch'] = int(time.time())
   return util.Render(request, template_file, params, CATEGORY)
 
+
 def About(request):
   """About page."""
   params = {
@@ -48,18 +49,6 @@ def About(request):
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
   return Render(request, 'templates/about.html', params)
-
-@decorators.provide_csrf
-def Test(request):
-  """Acid3 Benchmark Performance Tests"""
-  params = {
-    'page_title': 'Acid3 - Tests',
-    'continue': request.GET.get('continue'),
-    'autorun': request.GET.get('autorun'),
-    'csrf_token': request.session.get('csrf_token'),
-    'test_page': '/acid3/acid3.html'
-  }
-  return util.Render(request, util.TEST_DRIVER_TPL, params, CATEGORY)
 
 
 def SupportAPng(request):
