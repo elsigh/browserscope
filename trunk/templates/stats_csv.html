@@ -3,13 +3,13 @@
   "{{ test.key }}{% if forloop.last %}{% else %}", {% endif %}
 {% endfor %}"<br>
 {% for user_agent in user_agents %}
-  "{{ user_agent }}",
   {% if stats|by_key:user_agent|by_key:"results" %}
+    "{{ user_agent }}",
     "{{ stats|by_key:user_agent|by_key:"display" }}",
     "{{ stats|by_key:user_agent|by_key:"score" }}"
     {% for test in tests %}
       , "{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"display" }}"
     {% endfor %}
+    <br>
   {% endif %}
-  <br>
 {% endfor %}
