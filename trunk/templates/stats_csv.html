@@ -1,0 +1,16 @@
+"useragent", "ua_rowscore_display", "ua_rowscore_1-10",
+{% for test in tests %}
+  "{{ test.key }}_score, "{{ test.key }}_display{% if forloop.last %}{% else %}", {% endif %}
+{% endfor %}"<br>
+{% for user_agent in user_agents %}
+  "{{ user_agent }}",
+  {% if stats|by_key:user_agent|by_key:"results" %}
+    "{{ stats|by_key:user_agent|by_key:"display" }}",
+    "{{ stats|by_key:user_agent|by_key:"score" }}"
+    {% for test in tests %}
+      , "{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"score" }}",
+      "{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"score" }}"
+    {% endfor %}
+  {% endif %}
+  <br>
+{% endfor %}
