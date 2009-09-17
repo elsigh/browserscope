@@ -420,7 +420,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   override_static_mode = request.GET.get('sc') # sc for skip cache
   static_mode = False
   if (test_set.category in settings.STATIC_CATEGORIES and
-      output == 'html' and not override_static_mode):
+      output in ['html', 'xhr'] and not override_static_mode):
     static_mode = True
 
   if not static_mode:
@@ -453,6 +453,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       result = urlfetch.fetch(url)
       pickled_data = result.content
       stats_data = pickle.loads(pickled_data)
+    logging.info('Retrieved static_mode stats_data.')
 
     # TODO(elsigh): figure out why my string casts in other spots don't
     # make this redundant.
