@@ -410,6 +410,13 @@ html>body .goog-inline-block {
 .bs-results-links a {
   margin: 0 .5em;
 }
+.bs-results-dl {
+  margin-left: 2em;
+  font-size: 95%;
+}
+.bs-results-dl span {
+  margin-right: auto;
+}
 
 /**
  * Results Table
@@ -429,6 +436,7 @@ html>body .goog-inline-block {
   empty-cells: show;
   background: #fff;
   border-collapse: collapse;
+  margin-bottom: 4px;
 }
 .rt thead th {
   cursor: pointer;

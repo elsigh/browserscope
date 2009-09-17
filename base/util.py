@@ -142,8 +142,6 @@ def Home(request):
   if not recent_tests:
     ScheduleRecentTestsUpdate()
 
-  output = request.GET.get('o', 'html')
-
   results_params = []
   for category in settings.CATEGORIES:
     results_uri_string = request.GET.get('%s_results' % category)
@@ -167,17 +165,16 @@ def Home(request):
     test_set = all_test_sets.GetTestSet(category)
 
   # Tell GetStats what to output.
-  if output == 'pickle':
-    stats_output = 'pickle'
-  else:
-    stats_output = 'html'
-  stats_table = GetStats(request, test_set, output=stats_output)
+  output = request.GET.get('o', 'html')
+  if output not in ['pickle', 'xhr', 'html', 'csv']:
+    return http.HttpResponse('Invalid output specified')
+  stats_table = GetStats(request, test_set, output)
 
   # Show a static message above the table.
   if category in settings.STATIC_CATEGORIES and output in ['xhr', 'html']:
     stats_table = '%s%s' % (STATIC_MESSAGE, stats_table)
 
-  if output in ['xhr', 'pickle']:
+  if output in ['xhr', 'pickle', 'csv']:
     return http.HttpResponse(stats_table)
   else:
     current_ua_string = request.META['HTTP_USER_AGENT']
@@ -536,8 +533,10 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     'results_uri_string': results_str
   }
   #logging.info("GetStats got params: %s", str(params))
-  if output is 'html':
-    return GetStatsTableHtml(params)
+  if output in ['html', 'xhr']:
+    return GetStatsDataTemplatized(params, 'table')
+  elif output == 'csv':
+    return GetStatsDataTemplatized(params, 'csv')
   else:
     return params
 
@@ -707,8 +706,8 @@ def GetScoreAndDisplayValue(test, median, medians, is_uri_result=False):
   return score, display
 
 
-def GetStatsTableHtml(params):
-  """Returns the HTML of the stats table.
+def GetStatsDataTemplatized(params, template='html'):
+  """Returns the stats table run through a template.
 
   Args:
     params: Example:
@@ -728,7 +727,7 @@ def GetStatsTableHtml(params):
   params['is_admin'] = users.is_current_user_admin()
   if not re.search('\?', params['request_path']):
     params['request_path'] = params['request_path'] + '?'
-  t = loader.get_template('stats_table.html')
+  t = loader.get_template('stats_%s.html' % template)
   html = t.render(Context(params))
   return html
 

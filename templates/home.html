@@ -139,8 +139,21 @@
     }, 'get', null, null, 15000); // 15000 = 15 second timeout
   };
   var browserFamilyChangeHandler = function() {
-    var category = selectedCategoryLink.category
-    xhrCategoryResults(category, getBrowserFamilyValue(category));
+    var category = selectedCategoryLink.category;
+    var newBrowserFamily = getBrowserFamilyValue(category);
+    // fix the download links
+    var downloadsContainer = document.getElementById('rt-dl-' +
+        category);
+    if (downloadsContainer) {
+      var downloadLinks = downloadsContainer.getElementsByTagName('a');
+      for (var i = 0, downloadLink; downloadLink=downloadLinks[i]; i++) {
+        var href = downloadLink.href;
+        href = href.replace(/v=[^&]+/, 'v=' + newBrowserFamily);
+        downloadLink.href = href;
+      }
+    }
+
+    xhrCategoryResults(category, newBrowserFamily);
   };
   var loadStatsTableCallback = function(e, category, url) {
     var xhrio = e.target;

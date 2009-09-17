@@ -139,16 +139,25 @@
       {% endif %}
     {% endif %}
   </table>
-</div>
 
-<div class="bs-results-links">
-  <a href="/{{ category }}/test">Go to the {{ category_name }} Tests</a>
-  <a href="/{{ category }}/about">Learn about the {{ category_name }} Tests</a>
-  {% if is_admin %}
-    <a href="/clear_memcache?v={{ v }}&category={{ category }}&continue={{ request_path }}" class="bs-admin">clear {{ category }} {{ v }} memcache</a>
-  {% endif %}
-  {% if stats|by_key:"total_runs" %}
-    {{ stats|by_key:"total_runs" }} tests from {{ stats|length|add:"-1"}} browsers
-  {% endif %}
+  <div class="bs-results-links">
+    <a href="/{{ category }}/test">Go to the {{ category_name }} Tests</a>
+    <a href="/{{ category }}/about">Learn about the {{ category_name }} Tests</a>
+    {% if is_admin %}
+      <a href="/clear_memcache?v={{ v }}&category={{ category }}&continue={{ request_path }}" class="bs-admin">clear {{ category }} {{ v }} memcache</a>
+    {% endif %}
+    {% if stats|by_key:"total_runs" %}
+      {{ stats|by_key:"total_runs" }} tests from {{ stats|length|add:"-1"}} browsers
+    {% endif %}
+
+    <span id="rt-dl-{{category }}" class="bs-results-dl">
+      <span>Downloads:</span>
+      <a class="bs-dl-py" href="/?category={{ category }}&v={{ v }}&o=pickle"
+        >pickle</a>
+      <a class="bs-dl-csv" href="/?category={{ category }}&v={{ v }}&o=csv"
+        >csv</a>
+    </span>
+  </div>
+
 </div>
 {% endspaceless %}
