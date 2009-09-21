@@ -9,18 +9,21 @@
         type="text/javascript"></script>
 <script>
 function doTest() {
-  var aeheader = aHeaders['HTTP_ACCEPT_ENCODING'].toLowerCase();
-  document.getElementById('aeheader').innerHTML = "Accept-Encoding: " + aeheader;
-  bCompresses = (-1 != aeheader.indexOf('gzip') ||
-                 -1 != aeheader.indexOf('deflate') ? 1 : 0 );
-  if (bCompresses) {
-    document.getElementById('results').innerHTML =
-        "Your browser <i>does</i> support compression.";
-  } else {
-    document.getElementById('results').innerHTML =
-        "Your browser does <i>not</i> support compression.";
-  }
-  parent.saveResult('gzip', bCompresses);
+	var bCompresses = false;
+	var aeheader = aHeaders['HTTP_ACCEPT_ENCODING'];
+	if ( aeheader ) {
+		aeheader = aeheader.toLowerCase();
+		document.getElementById('aeheader').innerHTML = "Accept-Encoding: " + aeheader;
+		bCompresses = (-1 != aeheader.indexOf('gzip') || -1 != aeheader.indexOf('deflate') ? 1 : 0 );
+	}
+	parent.saveResult('gzip', bCompresses);
+	if (bCompresses) {
+		document.getElementById('results').innerHTML =
+			"Your browser <i>does</i> support compression.";
+	} else {
+		document.getElementById('results').innerHTML =
+		"Your browser does <i>not</i> support compression.";
+	}
 }
 
 window.onload = doTest;
