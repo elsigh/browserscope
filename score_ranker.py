@@ -65,20 +65,34 @@ class Ranker(object):
     self.storage.RunInTransaction(self._SaveUpdates, update_tree)
 
   def FindScore(self, rank):
-    def _FindScore():
+    return self.FindScoreAndNumScores(rank=rank)[0]
+
+  def FindScoreAndNumScores(self, rank=None, percentile=None):
+    """Find by either rank or percentile."""
+    def _FindScore(rank):
       node_index = 0
       score = self.min_value
       rank_index = 0
+      num_scores = None
       for branch_units in self.level_branch_units:
         child_counts = self.storage.Get(node_index)
+        if not child_counts:
+          break
+        if num_scores is None:
+          num_scores = sum(child_counts)
+          if rank is None:
+            rank = int(num_scores * percentile / 100.0)
         for branch_index, count in enumerate(child_counts):
           if rank_index + count > rank:
             node_index = node_index * self.branching_factor + branch_index + 1
             score += branch_units * branch_index
             break
           rank_index += count
-      return score
-    return self.storage.RunInTransaction(_FindScore)
+      if num_scores is None:
+        num_scores = 0
+        score = None
+      return score, num_scores
+    return self.storage.RunInTransaction(_FindScore, rank)
 
   def TotalRankedScores(self):
     return sum(self.storage.Get(0) or [])

@@ -47,26 +47,25 @@ class ResultTest(unittest.TestCase):
     self.assertEqual(1, ranker.TotalRankedScores())
 
 
-  def testGetMedian(self):
+  def testGetMedianAndNumScores(self):
     test_set = mock_data.AddFiveResultsAndIncrementAllCounts()
 
     ranker = result_ranker.GetRanker(
         test_set.category, test_set.GetTest('testDisplay'), 'Firefox 3')
-    self.assertEqual(300, ranker.GetMedian())
+    self.assertEqual((300, 5), ranker.GetMedianAndNumScores())
 
     ranker = result_ranker.GetRanker(
         test_set.category, test_set.GetTest('testVisibility'), 'Firefox 3')
-    self.assertEqual(2, ranker.GetMedian())
     self.assertEqual((2, 5), ranker.GetMedianAndNumScores())
 
 
-  def testGetMedianWithParams(self):
+  def testGetMedianAndNumScoresWithParams(self):
     test_set = mock_data.AddThreeResultsWithParamsAndIncrementAllCounts()
 
     ranker = result_ranker.GetRanker(
         test_set.category, test_set.GetTest('testDisplay'), 'Firefox 3',
         str(test_set.default_params))
-    self.assertEqual(2, ranker.GetMedian())
+    self.assertEqual((2, 3), ranker.GetMedianAndNumScores())
 
 
   def testAddResult(self):

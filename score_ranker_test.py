@@ -95,5 +95,15 @@ class TestRanker(unittest.TestCase):
                      [r.FindScore(x) for x in range(len(scores) - 1)])
 
 
+  def testFindScoreAndNumScoresMedian(self):
+    r = score_ranker.Ranker(self.storage, 0, 60000, 40)
+    scores = [0, 554, 555, 555, 59888]
+    r.Update(scores)
+    self.assertEqual((555, 5), r.FindScoreAndNumScores(percentile=50))
+
+  def testFindScoreAndNumScoresEmpty(self):
+    r = score_ranker.Ranker(self.storage, 0, 60000, 40)
+    self.assertEqual((None, 0), r.FindScoreAndNumScores(percentile=1))
+
 if __name__ == '__main__':
   unittest.main()

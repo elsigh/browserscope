@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<pre>
+Application ID:     {{ application_id }}
+Current Version ID: {{ current_version_id }}
+Update dirty:       {% if is_paused %}<b>paused</b>{% else %}running{% endif %}
+</pre>
+
+<ul>
+{% if is_development %}
+<li><a href="/_ah/admin/datastore">Datastore Viewer</a>
+<li><a href="/_ah/admin/interactive">Interactive Console</a>
+<li><a href="/_ah/admin/memcache">Memcache Viewer</a>
+<li><a href="/_ah/admin/queues">Task Queues</a>
+{% else %}
+<li><a href="https://appengine.google.com/dashboard?&app_id={{ application_id }}">Dashboard</a>
+<li><a href="https://appengine.google.com/dashboard/quotadetails?&app_id={{ application_id }}">Quota Details</a>
+<li><a href="https://appengine.google.com/logs?&app_id={{ application_id }}">Logs</a>
+<li><a href="https://appengine.google.com/queues?&app_id={{ application_id }}">Task Queues</a>
+{% endif %}
+</ul>
+
+<ul>
+<li><a href="/admin/confirm-ua"><b>Confirm user agents</b></a>
+<li><a href="/admin/stats">Stats</a>
+</ul>
+
+<ul>
+<li><a href="/show_memcache">Show Memcache Stats</a>
+<li><a href="/clear_memcache?all=1">Clear All Memcache</a>
+</ul>
+
+<ul>
+<li><a href="/update_dirty">Update dirty tests</a>
+</ul>
+
+{% if is_development %}
+<ul>
+<li><a href="/seed_datastore">Seed Datastore</a> (development only)
+<li><a href="/clear_datastore">Clear Datastore</a> (development only)
+</ul>
+{% endif %}
+
+To rebuild and release rankers, use the command-line tool bin/admin.py.
+
+{% endblock %}

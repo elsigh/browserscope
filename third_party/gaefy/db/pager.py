@@ -345,12 +345,16 @@ class PagerQuery(object):
             entity = self._model_class.get(entity)
 
         values = {}
-        for prop in self._bookmark_properties:
-            if prop == '__key__':
-                values[prop] = str(entity.key())
+        for prop_name in self._bookmark_properties:
+            if prop_name == '__key__':
+                values[prop_name] = str(entity.key())
             else:
-                values[prop] = str(getattr(entity, prop))
-
+                prop = getattr(self._model_class, prop_name)
+                value = getattr(entity, prop_name)
+                if isinstance(prop, db.ReferenceProperty):
+                    values[prop_name] = str(value.key())
+                else:
+                    values[prop_name] = str(value)
         if self._first_result:
             values['_'] = str(self._first_result)
 

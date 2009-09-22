@@ -24,6 +24,7 @@ import hashlib
 
 from google.appengine.runtime import DeadlineExceededError
 from google.appengine.api import datastore
+from google.appengine.api import memcache
 from google.appengine.api.labs import taskqueue
 from google.appengine.ext import db
 
@@ -35,6 +36,7 @@ from categories import test_set_params
 from models import result_ranker
 from models.result import ResultParent
 from models.user_agent import UserAgent
+from models.user_agent import UserAgentGroup
 
 from third_party.gaefy.db import pager
 
@@ -71,7 +73,7 @@ class ResultParentQuery(object):
     self.bookmark = bookmark
     self.query = PagerQuery(ResultParent, keys_only=True)
     self.query.filter('category =', category)
-    self.query.order('user_agent_pretty')
+    self.query.order('user_agent')
     prev_bookmark, self.results, self.next_bookmark = self.query.fetch(
         fetch_limit, bookmark)
     self.num_results = len(self.results)
@@ -133,16 +135,15 @@ def _CollectScores(result_parent_query, ranker_limit, test_key):
   result_time_query = ResultTimeQuery()
   while result_parent_query.HasNext():
     result_parent = result_parent_query.GetNext()
-    user_agent_pretty = result_parent.user_agent_pretty
-    if user_agent_pretty not in user_agent_versions:
-      logging.info('_CollectScores: %s', result_parent.user_agent_pretty)
-      user_agent_list = UserAgent.parse_to_string_list(user_agent_pretty)
-      user_agent_versions[user_agent_pretty] = user_agent_list
+    ua = result_parent.user_agent
+    if ua not in user_agent_versions:
+      user_agent_list = user_agent_versions.setdefault(
+          ua, RetrieveUserAgentStringList(result_parent.user_agent))
       if len(ranker_scores) + len(user_agent_list) > ranker_limit:
         result_parent_query.PushBack()  # Save this result_parent for later
         break
     else:
-      user_agent_list = user_agent_versions[user_agent_pretty]
+      user_agent_list = user_agent_versions[ua]
 
     result_time = result_time_query.get(result_parent, test_key)
     if result_time:
@@ -225,10 +226,8 @@ def RebuildRankers(request):
         }))
   except DeadlineExceededError:
     logging.warn('DeadlineExceededError in RebuildRankers:'
-                 ' bookmark=%s, category=%s, test=%s, user_agent_pretty=%s,'
-                 ' total_scores=%s',
-                 bookmark, category, test.key, user_agent_pretty,
-                 total_results)
+                 ' bookmark=%s, category=%s, test=%s, total_scores=%s',
+                 bookmark, category, test.key, total_results)
     return http.HttpResponse('RebuildRankers: DeadlineExceededError.',
                              status=403)
 
@@ -326,3 +325,74 @@ def UpdateResultParents(request):
       'total_scanned': total_scanned,
       'total_updated': total_updated,
       }))
+
+
+def RebuildUserAgents(request):
+  bookmark = request.GET.get('bookmark')
+  # TODO: Add an option to skip the reparse?
+  fetch_limit = int(request.GET.get('fetch_limit', 25))
+  total_scanned = int(request.GET.get('total_scanned', 0))
+  total_updated = int(request.GET.get('total_updated', 0))
+  if not manage_dirty.UpdateDirtyController.IsPaused():
+    manage_dirty.UpdateDirtyController.SetPaused(True)
+
+  query = PagerQuery(UserAgent)
+  prev_bookmark, results, next_bookmark = query.fetch(fetch_limit, bookmark)
+  updated_uas = []
+  parts_set = set()
+  for ua in results:
+    parts = tuple(UserAgent.parse(ua.string))
+    parts_set.add(parts)
+    if (ua.family, ua.v1, ua.v2, ua.v3) != parts:
+      ua.family, ua.v1, ua.v2, ua.v3 = parts
+      updated_uas.append(ua)
+      total_updated += 1
+    total_scanned += 1
+    CacheUserAgentStringList(ua)
+  db.put(updated_uas)
+  for parts in parts_set:
+    user_agent_list = UserAgent.parts_to_string_list(*parts)
+    UserAgentGroup.UpdateGroups(user_agent_list, is_rebuild=True)
+  return http.HttpResponse(simplejson.dumps({
+      'is_done': next_bookmark is None,
+      'bookmark': next_bookmark,
+      'total_scanned': total_scanned,
+      'total_updated': total_updated,
+      }))
+
+
+def CacheUserAgentStringList(ua):
+  """Set UserAgent string_list in memcache.
+
+  Args:
+    ua: a UserAgent instance
+  """
+  memcache.set('ua_parts_%s' % ua.key(), ua.get_string_list())
+
+
+def RetrieveUserAgentStringList(ua):
+  """Retrieve UserAgent string_list from memcache.
+
+  Args:
+    ua: a ReferenceProperty instance
+  Returns:
+    user agent string list, e.g. ['Firefox', 'Firefox 3', 'Firefox 3.5']
+  """
+  string_list = memcache.get('ua_parts_%s' % ua.key())
+  if not string_list:
+    string_list = ua.get_string_list()
+    CacheUserAgentStringList(ua)
+  return string_list
+
+
+def ReleaseUserAgentGroups(request):
+  is_done = UserAgentGroup.ReleaseRebuild()
+  params = {'is_done': is_done}
+  return http.HttpResponse(simplejson.dumps(params))
+
+
+def ResetUserAgentGroups(request):
+  for version_level in range(4):
+    UserAgentGroup.ClearMemcache(version_level)
+  params = {'is_done': True}
+  return http.HttpResponse(simplejson.dumps(params))

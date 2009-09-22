@@ -27,10 +27,7 @@ from google.appengine.ext import db
 
 from models import result_ranker_storage
 
-# Two alternative rankers here
 import score_ranker
-from third_party.google_app_engine_ranklist import ranker
-
 
 RANKER_VERSIONS = ['previous', 'current', 'next']
 DEFAULT_RANKER_VERSION = 'current'
@@ -198,34 +195,7 @@ class ResultRankerParent(db.Model):
       db.delete(grandparent_key)
 
 
-class MedianRanker(object):
-  """Mix-in class to compute median."""
-
-  def TotalRankedScores(self):
-    raise NotImplementedError
-
-  def FindScore(self, rank):
-    raise NotImplementedError
-
-  def GetMedian(self, num_scores=None):
-    return self.GetMedianAndNumScores(num_scores)[0]
-
-  def GetMedianAndNumScores(self, num_scores=None):
-    median = None
-    if num_scores is None:
-      num_scores = self.TotalRankedScores()
-    if num_scores:
-      median_index = int(num_scores) / 2
-      try:
-        median = self.FindScore(median_index)
-      # TODO: Give exact exceptions to catch
-      except Exception, e:
-        logging.warn('Exception, %s, from FindScore(rank=%s)',
-                     str(e), median_index)
-    return median, num_scores
-
-
-class ResultRanker(score_ranker.Ranker, MedianRanker):
+class ResultRanker(score_ranker.Ranker):
 
   def __init__(self, ranker_parent):
     """Initialize a ResultRanker.
@@ -284,73 +254,8 @@ class ResultRanker(score_ranker.Ranker, MedianRanker):
     """Remove the ranker."""
     self.storage.DeleteAll()
 
-
-class RankListRanker(MedianRanker):
-  MAX_TEST_MSEC = 60000
-  BRANCHING_FACTOR = 100
-
-  def __init__(self, category, test, user_agent_version, params_str=None):
-    key_name = self.KeyName(category, test.key, user_agent_version, params_str)
-    self.key = datastore_types.Key.from_path('app', key_name)
-    try:
-      self.ranker = ranker.Ranker(datastore.Get(self.key)['ranker'])
-    except datastore_errors.EntityNotFoundError:
-      self.ranker = ranker.Ranker.Create(
-          [0, self.MAX_TEST_MSEC], self.BRANCHING_FACTOR)
-      app = datastore.Entity('app', name=key_name)
-      app['ranker'] = self.ranker.rootkey
-      datastore.Put(app)
-
-  @staticmethod
-  def KeyName(category, test_key, user_agent_version, params_str=None):
-    if params_str:
-      params_hash = hashlib.md5(params_str).hexdigest()
-      return '_'.join((category, test_key, user_agent_version, params_hash))
-    else:
-      return '_'.join((category, test_key, user_agent_version))
-
-  def Add(self, score):
-    self.Update([score])
-
-  def Update(self, scores):
-    # The old code used 'created' as part of the score key.
-    # That had the problem where if two tests had the same created time,
-    # only one would get counted. This version is not much better.
-    import datetime
-    now = str(datetime.datetime.now())
-    user_scores = dict(("n_%s_%s" % (now, i), [score])
-                       for i, score in enumerate(scores))
-    self.ranker.SetScores(user_scores)
-
-  def FindScore(self, rank):
-    return self.ranker.FindScore(rank)[0][0]
-
-  def TotalRankedScores(self):
-    return self.ranker.TotalRankedScores()
-
-  def _delete_entity(self, name):
-    query = datastore.Query(name, keys_only=True)
-    query.Ancestor(self.ranker.rootkey)
-    while 1:
-      results = list(query.Run())
-      db.delete(results)
-      if len(results) < 1000:
-        break
-
-  def Delete(self):
-    """Remove the ranker."""
-    self._delete_entity('ranker_node')
-    self._delete_entity('ranker_score')
-    db.delete([self.ranker.rootkey, self.key])
-
-
-def _UseRankListRanker():
-  use_ranklist_ranker = False
-  try:
-    datastore.Get(datastore_types.Key.from_path('ranker migration', 'complete'))
-  except datastore_errors.EntityNotFoundError:
-    use_ranklist_ranker = True
-  return use_ranklist_ranker
+  def GetMedianAndNumScores(self):
+    return self.FindScoreAndNumScores(percentile=50)
 
 
 def GetRanker(category, test, user_agent_version, params_str=None,
@@ -365,13 +270,8 @@ def GetRanker(category, test, user_agent_version, params_str=None,
   Returns:
     an instance of a MedianRanker derived class (None if not found).
   """
-  _CheckParamsStr(params_str)
-  if _UseRankListRanker():
-    # ranklist will create if needed. It is going away soon, so no fix needed.
-    return RankListRanker(category, test, user_agent_version, params_str)
-  else:
-    return ResultRanker.Get(
-        category, test, user_agent_version, params_str, ranker_version)
+  return ResultRanker.Get(
+      category, test, user_agent_version, params_str, ranker_version)
 
 
 def GetOrCreateRanker(category, test, user_agent_version, params_str=None,
@@ -386,9 +286,5 @@ def GetOrCreateRanker(category, test, user_agent_version, params_str=None,
   Returns:
     an instance of a MedianRanker derived class (None if not found).
   """
-  _CheckParamsStr(params_str)
-  if _UseRankListRanker():
-    return RankListRanker(category, test, user_agent_version, params_str)
-  else:
-    return ResultRanker.GetOrCreate(
-        category, test, user_agent_version, params_str, ranker_version)
+  return ResultRanker.GetOrCreate(
+      category, test, user_agent_version, params_str, ranker_version)

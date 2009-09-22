@@ -56,6 +56,7 @@ def UpdateRecentTests(request):
     score, display = recent_test.get_score_and_display()
     recent_test.score = score
     recent_test.display = display
+    recent_test.user_agent_pretty = recent_test.user_agent.pretty()
 
   memcache.set(key=util.RECENT_TESTS_MEMCACHE_KEY, value=recent_tests,
                time=settings.STATS_MEMCACHE_TIMEOUT)

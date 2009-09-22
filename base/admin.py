@@ -24,12 +24,15 @@ Confirm new user agents.
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
 import logging
+import os
 import time
 
 from google.appengine.ext import db
 
+import settings
 from categories import all_test_sets
 from base import decorators
+from base import manage_dirty
 from base import util
 from models import user_agent
 
@@ -47,6 +50,10 @@ def Admin(request):
 
   params = {
     'page_title': 'Admin Tools',
+    'application_id': os.environ['APPLICATION_ID'],
+    'current_version_id': os.environ['CURRENT_VERSION_ID'],
+    'is_development': settings.BUILD == 'development',
+    'is_paused': manage_dirty.UpdateDirtyController.IsPaused(),
   }
   return Render(request, 'admin/admin.html', params)
 
@@ -55,38 +62,41 @@ def SubmitChanges(request):
   logging.info('^^^^^^^^^^^^^^^^^^^^ SubmitChanges')
   encoded_ua_keys = [key[3:] for key in request.GET if key.startswith('ac_')]
   logging.info('Encoded ua keys: %s' % ', '.join(encoded_ua_keys))
-  actions = dict([(key, request.GET['ac_%s' % key]) for key in encoded_ua_keys])
-  changes = dict([(key, request.GET['cht_%s' % key]) for key in encoded_ua_keys
-                  if 'cht_%s' % key in request.GET])
-  ua_keys = [db.Key(encoded=encoded_key) for encoded_key in encoded_ua_keys]
-  user_agents = db.get(ua_keys)
   update_user_agents = []
-  for ua in user_agents:
-    action = actions[str(ua.key())]
+  for encoded_key in encoded_ua_keys:
+    action = request.REQUEST['ac_%s' % encoded_key]
+    ua = db.get(db.Key(encoded=encoded_key))
     if action == 'confirm' and not ua.confirmed:
       ua.confirmed = True
       update_user_agents.append(ua)
     if action == 'unconfirm' and ua.confirmed:
       ua.confirmed = False
       update_user_agents.append(ua)
+    if action == 'change' and not ua.changed:
+      change_to = request.REQUEST['cht_%s' % key]
+      if change_to != ua.pretty():
+        #UserAgent.parse_to_string_list(change_to)
+        #ua.family =
+        pass
   logging.info('Update user agents: %s' % ', '.join([ua.string for ua in update_user_agents]))
   db.put(update_user_agents)
+  return http.HttpResponse('Time to go to the next page.')
 
 
 @decorators.admin_required
+@decorators.provide_csrf
 def ConfirmUa(request):
   """Confirm User-Agents"""
 
-  search_browser = request.GET.get('browser', '')
-  search_user_agent = request.GET.get('useragent', '')
-  search_unconfirmed = request.GET.get('unconfirmed', True)
-  search_confirmed = request.GET.get('confirmed', False)
-  search_changed = request.GET.get('changed', False)
+  search_browser = request.REQUEST.get('browser', '')
+  search_unconfirmed = request.REQUEST.get('unconfirmed', True)
+  search_confirmed = request.REQUEST.get('confirmed', False)
+  search_changed = request.REQUEST.get('changed', False)
 
-  if 'search' in request.GET.keys():
+  if 'search' in request.REQUEST:
     pass
-  elif 'submit' in request.GET.keys():
-    SubmitChanges(request)
+  elif 'submit' in request.REQUEST:
+    return SubmitChanges(request)
 
   user_agents = user_agent.UserAgent.all().order('string').fetch(1000)
   user_agents = user_agents[:10]
@@ -107,11 +117,11 @@ def ConfirmUa(request):
     'page_title': 'Confirm User-Agents',
     'user_agents': user_agents,
     'search_browser': search_browser,
-    'search_user_agent': search_user_agent,
     'search_unconfirmed': search_unconfirmed,
     'search_confirmed': search_confirmed,
     'search_changed': search_changed,
     'csrf_token': request.session['csrf_token'],
+    'use_parse_service': False,
   }
   return Render(request, 'admin/confirm-ua.html', params)
 
