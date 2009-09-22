@@ -54,7 +54,7 @@ class ResultTime(db.Model):
         # TODO(slamm): Remove after converting params -> params_str
         params_str = str(test_set_params.Params(
             [urllib.unquote(x) for x in parent.params]))
-      for user_agent_string in parent.user_agent.get_string_list():
+      for user_agent_string in parent.get_user_agent_list():
         yield test.GetOrCreateRanker(user_agent_string, params_str)
 
 
@@ -66,7 +66,6 @@ class ResultParent(db.Expando):
   """
   category = db.StringProperty()
   user_agent = db.ReferenceProperty(UserAgent)
-  user_agent_pretty = db.StringProperty()
   ip = db.StringProperty()
   # TODO(elsigh) remove user in favor of user_id
   user = db.UserProperty()
@@ -98,7 +97,6 @@ class ResultParent(db.Expando):
     parent = cls(category=test_set.category,
                  ip=ip,
                  user_agent=user_agent,
-                 user_agent_pretty=user_agent.pretty(),
                  **kwds)
     try:
       results = test_set.GetResults(results_str, is_import)
@@ -126,7 +124,7 @@ class ResultParent(db.Expando):
 
   def invalidate_ua_memcache(self):
     memcache_ua_keys = ['%s_%s' % (self.category, user_agent)
-                        for user_agent in self._get_user_agent_list()]
+                        for user_agent in self.get_user_agent_list()]
     #logging.debug('invalidate_ua_memcache, memcache_ua_keys: %s' %
     #             memcache_ua_keys)
     memcache.delete_multi(keys=memcache_ua_keys, seconds=0,
@@ -149,12 +147,9 @@ class ResultParent(db.Expando):
     """
     return self.get_result_times_as_query().fetch(1000, 0)
 
-  def _get_user_agent_list(self):
-    """Build user_agent_list on-the-fly from user_agent_pretty.
-
-    In the past, we stored user_agent_list.
-    """
-    return UserAgent.parse_to_string_list(self.user_agent_pretty)
+  def get_user_agent_list(self):
+    """Get user_agent string list."""
+    return self.user_agent.get_string_list()
 
   def get_score_and_display(self):
     """Gets a row score for this ResultParent data set from the test_set.
@@ -210,5 +205,3 @@ class ResultParent(db.Expando):
                    (memcache_key, score, display))
 
     return row_score, row_display
-
-

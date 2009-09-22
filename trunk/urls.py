@@ -43,6 +43,9 @@ urlpatterns = patterns('',
   (r'^admin/user_agents.csv$', 'base.util.UserAgents'),
   (r'^admin/ua_groups$', 'base.admin.GetUserAgentGroupStrings'),
   (r'^admin/wtf$', 'base.admin.WTF'),
+  (r'^admin/ua/rebuild$', 'base.admin_rankers.RebuildUserAgents'),
+  (r'^admin/ua/release$', 'base.admin_rankers.ReleaseUserAgentGroups'),
+  (r'^admin/ua/reset$', 'base.admin_rankers.ResetUserAgentGroups'),
 
   # Cron admin scripts
   (r'^cron/user_agent_group$', 'base.cron.UserAgentGroup'),

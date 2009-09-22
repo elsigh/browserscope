@@ -455,10 +455,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       stats_data = pickle.loads(pickled_data)
     logging.info('Retrieved static_mode stats_data.')
 
-    # TODO(elsigh): figure out why my string casts in other spots don't
-    # make this redundant.
-    user_agent_strings = [str(ua) for ua in stats_data.keys()]
-    user_agent_strings.sort(key=str.lower)
+    UserAgentGroup.SortUserAgentStrings(user_agent_strings)
     #logging.info('Pickled stats_data: %s' % stats_data)
     #logging.info('pickled ua_strings: %s' % user_agent_strings)
   else:
@@ -492,8 +489,8 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   else:
     # current_ua_string was not found in user_agent_strings.
     if results:
-      user_agent_strings.append(str(current_ua_string))
-      user_agent_strings.sort(key=str.lower)
+      user_agent_strings.append(current_ua_string)
+      UserAgentGroup.SortUserAgentStrings(user_agent_strings)
 
   # Adds the current results into the stats_data dict.
   if results:
@@ -574,8 +571,7 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
 
         if ranker:
           #start_time = time.time()
-          median, total_runs = ranker.GetMedianAndNumScores(
-            num_scores=total_runs)
+          median, total_runs = ranker.GetMedianAndNumScores()
           medians[test.key] = median
           #end_time = time.time()
           #logging.info('GetStatsData test: %s, delta: %s' %
@@ -627,7 +623,7 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
       row_score, row_display = all_test_sets.GetTestSet(
           category).GetRowScoreAndDisplayValue(user_agent_results)
       user_agent_stats = {
-        'total_runs': total_runs,
+        'total_runs': total_runs or 0,
         'results': user_agent_results,
         'score': Convert100to10Base(row_score),
         'display': row_display
@@ -645,7 +641,7 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
     # test runs (total_runs) for this ua, if not, we don't add them in.
     # Casting user_agent as str here prevents unicode errors when unpickling.
     if version_level == 'top' or user_agent_stats['total_runs']:
-      stats[str(user_agent)] = user_agent_stats
+      stats[user_agent] = user_agent_stats
       stats['total_runs'] += user_agent_stats['total_runs']
 
   #logging.info('GetStatsData done, stats: %s' % stats['total_runs'])

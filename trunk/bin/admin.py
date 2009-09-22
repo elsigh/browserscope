@@ -37,10 +37,12 @@ from third_party.appengine_tools import appengine_rpc
 
 
 COMMAND_PATHS = {
-  'update_results': '/admin/update_result_parents',
-  'rebuild': '/admin/rankers/rebuild',
-  'release_next': '/admin/rankers/release_next',
-  'reset_next': '/admin/rankers/reset_next',
+  'results_update': '/admin/update_result_parents',
+  'ranker_rebuild': '/admin/rankers/rebuild',
+  'ranker_release': '/admin/rankers/release_next',
+  'ranker_reset': '/admin/rankers/reset_next',
+  'ua_rebuild': '/admin/ua/rebuild',
+  'ua_release': '/admin/ua/release',
   }
 
 
@@ -101,7 +103,8 @@ def main(argv):
   host, user, params, argv = ParseArgs(argv)
   if not argv or argv[0] not in COMMAND_PATHS:
     commands = '|'.join(sorted(COMMAND_PATHS.keys()))
-    logging.fatal("usage: ranker_updater.py -h HOST -u GAE_USER -p params (%s)", commands)
+    logging.fatal("usage: ranker_updater.py -h HOST -u GAE_USER -p params (%s)",
+                  commands)
   else:
     start = datetime.datetime.now()
     AdminRpcServer(host, user, COMMAND_PATHS[argv[0]]).Run(start, params)

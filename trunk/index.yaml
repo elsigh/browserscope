@@ -10,7 +10,7 @@ indexes:
 - kind: ResultParent
   properties:
   - name: category
-  - name: user_agent_pretty
+  - name: user_agent
   - name: __key__
 
 - kind: ResultRankerParent
@@ -26,20 +26,7 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Unused in query history -- copied from input.
-- kind: ResultParent
-  properties:
-  - name: category
-  - name: params_str
-
-# Unused in query history -- copied from input.
-- kind: ResultParent
-  properties:
-  - name: category
-  - name: params_str,user_agent_pretty
-  - name: __key__
-
-# Unused in query history -- copied from input.
+# Used 4 times in query history.
 - kind: ResultTime
   ancestor: yes
 

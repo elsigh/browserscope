@@ -18,8 +18,6 @@
 
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
-from third_party import mox
-
 import logging
 import unittest
 
@@ -123,35 +121,6 @@ class ResultRankerParentTest(unittest.TestCase):
     # TODO: test that 'previous' was deleted
 
 
-class MedianRankerTest(unittest.TestCase):
-  def setUp(self):
-    self.mox = mox.Mox()
-    self.ranker = result_ranker.MedianRanker()
-
-  def tearDown(self):
-    self.mox.UnsetStubs()
-    self.mox.VerifyAll()
-
-  def testGetMedianAndNumScoresWithZeroScores(self):
-    self.mox.StubOutWithMock(self.ranker, 'TotalRankedScores')
-    self.mox.StubOutWithMock(self.ranker, 'FindScore')
-    self.ranker.TotalRankedScores().AndReturn(0)
-    self.mox.ReplayAll()
-    median, num_scores = self.ranker.GetMedianAndNumScores()
-    self.assertEqual(None, median)
-    self.assertEqual(0, num_scores)
-
-  def testGetMedianAndNumScoreWithOddNumber(self):
-    self.mox.StubOutWithMock(self.ranker, 'TotalRankedScores')
-    self.mox.StubOutWithMock(self.ranker, 'FindScore')
-    self.ranker.TotalRankedScores().AndReturn(25)
-    self.ranker.FindScore(12).AndReturn(99)
-    self.mox.ReplayAll()
-    median, num_scores = self.ranker.GetMedianAndNumScores()
-    self.assertEqual(99, median)
-    self.assertEqual(25, num_scores)
-
-
 class ResultRankerTest(unittest.TestCase):
   def testTotalRankedScoresGivesZeroOnEmpty(self):
     mock_test = mock_data.MockTest('empty', 'Empty', '/empty', 'ugly')
@@ -202,40 +171,14 @@ class ResultRankerTest(unittest.TestCase):
     scores = [0, 554, 555, 555, 59888]
     r.Update(scores)
     r.Reset()
-    self.assertEqual(None, r.GetMedian())
-    self.assertEqual(0, r.TotalRankedScores())
+    self.assertEqual((None, 0), r.GetMedianAndNumScores())
 
 
-class RankListRankerTest(unittest.TestCase):
-
-  def testKeyNameNoParams(self):
-    key_name = result_ranker.RankListRanker.KeyName(
-        'category', 'test', 'user_agent_version')
-    self.assertEqual('category_test_user_agent_version', key_name)
-
-  def testKeyNameWithParams(self):
-    key_name = result_ranker.RankListRanker.KeyName(
-        'category', 'test', 'user_agent_version', 'param1=val1,param2=val2')
-    self.assertEqual(
-        'category_test_user_agent_version_e2d0b92f7dde373c9889f4c4cde6c59d',
-        key_name)
-
-  def testDelete(self):
-    category, test_key, ua_version, params_str = 'cc', 'tt', 'b 1', 'p_s'
-    mock_test = mock_data.MockTest(
-        test_key, test_key.capitalize(), '/url', 'type')
-    r = result_ranker.RankListRanker(
-        category, mock_test, ua_version, params_str)
-    r.Update(range(10) + range(8, 20) + [50000])
-    r.Delete()
-    self.assertEqual(0, r.TotalRankedScores())
-    self.assertRaises(datastore_errors.EntityNotFoundError,
-                      datastore.Get, r.key)
-    self.assertRaises(datastore_errors.EntityNotFoundError,
-                      datastore.Get, r.ranker.rootkey)
-    node_query = datastore.Query('ranker_node', keys_only=True)
-    node_query.Ancestor(r.ranker.rootkey)
-    self.assertEqual([], list(node_query.Run()))
-    score_query = datastore.Query('score_node', keys_only=True)
-    score_query.Ancestor(r.ranker.rootkey)
-    self.assertEqual([], list(score_query.Run()))
+  def testGetMedianAndNumScores(self):
+    mock_test = mock_data.MockTest('del', 'Del', '/del', 'pickle')
+    mock_test.min_value = 0
+    mock_test.max_value = 60000
+    r = result_ranker.ResultRanker.GetOrCreate('cat', mock_test, 'jj 6')
+    scores = [0, 554, 555, 555, 59888]
+    r.Update(scores)
+    self.assertEqual((555, 5), r.GetMedianAndNumScores())

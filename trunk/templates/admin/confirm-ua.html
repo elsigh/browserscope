@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<script defer>
+function confirmAll() {
+{% for user_agent in user_agents %}
+  var action = document.getElementsByName('ac_{{ user_agent.key }}');
+  if (action[0].checked) {
+      action[1].checked = true;
+  }
+{% endfor %}
+}
+
+function resetAll() {
+{% for user_agent in user_agents %}
+  var radio_button = document.getElementsByName('ac_{{ user_agent.key }}')[{{ user_agent.confirmed|yesno:"1,0" }}]
+  radio_button.checked = "true";
+  updateChangeTextBox(radio_button);
+{% endfor %}
+}
+window.onload = resetAll;
+
+function updateChangeTextBox(radio) {
+  var ch = document.getElementsByName(radio.name)[2];
+  var ua_id = radio.name.substring(3);
+  var ch_text = document.getElementById("cht_" + ua_id);
+  if (ch.checked) {
+    if (!ch_text) {
+      var default_browser = document.getElementById("pb_" + ua_id).innerHTML;
+      var ch_text = document.createElement("input");
+      ch_text.setAttribute("id", 'cht_' + ua_id);
+      ch_text.setAttribute("type", 'text');
+      ch_text.setAttribute("name", 'tb_' + ua_id);
+      ch_text.setAttribute("value", default_browser);
+      ch.parentNode.appendChild(ch_text);
+      ch_text.focus();
+      ch_text.select();
+    }
+  } else if (ch_text) {
+    ch_text.parentNode.removeChild(ch_text);
+  }
+}
+
+{% if use_parse_service %}
+{% for user_agent in user_agents %}
+{% with forloop.counter as parse_service_key %}
+var uasc_script{{ parse_service_key }} = document.createElement('script');
+var uasi_script{{ parse_service_key }} = document.createElement('script');
+uasc_script{{ parse_service_key }}.src = 'http://stevesouders.com/ua/parse-service.php?service=useragentstringcom&id=uasc_{{ parse_service_key }}&ua={{ user_agent.string|urlencode }}';
+uasi_script{{ parse_service_key }}.src = 'http://stevesouders.com/ua/parse-service.php?service=user-agent-string-info&id=uasi_{{ parse_service_key }}&ua={{ user_agent.string|urlencode }}';
+document.getElementsByTagName('head')[0].appendChild(uasc_script{{ parse_service_key }});
+document.getElementsByTagName('head')[0].appendChild(uasi_script{{ parse_service_key }});
+{% endwith %}
+{% endfor %}
+{% endif %}
+</script>
+
+<div>
+<form>
+<table style="margin: 1ex; padding: 1ex; border: 2px solid #AAA" cellspacing=0 cellpadding=0>
+<tr>
+<td>Browser:<input type=text name=browser value="{{ search_browser }}"><br>
+<small>(e.g. Safari 3.2, Firefox 3, Chrome)</small>
+</td>
+<td>&nbsp;</td>
+<td><label for="unconfirmed">
+  <input name=unconfirmed id=unconfirmed type=checkbox{% if search_unconfirmed %} checked{% endif %}> unconfirmed<br>
+</label>
+<label for="confirmed">
+  <input name=confirmed id=confirmed type=checkbox{% if search_confirmed %} checked{% endif %}> confirmed<br>
+</label>
+<label for="changed">
+  <input name=changed id=changed type=checkbox{% if search_changed %} checked{% endif %}> changed
+</label>
+</td>
+<td>&nbsp;</td>
+<td><input type=submit name=search value="Search"></td>
+</tr>
+</form>
+
+<div style="float: right; border: 2px solid #77F; padding:1em;">
+? = Unconfirmed<br>
+&#10004; = Confirmed<br>
+<img width=13 height=13 alt=Delete src="http://www.google.com/reader/ui/2513649784-icon-unsubscribe.png"> = Trash
+</div>
+</div>
+
+<style>
+.user-agents { border-collapse: collapse; margin-top: 2em; }
+.user-agents th, .user-agents td { padding: 5px; }
+.user-agents th { text-align: left; }
+th.action-icon { text-align: center; }
+.uamatch { background-color: #FF3; }
+
+.unconfirm { background-color: #EEE; }
+.confirm { background-color: #CFC; }
+.change  { background-color: #FFC; }
+.delete  { background-color: #ECC; }
+</style>
+
+<form id=ua-form>
+<table class="user-agents" border=1>
+<tr><td colspan=8><big><b>User Agents</b></big></td></tr>
+<tr>
+  <th class=action-icon>?</th>
+  <th class=action-icon>&#10004;</th>
+  <th>Change</th>
+  <th class=action-icon><img width=13 height=13 alt=Delete src="http://www.google.com/reader/ui/2513649784-icon-unsubscribe.png"></th>
+  <th>Parsed Browser</th>
+  <th><small>useragentstring.com</small></th>
+  <th><small>user-agent-string.info</small></th>
+  <th>User Agent</th>
+</tr>
+{% for user_agent in user_agents %}
+{% with user_agent.key as ua_key %}
+<tr>
+  <td class="unconfirm"><input name=ac_{{ ua_key }} value=unconfirm
+    type=radio {% if not user_agent.confirmed %} checked{% endif %}
+    onclick="updateChangeTextBox(this);"></td>
+  <td class="confirm"><input name=ac_{{ ua_key }} value=confirm
+    type=radio {% if user_agent.confirmed %} checked{% endif %}
+    onclick="updateChangeTextBox(this);"></td>
+  <td class="change" nowrap=1><input name=ac_{{ ua_key }} value=change
+    type=radio
+    onclick="updateChangeTextBox(this);"></td><!--TODO put changed value as last parameter and possibly add 'checked'. Put changed value without textbox. Double-click to edit. -->
+  <td class="delete"><input name=ac_{{ ua_key }} value=delete
+    type=radio onclick="updateChangeTextBox(this);"></td>
+  <td id=pb_{{ ua_key }} nowrap=1>{{ user_agent.pretty }}</td>
+  <td nowrap=1 id=uasc_{{ forloop.counter }}><!-- TODO port parse service to GAE --></td>
+  <td nowrap=1 id=uasi_{{ forloop.counter }}><!-- TODO port parse service to GAE --></td>
+  <td>{% for is_match, substring in user_agent.match_strings %}{% if is_match %}<span class='uamatch'>{% endif %}{{ substring}}{% if is_match %}</span>{% endif %}{% endfor %}</td>
+</tr>
+{% endwith %}
+{% endfor %}
+</table>
+<p>
+<a href="" onclick="confirmAll(); return false;">Check Unconfirmed</a>
+&nbsp;
+<input type=reset onclick="resetAll();" value="Reset">
+
+<p>
+
+<input type=hidden name=browser value="{{ search_browser }}">
+<input type=hidden name=useragent value="{{ search_user_agent }}">
+{% if search_unconfirmed %}<input type=hidden name=unconfirmed value="1">{% endif %}
+{% if search_confirmed %}<input type=hidden name=confirmed value="1">{% endif %}
+{% if search_changed %}<input type=hidden name=changed value="1">{% endif %}
+<input type=hidden name=csrf_token value="{{ csrf_token }}">
+<input type=submit name=submit value="Submit">
+</form>
+
+
+{% endblock %}
