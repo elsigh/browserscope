@@ -47,13 +47,7 @@ class ResultTime(db.Model):
     except KeyError:
       logging.warn('Test key not found in test_set: %s', self.test)
     else:
-      params_str = None
-      if parent.params_str:
-        params_str = parent.params_str
-      elif parent.params:
-        # TODO(slamm): Remove after converting params -> params_str
-        params_str = str(test_set_params.Params(
-            [urllib.unquote(x) for x in parent.params]))
+      params_str = parent.params_str or None
       for user_agent_string in parent.get_user_agent_list():
         yield test.GetOrCreateRanker(user_agent_string, params_str)
 
@@ -71,7 +65,6 @@ class ResultParent(db.Expando):
   user = db.UserProperty()
   user_id = db.StringProperty()
   created = db.DateTimeProperty(auto_now_add=True)
-  params = db.StringListProperty(default=[])
   params_str = db.StringProperty(default=None)
 
   @classmethod
