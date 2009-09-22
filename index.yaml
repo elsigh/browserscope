@@ -11,6 +11,12 @@ indexes:
   properties:
   - name: category
   - name: user_agent
+
+# Used to rebuild rankers.
+- kind: ResultParent
+  properties:
+  - name: category
+  - name: user_agent
   - name: __key__
 
 - kind: ResultRankerParent
