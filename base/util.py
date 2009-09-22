@@ -455,6 +455,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       stats_data = pickle.loads(pickled_data)
     logging.info('Retrieved static_mode stats_data.')
 
+    user_agent_strings = stats_data.keys()
     UserAgentGroup.SortUserAgentStrings(user_agent_strings)
     #logging.info('Pickled stats_data: %s' % stats_data)
     #logging.info('pickled ua_strings: %s' % user_agent_strings)
