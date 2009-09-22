@@ -250,6 +250,13 @@ class PagerQuery(object):
 
         return (prev, res, next)
 
+    def get_bookmark(self, entity):
+        """Return a bookmark for the given entity.
+
+        The bookmark may be used to fetch results after the given entity.
+        """
+        return encode_bookmark(self._get_bookmark_values(entity))
+
     def _fetch_from_bookmark(self, limit, bookmark):
         """Fetches results resuming a query from a bookmark. This may require
         additional queries depending on the number of sort orders.

@@ -58,20 +58,10 @@ def Render(request, template_file, params):
   return util.Render(request, template_file, params)
 
 
-class PagerQuery(pager.PagerQuery):
-  def GetBookmark(self, entity):
-    """Return a bookmark for the given entity.
-
-    The returned bookmark causes a PagerQuery to start after the given
-    entity--it is not included.
-    """
-    return pager.encode_bookmark(self._get_bookmark_values(entity))
-
-
 class ResultParentQuery(object):
   def __init__(self, category, fetch_limit, bookmark):
     self.bookmark = bookmark
-    self.query = PagerQuery(ResultParent, keys_only=True)
+    self.query = pager.PagerQuery(ResultParent, keys_only=True)
     self.query.filter('category =', category)
     self.query.order('user_agent')
     prev_bookmark, self.results, self.next_bookmark = self.query.fetch(
@@ -100,7 +90,7 @@ class ResultParentQuery(object):
     elif not self.HasNext():
       return self.next_bookmark
     else:
-      return self.query.GetBookmark(self.results[self.index - 1])
+      return self.query.get_bookmark(self.results[self.index - 1])
 
   def GetCountUsed(self):
     return self.index
@@ -336,7 +326,7 @@ def RebuildUserAgents(request):
   if not manage_dirty.UpdateDirtyController.IsPaused():
     manage_dirty.UpdateDirtyController.SetPaused(True)
 
-  query = PagerQuery(UserAgent)
+  query = pager.PagerQuery(UserAgent)
   prev_bookmark, results, next_bookmark = query.fetch(fetch_limit, bookmark)
   updated_uas = []
   parts_set = set()
