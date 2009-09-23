@@ -61,15 +61,13 @@ class ResultParent(db.Expando):
   category = db.StringProperty()
   user_agent = db.ReferenceProperty(UserAgent)
   ip = db.StringProperty()
-  # TODO(elsigh) remove user in favor of user_id
-  user = db.UserProperty()
-  user_id = db.StringProperty()
+  user = db.UserProperty(auto_current_user_add=True)
   created = db.DateTimeProperty(auto_now_add=True)
   params_str = db.StringProperty(default=None)
 
   @classmethod
   def AddResult(cls, test_set, ip, user_agent_string, results_str,
-                is_import=False, **kwds):
+                is_import=False, params_str=None, **kwds):
     """Create result models and stores them as one transaction.
 
     Args:
@@ -77,12 +75,12 @@ class ResultParent(db.Expando):
       ip: a string to store as the user's IP. This should be hashed beforehand.
       user_agent_string: The full user agent string.
       results_str: a string like 'test1=time1,test2=time2,[...]'.
-      kwds: optional fields including 'user' and 'params_str'.
+      kwds: optional fields including 'loader_id'.
     Returns:
       A ResultParent instance.
     """
     logging.debug('ResultParent.AddResult')
-    if kwds.get('params_str', None) in ('None', ''):
+    if params_str in ('None', ''):
       # params_str should either unset, None, or a non-empty string
       raise ValueError
 
@@ -90,7 +88,7 @@ class ResultParent(db.Expando):
     parent = cls(category=test_set.category,
                  ip=ip,
                  user_agent=user_agent,
-                 **kwds)
+                 params_str=params_str, **kwds)
     try:
       results = test_set.GetResults(results_str, is_import)
     except test_set_base.ParseResultsKeyError, e:

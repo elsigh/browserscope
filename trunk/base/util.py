@@ -366,14 +366,10 @@ def Beacon(request):
 
   logging.info('Beacon category: %s\nresults_str: %s' % (category, results_str))
 
-  optional_fields = {}
   if params_str:
-    optional_fields['params_str'] = urllib.unquote(params_str)
-    #logging.info('Beacon params: %s' % optional_fields['params_str'])
-  optional_fields['user'] = users.get_current_user()
-
+    params_str = urllib.unquote(params_str)
   result_parent = ResultParent.AddResult(
-      test_set, ip_hash, user_agent_string, results_str, **optional_fields)
+      test_set, ip_hash, user_agent_string, results_str, params_str=params_str)
   if not result_parent:
     return http.HttpResponse(BAD_BEACON_MSG + 'ResultParent')
 
