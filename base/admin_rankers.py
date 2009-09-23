@@ -320,7 +320,7 @@ def UpdateResultParents(request):
 def RebuildUserAgents(request):
   bookmark = request.GET.get('bookmark')
   # TODO: Add an option to skip the reparse?
-  fetch_limit = int(request.GET.get('fetch_limit', 25))
+  fetch_limit = int(request.GET.get('fetch_limit', 100))
   total_scanned = int(request.GET.get('total_scanned', 0))
   total_updated = int(request.GET.get('total_updated', 0))
   if not manage_dirty.UpdateDirtyController.IsPaused():
@@ -346,6 +346,7 @@ def RebuildUserAgents(request):
   return http.HttpResponse(simplejson.dumps({
       'is_done': next_bookmark is None,
       'bookmark': next_bookmark,
+      'fetch_limit': fetch_limit,
       'total_scanned': total_scanned,
       'total_updated': total_updated,
       }))
@@ -383,6 +384,6 @@ def ReleaseUserAgentGroups(request):
 
 def ResetUserAgentGroups(request):
   for version_level in range(4):
-    UserAgentGroup.ClearMemcache(version_level)
+    UserAgentGroup.ClearMemcache(version_level, is_rebuild=True)
   params = {'is_done': True}
   return http.HttpResponse(simplejson.dumps(params))
