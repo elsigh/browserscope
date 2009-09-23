@@ -371,7 +371,7 @@ class UserAgent(db.Model):
   v2 = db.StringProperty()
   v3 = db.StringProperty()
   confirmed = db.BooleanProperty(default=False)
-  created = db.DateTimeProperty()
+  created = db.DateTimeProperty(auto_now_add=True)
 
   def pretty(self):
     """Invokes pretty print."""
