@@ -388,9 +388,9 @@ class UserAgent(db.Expando):
     """Factory function.
 
     Args:
-      string: The full user agent string.
+      string: the http user agent string.
       kwds: any addional key/value properties.
-          e.g. chrome_frame_js_ua='Mozilla/5.0 (Windows; U; Windows NT 5.1; '
+          e.g. js_user_agent_string='Mozilla/5.0 (Windows; U; Windows NT 5.1; '
               'en-US) AppleWebKit/530.1 (KHTML, like Gecko) Chrome/2.0.169.1 '
               'Safari/530.1')
     Returns:
@@ -398,7 +398,6 @@ class UserAgent(db.Expando):
     """
     query = db.Query(cls)
     query.filter('string =', string)
-    # TODO filter for chrome string too
     for key, value in kwds.items():
       query.filter('%s =' % key, value)
     user_agent = query.get()
@@ -420,7 +419,7 @@ class UserAgent(db.Expando):
 
 
   @classmethod
-  def parse(cls, user_agent_string, chrome_frame_js_ua=None):
+  def parse(cls, user_agent_string, js_user_agent_string=None):
     """Parses the user-agent string and returns the bits.
 
     Args:
@@ -430,9 +429,9 @@ class UserAgent(db.Expando):
       family, v1, v2, v3 = parser.Parse(user_agent_string)
       if family:
         break
-    if chrome_frame_js_ua:
+    if js_user_agent_string and user_agent_string.find('chromeframe') > -1:
       family = 'Chrome Frame (%s %s)' % (family, v1)
-      cf_family, v1, v2, v3 = cls.parse(chrome_frame_js_ua)
+      cf_family, v1, v2, v3 = cls.parse(js_user_agent_string)
     return family or 'Other', v1, v2, v3
 
   @staticmethod

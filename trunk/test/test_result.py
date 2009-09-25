@@ -22,6 +22,7 @@ import unittest
 import logging
 
 from models import result_ranker
+from models.result import ResultParent
 
 import mock_data
 
@@ -100,3 +101,21 @@ class ResultTest(unittest.TestCase):
     self.assertEqual(500, result_times[0].score)
     self.assertEqual('testVisibility', result_times[1].test)
     self.assertEqual(200, result_times[1].score)
+
+
+class ChromeFrameAddResultTest(unittest.TestCase):
+
+  def testAddResult(self):
+    chrome_ua_string = ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '
+                        'AppleWebKit/530.1 (KHTML, like Gecko) '
+                        'Chrome/2.0.169.1 Safari/530.1')
+    ua_string = (
+        'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 6.0; Trident/4.0; '
+        'chromeframe; SLCC1; .NET CLR 2.0.5077; 3.0.30729),gzip(gfe),gzip(gfe)')
+
+    test_set = mock_data.MockTestSet('category-for-chrome-frame-test')
+    parent = ResultParent.AddResult(
+        test_set, '12.2.2.25', ua_string, 'testDisplay=500,testVisibility=200',
+        js_user_agent_string=chrome_ua_string)
+    self.assertEqual(chrome_ua_string,
+                     parent.user_agent.js_user_agent_string)
