@@ -275,20 +275,24 @@ class TestRebuildUserAgents(unittest.TestCase):
   def testUserAgentStringListCached(self):
     ua_string = ('Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; '
                  'Trident/4.0; .NET CLR 2.0.50727; .NET CLR 1.1.4322')
-    ua = UserAgent.factory(ua_string)
-    self.is_get_string_list_called = False
-    def GetStringListExpected():
-      self.is_get_string_list_called = True
-    ua.get_string_list = GetStringListExpected
+    global is_get_string_list_called
+    is_get_string_list_called = False
+    class _UserAgent(UserAgent):
+      def get_string_list(self):
+        global is_get_string_list_called
+        is_get_string_list_called = True
+        return UserAgent.get_string_list(self)
+
+    ua = _UserAgent.factory(ua_string)
     admin_rankers.RetrieveUserAgentStringList(ua)
-    self.assertTrue(self.is_get_string_list_called)
+    self.assertTrue(is_get_string_list_called)
 
     params = {}
     response = self.client.get('/admin/ua/rebuild', params)
     self.assertEqual(200, response.status_code)
-    self.is_get_string_list_called = False
+    is_get_string_list_called = False
     admin_rankers.RetrieveUserAgentStringList(ua)
-    self.assertFalse(self.is_get_string_list_called)
+    self.assertFalse(is_get_string_list_called)
 
   def testUserAgentGroupUpdatedForRebuild(self):
     chrome_ua_string = (
