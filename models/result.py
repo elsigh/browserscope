@@ -67,14 +67,16 @@ class ResultParent(db.Expando):
 
   @classmethod
   def AddResult(cls, test_set, ip, user_agent_string, results_str,
-                is_import=False, params_str=None, **kwds):
+                is_import=False, params_str=None, js_user_agent_string=None,
+                **kwds):
     """Create result models and stores them as one transaction.
 
     Args:
       test_set: an instance of test_set_base.
       ip: a string to store as the user's IP. This should be hashed beforehand.
-      user_agent_string: The full user agent string.
+      user_agent_string: the http user agent string.
       results_str: a string like 'test1=time1,test2=time2,[...]'.
+      js_user_agent_string: chrome frame ua string from client-side JavaScript.
       kwds: optional fields including 'loader_id'.
     Returns:
       A ResultParent instance.
@@ -84,7 +86,8 @@ class ResultParent(db.Expando):
       # params_str should either unset, None, or a non-empty string
       raise ValueError
 
-    user_agent = UserAgent.factory(user_agent_string)
+    user_agent = UserAgent.factory(user_agent_string,
+                                   js_user_agent_string=js_user_agent_string)
     parent = cls(category=test_set.category,
                  ip=ip,
                  user_agent=user_agent,
