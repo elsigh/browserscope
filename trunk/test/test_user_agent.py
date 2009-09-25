@@ -164,6 +164,53 @@ class UserAgentGroupTest(unittest.TestCase):
         UserAgentGroup.GetStrings(version_level=3))
 
 
+class ChromeFrameTest(unittest.TestCase):
+
+  CHROME_UA_STRING = ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '
+                        'AppleWebKit/530.1 (KHTML, like Gecko) '
+                        'Chrome/2.0.169.1 Safari/530.1')
+
+  CHROME_FRAME_STRINGS = (
+      # (family, v1, v2, v3, actual_user_agent_string)
+      ('Chrome Frame (IE 6)', '2', '0', '169',
+       'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; Trident/4.0; '
+       'chromeframe; 3.5.30729),gzip(gfe),gzip(gfe)'),
+      )
+
+  def testChromeFrameParseSleipnir(self):
+    parts = UserAgent.parse(
+        'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; '
+        'chromeframe; .NET CLR 2.0.50727; .NET CLR 3.0.4506.2152; .NET CLR '
+        '3.5.30729; Sleipnir 2.8.5),gzip(gfe),gzip(gfe)',
+        chrome_frame_js_ua=self.CHROME_UA_STRING)
+    self.assertEqual(('Chrome Frame (Sleipnir 2)', '2', '0', '169'), parts)
+
+  def testChromeFrameParseIE(self):
+    parts = UserAgent.parse(
+        'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; '
+        'chromeframe; SLCC1; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR '
+        '3.0.30729),gzip(gfe),gzip(gfe)',
+        chrome_frame_js_ua=self.CHROME_UA_STRING)
+    self.assertEqual(('Chrome Frame (IE 8)', '2', '0', '169'), parts)
+
+  def testChromeFrameFactoryExpandoProperty(self):
+    ua_string = (
+        'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 6.0; Trident/4.0; '
+        'chromeframe; SLCC1; .NET CLR 2.0.5077; 3.0.30729),gzip(gfe),gzip(gfe)')
+    ua = UserAgent.factory(ua_string, chrome_frame_js_ua=self.CHROME_UA_STRING)
+    self.assertEqual(self.CHROME_UA_STRING, ua.chrome_frame_js_ua)
+
+  def testChromeFrameFactoryReuseSameEntity(self):
+    ua_string = (
+        'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 6.0; Trident/4.0; '
+        'chromeframe; SLCC1; .NET CLR 2.0.5077; 3.0.30729),gzip(gfe),gzip(gfe)')
+    ua = UserAgent.factory(ua_string, chrome_frame_js_ua=self.CHROME_UA_STRING)
+    ua.remember_me = 99
+    ua.put()
+    ua2 = UserAgent.factory(ua_string, chrome_frame_js_ua=self.CHROME_UA_STRING)
+    self.assertEqual(99, ua2.remember_me)
+
+
 class CrazyRigorousUserAgentTest_SKIP_ME(object):
 #class CrazyRigorousUserAgentTest(unittest.TestCase):
   def setUp(self):

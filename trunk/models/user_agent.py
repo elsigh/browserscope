@@ -116,10 +116,8 @@ class UserAgentParser(object):
 
       if self.v1_replacement:
         v1 = self.v1_replacement
-      else:
-        if match.lastindex >= 2:
-          v1 = match.group(2)
-
+      elif match.lastindex >= 2:
+        v1 = match.group(2)
       if match.lastindex >= 3:
         v2 = match.group(3)
         if match.lastindex >= 4:
@@ -363,7 +361,7 @@ class UserAgentGroup(db.Model):
         version_level, is_rebuild and '_rebuild' or '')
 
 
-class UserAgent(db.Model):
+class UserAgent(db.Expando):
   """User Agent Model."""
   string = db.StringProperty()
   family = db.StringProperty()
@@ -386,18 +384,32 @@ class UserAgent(db.Model):
     UserAgentGroup.UpdateGroups(self.get_string_list())
 
   @classmethod
-  def factory(cls, string):
-    """Factory function."""
+  def factory(cls, string, **kwds):
+    """Factory function.
+
+    Args:
+      string: The full user agent string.
+      kwds: any addional key/value properties.
+          e.g. chrome_frame_js_ua='Mozilla/5.0 (Windows; U; Windows NT 5.1; '
+              'en-US) AppleWebKit/530.1 (KHTML, like Gecko) Chrome/2.0.169.1 '
+              'Safari/530.1')
+    Returns:
+      a UserAgent instance
+    """
     query = db.Query(cls)
     query.filter('string =', string)
+    # TODO filter for chrome string too
+    for key, value in kwds.items():
+      query.filter('%s =' % key, value)
     user_agent = query.get()
     if user_agent is None:
-      family, v1, v2, v3 = cls.parse(string)
+      family, v1, v2, v3 = cls.parse(string, **kwds)
       user_agent = cls(string=string,
-                             family=family,
-                             v1=v1,
-                             v2=v2,
-                             v3=v3)
+                       family=family,
+                       v1=v1,
+                       v2=v2,
+                       v3=v3,
+                       **kwds)
       user_agent.put()
       try:
         taskqueue.Task(method='GET', params={'key': user_agent.key()}
@@ -407,8 +419,8 @@ class UserAgent(db.Model):
     return user_agent
 
 
-  @staticmethod
-  def parse(user_agent_string):
+  @classmethod
+  def parse(cls, user_agent_string, chrome_frame_js_ua=None):
     """Parses the user-agent string and returns the bits.
 
     Args:
@@ -417,9 +429,11 @@ class UserAgent(db.Model):
     for parser in USER_AGENT_PARSERS:
       family, v1, v2, v3 = parser.Parse(user_agent_string)
       if family:
-        #logging.info('Used pattern: %s' % parser.pattern)
-        return family, v1, v2, v3
-    return 'Other', None, None, None
+        break
+    if chrome_frame_js_ua:
+      family = 'Chrome Frame (%s %s)' % (family, v1)
+      cf_family, v1, v2, v3 = cls.parse(chrome_frame_js_ua)
+    return family or 'Other', v1, v2, v3
 
   @staticmethod
   def parse_pretty(pretty_string):
