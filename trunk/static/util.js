@@ -205,12 +205,18 @@ Util.testDriver = function(testPage, category, categoryName, csrfToken,
       continueToNextTest != 'None');
 
   /**
+   * @type {Function}
+   */
+  this.runTestButtonClickHandlerBound =
+      goog.bind(this.runTestButtonClickHandler, this)
+
+  /**
    * @type {Element}
    */
   this.runTestButton = document.getElementById('bs-runtest');
   if (this.runTestButton) {
     goog.events.listen(this.runTestButton, 'click',
-        goog.bind(this.runTestButtonClickHandler, this));
+        this.runTestButtonClickHandlerBound);
   }
 
   /**
@@ -271,8 +277,13 @@ Util.testDriver.prototype.sendScore = function(testResults,
     }
     this.runTestButton.className = 'bs-btn';
     this.runTestButton.innerHTML = 'Done! Compare your results »';
-    this.runTestButton.target = '_top';
-    this.runTestButton.href = '/?' + this.uriResults;
+    this.runTestButton.continueUrl = '/?' + this.uriResults;
+    goog.events.listen(this.runTestButton, 'click', function(e) {
+      var btn = e.target;
+      var continueUrl = btn.continueUrl;
+      window.top.location.href = continueUrl;
+    });
+
     var resultsDisplay = continueParams ?
           continueParams.join(',') :
           testResults.join(',');
@@ -332,7 +343,8 @@ Util.testDriver.prototype.onBeaconCompleteAutorun = function(e) {
  */
 Util.testDriver.prototype.runTestButtonClickHandler = function(e) {
   this.runTestButton.className = 'bs-btn-disabled';
-  this.runTestButton.onclick = '';
+  goog.events.unlisten(this.runTestButton, 'click',
+      this.runTestButtonClickHandlerBound);
   this.runTestButton.innerHTML = this.categoryName + ' Tests Running...';
   document.getElementById('bs-send-beacon-label').style.display = 'none';
   // Is there a Chrome Frame checkbox?
