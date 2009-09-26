@@ -258,7 +258,7 @@ Util.testDriver.prototype.sendScore = function(testResults,
 
   var data = 'category=' + this.category + '&results=' +
       testResults.join(',') + '&csrf_token=' + this.csrfToken +
-      '&ua=' + escape(goog.userAgent.getUserAgentString());
+      '&js_ua=' + escape(goog.userAgent.getUserAgentString());
 
   // Autorun always shares your score.
   if (this.autorun) {
