@@ -350,7 +350,7 @@ def Beacon(request):
   if not CheckThrottleIpAddress(ip_hash, user_agent_string):
     return http.HttpResponseServerError(BAD_BEACON_MSG + 'IP')
 
-  js_user_agent_string = request.GET.get('ua')
+  js_user_agent_string = request.REQUEST.get('js_ua')
 
   callback = request.REQUEST.get('callback')
   category = request.REQUEST.get('category')
@@ -371,6 +371,7 @@ def Beacon(request):
   test_set = all_test_sets.GetTestSet(category)
 
   logging.info('Beacon category: %s\nresults_str: %s' % (category, results_str))
+  logging.info('js_user_agent_string: %s' % js_user_agent_string)
 
   if params_str:
     params_str = urllib.unquote(params_str)
