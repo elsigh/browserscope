@@ -89,24 +89,6 @@ function doNextTest(iTest) {
 				testResults.push(test + '=' + gaResults[test]);
 			}
 		}
-		/*
-		var uriParams = "category=network&results=" + testResults.join(',') +
-			"&csrf_token={{ csrf_token }}";
-		var beacon = new Beacon(uriParams);
-		beacon.onComplete = function() {
-			var continueUrl = unescape(Util.getParam('continue'));
-			var results = 'network_results=' + testResults.join(',');
-			var nextUrl;
-			if (continueUrl != '') {
-				nextUrl = continueUrl + '&' + results;
-			}
-			else {
-				nextUrl = '/?' + results;
-			}
-			window.top.location.href = nextUrl;
-		};
-		beacon.send();
-		*/
 		parent.parent.sendScore(testResults);
 	}
 }

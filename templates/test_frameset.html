@@ -2,13 +2,17 @@
    "http://www.w3.org/TR/html4/frameset.dtd">
 <html>
   <title>{{ page_title }}</title>
+  {% ifequal chromeframe_enabled "1" %}
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  {% endifequal %}
   <script>
-  // This is here just for test authors' convenience.
-  var sendScore = function(results, opt_continueParams) {
-    var continueParams = opt_continueParams || null;
-    var testDriverFrame = window['bs-test-driver'];
-    testDriverFrame.browserscope.sendScore(results, continueParams);
-  };
+    // The code here is for test authors' convenience.
+    // i.e. They can just do parent.sendScore().
+    var sendScore = function(results, opt_continueParams) {
+      var continueParams = opt_continueParams || null;
+      var testDriverFrame = window['bs-test-driver'];
+      testDriverFrame.testDriver.sendScore(results, continueParams);
+    };
   </script>
   <frameset rows="{% if autorun %}80{% else %}160{% endif %},*">
     <frame
@@ -16,12 +20,12 @@
       name="bs-test-driver"
       frameborder="0"
       scrolling="no"
-      src="/category_test_driver?category={{ category}}&continue={{ continue }}&autorun={{ autorun }}"></frame>
+      src="/category_test_driver?category={{ category}}&continue={{ continue }}&autorun={{ autorun }}&rand={{ epoch }}">
     <frame
       id="bs-test-frame"
       name="bs-test-frame"
       frameborder="0"
-      src="/static/clicktorun.html"></frame>
+      src="/static/clicktorun.html">
   </frameset>
   <noframes>
     Your browser does not support frames. Impressive.

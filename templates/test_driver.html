@@ -1,110 +1,8 @@
 {% extends "base.html" %}
 
 {% block head %}
-<script src="{{ "util.js"|resource_path }}"></script>
-<script src="{{ "xhrio.js"|resource_path }}"></script>
-<script>
-  var browserscope = {};
-  browserscope.testFrame = parent.frames['bs-test-frame'];
-  browserscope.testCategories = [];
-  {% for app_category in  app_categories %}
-    browserscope.testCategories.push('{{ app_category.0 }}');
-  {% endfor %}
-
-  /**
-   * This is the function that all test pages will call to beacon.
-   * @param {Array} testResults test1=result,test2=result, etc..
-   * @param {Array} opt_urlParams Possibly a subset of testResults for sending to the results page.
-   */
-  browserscope.sendScore = function(testResults, opt_continueParams) {
-    var continueParams = opt_continueParams || null;
-    browserscope.testResults = testResults;
-    browserscope.uriResults = '{{ app_category }}_results=' +
-        (continueParams ?
-            escape(continueParams.join(',')) :
-            escape(testResults.join(',')));
-
-    var data = "category={{ app_category }}&results=" +
-        testResults.join(',') + "&csrf_token={{ csrf_token }}";
-
-    var sendBeacon = document.getElementById('bs-send-beacon');
-
-    {% if autorun %}
-      goog.net.XhrIo.send('/beacon', browserscope.onBeaconCompleteAutorun,
-          'post', data);
-    {% else %}
-      if (sendBeacon.checked) {
-        goog.net.XhrIo.send('/beacon', null, 'post', data);
-      }
-      browserscope.runTestButton.className = 'bs-btn';
-      browserscope.runTestButton.innerHTML = 'Done! Compare your results »';
-      browserscope.runTestButton.target = '_top';
-      browserscope.runTestButton.href = '/?' + browserscope.uriResults;
-      var resultsDisplay = continueParams ?
-            continueParams.join(',') :
-            testResults.join(',');
-      var scoreNode = document.createElement('div');
-      var thanks = sendBeacon.checked ? 'Thanks for contributing! ' : '';
-      scoreNode.appendChild(document.createTextNode(
-          thanks + 'Your results: ' + resultsDisplay));
-      scoreNode.style.margin = '.7em 0 0 1em';
-      browserscope.runTestButton.parentNode.appendChild(scoreNode);
-    {% endif %}
-
-    // Update the iframe size if there's one
-    parent['bs-test-frame'].scrollTo(0, 0);
-  };
-
-  browserscope.onBeaconCompleteAutorun = function(e) {
-    var continueToNextTest = '{{ continue }}';
-    var len = browserscope.testCategories.length;
-    var nextUrl;
-    if (continueToNextTest != '' &&
-        continueToNextTest != 'None') {
-      var nextTest;
-      for (var i = 0, n = len; i < n; i++) {
-        if (browserscope.testCategories[i] == '{{ app_category }}') {
-          // last test?
-          if (i == len - 1) {
-            nextTest = '/?';
-          } else {
-            nextTest = '/' + browserscope.testCategories[i + 1] +
-                '/test?autorun=1&continue=1';
-          }
-        }
-      }
-      nextUrl = nextTest + '&' + browserscope.uriResults;
-
-      // now add on previous test scores
-      for (var i = 0, n = len; i < n; i++) {
-        var category = browserscope.testCategories[i];
-        var results = Util.getParam(category + '_results',
-            window.top);
-        if (results) {
-          nextUrl += '&' + category + '_results=' + results;
-        }
-      }
-      window.top.location.href = nextUrl;
-    } else {
-      //console.log('autorun but no continue');
-    }
-  };
-
-  browserscope.runTest = function() {
-    var rand = Math.floor(Math.random() * 10000000);
-    var categoryTestUrl = '{{ test_page }}?r=' + rand;
-    browserscope.testFrame.location.href = categoryTestUrl;
-
-    browserscope.runTestButton = document.getElementById('bs-runtest');
-    if (browserscope.runTestButton) {
-      browserscope.runTestButton.className = 'bs-btn-disabled';
-      browserscope.runTestButton.onclick = '';
-      browserscope.runTestButton.innerHTML = '{{ app_category_name }} Tests Running...';
-      document.getElementById('bs-send-beacon-label').style.display = 'none';
-      return false;
-    }
-  };
-</script>
+  <script src="{{ "xhrio.js"|resource_path }}"></script>
+  <script src="{{ "util.js"|resource_path }}"></script>
 {% endblock %}
 
 {% block body %}
@@ -113,7 +11,7 @@
       You are currently running the Browserscope tests in Autorun mode ...
     </div>
     <script>
-      browserscope.runTest();
+      testDriver.runTest();
     </script>
   {% else %}
     <a
@@ -121,16 +19,36 @@
       class="bs-bc"
       target="_top">Read more about the {{ app_category_name }} Tests</a>
     <p id="bs-runtest-c">
-      <a
+      <span
         id="bs-runtest"
-        href=""
         class="bs-btn"
-        onclick="return browserscope.runTest();"
-        >Run the {{ app_category_name }} Tests</a>
+        >Run the {{ app_category_name }} Tests</span>
       <label id="bs-send-beacon-label" for="bs-send-beacon">
         <input id="bs-send-beacon" type="checkbox" checked="checked">
         Share my test results
       </label>
     </p>
+
+    <script>
+      var serverUaString = '{{current_ua_string}}';
+      var cb = Util.createChromeFrameCheckbox(serverUaString, true);
+      if (cb) {
+        var el = document.getElementById('bs-runtest-c');
+        el.insertBefore(cb,
+            document.getElementById('bs-send-beacon-label'));
+      }
+    </script>
   {% endif %}
+
+  <script>
+    var testDriver = new Util.testDriver('{{ test_page }}',
+        '{{ app_category }}', '{{ app_category_name }}', '{{ csrf_token }}',
+        '{{ autorun }}', '{{ continue }}');
+    {% for app_category in  app_categories %}
+      testDriver.testCategories.push('{{ app_category.0 }}');
+    {% endfor %}
+    {% if autorun %}
+      testDriver.runTest();
+    {% endif %}
+  </script>
 {% endblock %}

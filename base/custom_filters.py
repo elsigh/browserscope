@@ -17,6 +17,7 @@ __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 import logging
 import os
+import datetime
 from datetime import timedelta
 import re
 import urllib2
@@ -24,6 +25,7 @@ import urllib2
 from django import template
 register = template.Library()
 
+import settings
 
 @register.filter
 def by_key(array, key):
@@ -73,7 +75,13 @@ def resource_path(resource, category=None):
     path = '/static/%s' % resource
 
   # Add on a version bit so we can use far future expires.
-  path += '?v=%s' % os.environ['CURRENT_VERSION_ID']
+  # In dev mode add random bits to prevent annoying, cough, browsers from
+  # caching stuff in frames.
+  if settings.BUILD == 'development':
+    version = str(datetime.datetime.now())
+  else:
+    version = os.environ['CURRENT_VERSION_ID']
+  path += '?v=%s' % version
 
   return path
 

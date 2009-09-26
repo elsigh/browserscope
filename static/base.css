@@ -99,7 +99,13 @@ p.bs-youcan {
   width: 500px;
   margin-left: 40px;
 }
-
+/* chrome frame checkbox */
+#bs-cf-enabled {
+  margin: 0 0 0 .7em;
+}
+#bs-cf-c label {
+  margin: 0 0 0 .2em;
+}
 #bs-autorun-msg {
   background: #aaa;
   color: #fff;
