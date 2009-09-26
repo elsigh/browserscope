@@ -354,6 +354,9 @@ html>body .goog-inline-block {
   font-size: 95%;
   margin: 20px 15px 0 0;
 }
+#bs-home-cur-ua .bs-cur-ua {
+  margin-right: 0;
+}
 
 #bs-results-title {
   border-top: 2px solid #ccc;
@@ -522,6 +525,7 @@ html>body .goog-inline-block {
   background: #4291bf;
   height: 10px;
   width: 10px;
+  margin-right: .4em;
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
 }
