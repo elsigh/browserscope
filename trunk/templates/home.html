@@ -226,10 +226,40 @@
     goog.events.listen(tableSorter,
         goog.ui.TableSorter.EventType.SORT, onTableSort, false);
   };
+
+  // Looks for result UA and fix it too.
+  var realUaString;
+  var fixRealUaString = function(category) {
+    var resultUa = document.getElementById('rt-' + category + '-cur-ua');
+    if (realUaString && resultUa) {
+      resultUa.innerHTML = realUaString;
+    }
+  };
+
   var initCategory = function(category) {
     setUpBrowserFamilyForm(category);
     setUpSortableTable(category);
+    fixRealUaString(category);
   };
+
+
+  // Chrome Frame detection, i.e. server side UA string and client
+  // are in mismatch.
+  // @see http://code.google.com/p/chromium/issues/detail?id=22997
+  var serverUaString = '{{current_ua_string}}';
+  var ua = goog.userAgent.getUserAgentString();
+  if (serverUaString.indexOf('chromeframe') != -1 &&
+      ua.indexOf('chromeframe') == -1) {
+    var curUaStringEl = document.getElementById('bs-home-cur-ua-s');
+    var curUaString = curUaStringEl.innerHTML;
+    realUaString = 'Chrome Frame (' + curUaString + ')'
+    curUaStringEl.innerHTML = realUaString;
+  }
+  var cb = Util.createChromeFrameCheckbox(serverUaString, true);
+  if (cb) {
+    var curUaStringContainer = document.getElementById('bs-home-cur-ua');
+    curUaStringContainer.appendChild(cb);
+  }
 
   // hide the current form button, etc..
   initCategory('{{ stats_table_category }}');
@@ -275,22 +305,6 @@
   var resultsByCat = document.getElementById('bs-results-bycat');
   results.insertBefore(categoriesList, resultsByCat);
 
-  // Chrome Frame detection, i.e. server side UA string and client
-  // are in mismatch.
-  // @see http://code.google.com/p/chromium/issues/detail?id=22997
-  var serverUaString = '{{current_ua_string}}';
-  var ua = goog.userAgent.getUserAgentString();
-  if (serverUaString.indexOf('chromeframe') != -1 &&
-      ua.indexOf('chromeframe') == -1) {
-    var curUaStringEl = document.getElementById('bs-home-cur-ua-s');
-    var curUaString = curUaStringEl.innerHTML;
-    curUaStringEl.innerHTML = 'Chrome Frame (' + curUaString + ')';
-  }
-  var cb = Util.createChromeFrameCheckbox(serverUaString, true);
-  if (cb) {
-    var curUaStringContainer = document.getElementById('bs-home-cur-ua');
-    curUaStringContainer.appendChild(cb);
-  }
 })();
 </script>
 {% endblock %}

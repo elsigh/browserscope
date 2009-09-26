@@ -48,10 +48,9 @@
               <td
                 scope="row"
                 class="rt-ua
-                       rt-ua-s-{{ stats|by_key:user_agent|by_key:"current_score" }}"
-                >
+                       rt-ua-s-{{ stats|by_key:user_agent|by_key:"current_score" }}">
                 <span class="bs-cur-ua goog-inline-block"></span>
-                {{ user_agent }}
+                <span id="rt-{{ category }}-cur-ua">{{ user_agent }}</span>
               </td>
               <td
                 class="rt-ua-s-d
