@@ -64,9 +64,13 @@ def Render(request, template, params={}, category=None):
   params['epoch'] = int(time.time())
   params['request_path'] = request.get_full_path()
   params['request_path_lastbit'] = re.sub('^.+\/([^\/]+$)', '\\1', request.path)
+  params['current_ua_string'] = request.META['HTTP_USER_AGENT']
+  params['current_ua'] = UserAgent.factory(params['current_ua_string']).pretty()
+  params['chromeframe_enabled'] = request.COOKIES.get(
+      'browserscope-chromeframe-enabled', '0')
   params['app_categories'] = []
   params['is_admin'] = users.is_current_user_admin()
-  #http://code.google.com/appengine/docs/python/users/userclass.html#User_user_id
+
   current_user = users.get_current_user()
   if current_user:
     params['user_id'] = current_user.user_id()
@@ -75,6 +79,7 @@ def Render(request, template, params={}, category=None):
     params['user_id'] = None
     params['is_elsigh'] = False
   params['user'] = current_user
+
   params['sign_in'] = users.create_login_url(request.get_full_path())
   params['sign_out'] = users.create_logout_url('/')
 
@@ -89,7 +94,9 @@ def Render(request, template, params={}, category=None):
 
   if category != None and template != TEST_DRIVER_TPL:
     template = '%s/%s' % (category, template)
+
   return shortcuts.render_to_response(template, params)
+
 
 
 def CategoryTest(request):
@@ -103,7 +110,8 @@ def CategoryTest(request):
     'autorun': request.GET.get('autorun', ''),
     'test_page': test_set.test_page
   }
-  return shortcuts.render_to_response('test_frameset.html', params)
+  #return shortcuts.render_to_response('test_frameset.html', params)
+  return Render(request, 'test_frameset.html', params)
 
 
 @decorators.provide_csrf
@@ -177,8 +185,6 @@ def Home(request):
   if output in ['xhr', 'pickle', 'csv']:
     return http.HttpResponse(stats_table)
   else:
-    current_ua_string = request.META['HTTP_USER_AGENT']
-    current_ua = UserAgent.factory(current_ua_string)
     params = {
       'page_title': 'Home',
       'results_params': '&'.join(results_params),
@@ -186,8 +192,6 @@ def Home(request):
       'stats_table': stats_table,
       'recent_tests': recent_tests,
       'message': request.GET.get('message'),
-      'current_ua': current_ua.pretty(),
-      'current_ua_string': current_ua_string
     }
     return Render(request, 'home.html', params)
 
@@ -346,6 +350,8 @@ def Beacon(request):
   if not CheckThrottleIpAddress(ip_hash, user_agent_string):
     return http.HttpResponseServerError(BAD_BEACON_MSG + 'IP')
 
+  js_user_agent_string = request.GET.get('ua')
+
   callback = request.REQUEST.get('callback')
   category = request.REQUEST.get('category')
   results_str = request.REQUEST.get('results')
@@ -369,7 +375,8 @@ def Beacon(request):
   if params_str:
     params_str = urllib.unquote(params_str)
   result_parent = ResultParent.AddResult(
-      test_set, ip_hash, user_agent_string, results_str, params_str=params_str)
+      test_set, ip_hash, user_agent_string, results_str, params_str=params_str,
+      js_user_agent_string=js_user_agent_string)
   if not result_parent:
     return http.HttpResponse(BAD_BEACON_MSG + 'ResultParent')
 

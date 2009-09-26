@@ -72,7 +72,7 @@ class TestCategoriesHandlers(unittest.TestCase):
     client = Client()
     for category in settings.CATEGORIES:
       response = self.client.get('/%s/about' % category, {},
-        **mock_data.UNIT_TEST_UA)
+          **mock_data.UNIT_TEST_UA)
       self.assertEqual(200, response.status_code, 'No about for %s' % category)
 
 

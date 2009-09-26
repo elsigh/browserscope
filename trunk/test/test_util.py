@@ -97,6 +97,49 @@ class TestUtilHandlers(unittest.TestCase):
     self.assertEqual(True, result_times[1].dirty)
 
 
+  def testBeaconWithChromeFrame(self):
+    category = 'test_beacon'
+    test_set = mock_data.MockTestSet(category)
+    csrf_token = self.client.get('/get_csrf').content
+    chrome_ua_string = ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '
+        'AppleWebKit/530.1 (KHTML, like Gecko) Chrome/4.0.169.1 Safari/530.1')
+    chrome_frame_ua_string = ('Mozilla/4.0 '
+        '(compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; '
+        'chromeframe; '
+        '.NET CLR 2.0.50727; .NET CLR 1.1.4322; '
+        '.NET CLR 3.0.04506.648; .NET CLR 3.5.21022)')
+    unit_test_ua = mock_data.UNIT_TEST_UA
+    unit_test_ua['HTTP_USER_AGENT'] = chrome_frame_ua_string
+    params = {
+      'category': category,
+      'results': 'testDisplay=1,testVisibility=2',
+      'csrf_token': csrf_token,
+      'ua': chrome_ua_string
+    }
+    response = self.client.get('/beacon', params, **unit_test_ua)
+    self.assertEqual(204, response.status_code)
+
+    # Did a ResultParent get created?
+    query = db.Query(result.ResultParent)
+    query.filter('category =', category)
+    result_parent = query.get()
+    self.assertNotEqual(result_parent, None)
+
+    # What UA did the ResultParent get tied to? Chrome Frame (IE 7) I hope.
+    user_agent = result_parent.user_agent
+    self.assertEqual('Chrome Frame (IE 7) 4.0.169', user_agent.pretty())
+
+    # Were ResultTimes created?
+    result_times = result_parent.get_result_times_as_query()
+    self.assertEqual(2, result_times.count())
+    self.assertEqual(1, result_times[0].score)
+    self.assertEqual('testDisplay', result_times[0].test)
+    self.assertEqual(2, result_times[1].score)
+    self.assertEqual('testVisibility', result_times[1].test)
+    self.assertEqual(True, result_times[0].dirty)
+    self.assertEqual(True, result_times[1].dirty)
+
+
   def testBeaconWithBogusTests(self):
     category = 'test_beacon_w_bogus_tests'
     test_set = mock_data.MockTestSet(category)
@@ -128,41 +171,6 @@ class TestUtilHandlers(unittest.TestCase):
     self.assertEqual(util.BAD_BEACON_MSG + 'TestSet', response.content)
 
 
-  def testBeaconWithParams(self):
-    category = 'test_beacon_w_params'
-    test_set = mock_data.MockTestSet(category)
-    csrf_token = self.client.get('/get_csrf').content
-    beacon_params = test_set_params.Params(
-        'nested_anchors',
-        'num_elements=1000',
-        'num_css_rules=1000',
-        'num_nest=2',
-        'css_selector=#g-content *',
-        'css_text=border: 1px solid #0C0; padding: 8px;')
-    params = {
-      'category': category,
-      'results': 'testDisplay=1,testVisibility=2',
-      'params': str(beacon_params),
-      'csrf_token': csrf_token
-    }
-    response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
-
-    # Did a ResultParent get created?
-    query = db.Query(result.ResultParent)
-    query.filter('category =', category)
-    query.filter('params_str =', str(beacon_params))
-    result_parent = query.get()
-    self.assertNotEqual(None, result_parent)
-
-    # Were ResultTimes created?
-    result_times = result.ResultTime.all().ancestor(result_parent)
-    self.assertEqual(2, result_times.count())
-    self.assertEqual(1, result_times[0].score)
-    self.assertEqual('testDisplay', result_times[0].test)
-    self.assertEqual(True, result_times[0].dirty)
-    self.assertEqual(2, result_times[1].score)
-    self.assertEqual('testVisibility', result_times[1].test)
-    self.assertEqual(True, result_times[1].dirty)
 
 
 class TestUtilFunctions(unittest.TestCase):

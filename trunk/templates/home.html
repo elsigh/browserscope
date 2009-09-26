@@ -50,7 +50,9 @@
 
 <div id="bs-home-cur-ua">
   <span class="bs-cur-ua goog-inline-block"></span>
-  We think you're using <strong>{{ current_ua }}</strong>. <a
+  We think you're using
+  <strong id="bs-home-cur-ua-s">{{ current_ua }}</strong>.
+  <a
     href="http://code.google.com/p/browserscope/issues/entry?template=UA%20Parsing%20Is%20Incorrect&comment={{ current_ua }} is not {{ current_ua_string }}"
     target="_blank">No?</a>
 </div>
@@ -76,7 +78,9 @@
     {% endfor %}
   </ul>
 </div>
+
 <script src="{{ "xhrio.js"|resource_path }}"></script>
+<script src="{{ "util.js"|resource_path }}"></script>
 <script>
 (function(){
   var xhrLoading = {};
@@ -270,6 +274,23 @@
   var results = document.getElementById('bs-results');
   var resultsByCat = document.getElementById('bs-results-bycat');
   results.insertBefore(categoriesList, resultsByCat);
+
+  // Chrome Frame detection, i.e. server side UA string and client
+  // are in mismatch.
+  // @see http://code.google.com/p/chromium/issues/detail?id=22997
+  var serverUaString = '{{current_ua_string}}';
+  var ua = goog.userAgent.getUserAgentString();
+  if (serverUaString.indexOf('chromeframe') != -1 &&
+      ua.indexOf('chromeframe') == -1) {
+    var curUaStringEl = document.getElementById('bs-home-cur-ua-s');
+    var curUaString = curUaStringEl.innerHTML;
+    curUaStringEl.innerHTML = 'Chrome Frame (' + curUaString + ')';
+  }
+  var cb = Util.createChromeFrameCheckbox(serverUaString, true);
+  if (cb) {
+    var curUaStringContainer = document.getElementById('bs-home-cur-ua');
+    curUaStringContainer.appendChild(cb);
+  }
 })();
 </script>
 {% endblock %}

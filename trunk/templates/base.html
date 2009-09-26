@@ -12,6 +12,9 @@
   </title>
   <meta charset="utf8">
   <meta name="keywords" content="Browser, profiler, css, html, javascript, html5, benchmark, test suite">
+  {% ifequal chromeframe_enabled "1" %}
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  {% endifequal %}
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
   <link
     rel="stylesheet"

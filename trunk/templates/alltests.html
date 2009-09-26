@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block body %}
-
 <div id="bs-alltests">
   <h1>{{ app_title }} - Run the Tests</h1>
 
@@ -11,10 +10,12 @@
 
   <dl class="bs-youcan">
     <dt>
-      <a class="bs-btn" href="/{{ app_categories.0.0 }}/test?autorun=1&continue=1">Run all Tests and Contribute Your Results»</a> (Takes approximately 4 min.)
+      <a id="bs-runall" class="bs-btn" href="/{{ app_categories.0.0 }}/test?autorun=1&continue=1">Run all Tests and Contribute Your Results»</a>
     </dt>
     <dd>
-      Click the link above to run the tests across all categories. This will take longer, but gets everything done with one click. Otherwise:
+      <div id="bs-runall-desc">
+        Click the link above to run the tests across all categories. This will take approximately 4 minutes, but gets everything done with one click. Otherwise:
+      </div>
     </dd>
 
     {% for app_category in app_categories %}
@@ -27,4 +28,15 @@
   </dl>
 </div>
 
+<script src="{{ "xhrio.js"|resource_path }}"></script>
+<script src="{{ "util.js"|resource_path }}"></script>
+<script>
+  var serverUaString = '{{current_ua_string}}';
+  var cb = Util.createChromeFrameCheckbox(serverUaString);
+  if (cb) {
+    var el = document.getElementById('bs-runall');
+    el.parentNode.insertBefore(cb,
+        el.nextSibling);
+  }
+</script>
 {% endblock %}
