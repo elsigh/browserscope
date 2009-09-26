@@ -217,7 +217,6 @@ Util.testDriver = function(testPage, category, categoryName, csrfToken,
    * @type {Element}
    */
   this.testFrame = parent.frames['bs-test-frame'];
-  console.log(this.testFrame.location.href);
 
   /**
    * @type {Array}
