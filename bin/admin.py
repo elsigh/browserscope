@@ -43,6 +43,7 @@ COMMAND_PATHS = {
   'ranker_reset': '/admin/rankers/reset_next',
   'ua_rebuild': '/admin/ua/rebuild',
   'ua_release': '/admin/ua/release',
+  'ua_reset': '/admin/ua/reset',
   }
 
 
@@ -71,14 +72,17 @@ class AdminRpcServer(object):
     params = {}
     if params_str:
       params = dict(y.split('=', 1) for y in params_str.split('&'))
+    elapsed_time = datetime.timedelta()
+    request_time = datetime.timedelta()
     while not params.get('is_done', False):
+      logging.info(
+          'elapsed=%s, request=%s: Run() params: %s',
+          str(elapsed_time)[:-7], str(request_time)[:-7],
+          '&'.join(['%s=%s' % (k, v) for k,v in sorted(params.items())]))
       request_start = datetime.datetime.now()
       params = self.Send(**dict((str(x), y) for x, y in params.items()))
-      request_end = datetime.datetime.now()
-      logging.info('elapsed=%s, request=%s: Run() params: %s',
-                   str(request_end - run_start)[:-7],
-                   str(request_end - request_start)[:-7],
-                   params)
+      elapsed_time = datetime.datetime.now() - run_start
+      request_time = datetime.datetime.now() - request_start
 
 
 def ParseArgs(argv):
