@@ -34,9 +34,14 @@ from categories import all_test_sets
 from base import decorators
 from base import manage_dirty
 from base import util
-from models import user_agent
+from models.result import ResultParent
+from models.result import ResultTime
+from models.user_agent import UserAgent
+from models.user_agent import UserAgentGroup
 
 from django import http
+from django.utils import simplejson
+from third_party.gaefy.db import pager
 
 
 def Render(request, template_file, params):
@@ -98,11 +103,11 @@ def ConfirmUa(request):
   elif 'submit' in request.REQUEST:
     return SubmitChanges(request)
 
-  user_agents = user_agent.UserAgent.all().order('string').fetch(1000)
+  user_agents = UserAgent.all().order('string').fetch(1000)
   user_agents = user_agents[:10]
 
   for ua in user_agents:
-    match_spans = user_agent.UserAgent.MatchSpans(ua.string)
+    match_spans = UserAgent.MatchSpans(ua.string)
     ua.match_strings = []
     last_pos = 0
     for start, end in match_spans:
@@ -139,8 +144,8 @@ def Stats(request):
 @decorators.admin_required
 def GetUserAgentGroupStrings(request):
   version_level = request.GET.get('v', 'top')
-  user_agent.UserAgentGroup.ClearMemcache(version_level)
-  ua_strings = user_agent.UserAgentGroup.GetStrings(version_level)
+  UserAgentGroup.ClearMemcache(version_level)
+  ua_strings = UserAgentGroup.GetStrings(version_level)
   return http.HttpResponse('<br>'.join(ua_strings))
 
 @decorators.admin_required
@@ -149,7 +154,7 @@ def WTF(request):
   dbkey = db.Key(key)
   if not key:
     return http.HttpResponse('No key')
-  ua = user_agent.UserAgent.get(dbkey)
+  ua = UserAgent.get(dbkey)
   logging.info('ua: %s' % user_agent)
   if ua:
     ua.update_groups()
@@ -157,3 +162,60 @@ def WTF(request):
     return http.HttpResponse('Done with UserAgent key=%s' % key)
   else:
     return http.HttpResponse('No user_agent with this key.')
+
+def DataDump(request):
+  bookmark = request.GET.get('bookmark')
+  fetch_limit = int(request.GET.get('fetch_limit', 100))
+  model = request.GET.get('model') # 'ResultParent', 'ResultTime', 'UserAgent'
+  if model == 'ResultParent':
+    query = pager.PagerQuery(ResultParent)
+  elif model == 'ResultTime':
+    query = pager.PagerQuery(ResultTime)
+  elif model == 'UserAgent':
+    query = pager.PagerQuery(UserAgent)
+  else:
+    return http.HttpReponseBadRequest(
+        'model must be one of "ResultParent", "ResultTime", "UserAgent".')
+  prev_bookmark, results, next_bookmark = query.fetch(fetch_limit, bookmark)
+  if model == 'ResultParent':
+    data = [{
+        'result_parent_key': str(x.key()),
+        'user_agent_key': str(x.user_agent.key()),
+        'ip': x.ip,
+        'user_id': x.user and x.user.user_id() or None,
+        'created': x.created and x.created.isoformat() or None,
+        'params_str': x.params_str,
+        'loader_id': hasattr(x, 'loader_id') and x.loader_id or None,
+        }
+        for x in results]
+  elif model == 'ResultTime':
+    data = [{
+        'result_time_key': str(x.key()),
+        'result_parent_key': str(x.parent_key()),
+        'test': x.test,
+        'score': x.score,
+        'dirty': x.dirty,
+        }
+        for x in results]
+  elif model == 'UserAgent':
+    data = [{
+        'user_agent_key': str(x.key()),
+        'string': x.string,
+        'family': x.family,
+        'v1': x.v1,
+        'v2': x.v2,
+        'v3': x.v3,
+        'confirmed': x.confirmed,
+        'created': x.created and x.created.isoformat() or None,
+        'js_user_agent_string': (hasattr(x, 'js_user_agent_string') and
+                                 x.js_user_agent_string or None),
+        }
+        for x in results]
+  response_params = {
+      'bookmark': next_bookmark,
+      'fetch_limit': fetch_limit,
+      'data': data,
+      'model': model,
+      }
+  return http.HttpResponse(content=simplejson.dumps(response_params),
+                           content_type='application/json')
