@@ -399,7 +399,8 @@ class UserAgent(db.Expando):
     query = db.Query(cls)
     query.filter('string =', string)
     for key, value in kwds.items():
-      query.filter('%s =' % key, value)
+      if value is not None:
+        query.filter('%s =' % key, value)
     user_agent = query.get()
     if user_agent is None:
       family, v1, v2, v3 = cls.parse(string, **kwds)
