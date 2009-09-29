@@ -22,7 +22,7 @@ tasks into multiple requests.
 
 To get started:
   $ mysql
-  mysql> create database browserscope;
+  mysql> create database browserscope DEFAULT CHARACTER SET utf8;
   mysql> grant all on browserscope.* to bs@localhost identified by 'XXXX';
 
   $ cat > ~/bs.cnf
@@ -35,7 +35,8 @@ database=browserscope
 user=bs
 password=XXXX
 pager=less
-
+default_character_set=utf8
+
 """
 
 __author__ = 'slamm@google.com (Stephen Lamm)'
@@ -57,19 +58,19 @@ CREATE_TABLES_SQL = (
     """CREATE TABLE IF NOT EXISTS result_parent (
     result_parent_key VARCHAR(100) NOT NULL PRIMARY KEY,
     user_agent_key VARCHAR(100) NOT NULL,
-    ip VARCHAR(100) NOT NULL,
+    ip VARCHAR(100),
     user_id VARCHAR(100),
     created DATETIME,
     params_str VARCHAR(1024),
     loader_id INT(10)
-    );""",
+    ) ENGINE=MyISAM DEFAULT CHARSET=latin1;""",
     """CREATE TABLE IF NOT EXISTS result_time (
     result_time_key VARCHAR(100) NOT NULL PRIMARY KEY,
     result_parent_key VARCHAR(100) NOT NULL,
     test VARCHAR(50) NOT NULL,
     score INT(10) NOT NULL,
     dirty INT(2)
-    );""",
+    ) ENGINE=MyISAM DEFAULT CHARSET=latin1;""",
     """CREATE TABLE IF NOT EXISTS user_agent (
     user_agent_key VARCHAR(100) NOT NULL PRIMARY KEY,
     string TEXT,
@@ -80,8 +81,9 @@ CREATE_TABLES_SQL = (
     confirmed INT(2),
     created DATETIME,
     js_user_agent_string TEXT
-    );"""
+    ) ENGINE=MyISAM DEFAULT CHARSET=latin1;""",
     )
+
 
 INSERT_SQL = {
     'ResultParent': """REPLACE result_parent SET
