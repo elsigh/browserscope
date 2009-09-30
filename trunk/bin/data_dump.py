@@ -54,6 +54,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from third_party.appengine_tools import appengine_rpc
 
+RESTART_OVERLAP_MINUTES=15
 CREATE_TABLES_SQL = (
     """CREATE TABLE IF NOT EXISTS result_parent (
     result_parent_key VARCHAR(100) NOT NULL PRIMARY KEY,
@@ -63,14 +64,13 @@ CREATE_TABLES_SQL = (
     created DATETIME,
     params_str VARCHAR(1024),
     loader_id INT(10)
-    ) ENGINE=MyISAM DEFAULT CHARSET=latin1;""",
+    ) ENGINE=MyISAM DEFAULT CHARSET=utf8;""",
     """CREATE TABLE IF NOT EXISTS result_time (
     result_time_key VARCHAR(100) NOT NULL PRIMARY KEY,
     result_parent_key VARCHAR(100) NOT NULL,
     test VARCHAR(50) NOT NULL,
-    score INT(10) NOT NULL,
-    dirty INT(2)
-    ) ENGINE=MyISAM DEFAULT CHARSET=latin1;""",
+    score INT(10) NOT NULL
+    ) ENGINE=MyISAM DEFAULT CHARSET=utf8;""",
     """CREATE TABLE IF NOT EXISTS user_agent (
     user_agent_key VARCHAR(100) NOT NULL PRIMARY KEY,
     string TEXT,
@@ -81,7 +81,7 @@ CREATE_TABLES_SQL = (
     confirmed INT(2),
     created DATETIME,
     js_user_agent_string TEXT
-    ) ENGINE=MyISAM DEFAULT CHARSET=latin1;""",
+    ) ENGINE=MyISAM DEFAULT CHARSET=utf8;""",
     )
 
 
@@ -98,8 +98,7 @@ INSERT_SQL = {
         result_time_key=%(result_time_key)s,
         result_parent_key=%(result_parent_key)s,
         test=%(test)s,
-        score=%(score)s,
-        dirty=%(dirty)s;""",
+        score=%(score)s;""",
     'UserAgent': """REPLACE user_agent SET
         user_agent_key=%(user_agent_key)s,
         string=%(string)s,
@@ -111,6 +110,11 @@ INSERT_SQL = {
         created=%(created)s,
         js_user_agent_string=%(js_user_agent_string)s;""",
     }
+MAX_CREATED_SQL = {
+    'ResultParent': 'SELECT MAX(created) FROM result_parent',
+    'UserAgent': 'SELECT MAX(created) FROM user_agent',
+    }
+
 
 
 class DataDumpRpcServer(object):
@@ -119,8 +123,9 @@ class DataDumpRpcServer(object):
   def __init__(self, host, user):
     self.user = user
     self.path = self.PATH
+    self.host = host
     self.rpc_server = appengine_rpc.HttpRpcServer(
-        host, self.GetCredentials, user_agent=None, source='',
+        self.host, self.GetCredentials, user_agent=None, source='',
         save_cookies=True)
 
   def GetCredentials(self):
@@ -133,6 +138,8 @@ class DataDumpRpcServer(object):
                       for key, value in kwds.items() if value is not None)
 
     # "payload=None" forces a GET request instead of a POST (default).
+    logging.info('http://%s%s%s', self.host, self.path,
+                 rpc_params and '?%s' % '&'.join(['%s=%s' % (k, v) for k, v in sorted(rpc_params.items())]) or '')
     response_data = self.rpc_server.Send(self.path, payload=None, **rpc_params)
     return simplejson.loads(response_data)
 
@@ -145,10 +152,13 @@ class DataDumpRpcServer(object):
     cursor = db.cursor()
     for create_sql in CREATE_TABLES_SQL:
       cursor.execute(create_sql)
-    for model in ('ResultParent', 'ResultTime', 'UserAgent'):
-      insert_sql = INSERT_SQL[model]
+    for model in ('ResultParent', 'UserAgent'):
+      cursor.execute(MAX_CREATED_SQL[model])
+      max_created = cursor.fetchone()[0]
+      if max_created:
+        params['created'] = max_created - datetime.timedelta(
+            minutes=RESTART_OVERLAP_MINUTES)
       params['model'] = model
-
       elapsed_time = datetime.timedelta()
       request_time = datetime.timedelta()
       while not params.get('is_done', False):
@@ -158,9 +168,10 @@ class DataDumpRpcServer(object):
                      params)
         request_start = datetime.datetime.now()
         params = self.Send(**dict((str(x), y) for x, y in params.items()))
-        request_end = datetime.datetime.now()
-        print str(params['data'])
-        cursor.executemany(insert_sql, params['data'])
+        elapsed_time = datetime.datetime.now() - run_start
+        request_time = datetime.datetime.now() - request_start
+        for row in params['data']:
+          cursor.execute(INSERT_SQL[row['model_class']], row)
         del params['data']
         if params['bookmark'] is None:
           break
