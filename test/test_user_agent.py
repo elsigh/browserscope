@@ -201,7 +201,7 @@ class ChromeFrameTest(unittest.TestCase):
         ua_string, js_user_agent_string=self.CHROME_UA_STRING)
     self.assertEqual(self.CHROME_UA_STRING, ua.js_user_agent_string)
 
-  def testChromeFrameFactoryReuseSameEntity(self):
+  def testChromeFrameFactoryReuseSamesEntity(self):
     ua_string = (
         'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 6.0; Trident/4.0; '
         'chromeframe; SLCC1; .NET CLR 2.0.5077; 3.0.30729),gzip(gfe),gzip(gfe)')
@@ -211,6 +211,16 @@ class ChromeFrameTest(unittest.TestCase):
     ua.put()
     ua2 = UserAgent.factory(
         ua_string, js_user_agent_string=self.CHROME_UA_STRING)
+    self.assertEqual(99, ua2.remember_me)
+
+  def testJsUserAgentStringIsNoneReusesSameEntity(self):
+    ua_string = (
+        'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 6.0; Trident/4.0; '
+        'chromeframe; SLCC1; .NET CLR 2.0.5077; 3.0.30729),gzip(gfe),gzip(gfe)')
+    ua = UserAgent.factory(ua_string, js_user_agent_string=None)
+    ua.remember_me = 99
+    ua.put()
+    ua2 = UserAgent.factory(ua_string, js_user_agent_string=None)
     self.assertEqual(99, ua2.remember_me)
 
 
