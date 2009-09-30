@@ -23,6 +23,7 @@ Confirm new user agents.
 
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
+import datetime
 import logging
 import os
 import time
@@ -165,55 +166,77 @@ def WTF(request):
 
 def DataDump(request):
   bookmark = request.GET.get('bookmark')
+  created = request.GET.get('created')
+  if created:
+    created = datetime.datetime.strptime(created, '%Y-%m-%d %H:%M:%S')
+  if bookmark and created:
+    return http.HttpResponseBadRequest(
+        'Both "bookark" and "created" set. Should only set one or neither.')
   fetch_limit = int(request.GET.get('fetch_limit', 100))
-  model = request.GET.get('model') # 'ResultParent', 'ResultTime', 'UserAgent'
+  time_limit = int(request.GET.get('time_limit', 3))
+  start_time = datetime.datetime.now()
+  model = request.GET.get('model') # 'ResultParent', 'UserAgent'
+
   if model == 'ResultParent':
-    query = pager.PagerQuery(ResultParent)
-  elif model == 'ResultTime':
-    query = pager.PagerQuery(ResultTime)
+    query = pager.PagerQuery(ResultParent, keys_only=True)
   elif model == 'UserAgent':
     query = pager.PagerQuery(UserAgent)
   else:
-    return http.HttpReponseBadRequest(
-        'model must be one of "ResultParent", "ResultTime", "UserAgent".')
+    return http.HttpResponseBadRequest(
+        'model must be one of "ResultParent", "UserAgent".')
+  if created:
+    query.filter('created >=', created)
+  query.order('created')
   prev_bookmark, results, next_bookmark = query.fetch(fetch_limit, bookmark)
+
   if model == 'ResultParent':
-    data = [{
-        'result_parent_key': str(x.key()),
-        'user_agent_key': str(x.user_agent.key()),
-        'ip': x.ip,
-        'user_id': x.user and x.user.user_id() or None,
-        'created': x.created and x.created.isoformat() or None,
-        'params_str': x.params_str,
-        'loader_id': hasattr(x, 'loader_id') and x.loader_id or None,
-        }
-        for x in results]
-  elif model == 'ResultTime':
-    data = [{
-        'result_time_key': str(x.key()),
-        'result_parent_key': str(x.parent_key()),
-        'test': x.test,
-        'score': x.score,
-        'dirty': x.dirty,
-        }
-        for x in results]
+    data = []
+    result_time_query = ResultTime.gql('WHERE ANCESTOR IS :1')
+    last_result_parent_key = None
+    for result_parent_key in results:
+      if (last_result_parent_key and
+          (datetime.datetime.now() - start_time).seconds > time_limit):
+        # There is more to process, but we have run out of time.
+        next_bookmark = query.get_bookmark(last_result_parent_key)
+        break
+      last_result_parent_key = result_parent_key
+      p = ResultParent.get(result_parent_key)
+      data.append({
+          'model_class': 'ResultParent',
+          'result_parent_key': str(result_parent_key),
+          'user_agent_key': str(p.user_agent.key()),
+          'ip': p.ip,
+          'user_id': p.user and p.user.user_id() or None,
+          'created': p.created and p.created.isoformat() or None,
+          'params_str': p.params_str,
+          'loader_id': hasattr(p, 'loader_id') and p.loader_id or None,
+          })
+      result_time_query.bind(result_parent_key)
+      for result_time in result_time_query.fetch(1000):
+        data.append({
+            'model_class': 'ResultTime',
+            'result_time_key': str(result_time.key()),
+            'result_parent_key': str(result_parent_key),
+            'test': result_time.test,
+            'score': result_time.score,
+            })
   elif model == 'UserAgent':
     data = [{
-        'user_agent_key': str(x.key()),
-        'string': x.string,
-        'family': x.family,
-        'v1': x.v1,
-        'v2': x.v2,
-        'v3': x.v3,
-        'confirmed': x.confirmed,
-        'created': x.created and x.created.isoformat() or None,
-        'js_user_agent_string': (hasattr(x, 'js_user_agent_string') and
-                                 x.js_user_agent_string or None),
-        }
-        for x in results]
+        'user_agent_key': str(ua.key()),
+        'string': ua.string,
+        'family': ua.family,
+        'v1': ua.v1,
+        'v2': ua.v2,
+        'v3': ua.v3,
+        'confirmed': ua.confirmed,
+        'created': ua.created and ua.created.isoformat() or None,
+        'js_user_agent_string': (hasattr(ua, 'js_user_agent_string') and
+                                 ua.js_user_agent_string or None),
+        } for ua in results]
   response_params = {
       'bookmark': next_bookmark,
       'fetch_limit': fetch_limit,
+      'time_limit': time_limit,
       'data': data,
       'model': model,
       }
