@@ -222,6 +222,7 @@ def DataDump(request):
             })
   elif model == 'UserAgent':
     data = [{
+        'model_class': 'UserAgent',
         'user_agent_key': str(ua.key()),
         'string': ua.string,
         'family': ua.family,
