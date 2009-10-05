@@ -204,6 +204,7 @@ def DataDump(request):
       data.append({
           'model_class': 'ResultParent',
           'result_parent_key': str(result_parent_key),
+          'category': p.category,
           'user_agent_key': str(p.user_agent.key()),
           'ip': p.ip,
           'user_id': p.user and p.user.user_id() or None,

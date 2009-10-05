@@ -57,37 +57,62 @@ from third_party.appengine_tools import appengine_rpc
 RESTART_OVERLAP_MINUTES=15
 CREATE_TABLES_SQL = (
     """CREATE TABLE IF NOT EXISTS result_parent (
-    result_parent_key VARCHAR(100) NOT NULL PRIMARY KEY,
-    user_agent_key VARCHAR(100) NOT NULL,
-    ip VARCHAR(100),
-    user_id VARCHAR(100),
-    created DATETIME,
-    params_str VARCHAR(1024),
-    loader_id INT(10)
-    ) ENGINE=MyISAM DEFAULT CHARSET=utf8;""",
+      result_parent_key VARCHAR(100) NOT NULL PRIMARY KEY,
+      category VARCHAR(100),
+      user_agent_key VARCHAR(100) NOT NULL,
+      ip VARCHAR(100),
+      user_id VARCHAR(100),
+      created DATETIME,
+      params_str VARCHAR(1024),
+      loader_id INT(10)
+    ) ENGINE=MyISAM DEFAULT CHARSET=utf8
+    ;""",
     """CREATE TABLE IF NOT EXISTS result_time (
-    result_time_key VARCHAR(100) NOT NULL PRIMARY KEY,
-    result_parent_key VARCHAR(100) NOT NULL,
-    test VARCHAR(50) NOT NULL,
-    score INT(10) NOT NULL
-    ) ENGINE=MyISAM DEFAULT CHARSET=utf8;""",
+      result_time_key VARCHAR(100) NOT NULL PRIMARY KEY,
+      result_parent_key VARCHAR(100) NOT NULL,
+      test VARCHAR(50) NOT NULL,
+      score INT(10) NOT NULL
+    ) ENGINE=MyISAM DEFAULT CHARSET=utf8
+    ;""",
     """CREATE TABLE IF NOT EXISTS user_agent (
-    user_agent_key VARCHAR(100) NOT NULL PRIMARY KEY,
-    string TEXT,
-    family VARCHAR(32),
-    v1 VARCHAR(10),
-    v2 VARCHAR(10),
-    v3 VARCHAR(10),
-    confirmed INT(2),
-    created DATETIME,
-    js_user_agent_string TEXT
-    ) ENGINE=MyISAM DEFAULT CHARSET=utf8;""",
+      user_agent_key VARCHAR(100) NOT NULL PRIMARY KEY,
+      string TEXT,
+      family VARCHAR(32),
+      v1 VARCHAR(9),
+      v2 VARCHAR(9),
+      v3 VARCHAR(12),
+      confirmed INT(2),
+      created DATETIME,
+      js_user_agent_string TEXT
+    ) ENGINE=MyISAM DEFAULT CHARSET=utf8
+    ;""",
+    """CREATE TABLE IF NOT EXISTS scores (
+      result_parent_key VARCHAR(100),
+      result_time_key VARCHAR(100) NOT NULL PRIMARY KEY,
+      user_agent_key VARCHAR(100),
+      category VARCHAR(100),
+      test VARCHAR(50),
+      family VARCHAR(32),
+      v1 VARCHAR(9),
+      v2 VARCHAR(9),
+      v3 VARCHAR(12),
+      string TEXT,
+      js_user_agent_string TEXT,
+      result_parent_created DATETIME,
+      user_agent_created DATETIME,
+      score INT(10),
+      INDEX (category, test, family, v1, v2, v3),
+      INDEX (user_agent_key),
+      INDEX (result_parent_key)
+    ) ENGINE=MyISAM DEFAULT CHARSET=utf8
+    ;""",
     )
 
 
 INSERT_SQL = {
     'ResultParent': """REPLACE result_parent SET
         result_parent_key=%(result_parent_key)s,
+        category=%(category)s,
         user_agent_key=%(user_agent_key)s,
         ip=%(ip)s,
         user_id=%(user_id)s,
@@ -110,6 +135,30 @@ INSERT_SQL = {
         created=%(created)s,
         js_user_agent_string=%(js_user_agent_string)s;""",
     }
+
+UPDATE_SCORES = """
+    REPLACE scores
+    SELECT
+      result_parent_key,
+      result_time_key,
+      user_agent_key,
+      category,
+      test,
+      family,
+      v1,
+      v2,
+      v3,
+      string,
+      js_user_agent_string,
+      result_parent.created,
+      user_agent.created,
+      score
+    FROM result_time
+    LEFT JOIN result_parent USING (result_parent_key)
+    LEFT JOIN user_agent USING (user_agent_key)
+    ;"""
+
+
 MAX_CREATED_SQL = {
     'ResultParent': 'SELECT MAX(created) FROM result_parent',
     'UserAgent': 'SELECT MAX(created) FROM user_agent',
@@ -138,17 +187,17 @@ class DataDumpRpcServer(object):
                       for key, value in kwds.items() if value is not None)
 
     # "payload=None" forces a GET request instead of a POST (default).
-    logging.info('http://%s%s%s', self.host, self.path,
-                 rpc_params and '?%s' % '&'.join(['%s=%s' % (k, v) for k, v in sorted(rpc_params.items())]) or '')
+    logging.info(
+        'http://%s%s%s', self.host, self.path, rpc_params and '?%s' % '&'.join(
+        ['%s=%s' % (k, v) for k, v in sorted(rpc_params.items())]) or '')
     response_data = self.rpc_server.Send(self.path, payload=None, **rpc_params)
     return simplejson.loads(response_data)
 
-  def Run(self, mysql_default_file, run_start, params_str):
+  def Run(self, db, run_start, params_str):
     params = {}
     if params_str:
       params = dict(y.split('=', 1) for y in params_str.split('&'))
     # Create tables
-    db = MySQLdb.connect(read_default_file=mysql_default_file)
     cursor = db.cursor()
     for create_sql in CREATE_TABLES_SQL:
       cursor.execute(create_sql)
@@ -162,10 +211,8 @@ class DataDumpRpcServer(object):
       elapsed_time = datetime.timedelta()
       request_time = datetime.timedelta()
       while not params.get('is_done', False):
-        logging.info('elapsed=%s, request=%s: Run() params: %s',
-                     str(elapsed_time)[:-7],
-                     str(request_time)[:-7],
-                     params)
+        logging.info('elapsed=%s, request=%s',
+                     str(elapsed_time)[:-7], str(request_time)[:-7])
         request_start = datetime.datetime.now()
         params = self.Send(**dict((str(x), y) for x, y in params.items()))
         elapsed_time = datetime.datetime.now() - run_start
@@ -175,6 +222,9 @@ class DataDumpRpcServer(object):
         del params['data']
         if params['bookmark'] is None:
           break
+    logging.info('Update "scores" table.')
+    cursor.execute(UPDATE_SCORES)
+
 
 
 def ParseArgs(argv):
@@ -201,7 +251,8 @@ def ParseArgs(argv):
 def main(argv):
   host, user, params, mysql_default_file, argv = ParseArgs(argv)
   start = datetime.datetime.now()
-  DataDumpRpcServer(host, user).Run(mysql_default_file, start, params)
+  db = MySQLdb.connect(read_default_file=mysql_default_file)
+  DataDumpRpcServer(host, user).Run(db, start, params)
   end = datetime.datetime.now()
   print '  start: %s' % start
   print '    end: %s' % end
