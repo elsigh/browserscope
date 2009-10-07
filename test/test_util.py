@@ -114,7 +114,7 @@ class TestUtilHandlers(unittest.TestCase):
       'category': category,
       'results': 'testDisplay=1,testVisibility=2',
       'csrf_token': csrf_token,
-      'ua': chrome_ua_string
+      'js_ua': chrome_ua_string
     }
     response = self.client.get('/beacon', params, **unit_test_ua)
     self.assertEqual(204, response.status_code)
