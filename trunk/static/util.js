@@ -29,7 +29,7 @@ var Util = {};
  * @return {Element} cssNode the added css DOM node.
  */
 Util.addCssText = function(cssText, opt_id) {
-  var cssNode = document.createElement('style');
+  var cssNode = goog.dom.createElement('style');
   cssNode.type = 'text/css';
   cssNode.id = opt_id ? opt_id : 'cssh-sheet-' + document.styleSheets.length;
 
@@ -41,7 +41,7 @@ Util.addCssText = function(cssText, opt_id) {
     cssNode.styleSheet.cssText = cssText;
   // W3C
   } else {
-    var cssText = document.createTextNode(cssText);
+    var cssText = goog.dom.createTextNode(cssText);
     cssNode.appendChild(cssText);
   }
 
@@ -139,9 +139,9 @@ Util.createChromeFrameCheckbox = function(serverUaString, opt_reloadOnChange) {
   var reloadOnChange = opt_reloadOnChange || false;
   var ua = goog.userAgent.getUserAgentString();
   if (serverUaString.indexOf('chromeframe') != -1) {
-    var container = document.createElement('strong');
+    var container = goog.dom.createElement('strong');
     container.id = 'bs-cf-c';
-    var cb = document.createElement('input');
+    var cb = goog.dom.createElement('input');
     cb.id = 'bs-cf-enabled';
     cb.type = 'checkbox';
     var chromeFrameEnabled = goog.net.cookies.get(Util.COOKIE_CHROME_FRAME);
@@ -153,7 +153,7 @@ Util.createChromeFrameCheckbox = function(serverUaString, opt_reloadOnChange) {
         window.top.location.href = window.top.location.href;
       }
     });
-    var label = document.createElement('label');
+    var label = goog.dom.createElement('label');
     label.setAttribute('for', cb.id);
     label.innerHTML = 'Run in Chrome Frame';
 
@@ -162,6 +162,254 @@ Util.createChromeFrameCheckbox = function(serverUaString, opt_reloadOnChange) {
     return container;
   }
 };
+
+
+/**
+ * @param {string} httpUserAgent A full user agent string - HTTP_USER_AGENT
+ * @param {string} userAgentPretty A parsed Family v1.v2.v3 string
+ */
+Util.reconcileClientServerUaPretty = function(httpUserAgent, userAgentPretty) {
+  var ua = goog.userAgent.getUserAgentString();
+  var reconciledUa = userAgentPretty;
+  // Chrome Frame detection, i.e. server side UA string and client
+  // are in mismatch.
+  // @see http://code.google.com/p/chromium/issues/detail?id=22997
+  if (httpUserAgent.indexOf('chromeframe') != -1 &&
+      ua.indexOf('chromeframe') == -1) {
+    reconciledUa = 'Chrome Frame (' + userAgentPretty + ')';
+  }
+  return reconciledUa;
+};
+
+Util.alphaCaseInsensitiveCompare = function(a, b) {
+  // turns 9/10 into 9
+  if (a.match(/\//) && b.match(/\//)) {
+    a = a.replace(/\/.*/, '');
+    b = b.replace(/\/.*/, '');
+    return goog.ui.TableSorter.numericSort(a, b);
+  } else {
+    a = a.toLowerCase();
+    b = b.toLowerCase();
+    return a > b ? 1 : a < b ? -1 : 0;
+  }
+};
+
+/*****************************************/
+
+
+/**
+ * @param {string} category The current category.
+ * @param {Array.<Object>} categories An array of category objs.
+ * @param {string} realUaString The actual user agent string.
+ * @param {string} resultsUriParams category_results=foo,bar etc..
+ * @constructor
+ */
+Util.ResultTablesController = function(category, categories, realUaString,
+    resultsUriParams) {
+  this.category = category;
+  this.categories = categories;
+  this.realUaString = realUaString;
+  this.browserFamily = 'top';
+  this.resultsUriParams = resultsUriParams;
+  this.tables = {};
+  this.xhrLoading = false;
+  this.decorate();
+  this.setCategory(category);
+};
+
+Util.ResultTablesController.prototype.decorate = function() {
+  var categoriesList = goog.dom.createElement('ul');
+  categoriesList.id = 'bs-results-cats';
+  categoriesList.className = 'bs-compact';
+
+  for (var category in this.categories) {
+    var containerEl = this.categories[category]['container'];
+
+    var h3 = containerEl.getElementsByTagName('h3')[0];
+    goog.dom.removeNode(h3);
+
+    var link = goog.dom.createElement('a');
+    link.href = '/?category=' + category + '&' + this.resultsUriParams;
+    link.category = category;
+    link.appendChild(goog.dom.createTextNode(
+        this.categories[category]['name']));
+    this.categories[category]['link'] = link;
+    goog.events.listen(link, 'click', this.changeCategoryClickHandler, false,
+        this);
+
+    var li = goog.dom.createElement('li');
+    li.appendChild(link);
+
+    if (category != this.category) {
+      containerEl.innerHTML = '';
+      containerEl.style.display = 'none';
+    }
+    categoriesList.appendChild(li);
+  }
+  var results = document.getElementById('bs-results');
+  var resultsByCat = document.getElementById('bs-results-bycat');
+  results.insertBefore(categoriesList, resultsByCat);
+};
+
+Util.ResultTablesController.prototype.changeCategoryClickHandler = function(e) {
+  var link = e.currentTarget;
+  // this is some anchor with .category
+  if (this.xhrLoading || this.category == link.category) {
+    e.preventDefault();
+    return;
+  }
+  this.setCategory(link.category);
+  e.preventDefault();
+};
+
+Util.ResultTablesController.prototype.setCategory = function(category) {
+  if (this.category) {
+    this.categories[this.category]['container'].style.display = 'none';
+    this.categories[this.category]['link'].parentNode.className = '';
+  }
+
+  this.category = category;
+  this.categories[this.category]['link'].parentNode.className = 'bs-sel';
+
+  // This would be the initial set.
+  if (!goog.object.containsKey(this.tables, this.category) &&
+      this.categories[this.category]['container'].innerHTML != '') {
+    this.tables[this.category + '-' + this.browserFamily] =
+        new Util.ResultTable(this, this.category);
+    this.categories[this.category]['container'].style.display = '';
+  // XHR if we need to.
+  } else if (this.categories[this.category]['container'].innerHTML == '') {
+    this.xhrCategoryResults();
+    window.console.debug('XHR for ', this.category);
+  } else {
+    this.categories[this.category]['container'].style.display = '';
+  }
+};
+
+Util.ResultTablesController.prototype.xhrCategoryResults = function() {
+  this.xhrLoading = true;
+
+  var container = this.categories[this.category]['container'];
+  container.style.display = '';
+  container.className = 'rt-loading';
+  container.innerHTML = 'Loading the ' +
+      this.categories[this.category]['name'] +
+      ' Results ...';
+
+  this.url = '/?category=' + this.category +
+      '&o=xhr&v=' + this.browserFamily + this.resultsUriParams;
+  goog.net.XhrIo.send(this.url, goog.bind(this.loadStatsTableCallback, this),
+      'get', null, null, 15000); // 15000 = 15 second timeout
+};
+
+Util.ResultTablesController.prototype.loadStatsTableCallback = function(e) {
+  var container = this.categories[this.category]['container'];
+  var xhrio = e.target;
+  if (xhrio.isSuccess()) {
+    container.className = '';
+    var html = xhrio.getResponseText();
+    container.innerHTML = html;
+    this.tables[this.category] = new Util.ResultTable(this, this.category);
+
+  } else {
+    container.className = 'rt-err';
+    container.innerHTML =
+        '<div>Crud. We encountered a problem on our server.</div>' +
+        '<div>We are aware of the issue, and apologize.</div>';
+    var link = goog.dom.createElement('a');
+    link.category = this.category;
+    goog.events.listen(link, click, this.xhrCategoryResults, false,
+        this);
+    link.href = this.url;
+    link.innerHTML = 'Feel free to try again.';
+    container.appendChild(link);
+  }
+  this.xhrLoading = false;
+};
+
+
+Util.ResultTable = function(controller, category, realUaString) {
+  this.controller = controller;
+  this.category = category;
+  this.categoryObj = this.controller.categories[this.category];
+  this.browserFamilySelect = document.getElementById('rt-' + this.category +
+      '-v');
+  this.init();
+};
+
+Util.ResultTable.prototype.init = function() {
+  this.setUpBrowserFamilyForm();
+  this.setUpSortableTable();
+  this.fixRealUaStringInResults();
+};
+
+Util.ResultTable.prototype.setUpBrowserFamilyForm = function() {
+  // hide submit
+  document.getElementById('rt-' + this.category + '-v-s').style.display =
+      'none';
+  goog.events.listen(this.browserFamilySelect, 'change',
+      this.browserFamilyChangeHandler, false, this);
+
+  // ensures a refresh doesn't make the select look wrongly selected.
+  document.getElementById('rt-' + this.category + '-v-f').reset();
+};
+
+
+Util.ResultTable.prototype.setUpSortableTable = function() {
+  var table = document.getElementById('rt-' + this.category + '-t');
+  if (!table) { return; }
+  var tableSorter = new goog.ui.TableSorter();
+  tableSorter.setDefaultSortFunction(Util.alphaCaseInsensitiveCompare);
+  // we know # tests should be numeric sort
+  var thead = table.getElementsByTagName('thead')[0];
+  var ths = thead.getElementsByTagName('th');
+  var numTestsIndex = ths.length - 1;
+  tableSorter.setSortFunction(numTestsIndex,
+      goog.ui.TableSorter.numericSort);
+  tableSorter.decorate(table);
+  goog.events.listen(tableSorter, goog.ui.TableSorter.EventType.SORT,
+      this.onTableSort, false, this);
+};
+Util.ResultTable.prototype.onTableSort = function(e) {
+  var tableSorter = e.target;
+  var yourResultsRow = document.getElementById('rt-' +
+      this.category + '-ua-s-r');
+  if (yourResultsRow) {
+    yourResultsRow.style.display = 'none';
+  }
+};
+Util.ResultTable.prototype.fixRealUaStringInResults = function() {
+  var resultUa = document.getElementById('rt-' + this.category + '-cur-ua');
+  if (this.controller.realUaString && resultUa) {
+    resultUa.innerHTML = this.controller.realUaString;
+  }
+};
+Util.ResultTable.prototype.getBrowserFamilyValue = function() {
+  var browserFamilyValue;
+  if (this.browserFamilySelect) {
+    browserFamilyValue = this.browserFamilySelect.options[
+        this.browserFamilySelect.options.selectedIndex].value;
+  }
+  return browserFamilyValue;
+};
+Util.ResultTable.prototype.browserFamilyChangeHandler = function(e) {
+  this.browserFamily = this.getBrowserFamilyValue();
+  this.controller.browserFamily = this.browserFamily;
+
+  // fix the download links
+  var downloadsContainer = document.getElementById('rt-dl-' + this.category);
+  if (downloadsContainer) {
+    var downloadLinks = downloadsContainer.getElementsByTagName('a');
+    for (var i = 0, downloadLink; downloadLink = downloadLinks[i]; i++) {
+      var href = downloadLink.href;
+      href = href.replace(/v=[^&]+/, 'v=' + this.browserFamily);
+      downloadLink.href = href;
+    }
+  }
+  this.controller.xhrCategoryResults();
+  e.stopPropagation();
+};
+
 
 /*****************************************/
 
@@ -287,10 +535,10 @@ Util.testDriver.prototype.sendScore = function(testResults,
     var resultsDisplay = continueParams ?
           continueParams.join(',') :
           testResults.join(',');
-    var scoreNode = document.createElement('div');
+    var scoreNode = goog.dom.createElement('div');
     var thanks = this.sendBeaconCheckbox.checked ?
         'Thanks for contributing! ' : '';
-    scoreNode.appendChild(document.createTextNode(
+    scoreNode.appendChild(goog.dom.createTextNode(
         thanks + 'Your results: ' + resultsDisplay));
     scoreNode.style.margin = '.7em 0 0 1em';
     this.runTestButton.parentNode.appendChild(scoreNode);
