@@ -79,5 +79,4 @@ if (users.is_current_user_admin() or
     (SERVER_SOFTWARE is not None and 'Dev' in SERVER_SOFTWARE)):
   BUILD = 'development'
   DEBUG = True
-BUILD = 'production'
 TEMPLATE_DEBUG = DEBUG
