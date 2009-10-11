@@ -4,22 +4,24 @@
     <thead>
       <tr>
         <th scope="col" class="rt-ua">
-          <form id="rt-{{ category }}-v-f" action="" method="get">
-            <input type="hidden" name="category" value="{{ category }}">
-            <input type="hidden" name="{{ category }}_results" value="{{ results_uri_string }}">
-            <select id="rt-{{ category }}-v" name="v">
-              {% for tuple in browser_nav %}
-                {% with tuple|by_key:0 as version %}
-                  <option
-                    value="{{ version }}"
-                    {% ifequal v version %}selected="selected"{% endifequal %}
-                    >{{ tuple|by_key:1 }}</option>
-                {% endwith %}
-              {% endfor %}
-            </select>
-            <input id="rt-{{ category }}-v-s" type="submit" value="go">
-          </form>
-          name
+          <div class="rt-b-f">
+            <form id="rt-{{ category }}-v-f" action="" method="get">
+              <input type="hidden" name="category" value="{{ category }}">
+              <input type="hidden" name="{{ category }}_results" value="{{ results_uri_string }}">
+              <select id="rt-{{ category }}-v" name="v">
+                {% for tuple in browser_nav %}
+                  {% with tuple|by_key:0 as version %}
+                    <option
+                      value="{{ version }}"
+                      {% ifequal v version %}selected="selected"{% endifequal %}
+                      >{{ tuple|by_key:1 }}</option>
+                  {% endwith %}
+                {% endfor %}
+              </select>
+              <input id="rt-{{ category }}-v-s" type="submit" value="go">
+            </form>
+          </div>
+          <span>name</span>
         </th>
         <th class="rt-ua-s-d">
           {% ifequal category "acid3" %}{% else %}

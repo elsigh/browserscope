@@ -59,7 +59,7 @@ INSTALLED_APPS = (
 
 
 # BROWSERSCOPE SPECIFIC GLOBALS
-CATEGORIES = ['network', 'acid3', 'selectors', 'richtext']
+CATEGORIES = ['network', 'acid3', 'selectors', 'richtext', 'security']
 
 STATIC_CATEGORIES = ['richtext']
 # Where we'll read the static files from. Either 'local' or an url.
@@ -79,4 +79,5 @@ if (users.is_current_user_admin() or
     (SERVER_SOFTWARE is not None and 'Dev' in SERVER_SOFTWARE)):
   BUILD = 'development'
   DEBUG = True
+BUILD = 'production'
 TEMPLATE_DEBUG = DEBUG

@@ -82,6 +82,9 @@ handlers:
 - url: /reflow/static
   static_dir: categories/reflow/static
   expiration: '3650d'
+- url: /security/static
+  static_dir: categories/security/static
+  expiration: '3650d'
 
 - url: /favicon\.ico
   static_files: static/img/favicon.ico

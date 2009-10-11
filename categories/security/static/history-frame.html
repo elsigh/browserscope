@@ -1,0 +1,8 @@
+<script>
+window.test_instance =
+    window.location.search.match(/test_instance=([0-9.]+)/)[1];
+</script>
+<script>
+document.write(
+    '<iframe src="target.html?' + window.test_instance + '"></iframe>');
+</script>

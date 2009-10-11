@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 
 {% block head %}
-  <script src="{{ "xhrio.js"|resource_path }}"></script>
-  <script src="{{ "util.js"|resource_path }}"></script>
+  {% ifequal build "production" %}
+    <script src="{{ "browserscope.js"|resource_path }}"></script>
+  {% else %}
+    <script src="{{ "xhrio.js"|resource_path }}"></script>
+    <script src="{{ "util.js"|resource_path }}"></script>
+  {% endifequal %}
 {% endblock %}
 
 {% block body %}
@@ -38,11 +42,11 @@
   {% endif %}
 
   <script>
-    var testDriver = new Util.testDriver('{{ test_page }}',
+    var testDriver = new Util.TestDriver('{{ test_page }}', window.parent,
         '{{ app_category }}', '{{ app_category_name }}', '{{ csrf_token }}',
         '{{ autorun }}', '{{ continue }}');
     {% for app_category in  app_categories %}
-      testDriver.testCategories.push('{{ app_category.0 }}');
+      testDriver.addCategory('{{ app_category.0 }}');
     {% endfor %}
     {% if autorun %}
       testDriver.runTest();

@@ -16,11 +16,12 @@
  * @author elsigh@google.com (Lindsey Simon)
  */
 
-/**
- * Namespace for utility functions.
- * @type {Object}
- */
-var Util = {};
+
+goog.provide('Util');
+goog.provide('Util.ResultTablesController');
+goog.provide('Util.ResultTable');
+goog.provide('Util.TestDriver');
+
 
 /**
  * Adds CSS text to the DOM.
@@ -41,7 +42,7 @@ Util.addCssText = function(cssText, opt_id) {
     cssNode.styleSheet.cssText = cssText;
   // W3C
   } else {
-    var cssText = goog.dom.createTextNode(cssText);
+    cssText = goog.dom.createTextNode(cssText);
     cssNode.appendChild(cssText);
   }
 
@@ -51,12 +52,12 @@ Util.addCssText = function(cssText, opt_id) {
 
 /**
  * Preserve scope in timeouts.
- * @type {Object} scope
- * @type {Function} fn
+ * @param {Object} scope
+ * @param {Function} fn
  * @return {Function}
  */
 Util.curry = function(scope, fn) {
-  var scope = scope || window;
+  scope = scope || window;
   var args = [];
   for (var i = 2, len = arguments.length; i < len; ++i) {
     args.push(arguments[i]);
@@ -98,8 +99,8 @@ Util.getParam = function(param, opt_win) {
 
 
 /**
- * @param {IFRAMEElement} iframe
- * @return {string} The iframe's id.
+ * @param {string} iframeId
+ * @return {?string} The iframe's id.
  * @export
  */
 Util.getIframeDocument = function(iframeId) {
@@ -109,7 +110,7 @@ Util.getIframeDocument = function(iframeId) {
     iframe = document.getElementById(iframeId);
   }
   if (!iframe) {
-    return;
+    return null;
   }
   if (iframe.contentDocument) {
     // For NS6
@@ -148,7 +149,7 @@ Util.createChromeFrameCheckbox = function(serverUaString, opt_reloadOnChange) {
     cb.checked = chromeFrameEnabled == '1';
     goog.events.listen(cb, 'click', function(e) {
       var cb = e.currentTarget;
-      goog.net.cookies.set(Util.COOKIE_CHROME_FRAME, cb.checked ? 1 : 0);
+      goog.net.cookies.set(Util.COOKIE_CHROME_FRAME, cb.checked ? '1' : '0');
       if (reloadOnChange) {
         window.top.location.href = window.top.location.href;
       }
@@ -280,7 +281,6 @@ Util.ResultTablesController.prototype.setCategory = function(category) {
   // XHR if we need to.
   } else if (this.categories[this.category]['container'].innerHTML == '') {
     this.xhrCategoryResults();
-    window.console.debug('XHR for ', this.category);
   } else {
     this.categories[this.category]['container'].style.display = '';
   }
@@ -318,7 +318,7 @@ Util.ResultTablesController.prototype.loadStatsTableCallback = function(e) {
         '<div>We are aware of the issue, and apologize.</div>';
     var link = goog.dom.createElement('a');
     link.category = this.category;
-    goog.events.listen(link, click, this.xhrCategoryResults, false,
+    goog.events.listen(link, 'click', this.xhrCategoryResults, false,
         this);
     link.href = this.url;
     link.innerHTML = 'Feel free to try again.';
@@ -327,8 +327,12 @@ Util.ResultTablesController.prototype.loadStatsTableCallback = function(e) {
   this.xhrLoading = false;
 };
 
-
-Util.ResultTable = function(controller, category, realUaString) {
+/**
+ * @param {Util.ResultTablesController} controller
+ * @param {string} category
+ * @constructor
+ */
+Util.ResultTable = function(controller, category) {
   this.controller = controller;
   this.category = category;
   this.categoryObj = this.controller.categories[this.category];
@@ -415,16 +419,28 @@ Util.ResultTable.prototype.browserFamilyChangeHandler = function(e) {
 
 /**
  * This is the test_driver.html runner code.
+ * @param {string} testPage
+ * @param {Object} windowParent
+ * @param {string} category
+ * @param {string} categoryName
+ * @param {string} csrfToken
+ * @param {boolean} autorun
+ * @param {boolean} continueToNextTest
  * @constructor
- * @export
  */
-Util.testDriver = function(testPage, category, categoryName, csrfToken,
-    autorun, continueToNextTest) {
+Util.TestDriver = function(testPage, windowParent, category, categoryName,
+    csrfToken, autorun, continueToNextTest) {
 
   /**
    * @type {string}
    */
   this.testPage = testPage;
+
+  /**
+   * @type {Object}
+   * @private
+   */
+  this.windowParent_ = windowParent;
 
   /**
    * @type {string}
@@ -470,7 +486,7 @@ Util.testDriver = function(testPage, category, categoryName, csrfToken,
   /**
    * @type {Element}
    */
-  this.testFrame = parent.frames['bs-test-frame'];
+  this.testFrame = this.windowParent_.frames['bs-test-frame'];
 
   /**
    * @type {Array}
@@ -478,31 +494,46 @@ Util.testDriver = function(testPage, category, categoryName, csrfToken,
   this.testCategories = [];
 
   /**
-   * @type {string}
+   * @type {Array}
    */
   this.testResults = null;
 
   /**
-   * @type {string}
-   */
-  this.uriResults = null;
-
-  /**
-   * @type {INPUTElement}
+   * @type {HTMLElement}
    */
   this.sendBeaconCheckbox = document.getElementById('bs-send-beacon');
 };
 
+/**
+ * @type {?string}
+ */
+Util.TestDriver.prototype.uriResults = null;
+
+/**
+ * @param {string} category
+ */
+Util.TestDriver.prototype.addCategory = function(category) {
+  this.testCategories.push(category);
+};
 
 /**
  * This is the function that all test pages will call to beacon.
  * @param {Array} testResults test1=result,test2=result, etc..
- * @param {Array} opt_urlParams Possibly a subset of testResults for
+ * @param {Array} opt_continueParams Possibly a subset of testResults for
  *     sending to the results page.
- * @export
  */
-Util.testDriver.prototype.sendScore = function(testResults,
+Util.TestDriver.prototype.sendScore = function(testResults,
     opt_continueParams) {
+
+  // Support for abart's syntax
+  if (typeof(testResults[0]) == 'object') {
+    var reFormattedResults = [];
+    for (var i = 0, test; test = testResults[i]; i++) {
+      reFormattedResults.push(test['test'] + '=' +
+          (test['result'] === true ? '1' : 0));
+    }
+    testResults = reFormattedResults
+  }
   var continueParams = opt_continueParams || null;
   this.testResults = testResults;
   this.uriResults = this.category + '_results=' +
@@ -510,9 +541,10 @@ Util.testDriver.prototype.sendScore = function(testResults,
           escape(continueParams.join(',')) :
           escape(testResults.join(',')));
 
+  var uaString = goog.userAgent.getUserAgentString() || '';
   var data = 'category=' + this.category + '&results=' +
       testResults.join(',') + '&csrf_token=' + this.csrfToken +
-      '&js_ua=' + escape(goog.userAgent.getUserAgentString());
+      '&js_ua=' + escape(uaString);
 
   // Autorun always shares your score.
   if (this.autorun) {
@@ -552,7 +584,7 @@ Util.testDriver.prototype.sendScore = function(testResults,
 /**
  * @param {goog.events.Event} e
  */
-Util.testDriver.prototype.onBeaconCompleteAutorun = function(e) {
+Util.TestDriver.prototype.onBeaconCompleteAutorun = function(e) {
   var len = this.testCategories.length;
   var nextUrl;
   if (this.continueToNextTest) {
@@ -589,7 +621,7 @@ Util.testDriver.prototype.onBeaconCompleteAutorun = function(e) {
 /**
  * @param {goog.events.Event} e
  */
-Util.testDriver.prototype.runTestButtonClickHandler = function(e) {
+Util.TestDriver.prototype.runTestButtonClickHandler = function(e) {
   this.runTestButton.className = 'bs-btn-disabled';
   goog.events.unlisten(this.runTestButton, 'click',
       this.runTestButtonClickHandlerBound);
@@ -608,8 +640,22 @@ Util.testDriver.prototype.runTestButtonClickHandler = function(e) {
  * Loads the test page into the frame.
  * @export
  */
-Util.testDriver.prototype.runTest = function() {
+Util.TestDriver.prototype.runTest = function() {
   var rand = Math.floor(Math.random() * 10000000);
   var categoryTestUrl = this.testPage + '?r=' + rand;
   this.testFrame.location.href = categoryTestUrl;
 };
+
+/**
+ * EXPORTS
+ */
+goog.exportSymbol('Util.createChromeFrameCheckbox',
+    Util.createChromeFrameCheckbox);
+goog.exportSymbol('Util.reconcileClientServerUaPretty',
+    Util.reconcileClientServerUaPretty);
+goog.exportSymbol('Util.ResultTablesController', Util.ResultTablesController);
+goog.exportSymbol('Util.TestDriver', Util.TestDriver);
+goog.exportSymbol('Util.TestDriver.prototype.addCategory',
+    Util.TestDriver.prototype.addCategory);
+goog.exportSymbol('Util.TestDriver.prototype.sendScore',
+    Util.TestDriver.prototype.sendScore);

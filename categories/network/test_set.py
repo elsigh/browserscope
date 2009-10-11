@@ -221,7 +221,8 @@ class NetworkTestSet(test_set_base.TestSet):
         score = results[test.key]['score']
         #logging.info('test: %s, score: %s' % (test.key, score))
         total_valid_tests += 1
-        # boolean 1 = 10, and steve's custom score for hostconn & maxconn map
+        # For booleans, when "score" is 10 that's test_type true.
+        # steve's custom score for hostconn & maxconn map
         # simply to 10 for good, 5 for ok, and 0 for fail, but we only award
         # a point for a 10 on those.
         if score == 10:
