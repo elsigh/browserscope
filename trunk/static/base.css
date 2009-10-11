@@ -517,6 +517,16 @@ html>body .goog-inline-block {
   border-right: 3px solid #bbb;
 }
 
+.rt .rt-b-f {
+  position: relative;
+  height: 2em;
+  min-width: 10em;
+}
+.rt .rt-b-f form {
+  position: absolute;
+  top: 1px;
+}
+
 .rt tfoot em {
   font-size: 70%;
 }
