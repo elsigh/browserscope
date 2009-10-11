@@ -59,7 +59,7 @@ INSTALLED_APPS = (
 
 
 # BROWSERSCOPE SPECIFIC GLOBALS
-CATEGORIES = ['network', 'acid3', 'selectors', 'richtext', 'security']
+CATEGORIES = ['network', 'acid3', 'selectors', 'richtext']
 
 STATIC_CATEGORIES = ['richtext']
 # Where we'll read the static files from. Either 'local' or an url.
