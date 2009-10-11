@@ -212,10 +212,16 @@ Util.ResultTablesController = function(category, categories, realUaString,
   this.realUaString = realUaString;
   this.browserFamily = 'top';
   this.resultsUriParams = resultsUriParams;
+  // If we have resultUriParams, scroll to them.
+  if (this.resultsUriParams) {
+    window.location.hash = '#rt-' + this.category + '-cur-ua';
+  }
+
   this.tables = {};
   this.xhrLoading = false;
   this.decorate();
   this.setCategory(category);
+
 };
 
 Util.ResultTablesController.prototype.decorate = function() {
