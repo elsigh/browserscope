@@ -131,7 +131,7 @@ browser_slash_v123_names = (
     'Demeter|Fluid|Fennec|Shiira|Sunrise|Chrome|Flock|Netscape|Lunascape|'
     'Epiphany|WebPilot|Vodafone|NetFront|Konqueror|SeaMonkey|Kazehakase|'
     'Vienna|Iceape|Iceweasel|IceWeasel|Iron|K-Meleon|Sleipnir|Galeon|'
-    'GranParadiso|Opera Mini|iCab|NetNewsWire|Iron')
+    'GranParadiso|Opera Mini|iCab|NetNewsWire|Iron|Iris')
 
 browser_slash_v12_names = (
     'Bolt|Jasmine|Maxthon|Lynx|Arora|IBrowse|Dillo|Camino|Shiira|Fennec|'
