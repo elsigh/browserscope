@@ -58,9 +58,6 @@ class UserAgentTest(unittest.TestCase):
                  'konqueror/4.3.1,gzip(gfe),gzip(gfe)')
     self.assertEqual(('Konqueror', '4', '3', '1'), UserAgent.parse(ua_string))
 
-    ua_string = ('Mozilla/5.0 (U; Mobile; iPhone; PPC; en; 480x800) AppleWebKit/525.18.1 (KHTML, like Gecko) WM5 Iris/1.1.9 Version/3.1.1 Mobile/5A345 Safari/525.20,gzip(gfe),gzip(gfe)')
-    self.assertEqual(('Iris', '1', '1', '9'), UserAgent.parse(ua_string))
-
 
     ua_string = 'SomethingWeNeverKnewExisted'
     self.assertEqual(('Other', None, None, None), UserAgent.parse(ua_string))
