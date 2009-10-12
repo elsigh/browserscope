@@ -58,10 +58,8 @@ class UserAgentTest(unittest.TestCase):
                  'konqueror/4.3.1,gzip(gfe),gzip(gfe)')
     self.assertEqual(('Konqueror', '4', '3', '1'), UserAgent.parse(ua_string))
 
-    ua_string = ('Mozilla/5.0 (X11; U; Linux armv7l; en-GB; rv:1.9.2a1pre) '
-                 'Gecko/20090928 Firefox/3.5 Maemo Browser 1.4.1.15 RX-51 '
-                 'N900,gzip(gfe),gzip(gfe)')
-    self.assertEqual(('Maemo Browser', '1', '4', '1'), UserAgent.parse(ua_string))
+    ua_string = ('Mozilla/5.0 (U; Mobile; iPhone; PPC; en; 480x800) AppleWebKit/525.18.1 (KHTML, like Gecko) WM5 Iris/1.1.9 Version/3.1.1 Mobile/5A345 Safari/525.20,gzip(gfe),gzip(gfe)')
+    self.assertEqual(('Iris', '1', '1', '9'), UserAgent.parse(ua_string))
 
 
     ua_string = 'SomethingWeNeverKnewExisted'
