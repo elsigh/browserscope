@@ -172,6 +172,8 @@ USER_AGENT_PARSERS = (
   # catches lower case konqueror
   _P(r'(konqueror)/(\d+)\.(\d+)\.(\d+)', 'Konqueror'),
 
+  # Maemo
+
   #### END SPECIAL CASES TOP ####
 
   #### MAIN CASES - this catches > 50% of all browsers ####
@@ -180,7 +182,7 @@ USER_AGENT_PARSERS = (
   # Browser/v1.v2
   _P(r'(%s)/(\d+)\.(\d+)' % browser_slash_v12_names),
   # Browser v1.v2.v3 (space instead of slash)
-  _P(r'(iRider|Crazy Browser|SkipStone|iCab|Lunascape|Sleipnir) (\d+)\.(\d+)\.(\d+)'),
+  _P(r'(iRider|Crazy Browser|SkipStone|iCab|Lunascape|Sleipnir|Maemo Browser) (\d+)\.(\d+)\.(\d+)'),
   # Browser v1.v2 (space instead of slash)
   _P(r'(iCab|Lunascape|Opera|Android) (\d+)\.(\d+)'),
   _P(r'(IEMobile) (\d+)\.(\d+)', 'IE Mobile'),
