@@ -659,9 +659,12 @@ goog.exportSymbol('Util.createChromeFrameCheckbox',
     Util.createChromeFrameCheckbox);
 goog.exportSymbol('Util.reconcileClientServerUaPretty',
     Util.reconcileClientServerUaPretty);
+goog.exportSymbol('Util.getParam', Util.getParam);
 goog.exportSymbol('Util.ResultTablesController', Util.ResultTablesController);
 goog.exportSymbol('Util.TestDriver', Util.TestDriver);
 goog.exportSymbol('Util.TestDriver.prototype.addCategory',
     Util.TestDriver.prototype.addCategory);
+goog.exportSymbol('Util.TestDriver.prototype.runTest',
+    Util.TestDriver.prototype.runTest);
 goog.exportSymbol('Util.TestDriver.prototype.sendScore',
     Util.TestDriver.prototype.sendScore);
