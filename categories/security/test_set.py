@@ -68,7 +68,7 @@ _TESTS = (
   which is a mitigation for cross-site scripting attacks.'''),
   SecurityTest('Block reflected XSS', 'Block reflected XSS', 
   '''Checks whether the browser blocks execution of JavaScript code that appears in the request 
-  URL. Browser-based XSS filters mitigates some classes of cross-site scripting attacks.'''),
+  URL. Browser-based XSS filters mitigate some classes of cross-site scripting attacks.'''),
   SecurityTest('Block location spoofing', 'Block location spoofing', 
   '''The global "location" object can be used by JavaScript to determine what page it is
   executing on. It is used by Flash Player, Google AJAX API, and many bookmarklets. 
@@ -96,10 +96,18 @@ _TESTS = (
   in IE8 standards mode</a>.
   '''),
   SecurityTest('Block cross-origin document', 'Block cross-origin document',
-  '''TODO'''),
+  '''Browsers should block cross-origin access to a frame's document to reduce the risk of
+  <a href="http://www.adambarth.com/papers/2009/barth-weinberger-song.pdf">cross-origin capability leaks</a>.
+  Accessing this property across origins is 
+  <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#security-2"prohibited
+  by HTML5</a>.'''),
   SecurityTest('Block cross-origin contentDocument',
                'Block cross-origin contentDocument', 
-  '''TODO'''),
+  '''Browsers should block cross-origin access to a frame's contentDocument to reduce the risk of
+  <a href="http://www.adambarth.com/papers/2009/barth-weinberger-song.pdf">cross-origin capability leaks</a>.
+  Accessing this property across origins is 
+  <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#security-2"prohibited
+  by HTML5</a>.'''),
   SecurityTest('Block UTF-7 sniffing', 'Block UTF-7 sniffing',
   '''The UTF-7 encoding is vulnerable to cross-site scripting and browsers
   should not that sniff
