@@ -107,7 +107,7 @@ Util.getIframeDocument = function(iframeId) {
   var doc;
   var iframe = window.frames[iframeId];
   if (!iframe) {
-    iframe = document.getElementById(iframeId);
+    iframe = goog.dom.$(iframeId);
   }
   if (!iframe) {
     return null;
@@ -253,8 +253,8 @@ Util.ResultTablesController.prototype.decorate = function() {
     }
     categoriesList.appendChild(li);
   }
-  var results = document.getElementById('bs-results');
-  var resultsByCat = document.getElementById('bs-results-bycat');
+  var results = goog.dom.$('bs-results');
+  var resultsByCat = goog.dom.$('bs-results-bycat');
   results.insertBefore(categoriesList, resultsByCat);
 };
 
@@ -342,7 +342,13 @@ Util.ResultTable = function(controller, category) {
   this.controller = controller;
   this.category = category;
   this.categoryObj = this.controller.categories[this.category];
-  this.browserFamilySelect = document.getElementById('rt-' + this.category +
+
+  /**
+   * @type {Element}
+   */
+  this.table = goog.dom.$('rt-' + this.category + '-t');
+
+  this.browserFamilySelect = goog.dom.$('rt-' + this.category +
       '-v');
   this.init();
 };
@@ -351,45 +357,56 @@ Util.ResultTable.prototype.init = function() {
   this.setUpBrowserFamilyForm();
   this.setUpSortableTable();
   this.fixRealUaStringInResults();
+  this.initTooltips();
+};
+
+Util.ResultTable.prototype.initTooltips = function () {
+  if (!this.table) { return; }
+  var thead = this.table.getElementsByTagName('thead')[0];
+  var ths = thead.getElementsByTagName('th');
+  for (var i = 0, th; th = ths[i]; i++) {
+    var tt = new goog.ui.Tooltip(th);
+    tt.setHtml(th.title);
+    th.setAttribute('title', '');
+  }
 };
 
 Util.ResultTable.prototype.setUpBrowserFamilyForm = function() {
   // hide submit
-  document.getElementById('rt-' + this.category + '-v-s').style.display =
+  goog.dom.$('rt-' + this.category + '-v-s').style.display =
       'none';
   goog.events.listen(this.browserFamilySelect, 'change',
       this.browserFamilyChangeHandler, false, this);
 
   // ensures a refresh doesn't make the select look wrongly selected.
-  document.getElementById('rt-' + this.category + '-v-f').reset();
+  goog.dom.$('rt-' + this.category + '-v-f').reset();
 };
 
 
 Util.ResultTable.prototype.setUpSortableTable = function() {
-  var table = document.getElementById('rt-' + this.category + '-t');
-  if (!table) { return; }
+  if (!this.table) { return; }
   var tableSorter = new goog.ui.TableSorter();
   tableSorter.setDefaultSortFunction(Util.alphaCaseInsensitiveCompare);
   // we know # tests should be numeric sort
-  var thead = table.getElementsByTagName('thead')[0];
+  var thead = this.table.getElementsByTagName('thead')[0];
   var ths = thead.getElementsByTagName('th');
   var numTestsIndex = ths.length - 1;
   tableSorter.setSortFunction(numTestsIndex,
       goog.ui.TableSorter.numericSort);
-  tableSorter.decorate(table);
+  tableSorter.decorate(this.table);
   goog.events.listen(tableSorter, goog.ui.TableSorter.EventType.SORT,
       this.onTableSort, false, this);
 };
 Util.ResultTable.prototype.onTableSort = function(e) {
   var tableSorter = e.target;
-  var yourResultsRow = document.getElementById('rt-' +
+  var yourResultsRow = goog.dom.$('rt-' +
       this.category + '-ua-s-r');
   if (yourResultsRow) {
     yourResultsRow.style.display = 'none';
   }
 };
 Util.ResultTable.prototype.fixRealUaStringInResults = function() {
-  var resultUa = document.getElementById('rt-' + this.category + '-cur-ua');
+  var resultUa = goog.dom.$('rt-' + this.category + '-cur-ua');
   if (this.controller.realUaString && resultUa) {
     resultUa.innerHTML = this.controller.realUaString;
   }
@@ -407,7 +424,7 @@ Util.ResultTable.prototype.browserFamilyChangeHandler = function(e) {
   this.controller.browserFamily = this.browserFamily;
 
   // fix the download links
-  var downloadsContainer = document.getElementById('rt-dl-' + this.category);
+  var downloadsContainer = goog.dom.$('rt-dl-' + this.category);
   if (downloadsContainer) {
     var downloadLinks = downloadsContainer.getElementsByTagName('a');
     for (var i = 0, downloadLink; downloadLink = downloadLinks[i]; i++) {
@@ -483,7 +500,7 @@ Util.TestDriver = function(testPage, windowParent, category, categoryName,
   /**
    * @type {Element}
    */
-  this.runTestButton = document.getElementById('bs-runtest');
+  this.runTestButton = goog.dom.$('bs-runtest');
   if (this.runTestButton) {
     goog.events.listen(this.runTestButton, 'click',
         this.runTestButtonClickHandlerBound);
@@ -505,9 +522,9 @@ Util.TestDriver = function(testPage, windowParent, category, categoryName,
   this.testResults = null;
 
   /**
-   * @type {HTMLElement}
+   * @type {Element}
    */
-  this.sendBeaconCheckbox = document.getElementById('bs-send-beacon');
+  this.sendBeaconCheckbox = goog.dom.$('bs-send-beacon');
 };
 
 /**
@@ -632,9 +649,9 @@ Util.TestDriver.prototype.runTestButtonClickHandler = function(e) {
   goog.events.unlisten(this.runTestButton, 'click',
       this.runTestButtonClickHandlerBound);
   this.runTestButton.innerHTML = this.categoryName + ' Tests Running...';
-  document.getElementById('bs-send-beacon-label').style.display = 'none';
+  goog.dom.$('bs-send-beacon-label').style.display = 'none';
   // Is there a Chrome Frame checkbox?
-  var chromFrameCheckbox = document.getElementById('bs-cf-c');
+  var chromFrameCheckbox = goog.dom.$('bs-cf-c');
   if (chromFrameCheckbox) {
     chromFrameCheckbox.style.display = 'none';
   }
