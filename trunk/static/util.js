@@ -303,7 +303,7 @@ Util.ResultTablesController.prototype.xhrCategoryResults = function() {
       ' Results ...';
 
   this.url = '/?category=' + this.category +
-      '&o=xhr&v=' + this.browserFamily + this.resultsUriParams;
+      '&o=xhr&v=' + this.browserFamily + '&' + this.resultsUriParams;
   goog.net.XhrIo.send(this.url, goog.bind(this.loadStatsTableCallback, this),
       'get', null, null, 15000); // 15000 = 15 second timeout
 };
