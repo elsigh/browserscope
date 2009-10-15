@@ -4,6 +4,19 @@
 
   <h1>{{ page_title }}</h1>
 
+  <a href="/security/test" class="bs-btn">Run the Security Tests</a>
+
+  <h2>What are the Security Tests?</h2>
+  <p>
+  This page contains a suite of security tests that measure
+  whether the browser supports JavaScript APIs that allow safe
+  interactions between sites, and whether it follows industry
+  best practices for blocking harmful interactions between sites.
+  The initial set of tests were contributed by
+  <a href="http://www.adambarth.com/">Adam Barth</a>
+  and <a href="http://www.collinjackson.com/">Collin Jackson</a>.
+  </p>
+
   <h2 id="rt-tests">More About Each Test</h2>
   {% for test in tests %}
     <h3 id="rt-{{ test.key }}">{{ test.name }}</h3>
