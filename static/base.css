@@ -620,6 +620,18 @@ html>body .goog-inline-block {
   content: "\2191";
 }
 
+/* tooltip */
+.goog-tooltip {
+  background: #e8a63d;
+  border: 1px solid #333;
+  padding: 5px;
+  opacity: .9;
+  width: 400px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+}
+
+
 /** FAQ **/
 #bs-faq dt {
   font-size: 130%;

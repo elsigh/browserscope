@@ -30,7 +30,7 @@
         </th>
 
         {% for test in tests %}
-          <th scope="col">
+          <th scope="col" title="{{ test.doc }}">
             {{ test.name }}
           </th>
         {% endfor %}
