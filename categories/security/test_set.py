@@ -51,22 +51,67 @@ class SecurityTest(test_set_base.TestBase):
 
 _TESTS = (
   # key, name, doc
-  SecurityTest('postMessage API', 'postMessage API', 'TODO'),
-  SecurityTest('JSON.parse API', 'JSON.parse API', 'TODO'),
-  SecurityTest('toStaticHTML API', 'toStaticHTML API', 'TODO'),
-  SecurityTest('httpOnly cookie API', 'httpOnly cookie API', 'TODO'),
-  SecurityTest('Block reflected XSS', 'Block reflected XSS', 'TODO'),
-  SecurityTest('Block location spoofing', 'Block location spoofing', 'TODO'),
+  SecurityTest('postMessage API', 'postMessage API', 
+  '''Checks whether the browser supports the 
+  <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages">HTML 5 
+  cross-document messaging</a> API that enables secure communication between origins.'''),
+  SecurityTest('JSON.parse API', 'JSON.parse API', 
+  '''Checks whether the browser natively supports the <a href="http://json.org/js.html">JSON.parse</a> API. 
+  Native JSON parsing is safer than using eval.'''),
+  SecurityTest('toStaticHTML API', 'toStaticHTML API', 
+  '''Checks whether the browser supports the 
+  <a href="http://msdn.microsoft.com/en-us/library/cc848922%28VS.85%29.aspx">toStaticHTML API</a> 
+  for sanitizing untrusted inputs.'''),
+  SecurityTest('httpOnly cookie API', 'httpOnly cookie API', 
+  '''Checks whether the browser supports the
+  <a href="http://tools.ietf.org/html/draft-abarth-cookie-02#section-5.1.6">httpOnly cookie attribute</a>,
+  which is a mitigation for cross-site scripting attacks.'''),
+  SecurityTest('Block reflected XSS', 'Block reflected XSS', 
+  '''Checks whether the browser blocks execution of JavaScript code that appears in the request 
+  URL. Browser-based XSS filters mitigates some classes of cross-site scripting attacks.'),
+  SecurityTest('Block location spoofing', 'Block location spoofing', 
+  '''The global "location" object can be used by JavaScript to determine what page it is
+  executing on. It is used by Flash Player, Google AJAX API, and many bookmarklets. 
+  Browsers should block 
+  <a href="http://www.adambarth.com/papers/2009/adida-barth-jackson.pdf">JavaScript rootkits</a>
+  that try to overwrite the location object.'''),
   SecurityTest('Block window.top spoofing', 'Block window.top spoofing',
-               'TODO'),
-  SecurityTest('Block JSON hijacking', 'Block JSON hijacking', 'TODO'),
-  SecurityTest('Block CSS expressions', 'Block CSS expressions', 'TODO'),
+  '''The global "top" variable is used by JavaScript to determine the URL of the main frame of the current
+  tab. It is used for frame busting, and Flash Player also uses it
+  to enforce its third-party cookie blocking policy. Browsers should block
+  <a href="http://www.adambarth.com/papers/2009/adida-barth-jackson.pdf">JavaScript rootkits</a>
+  that try to overwrite the top object.'''),
+  SecurityTest('Block JSON hijacking', 'Block JSON hijacking',
+  '''Documents encoded in JSON format can be read across domains if the browser
+  supports a 
+  <a href="http://www.fortify.com/advisory.jsp">mutable Array constructor</a>
+  that is called when array literals are encountered. JSON hijacking is also possible if the
+  browser supports a 
+  <a href="http://haacked.com/archive/2009/06/25/json-hijacking.aspx">mutable setter function</a>
+  for the Object prototype that is called when object literals are encountered.'''),
+  SecurityTest('Block CSS expressions', 'Block CSS expressions', 
+  '''CSS Expressions are commonly used by attackers to evade server-side XSS filters.
+  They are proprietary to Internet Explorer and their support has been 
+  <a href="http://blogs.msdn.com/ie/archive/2008/10/16/ending-expressions.aspx">discontinued
+  in IE8 standards mode</a>.
+  '''),
   SecurityTest('Block cross-origin document', 'Block cross-origin document',
-               'TODO'),
+  '''TODO'''),
   SecurityTest('Block cross-origin contentDocument',
-               'Block cross-origin contentDocument', 'TODO'),
-  SecurityTest('Block UTF-7 sniffing', 'Block UTF-7 sniffing', 'TODO'),
-  SecurityTest('Block all UTF-7', 'Block all UTF-7', 'TODO'),
+               'Block cross-origin contentDocument', 
+  '''TODO'''),
+  SecurityTest('Block UTF-7 sniffing', 'Block UTF-7 sniffing',
+  '''The UTF-7 encoding is vulnerable to cross-site scripting and browsers
+  should not that sniff
+  Some browsers try to automatically detect UTF-7 encoded HTML documents.
+  <a href="http://tools.ietf.org/html/draft-abarth-mime-sniff-03">UTF-7 sniffing 
+  is not recommended</a> because an attacker may use it to bypass cross-site
+  scripting filters.
+  '''),
+  SecurityTest('Block all UTF-7', 'Block all UTF-7',
+  '''The UTF-7 encoding is vulnerable to cross-site scripting attacks and is not 
+  recommended for HTML documents. This test checks to see whether UTF-7 encoding
+  is blocked.'''),
 )
 
 
