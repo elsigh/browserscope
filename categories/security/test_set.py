@@ -68,7 +68,7 @@ _TESTS = (
   which is a mitigation for cross-site scripting attacks.'''),
   SecurityTest('Block reflected XSS', 'Block reflected XSS', 
   '''Checks whether the browser blocks execution of JavaScript code that appears in the request 
-  URL. Browser-based XSS filters mitigates some classes of cross-site scripting attacks.'),
+  URL. Browser-based XSS filters mitigates some classes of cross-site scripting attacks.'''),
   SecurityTest('Block location spoofing', 'Block location spoofing', 
   '''The global "location" object can be used by JavaScript to determine what page it is
   executing on. It is used by Flash Player, Google AJAX API, and many bookmarklets. 
