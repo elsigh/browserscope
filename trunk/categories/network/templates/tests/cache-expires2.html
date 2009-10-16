@@ -30,8 +30,8 @@ An image, a stylesheet, and an external script were downloaded in the previous p
 This page should load almost instantly if those are cached.
 
 <p>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep=4&t={{ prevt }}'>
-<link type="text/css" rel="stylesheet" href="http://stevesouders.com/bin/resource.cgi?type=css&sleep=4&t={{ prevt }}">
-<script src='http://stevesouders.com/bin/resource.cgi?type=js&sleep=4&t={{ prevt }}' type='text/javascript'></script>
+<img src='http://{{ resource_cgi }}?type=gif&sleep=4&t={{ prevt }}'>
+<link type="text/css" rel="stylesheet" href="http://{{ resource_cgi }}?type=css&sleep=4&t={{ prevt }}">
+<script src='http://{{ resource_cgi }}?type=js&sleep=4&t={{ prevt }}' type='text/javascript'></script>
 
 {% endblock %}

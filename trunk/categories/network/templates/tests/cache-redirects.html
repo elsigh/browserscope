@@ -12,6 +12,6 @@ window.onload = function() {
 <p>
 loading a redirect to test caching...
 
-<iframe src="http://stevesouders.com/bin/resource.cgi?redir=1&type=html&sleep=4&t={{ epoch }}" style="width: 0; height: 0; border: 0;"></iframe>
+<iframe src="http://{{ resource_cgi }}?redir=1&type=html&sleep=4&t={{ epoch }}" style="width: 0; height: 0; border: 0;"></iframe>
 
 {% endblock %}

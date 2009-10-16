@@ -13,8 +13,8 @@ window.onload = function() {
 loading resources to test caching...
 
 <p>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep=4&t={{ epoch }}'>
-<link type="text/css" rel="stylesheet" href="http://stevesouders.com/bin/resource.cgi?type=css&sleep=4&t={{ epoch }}">
-<script src='http://stevesouders.com/bin/resource.cgi?type=js&sleep=4&t={{ epoch }}' type='text/javascript'></script>
+<img src='http://{{ resource_cgi }}?type=gif&sleep=4&t={{ epoch }}'>
+<link type="text/css" rel="stylesheet" href="http://{{ resource_cgi }}?type=css&sleep=4&t={{ epoch }}">
+<script src='http://{{ resource_cgi }}?type=js&sleep=4&t={{ epoch }}' type='text/javascript'></script>
 
 {% endblock %}

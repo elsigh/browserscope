@@ -50,6 +50,7 @@ from categories import all_test_sets
 from categories import test_set_params
 from base import decorators
 from base import manage_dirty
+from base import summary_test_set
 
 
 TEST_DRIVER_TPL = 'test_driver.html'
@@ -159,7 +160,10 @@ def Home(request):
   stats_tables = {}
   test_set = None
   category = request.GET.get('category')
-  if category:
+
+  if category == 'summary':
+    test_set = summary_test_set.TEST_SET
+  elif category:
     test_set = all_test_sets.GetTestSet(category)
   else:
     if len(results_params) > 0:
@@ -167,6 +171,7 @@ def Home(request):
         if request.GET.get('%s_results' % category):
           test_set = all_test_sets.GetTestSet(category)
           break
+
   # If we still got no test_set, take the first one in settings.CATEGORIES
   if not test_set:
     category = settings.CATEGORIES[0]
@@ -463,6 +468,10 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     UserAgentGroup.SortUserAgentStrings(user_agent_strings)
     #logging.info('Pickled stats_data: %s' % stats_data)
     #logging.info('pickled ua_strings: %s' % user_agent_strings)
+
+  elif test_set.category == 'summary':
+    stats_data = GetSummaryData(user_agent_strings, version_level)
+
   else:
     stats_data = GetStatsData(test_set.category, tests, user_agent_strings,
                               params_str, use_memcache, version_level)
@@ -542,6 +551,32 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     return GetStatsDataTemplatized(params, 'csv')
   else:
     return params
+
+
+def GetSummaryData(user_agent_strings, version_level):
+  stats_data = {}
+  for test_set in all_test_sets.GetTestSets():
+    for user_agent in user_agent_strings:
+      if not stats_data.has_key(user_agent):
+        stats_data[user_agent] = {
+          'total_runs': 0,
+          'results': {},
+          'score': 0,
+          'display': 0
+          }
+      memcache_ua_key = '%s_%s' % (test_set.category, user_agent)
+      row_stats = memcache.get(key=memcache_ua_key,
+                               namespace=settings.STATS_MEMCACHE_UA_ROW_SCORE_NS)
+      if not row_stats:
+        row_stats = {'row_score': 0, 'row_display': ''}
+      stats_data[user_agent]['results'][test_set.category] = {
+          'median': row_stats['row_score'],
+          'score': row_stats['row_score'],
+          'display': row_stats['row_display'],
+          'expando': None,
+          }
+  #logging.info('summary_data: %s' % stats_data)
+  return stats_data
 
 
 def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
@@ -639,6 +674,11 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
                      namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
         logging.info('GetStatsData added user_agent %s stats to memcache' %
                      user_agent)
+
+        # Add row total scores for overall results display.
+        row_stats = {'row_score': row_score, 'row_display': row_display}
+        memcache.set(key=memcache_ua_key, value=row_stats, time=0,
+                     namespace=settings.STATS_MEMCACHE_UA_ROW_SCORE_NS)
 
     # This adds the result dict to the output dict for this ua.
     # We check for version_level == 'top' b/c we always add every top ua

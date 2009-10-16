@@ -28,8 +28,8 @@ window.onload = doTest;
 This test determines if redirects are cached <i>for resources in the page</i> (as opposed to the page URL itself).
 
 <p>
-<img src='http://stevesouders.com/bin/resource.cgi?redir=1&type=gif&sleep=4&t={{ prevt }}'>
-<link type="text/css" rel="stylesheet" href="http://stevesouders.com/bin/resource.cgi?redir=1&type=css&sleep=4&t={{ prevt }}">
+<img src='http://{{ resource_cgi }}?redir=1&type=gif&sleep=4&t={{ prevt }}'>
+<link type="text/css" rel="stylesheet" href="http://{{ resource_cgi }}?redir=1&type=css&sleep=4&t={{ prevt }}">
 <script src='http://1.cuzillion.com/bin/resource.cgi?redir=1&type=js&sleep=4&t={{ prevt }}' type='text/javascript'></script>
 
 {% endblock %}

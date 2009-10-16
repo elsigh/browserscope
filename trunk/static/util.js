@@ -365,9 +365,11 @@ Util.ResultTable.prototype.initTooltips = function () {
   var thead = this.table.getElementsByTagName('thead')[0];
   var ths = thead.getElementsByTagName('th');
   for (var i = 0, th; th = ths[i]; i++) {
-    var tt = new goog.ui.Tooltip(th);
-    tt.setHtml(th.title);
-    th.setAttribute('title', '');
+    if (th.title && th.title != '') {
+      var tt = new goog.ui.Tooltip(th);
+      tt.setHtml(th.title);
+      th.setAttribute('title', '');
+    }
   }
 };
 
