@@ -98,26 +98,25 @@ _TESTS = (
   '''Browsers should block cross-origin access to a frame's document to reduce the risk of
   <a href="http://www.adambarth.com/papers/2009/barth-weinberger-song.pdf">cross-origin capability leaks</a>.
   Accessing this property across origins is 
-  <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#security-2"prohibited
+  <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#security-2">prohibited
   by HTML5</a>.'''),
   SecurityTest('Block cross-origin contentDocument',
                'Block cross-origin contentDocument', 
   '''Browsers should block cross-origin access to a frame's contentDocument to reduce the risk of
   <a href="http://www.adambarth.com/papers/2009/barth-weinberger-song.pdf">cross-origin capability leaks</a>.
   Accessing this property across origins is 
-  <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#security-2"prohibited
+  <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#security-2">prohibited
   by HTML5</a>.'''),
   SecurityTest('Block UTF-7 sniffing', 'Block UTF-7 sniffing',
-  '''The UTF-7 encoding is vulnerable to cross-site scripting and browsers
-  should not that sniff
-  Some browsers try to automatically detect UTF-7 encoded HTML documents.
-  <a href="http://tools.ietf.org/html/draft-abarth-mime-sniff-03">UTF-7 sniffing 
+  '''This test checks whether the browser will automatically detect UTF-7 
+  encoded HTML documents.
+  <a href="http://code.google.com/p/browsersec/wiki/Part2">UTF-7 sniffing 
   is not recommended</a> because an attacker may use it to bypass cross-site
   scripting filters.'''),
   SecurityTest('Block all UTF-7', 'Block all UTF-7',
-  '''The UTF-7 encoding is vulnerable to cross-site scripting attacks and is not 
+  '''The UTF-7 encoding is prone to cross-site scripting attacks and is not 
   recommended for HTML documents. This test checks to see whether UTF-7 encoding
-  is blocked.'''),
+  is completely blocked.'''),
 )
 
 
