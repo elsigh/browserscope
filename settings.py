@@ -68,6 +68,7 @@ STATIC_SRC = 'http://static.latest.ua-profiler.appspot.com/static_mode'
 
 STATS_MEMCACHE_TIMEOUT = 0
 STATS_MEMCACHE_UA_ROW_NS = 'ua_row'
+STATS_MEMCACHE_UA_ROW_SCORE_NS = 'ua_row_score'
 STATS_SCORE_TRUE = 'yes'
 STATS_SCORE_FALSE = 'no'
 

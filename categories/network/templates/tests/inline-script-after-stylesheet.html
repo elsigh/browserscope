@@ -34,12 +34,12 @@ This page tests that situation by including a stylesheet followed by an inline s
 If the page loads in under 8 seconds, it means the stylesheet and inline script combination did not block downloads.
 
 <p>
-<link type="text/css" rel="stylesheet" href="http://stevesouders.com/bin/resource.cgi?type=css&sleep=4&t={{ epoch }}">
+<link type="text/css" rel="stylesheet" href="http://{{ resource_cgi }}?type=css&sleep=4&t={{ epoch }}">
 
 <script>
 var t_inlinejs = Number(new Date());
 </script>
 
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep=4&t={{ epoch }}'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep=4&t={{ epoch }}'>
 
 {% endblock %}

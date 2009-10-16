@@ -26,38 +26,38 @@ window.onload = doTest;
 </script>
 
 <p>
-This page tests how many connections your browser opens for a single hostname. 
-This page contains 24 images from <code>stevesouders.com</code> that each take {{ sleep }} seconds to load. 
+This page tests how many connections your browser opens for a single hostname.
+This page contains 24 images from <code>stevesouders.com</code> that each take {{ sleep }} seconds to load.
 
 <hr>
 
 <p>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=01&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=02&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=03&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=04&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=05&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=06&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=07&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=08&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=09&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=10&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=01&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=02&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=03&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=04&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=05&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=06&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=07&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=08&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=09&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=10&t={{ epoch }}' onload='countImage()'>
 
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=11&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=12&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=13&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=14&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=15&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=16&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=17&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=18&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=19&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=10&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=11&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=12&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=13&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=14&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=15&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=16&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=17&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=18&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=19&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=10&t={{ epoch }}' onload='countImage()'>
 
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=21&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=22&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=23&t={{ epoch }}' onload='countImage()'>
-<img src='http://stevesouders.com/bin/resource.cgi?type=gif&sleep={{ sleep }}&n=24&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=21&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=22&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=23&t={{ epoch }}' onload='countImage()'>
+<img src='http://{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=24&t={{ epoch }}' onload='countImage()'>
 
 
 {% endblock %}

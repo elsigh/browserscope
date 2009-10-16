@@ -26,13 +26,13 @@ window.onload = doTest;
 
 <p>
 This test determines if the prefetch keyword for the link tag works.
-(See the link prefetch description in this <a href="http://developer.mozilla.org/en/Link_prefetching_FAQ">MDC FAQ</a> 
+(See the link prefetch description in this <a href="http://developer.mozilla.org/en/Link_prefetching_FAQ">MDC FAQ</a>
 and in a working draft of the <a href="http://www.whatwg.org/specs/web-apps/current-work/#link-type10">HTML 5</a> spec.)
 Prefetch is an easy way for web developers to download resources they know the user will need later.
 
 <p>
-<img src="http://stevesouders.com/bin/resource.cgi?type=gif&sleep=4&prefetch=1&t={{ prevt }}">
-<link type="text/css" rel="stylesheet" href="http://stevesouders.com/bin/resource.cgi?type=css&sleep=4&prefetch=1&t={{ prevt }}">
+<img src="http://{{ resource_cgi }}?type=gif&sleep=4&prefetch=1&t={{ prevt }}">
+<link type="text/css" rel="stylesheet" href="http://{{ resource_cgi }}?type=css&sleep=4&prefetch=1&t={{ prevt }}">
 <script src="http://1.cuzillion.com/bin/resource.cgi?type=js&sleep=4&prefetch=1&t={{ prevt }}" type="text/javascript"></script>
 
 {% endblock %}
