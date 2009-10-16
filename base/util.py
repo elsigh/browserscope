@@ -585,18 +585,28 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
   #use_memcache=False
   #logging.info('GetStatsData category:%s\n tests:%s\n user_agents:%s\n params:%s\nuse_memcache:%s\nversion_level:%s' % (category, tests, user_agents, params, use_memcache, version_level))
   stats = {'total_runs': 0}
+
+  # Do a initial optimized-for-memcache-get_multi pass.
+  memcache_stats_data = {}
+  if use_memcache:
+    memcache_ua_keys = []
+    for user_agent in user_agents:
+      memcache_ua_key = '%s_%s' % (category, user_agent)
+      memcache_ua_keys.append(memcache_ua_key)
+    memcache_stats_data = memcache.get_multi(
+          keys=memcache_ua_keys, namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
+
   for user_agent in user_agents:
     user_agent_stats = None
-    if use_memcache:
-      memcache_ua_key = '%s_%s' % (category, user_agent)
-      user_agent_stats = memcache.get(
-          key=memcache_ua_key, namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
+    memcache_ua_key = '%s_%s' % (category, user_agent)
+    if memcache_stats_data.has_key(memcache_ua_key):
+      user_agent_stats = memcache_stats_data[memcache_ua_key]
 
     # Just for logging
     if user_agent_stats is None:
       logging.info('Diving into the rankers for %s...' % user_agent)
     else:
-      logging.info('GetStatsData memcache ua: %s, len(uastats)stats:%s' %
+      logging.info('GetStatsData from memcache ua: %s, len(uastats)stats:%s' %
                    (user_agent, len(user_agent_stats)))
 
     if not user_agent_stats:
