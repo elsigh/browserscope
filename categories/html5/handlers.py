@@ -14,20 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Handlers for the Browserscope Security Tests."""
+"""Handlers for the Browserscope HTML5 Tests."""
 
 
 from categories import all_test_sets
 from base import util
 
 
-CATEGORY = 'security'
+CATEGORY = 'html5'
 
 
 def About(request):
   """About page."""
   params = {
-    'page_title': 'What are the Security Tests?',
+    'page_title': 'What is the HTML5 Test?',
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
   return util.Render(request, '%s/templates/about.html' % CATEGORY, params)

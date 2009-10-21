@@ -85,6 +85,9 @@ handlers:
 - url: /security/static
   static_dir: categories/security/static
   expiration: '3650d'
+- url: /html5/static
+  static_dir: categories/html5/static
+  expiration: '3650d'
 
 - url: /favicon\.ico
   static_files: static/img/favicon.ico

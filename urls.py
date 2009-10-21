@@ -129,4 +129,7 @@ urlpatterns = patterns('',
 
   # Security urls
   (r'^security/about$', 'categories.security.handlers.About'),
+
+  # HTML5 urls
+  (r'^html5/about$', 'categories.html5.handlers.About'),
 )

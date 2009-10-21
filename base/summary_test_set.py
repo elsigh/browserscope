@@ -57,12 +57,12 @@ class SummaryTestSet(test_set_base.TestSet):
       Where score is a value between 1-100.
       And display is the text for the cell.
     """
-    #logging.info('acid3 getrowscore results: %s' % results)
+    logging.info('summary getrowscore results: %s' % results)
     if not results.has_key('score') or results['score']['median'] is None:
       score = 0
     else:
       score = results['score']['median']
-    return score, ''
+    return score, 'yo'
 
 
 TEST_SET = SummaryTestSet(

@@ -581,7 +581,9 @@ Util.TestDriver.prototype.sendScore = function(testResults,
       goog.net.XhrIo.send('/beacon', null, 'post', data);
     }
     this.runTestButton.className = 'bs-btn';
-    this.runTestButton.innerHTML = 'Done! Compare your results »';
+    var checkmarkUtf8 = '✓';
+    this.runTestButton.innerHTML = checkmarkUtf8 + 'Done! Compare your ' +
+        this.categoryName + ' Test results »';
     this.runTestButton.continueUrl = '/?' + this.uriResults;
     goog.events.listen(this.runTestButton, 'click', function(e) {
       var btn = e.target;
@@ -589,16 +591,17 @@ Util.TestDriver.prototype.sendScore = function(testResults,
       window.top.location.href = continueUrl;
     });
 
+    /*
     var resultsDisplay = continueParams ?
           continueParams.join(',') :
-          testResults.join(',');
+          testResults.join(',<wbr>');
     var scoreNode = goog.dom.createElement('div');
     var thanks = this.sendBeaconCheckbox.checked ?
         'Thanks for contributing! ' : '';
-    scoreNode.appendChild(goog.dom.createTextNode(
-        thanks + 'Your results: ' + resultsDisplay));
+    scoreNode.innerHTML = thanks + 'Your results: ' + resultsDisplay;
     scoreNode.style.margin = '.7em 0 0 1em';
     this.runTestButton.parentNode.appendChild(scoreNode);
+    */
   }
 
   // Update the test frame to scroll to the top where the score is.
