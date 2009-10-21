@@ -21,8 +21,8 @@
     }
     function sendScore() {
       if (document.body.className == 'unfinished') {
-        parent.sendScore(window.results);
         document.body.className = 'done';
+        if (parent != self) parent.sendScore(window.results);
       }
     }
     function recordResult(key, result) {
@@ -82,6 +82,18 @@
       }
     }
     </script>
+    <script>
+    function objectWithSetter1(func) {
+      // This is a syntax error on some browsers
+      return { set some_random_field(val) { func(val); } };
+    }
+    </script>
+    <script>
+    function objectWithSetter2(func) {
+      // This is a syntax error on some browsers
+      return { some_random_field setter: function(val) { func(val); } };
+    }
+    </script>
   </head>
   <body class='unfinished'>
     <ol id='results'></ol>
@@ -113,13 +125,41 @@
       return window.top != "fake";
     });
     runTest('Block JSON hijacking', function () {
-      var normal_array = window.Array;
       var fail = false;
-      window.Array = function () {
-        fail = true;
-      }
+      var failFunc = function () { fail = true; }
+      var normal_array = window.Array;
+      window.Array = failFunc;
       var array_literal = ["secret!"];
       window.Array = normal_array;
+
+      var normal_object = window.Object;
+      window.Object = function() { this.some_random_field = ''; }
+      if (window.Object.__defineSetter__) {
+        window.Object.__defineSetter__("some_random_field", failFunc);
+      }
+      var object_literal = {"some_random_field": "secret"};
+      
+      if (window.objectWithSetter1) {
+        window.Object.prototype = window.objectWithSetter1(failFunc);
+      }
+      var object_literal = {"some_random_field": "secret"};
+      
+      if (window.objectWithSetter2) {
+        window.Object.prototype = window.objectWithSetter2(failFunc);
+      }
+      var object_literal = {"some_random_field": "secret"};
+      
+      if (window.Object.defineSetter) {
+        window.Object.defineSetter("some_random_field", failFunc);
+      }
+      var object_literal = {"some_random_field": "secret"};
+      
+      if (window.Object.defineProperty) {
+        window.Object.defineProperty(Object.prototype, "some_random_field", { set: failFunc });
+      }
+      var object_literal = {"some_random_field": "secret"};
+
+      window.Object = normal_object;
       return !fail;
     });
     window.css_expression_pass = true;
