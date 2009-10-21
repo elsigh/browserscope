@@ -30,5 +30,5 @@ def About(request):
     'page_title': 'What is the HTML5 Test?',
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
-  return util.Render(request, '%s/templates/about.html' % CATEGORY, params)
+  return util.Render(request, 'templates/about.html', params, CATEGORY)
 

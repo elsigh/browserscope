@@ -27,7 +27,7 @@ _CATEGORY = 'html5'
 class Html5Test(test_set_base.TestBase):
   TESTS_URL_PATH = '/%s/test' % _CATEGORY
 
-  def __init__(self, key, name, doc):
+  def __init__(self, key, name, doc, url=None):
     """Initialze a benchmark test.
 
     Args:
@@ -47,12 +47,59 @@ class Html5Test(test_set_base.TestBase):
         doc=doc,
         min_value=0,
         max_value=1)
+    self.url = url
 
 
 _TESTS = (
   # key, name, doc
-  Html5Test('', '',
-  ''''''),
+  Html5Test('testCanvas', 'Canvas Tag',
+  'Support for <code>&lt;canvas&gt;</code>'),
+  Html5Test('testVideo', 'Video Tag',
+  'Support for <code>&lt;video&gt;</code>'),
+  Html5Test('testLocalStorage', 'Local Storage',
+  'Support for local storage',
+  'http://dev.w3.org/html5/webstorage/'),
+  Html5Test('testWebWorkers', 'Web Workers',
+  'Support for Web Workers',
+  'http://www.whatwg.org/specs/web-workers/current-work/'),
+  Html5Test('testOffline', 'Offline',
+  'Support for offline Web applications',
+  'http://www.whatwg.org/specs/web-apps/current-work/multipage/offline.html#offline'),
+  Html5Test('testGeolocation', 'Geolocation',
+  'Support for Geolocation API',
+  'http://www.w3.org/TR/geolocation-API/'),
+  Html5Test('testInputSearch', 'Search <input>',
+  'Support for <code>&lt;input type="search"&gt;</code>'),
+  Html5Test('testInputNumber', 'Number <input>',
+  'Support for <code>&lt;input type="number"&gt;</code>'),
+  Html5Test('testInputRange', 'Range <input>',
+  'Support for <code>&lt;input type="range"&gt;</code>'),
+  Html5Test('testInputColor', 'Color <input>',
+  'Support for <code>&lt;input type="color"&gt;</code>'),
+  Html5Test('testInputTel', 'Tel <input>',
+  'Support for <code>&lt;input type="tel"&gt;</code>'),
+  Html5Test('testInputUrl', 'URL <input>',
+  'Support for <code>&lt;input type="url"&gt;</code>'),
+  Html5Test('testInputEmail', 'Email <input>',
+  'Support for <code>&lt;input type="email"&gt;</code>'),
+  Html5Test('testInputDate', 'Date <input>',
+  'Support for <code>&lt;input type="date"&gt;</code>'),
+  Html5Test('testInputMonth', 'Month <input>',
+  'Support for <code>&lt;input type="month"&gt;</code>'),
+  Html5Test('testInputWeek', 'Week <input>',
+  'Support for <code>&lt;input type="week"&gt;</code>'),
+  Html5Test('testInputTime', 'Time <input>',
+  'Support for <code>&lt;input type="time"&gt;</code>'),
+  Html5Test('testInputDateTime', 'DateTime <input>',
+  'Support for <code>&lt;input type="datetime"&gt;</code>'),
+  Html5Test('testInputDateTimeLocal', 'DateTimeLocal <input>',
+  'Support for <code>&lt;input type="datetime-local"&gt;</code>'),
+  Html5Test('testInputPlaceholderText', 'Placeholder Text',
+  'Support for <code>placeholder</code> text in <code>&lt;input&gt;</code>'),
+  Html5Test('testInputAutofocus', 'Autofocus',
+  'Support for <code>autofocus</code> in <code>&lt;input&gt;</code>',
+  'http://www.whatwg.org/specs/web-apps/current-work/multipage/forms.html#autofocusing-a-form-control'),
+
 )
 
 
