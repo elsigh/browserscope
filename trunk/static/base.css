@@ -167,15 +167,12 @@ a.bs-admin {
 }
 #bs-nav {
   overflow: hidden;
-  padding: 7px 0;
+  padding: 5px 0;
   background: #f90;
   -moz-border-radius: 15px;
   -webkit-border-radius: 15px;
   -moz-box-shadow: 0 2px 2px rgba(102, 102, 102, .4);
   -webkit-box-shadow: 0 2px 2px rgba(102, 102, 102, .4);
-}
-#bs-nav .g-c {
-  padding: 3px 8px 0;
 }
 #bs-nav-cats {
   float: left;

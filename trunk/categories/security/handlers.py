@@ -17,14 +17,8 @@
 """Handlers for the Browserscope Security Tests."""
 
 
-import time
-
 from categories import all_test_sets
-from base import decorators
 from base import util
-
-from django import http
-from django.template import Context, loader
 
 
 CATEGORY = 'security'
@@ -33,7 +27,7 @@ CATEGORY = 'security'
 def About(request):
   """About page."""
   params = {
-    'page_title': 'What is the Security Test?',
+    'page_title': 'What are the Security Tests?',
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
   return util.Render(request, '%s/templates/about.html' % CATEGORY, params)

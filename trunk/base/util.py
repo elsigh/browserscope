@@ -92,6 +92,13 @@ def Render(request, template, params={}, category=None):
       params['app_category'] = test_set.category
       params['app_category_name'] = test_set.category_name
       params['app_category_index'] = i
+  # TODO(elsigh): bad/dupe code.
+  for i, test_set in enumerate(all_test_sets.GetBetaTestSets()):
+    if category and category == test_set.category:
+      params['app_category'] = test_set.category
+      params['app_category_name'] = test_set.category_name
+      params['app_category_index'] = i
+
 
   if category != None and template != TEST_DRIVER_TPL:
     template = '%s/%s' % (category, template)
@@ -555,8 +562,9 @@ def GetStats(request, test_set, output='html', opt_tests=None,
 
 def GetSummaryData(user_agent_strings, version_level):
   stats_data = {}
-  for test_set in all_test_sets.GetTestSets():
-    for user_agent in user_agent_strings:
+  for user_agent in user_agent_strings:
+    ua_score_avg = 0
+    for test_set in all_test_sets.GetTestSets():
       if not stats_data.has_key(user_agent):
         stats_data[user_agent] = {
           'total_runs': 0,
@@ -575,7 +583,11 @@ def GetSummaryData(user_agent_strings, version_level):
           'display': row_stats['row_display'],
           'expando': None,
           }
-  #logging.info('summary_data: %s' % stats_data)
+      ua_score_avg += int(row_stats['row_score'])
+
+    avg_score = int(ua_score_avg / len(settings.CATEGORIES))
+    stats_data[user_agent]['score'] = avg_score
+    stats_data[user_agent]['display'] = avg_score
   return stats_data
 
 

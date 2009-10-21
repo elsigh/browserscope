@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+
+  <!--
+    to do:
+    - some <input> tests are failing in a sense they're false positives for WebKit
+    - font face
+    - css 3 properties
+    - canvas etc. and the rest from http://www.diveintohtml5.org/detect.html
+    - modernizr
+    - http://samples.msdn.microsoft.com/ietestcenter/html5.htm
+    - JS stuff?
+  -->
+
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 84%;
+        line-height: 140%;
+      }
+      table#tests {
+        border-collapse: collapse;
+      }
+      table#tests td {
+        padding: .3em .6em;
+        border-bottom: 1px solid #ddd;
+      }
+      table#tests td a {
+        color: #999;
+      }
+      .fail {
+        font-weight: bold;
+        color: #c61800;
+      }
+      .pass {
+        font-weight: bold;
+        color: #18a221;
+      }
+      #status {
+        padding: 2em 3.1em;
+      }
+    </style>
+
+    <script>
+      var tests = [
+        {
+          name: 'Support for <code>&lt;canvas&gt;</code>',
+          func: 'testCanvas'
+        },
+        {
+          name: 'Support for <code>&lt;video&gt;</code>',
+          func: 'testVideo'
+        },
+        {
+          name: 'Support for local storage',
+          func: 'testLocalStorage',
+          url: 'http://dev.w3.org/html5/webstorage/'
+        },
+        {
+          name: 'Support for Web Workers',
+          func: 'testWebWorkers',
+          url: 'http://www.whatwg.org/specs/web-workers/current-work/'
+        },
+        {
+          name: 'Support for offline Web applications',
+          func: 'testOffline',
+          url: 'http://www.whatwg.org/specs/web-apps/current-work/multipage/offline.html#offline'
+        },
+        {
+          name: 'Support for Geolocation API',
+          func: 'testGeolocation',
+          url: 'http://www.w3.org/TR/geolocation-API/'
+        },
+        {
+          name: 'Support for <code>&lt;input type="search"&gt;</code>',
+          func: 'testInputSearch'
+        },
+        {
+          name: 'Support for <code>&lt;input type="number"&gt;</code>',
+          func: 'testInputNumber'
+        },
+        {
+          name: 'Support for <code>&lt;input type="range"&gt;</code>',
+          func: 'testInputRange'
+        },
+        {
+          name: 'Support for <code>&lt;input type="color"&gt;</code>',
+          func: 'testInputColor'
+        },
+        {
+          name: 'Support for <code>&lt;input type="tel"&gt;</code>',
+          func: 'testInputTel'
+        },
+        {
+          name: 'Support for <code>&lt;input type="url"&gt;</code>',
+          func: 'testInputUrl'
+        },
+        {
+          name: 'Support for <code>&lt;input type="email"&gt;</code>',
+          func: 'testInputEmail'
+        },
+        {
+          name: 'Support for <code>&lt;input type="date"&gt;</code>',
+          func: 'testInputDate'
+        },
+        {
+          name: 'Support for <code>&lt;input type="month"&gt;</code>',
+          func: 'testInputMonth'
+        },
+        {
+          name: 'Support for <code>&lt;input type="week"&gt;</code>',
+          func: 'testInputWeek'
+        },
+        {
+          name: 'Support for <code>&lt;input type="time"&gt;</code>',
+          func: 'testInputTime'
+        },
+        {
+          name: 'Support for <code>&lt;input type="datetime"&gt;</code>',
+          func: 'testInputDateTime'
+        },
+        {
+          name: 'Support for <code>&lt;input type="datetime-local"&gt;</code>',
+          func: 'testInputDateTimeLocal'
+        },
+        {
+          name: 'Support for <code>placeholder</code> text in <code>&lt;input&gt;</code>',
+          func: 'testInputPlaceholderText',
+          url: 'http://www.whatwg.org/specs/web-apps/current-work/multipage/forms.html#the-placeholder-attribute'
+        },
+        {
+          name: 'Support for <code>autofocus</code> in <code>&lt;input&gt;</code>',
+          func: 'testInputAutofocus',
+          url: 'http://www.whatwg.org/specs/web-apps/current-work/multipage/forms.html#autofocusing-a-form-control'
+        }
+      ];
+
+      function prepareTestTable() {
+        var html = [];
+        html.push('<table id="tests">');
+        for (var i in tests) {
+          var test = tests[i];
+
+          html.push('<tr id="test', i, '">');
+          html.push('<td>');
+          html.push((parseInt(i) + 1), '.');
+          html.push('</td>');
+          html.push('<td>');
+          html.push(tests[i].name);
+          html.push('</td>');
+          html.push('<td>');
+          html.push('...');
+          html.push('</td>');
+          html.push('<td>');
+          if (test.url) {
+            html.push('<a href="', test.url, '">Details</a>');
+          }
+          html.push('</td>');
+          html.push('</tr>');
+        }
+        html.push('</table>');
+
+        document.write(html.join(''));
+      }
+
+      function runTests() {
+        var passedCount = 0;
+        var browserScopeResults = [];
+        for (var i in tests) {
+          var test = tests[i];
+          var key = tests[i].func;
+          var func = eval(key);
+
+          var result = func();
+          browserScopeResults.push(key + '=' + (result ? '1' : '0'));
+
+          var el = document.getElementById('test' + i);
+          var resultEl = el.childNodes[2];
+
+          if (result) {
+            resultEl.className = 'pass';
+            resultEl.innerHTML = 'Pass';
+            passedCount++;
+          } else {
+            resultEl.className = 'fail';
+            resultEl.innerHTML = 'Fail';
+          }
+        }
+
+        var html = 'Passed: <strong>' + passedCount + '</strong> out of ' + tests.length + ' (' + (passedCount / tests.length * 100).toFixed(1) + '%)';
+
+        document.getElementById('status').innerHTML = html;
+        parent.sendScore(browserScopeResults);
+      }
+
+
+      // --------------------------------------------------------------------
+      // Test functions
+      // --------------------------------------------------------------------
+
+      // Source: http://www.diveintohtml5.org/detect.html#canvas
+      function testCanvas() {
+        return !!document.createElement('canvas').getContext;
+      }
+
+      // Source: http://www.diveintohtml5.org/detect.html#video
+      function testVideo() {
+        return !!document.createElement('video').canPlayType;
+      }
+
+      // Source: http://www.diveintohtml5.org/detect.html
+      function testLocalStorage() {
+        return typeof window.localStorage != 'undefined';
+      }
+
+      // Source: http://www.diveintohtml5.org/detect.html
+      function testWebWorkers() {
+        return typeof window.Worker != 'undefined';
+      }
+
+      // Source: http://www.diveintohtml5.org/detect.html
+      function testOffline() {
+        return typeof window.applicationCache != 'undefined';
+      }
+
+      // Source: http://www.diveintohtml5.org/detect.html
+      function testGeolocation() {
+        return !!navigator.geolocation;
+      }
+
+      // Source: http://www.diveintohtml5.org/detect.html#input-types
+      function testInput(type) {
+        var el = document.createElement('input');
+        el.setAttribute('type', type);
+        return el.type !== 'text';
+      }
+
+      function testInputSearch() {
+        return testInput('search');
+      }
+
+      function testInputNumber() {
+        return testInput('number');
+      }
+
+      function testInputRange() {
+        return testInput('range');
+      }
+
+      function testInputColor() {
+        return testInput('color');
+      }
+
+      function testInputTel() {
+        return testInput('tel');
+      }
+
+      function testInputUrl() {
+        return testInput('url');
+      }
+
+      function testInputEmail() {
+        return testInput('email');
+      }
+
+      function testInputDate() {
+        return testInput('date');
+      }
+
+      function testInputMonth() {
+        return testInput('month');
+      }
+
+      function testInputWeek() {
+        return testInput('week');
+      }
+
+      function testInputTime() {
+        return testInput('time');
+      }
+
+      function testInputDateTime() {
+        return testInput('datetime');
+      }
+
+      function testInputDateTimeLocal() {
+        return testInput('datetime-local');
+      }
+
+      // Source: http://www.diveintohtml5.org/detect.html
+      function testInputPlaceholderText() {
+        var el = document.createElement('input');
+        return 'placeholder' in el;
+      }
+
+      // Source: http://www.diveintohtml5.org/detect.html
+      function testInputAutofocus() {
+        var el = document.createElement('input');
+        return 'autofocus' in el;
+      }
+
+
+
+
+
+    </script>
+  </head>
+
+  <body>
+    <div id='status'></div>
+    <script>
+      prepareTestTable();
+    </script>
+    <script>
+      runTests();
+    </script>
+
+  </body>
+</html>
