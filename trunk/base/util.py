@@ -19,6 +19,7 @@
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 import hashlib
+import itertools
 import logging
 import random
 import os
@@ -55,6 +56,10 @@ from base import summary_test_set
 
 TEST_DRIVER_TPL = 'test_driver.html'
 
+def izipmerge(a, b):
+  for i, j in itertools.izip(a,b):
+    yield i
+    yield j
 
 #@decorators.trusted_tester_required
 def Render(request, template, params={}, category=None):
@@ -85,20 +90,17 @@ def Render(request, template, params={}, category=None):
   params['sign_out'] = users.create_logout_url('/')
 
   # Creates a list of tuples categories and their ui names.
-  for i, test_set in enumerate(all_test_sets.GetTestSets()):
-    params['app_categories'].append([test_set.category, test_set.category_name])
+  for i, test_set in enumerate(all_test_sets.GetTestSetsIncludingBetas()):
+    # This way we can show beta categories in local dev.
+    if (test_set.category in settings.CATEGORIES or
+        settings.BUILD == 'development'):
+      params['app_categories'].append([test_set.category,
+                                       test_set.category_name])
     # Select the current page's category.
     if category and category == test_set.category:
       params['app_category'] = test_set.category
       params['app_category_name'] = test_set.category_name
       params['app_category_index'] = i
-  # TODO(elsigh): bad/dupe code.
-  for i, test_set in enumerate(all_test_sets.GetBetaTestSets()):
-    if category and category == test_set.category:
-      params['app_category'] = test_set.category
-      params['app_category_name'] = test_set.category_name
-      params['app_category_index'] = i
-
 
   if category != None and template != TEST_DRIVER_TPL:
     template = '%s/%s' % (category, template)

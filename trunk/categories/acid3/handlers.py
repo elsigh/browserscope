@@ -35,20 +35,13 @@ from django.template import Context, loader
 CATEGORY = 'acid3'
 
 
-def Render(request, template_file, params):
-  """Render Acid3 Benchmark test pages."""
-
-  params['epoch'] = int(time.time())
-  return util.Render(request, template_file, params, CATEGORY)
-
-
 def About(request):
   """About page."""
   params = {
     'page_title': 'What is the Acid3 Test?',
     'tests': all_test_sets.GetTestSet(CATEGORY).tests,
   }
-  return Render(request, 'templates/about.html', params)
+  return util.Render(request, 'templates/about.html', params, CATEGORY)
 
 
 def SupportAPng(request):

@@ -10,6 +10,10 @@
     <h3 id="rt-{{ test.key }}">{{ test.name }}</h3>
     <p>
       {{ test.doc|safe }}
+      {% if test.url %}
+        <br>
+        <a href="{{ test.url }}">{{ test.url }}</a>
+      {% endif %}
     </p>
   {% endfor %}
 
