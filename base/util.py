@@ -566,6 +566,7 @@ def GetSummaryData(user_agent_strings, version_level):
   stats_data = {}
   for user_agent in user_agent_strings:
     ua_score_avg = 0
+    total_runs = 0
     for test_set in all_test_sets.GetTestSets():
       if not stats_data.has_key(user_agent):
         stats_data[user_agent] = {
@@ -581,15 +582,18 @@ def GetSummaryData(user_agent_strings, version_level):
         row_stats = {'row_score': 0, 'row_display': ''}
       stats_data[user_agent]['results'][test_set.category] = {
           'median': row_stats['row_score'],
-          'score': row_stats['row_score'],
+          'score': Convert100to10Base(row_stats['row_score']),
           'display': row_stats['row_display'],
+          'total_runs': row_stats['total_runs'],
           'expando': None,
           }
       ua_score_avg += int(row_stats['row_score'])
+      total_runs += int(row_stats['total_runs'])
 
     avg_score = int(ua_score_avg / len(settings.CATEGORIES))
     stats_data[user_agent]['score'] = avg_score
     stats_data[user_agent]['display'] = avg_score
+    stats_data[user_agent]['total_runs'] = total_runs
   return stats_data
 
 
@@ -623,7 +627,7 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
       logging.info('GetStatsData from memcache ua: %s, len(uastats)stats:%s' %
                    (user_agent, len(user_agent_stats)))
 
-    if not user_agent_stats:
+    if user_agent_stats is None:
       medians = {}
       total_runs = None
       user_agent_results = {}
@@ -696,11 +700,16 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
         memcache.set(key=memcache_ua_key, value=user_agent_stats,
                      time=settings.STATS_MEMCACHE_TIMEOUT,
                      namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
-        logging.info('GetStatsData added user_agent %s stats to memcache' %
-                     user_agent)
+        logging.info('GetStatsData added %s user_agent:%s stats to memcache' %
+                     (category, user_agent))
 
         # Add row total scores for overall results display.
-        row_stats = {'row_score': row_score, 'row_display': row_display}
+        # TODO(elsigh): this is simply to fix the acid3 case where we set the
+        # row_display to '' because that's the only metric we're storing.
+        if category == 'acid3':
+          row_display = '%s/%s' % (row_score, '100')
+        row_stats = {'row_score': row_score, 'row_display': row_display,
+                     'total_runs': total_runs or 0}
         memcache.set(key=memcache_ua_key, value=row_stats, time=0,
                      namespace=settings.STATS_MEMCACHE_UA_ROW_SCORE_NS)
 
