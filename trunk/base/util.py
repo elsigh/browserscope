@@ -444,7 +444,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   if not static_mode:
     ua_by_param = request.GET.get('ua')
     if ua_by_param:
-      user_agent_strings = [ua_by_param]
+      user_agent_strings = ua_by_param.split(',')
     else:
       user_agent_strings = UserAgentGroup.GetStrings(version_level)
     #logging.info('GetStats: v: %s, uas: %s' % (version_level,
