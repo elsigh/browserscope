@@ -120,6 +120,10 @@
     var realUaString = Util.reconcileClientServerUaPretty(httpUserAgent,
         userAgentPretty);
     var resultsUriParams = '{{ results_params }}';
+    var uaUriParams = '{{ ua_params }}'
+    if (uaUriParams) {
+      resultsUriParams += '&ua=' + uaUriParams;
+    }
     var controller = new Util.ResultTablesController(category, categories,
         realUaString, resultsUriParams);
     if (realUaString != userAgentPretty) {
