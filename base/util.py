@@ -161,7 +161,7 @@ def Home(request):
     ScheduleRecentTestsUpdate()
 
   results_params = []
-  for category in settings.CATEGORIES:
+  for category in settings.CATEGORIES + settings.CATEGORIES_BETA:
     results_uri_string = request.GET.get('%s_results' % category)
     if results_uri_string:
       results_params.append('%s_results=%s' % (category, results_uri_string))
@@ -176,7 +176,7 @@ def Home(request):
     test_set = all_test_sets.GetTestSet(category)
   else:
     if len(results_params) > 0:
-      for category in settings.CATEGORIES:
+      for category in settings.CATEGORIES + settings.CATEGORIES_BETA:
         if request.GET.get('%s_results' % category):
           test_set = all_test_sets.GetTestSet(category)
           break
