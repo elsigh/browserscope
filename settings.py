@@ -18,8 +18,6 @@ import os
 import logging
 import sys
 from google.appengine.api import users
-# TODO(elovett): in prod, we get the error - no module named tools
-#from google.appengine.tools import dev_appserver_login
 
 
 APP_TITLE = 'Browserscope'
@@ -68,8 +66,7 @@ STATIC_CATEGORIES = ['richtext']
 # Where we'll read the static files from. Either 'local' or an url.
 #STATIC_SRC = 'local'
 STATIC_SRC = 'http://static.latest.ua-profiler.appspot.com/static_mode'
-# TODO(elovett): in prod, we get the error - no module named tools
-#SYSTEM_COOKIES = [SESSION_COOKIE_NAME, dev_appserver_login.COOKIE_NAME]
+SYSTEM_COOKIES = [SESSION_COOKIE_NAME]
 
 STATS_MEMCACHE_TIMEOUT = 0
 STATS_MEMCACHE_UA_ROW_NS = 'ua_row'
