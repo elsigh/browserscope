@@ -563,6 +563,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
 
 
 def GetSummaryData(user_agent_strings, version_level):
+  """Returns a data dictionary for rendering a summary stats_table.html"""
   stats_data = {}
   for user_agent in user_agent_strings:
     ua_score_avg = 0
@@ -577,9 +578,9 @@ def GetSummaryData(user_agent_strings, version_level):
           }
       memcache_ua_key = '%s_%s' % (test_set.category, user_agent)
       row_stats = memcache.get(key=memcache_ua_key,
-                               namespace=settings.STATS_MEMCACHE_UA_ROW_SCORE_NS)
+          namespace=settings.STATS_MEMCACHE_UA_ROW_SCORE_NS)
       if not row_stats:
-        row_stats = {'row_score': 0, 'row_display': ''}
+        row_stats = {'row_score': 0, 'row_display': '', 'total_runs': 0}
       stats_data[user_agent]['results'][test_set.category] = {
           'median': row_stats['row_score'],
           'score': Convert100to10Base(row_stats['row_score']),
@@ -600,7 +601,6 @@ def GetSummaryData(user_agent_strings, version_level):
 def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
                  version_level='top'):
   """This is the meat and potatoes of the stats."""
-  #use_memcache=False
   #logging.info('GetStatsData category:%s\n tests:%s\n user_agents:%s\n params:%s\nuse_memcache:%s\nversion_level:%s' % (category, tests, user_agents, params, use_memcache, version_level))
   stats = {'total_runs': 0}
 
