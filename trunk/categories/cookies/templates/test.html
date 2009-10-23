@@ -1,0 +1,32 @@
+<script>
+function saveResult(name, value) {
+	if ( testdriver && "function" === typeof(testdriver.saveResult) ) {
+		testdriver.saveResult(name, value);
+	}
+}
+
+function getResult(name, value) {
+	if ( testdriver && "function" === typeof(testdriver.getResult) ) {
+		return testdriver.getResult(name);
+	}
+}
+
+function testOnload() {
+	if ( testdriver && "function" === typeof(testdriver.doNextTest) ) {
+		// For now, we'll use saveResult as the means for triggering the next page.
+		//testdriver.doNextTest();
+	}
+}
+
+function testOnerror() {
+	if ( testdriver && "function" === typeof(testdriver.doNextTest) ) {
+		// CVSNO - do something better for error handling? save a null result?
+		testdriver.doNextTest();
+	}
+}
+</script>
+
+<frameset rows="200,*" border=2>
+  <frame src="testdriver?s=1{% if continue %}&continue={{ continue|urlquote }}{% endif %}{% if autorun %}&autorun={{ autorun }}{% endif %}{% if testurl %}&testurl={{ testurl }}{% endif %}" id=testdriver name=testdriver></frame>
+  <frame src="about:blank" id=testframe name=testframe onload="testOnload()" onerror="testOnerror()"></frame>
+</frameset>

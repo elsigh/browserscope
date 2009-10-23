@@ -1,0 +1,22 @@
+{% extends "simple.html" %}
+
+{% block body %}
+<h1>Cookie Expires (2 of 2)</h1>
+
+<p>
+This test determines if the browser correctly deletes cookies that have an expires date in the past.
+<p>
+
+<span id="results">&nbsp;</span>
+
+<script>
+if ( {{ cookie_deleted }} ) {
+	document.getElementById('results').innerHTML = "Cookie expiration <i>does</i> work.";
+	parent.saveResult('expires', 1);
+} else {
+	document.getElementById('results').innerHTML = "Cookie expiration <i>doesn't</i> work.";
+	parent.saveResult('expires', 0);
+}
+</script>
+
+{% endblock %}

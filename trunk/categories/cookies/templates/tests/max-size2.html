@@ -1,0 +1,19 @@
+{% extends "simple.html" %}
+
+{% block body %}
+<h1>Max {{ test_type }} Size Per Cookie</h1>
+
+<script>
+	parent.saveResult('max{{ test_type }}Size', {{ max_test_chars }});
+</script>
+
+<p>
+This test determines the maximum cookie {{ test_type|lower }} length stored by your browser.
+
+<p>
+
+Your browser will store a cookie with a maximum {{ test_type|lower }} length of {{ max_test_chars }} characters.
+
+<span style="display:{{ display_other }}">The {{ test_type_other|lower }} of this cookie was {{ other_chars }} characters long.</span>
+
+{% endblock %}

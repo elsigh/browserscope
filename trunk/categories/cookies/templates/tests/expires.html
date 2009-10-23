@@ -1,0 +1,17 @@
+{% extends "simple.html" %}
+
+{% block body %}
+<h1>Cookies Expires (1 of 2)</h1>
+
+<script>
+window.onload = function() {
+	parent.testframe.location = "expires2";
+}
+</script>
+
+<p>
+Redirecting to test cookie expiration...
+
+<p>
+
+{% endblock %}
