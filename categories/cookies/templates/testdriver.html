@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Cookies Test Driver</title>
+
+    <style>
+    {{ today_style|safe }}
+    #tests A { border: 1px solid; padding-left: 4px; padding-right: 4px;
+        margin-left: 4px; margin-right: 4px; text-decoration: none;
+        background: #FFF; }
+    #tests A:hover { background: #FEE19E; }
+    BODY { background: #EEE; }
+    #results { margin-left: 20px; margin-top: 10px; background: #FFF; padding: 8px; border: 2px solid #333; display: none; }
+    </style>
+  </head>
+  <body>
+
+<div class=contents>
+<table border=0 cellpadding=0 cellspacing=0>
+  <tr>
+    <td valign=top>
+<div id=tests style="margin-top: 10px; margin-bottom: 10px;">
+{% for test in tests %}
+  <a id=test{{ forloop.counter0 }} target=testframe title="{{ test.name }}"
+     onclick="doTestClick({{ forloop.counter0 }}); return false;"
+     href="/cookies/tests/{{ test.url_name }}?t={{ epoch }}">{{ forloop.counter }}</a>
+{% endfor %}
+</div>
+<input id=startstop type=button value="{% if autorun %}Stop{% else %}Start{% endif %}" onclick="startstop()">
+    </td>
+    <td valign=top>
+<div id=results></div>
+    </td>
+  </tr>
+</table>
+
+<script src="/static/util.js"></script>
+<script>
+var gbStop = false;
+var giLastTest = -1;
+var gaResults = {};
+var sTests = "";
+var gNumTests = 0;
+var gsTests = {{% for test in tests %}
+    {{ test.key }}: ["{{ test.name }}", "{{ test.score_type }}", gNumTests++, "{{ test.url_name }}", {{ test.halt_tests_on_fail }}],{% endfor %}
+    end: 0
+};
+
+
+
+function doStart() {
+	gbStop = false;
+	doTest(giLastTest+1);
+}
+
+function doStop() {
+	gbStop = true;
+}
+
+function doTest(iTest) {
+	document.getElementById('test' + iTest).style.backgroundColor = "#F2FA6B";
+	parent.testframe.location = 'tests/clear-cookies?reset=1&redirect_to=' + document.getElementById('test' + iTest).href;
+	if ( !gbStop ) {
+		giLastTest = iTest;
+	}
+}
+
+function saveResult(name, value) {
+	gaResults[name] = value;
+	var iTest = getTestNumber(name);
+	document.getElementById('results').innerHTML = (iTest + 1) + ". " + gsTests[name][0] +
+		" = " + ( "boolean" == gsTests[name][1] ? ( 0 == value ? "no" : "yes" ) : value ) + "<br>" + document.getElementById('results').innerHTML;
+	document.getElementById('results').style.display = "block";
+	document.getElementById('test' + iTest).style.backgroundColor = "#C6E87D";
+    
+	if (!gbStop) {
+		if (0 == value && gsTests[name][4]) {
+			sendResultsAndFinish();
+		} else {
+			doNextTest(iTest+1);
+		}
+	}
+}
+
+function getResult(name, value) {
+	return gaResults[name];
+}
+
+function doNextTest(iTest) {
+	if ( iTest < {{ tests|length }}) {
+		setTimeout("doTest(" + iTest + ")", 2000);
+	} else {
+        sendResultsAndFinish();
+	}
+}
+
+function sendResultsAndFinish() {
+    var testResults = [];
+    for (var test in gaResults) {
+        if (gaResults.hasOwnProperty(test)) {
+            testResults.push(test + '=' + gaResults[test]);
+        }
+    }
+
+    parent.parent.sendScore(testResults);
+}
+
+function doTestClick(iTest) {
+	doStop();
+	doTest(iTest)
+}
+
+function startstop() {
+	var btn = document.getElementById('startstop');
+	if ( btn ) {
+		if ( "Start" == btn.value ) {
+			btn.value = "Stop";
+			doStart();
+		}
+		else {
+			btn.value = "Start";
+			doStop();
+		}
+	}
+}
+
+
+function getTestNumber(testkey, testurl) {
+	if ( testkey ) {
+		for ( test in gsTests ) {
+			if ( gsTests.hasOwnProperty(test) ) {
+				if ( testkey == test ) {
+					return gsTests[test][2];
+				}
+			}
+		}
+	}
+	else if ( testurl ) {
+		for ( test in gsTests ) {
+			if ( gsTests.hasOwnProperty(test) ) {
+				if ( testurl == gsTests[test][3] ) {
+					return gsTests[test][2];
+				}
+			}
+		}
+	}
+
+	return undefined;
+}
+
+if ( Util.getParam("autorun") ) {
+	// Start the first test.
+	doStart();
+}
+else if ( Util.getParam("testurl") ) {
+	doStop();
+	var iTest = getTestNumber(null, Util.getParam("testurl"));
+	if ( iTest ) {
+		doTestClick(iTest);
+	}
+}
+</script>
+
+</div>
+
+  </body>
+</html>

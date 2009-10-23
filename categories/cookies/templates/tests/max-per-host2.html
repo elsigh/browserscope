@@ -1,0 +1,17 @@
+{% extends "simple.html" %}
+
+{% block body %}
+<h1>Max Cookies Per Host</h1>
+
+<script>
+	parent.saveResult('maxPerHost', {{ max_cookies }});
+</script>
+
+<p>
+This test determines how many cookies your browser will store per host.
+
+<p>
+
+Your browser will save {{ max_cookies }} cookies per host.
+
+{% endblock %}

@@ -132,4 +132,19 @@ urlpatterns = patterns('',
 
   # HTML5 urls
   (r'^html5/about$', 'categories.html5.handlers.About'),
+
+  # Cookies URLs
+ (r'^cookies/about$', 'categories.cookies.handlers.About'),
+ (r'^cookies/frameset$', 'categories.cookies.handlers.Frameset'),
+ (r'^cookies/testdriver$', 'categories.cookies.handlers.TestDriver'),
+ (r'^cookies/tests/clear-cookies$', 'categories.cookies.handlers.ClearCookies'),
+ (r'^cookies/tests/expires$', 'categories.cookies.handlers.Expires'),
+ (r'^cookies/tests/expires2$', 'categories.cookies.handlers.Expires2'),
+ (r'^cookies/tests/max-per-host$', 'categories.cookies.handlers.MaxPerHost'),
+ (r'^cookies/tests/max-name-size$', 'categories.cookies.handlers.MaxNameSize'),
+ (r'^cookies/tests/max-value-size$',
+   'categories.cookies.handlers.MaxValueSize'),
+ (r'^cookies/tests/max-total-size$',
+   'categories.cookies.handlers.MaxTotalSize'),
+
 )

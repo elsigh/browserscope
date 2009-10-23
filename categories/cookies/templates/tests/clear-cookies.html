@@ -1,0 +1,15 @@
+{% extends "simple.html" %}
+
+{% block body %}
+<h1>Clearing Cookies...</h1>
+
+<p>
+Redirecting to clear cookies...
+
+<script>
+parent.testframe.location = "{{ redirect_to }}";
+</script>
+
+<p>
+
+{% endblock %}

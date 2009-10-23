@@ -1,0 +1,30 @@
+{% extends "simple.html" %}
+
+{% block body %}
+<h1>Max {{ test_type }} Size Per Cookie</h1>
+
+<script>
+window.onload = function() {
+	var testframe = parent.testframe;
+	setTimeout(function() {
+			testframe.location = "clear-cookies?{{ query_string }}";
+	}, 2000);
+};
+
+</script>
+
+<p>
+Redirecting to test the maximum {{ test_type|lower }} size for one cookie that your browser will store.
+
+<p>
+Max Size Working: {{ max_working }}
+<br />
+Min Size Failing: {{ min_failing }}
+<br />
+<br />
+Last Attempt: {{ last_attempt }}
+<br />
+This Attempt: {{ this_attempt }}
+
+
+{% endblock %}

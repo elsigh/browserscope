@@ -1,0 +1,30 @@
+{% extends "simple.html" %}
+
+{% block body %}
+<h1>Max Cookies Per Host</h1>
+
+<script>
+window.onload = function() {
+	var testframe = parent.testframe;
+	setTimeout(function() {
+			testframe.location = "clear-cookies?{{ query_string }}";
+	}, 2000);
+};
+
+</script>
+
+<p>
+Redirecting to test how many cookies your browser will store per host.
+
+<p>
+Max Working: {{ max_working }}
+<br />
+Min Failing: {{ min_failing }}
+<br />
+<br />
+Last Attempt: {{ last_attempt }}
+<br />
+This Attempt: {{ new_cookie_count }}
+
+
+{% endblock %}
