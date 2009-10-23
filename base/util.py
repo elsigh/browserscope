@@ -19,7 +19,6 @@
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 import hashlib
-import itertools
 import logging
 import random
 import os
@@ -56,10 +55,6 @@ from base import summary_test_set
 
 TEST_DRIVER_TPL = 'test_driver.html'
 
-def izipmerge(a, b):
-  for i, j in itertools.izip(a,b):
-    yield i
-    yield j
 
 #@decorators.trusted_tester_required
 def Render(request, template, params={}, category=None):
@@ -202,6 +197,7 @@ def Home(request):
     params = {
       'page_title': 'Home',
       'results_params': '&'.join(results_params),
+      'ua_params': request.GET.get('ua'),
       'stats_table_category': test_set.category,
       'stats_table': stats_table,
       'recent_tests': recent_tests,
