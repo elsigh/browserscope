@@ -19,6 +19,7 @@
 import logging
 
 from categories import test_set_base
+from base import util
 
 
 _CATEGORY = 'cookies'
@@ -29,7 +30,7 @@ class CookiesTest(test_set_base.TestBase):
 
   def __init__(self, key, name, url_name, score_type, doc,
                value_range=None, is_hidden_stat=False, cell_align='center', 
-               halt_tests_on_fail=False):
+               url_prepend='',halt_tests_on_fail=False):
     """Initialze a cookies test.
 
     Args:
@@ -44,6 +45,7 @@ class CookiesTest(test_set_base.TestBase):
     """
     self.url_name = url_name
     self.is_hidden_stat = is_hidden_stat
+    self.url_prepend = url_prepend
     # must use 0 and 1 so that the javascript side can use it
     if halt_tests_on_fail:
       self.halt_tests_on_fail = 1
@@ -61,7 +63,7 @@ class CookiesTest(test_set_base.TestBase):
         self,
         key=key,
         name=name,
-        url='%s/test?testurl=%s' % (_CATEGORY, url_name),
+        url='/%s/test?testurl=%s' % (_CATEGORY, url_name),
         score_type=score_type,
         doc=doc,
         min_value=min_value,
@@ -123,6 +125,8 @@ Initial list of tests to include, in no particular order:
 """
 
 
+CLEAR_COOKIES_URL = '/cookies/tests/clear-cookies?reset=1&redirect_to='
+
 _TESTS = (
   # key, name, url_name, score_type, doc
   CookiesTest(
@@ -131,31 +135,31 @@ _TESTS = (
     # Because we depend on being able to delete cookies, if this test fails 
     # then most of the others won't work properly, so we should just halt 
     # testing.
-    halt_tests_on_fail=True),
+    url_prepend=CLEAR_COOKIES_URL, halt_tests_on_fail=True),
   CookiesTest(
     'maxPerHost', 'Max Per Host', 'max-per-host', 'custom',
     '''Determine the maximum number of cookies that a single host can set and 
 retrieve.''',
     #TODO(eric): different default for range here?
-    value_range=(0, 60000)),
+    value_range=(0, 60000), url_prepend=CLEAR_COOKIES_URL),
   CookiesTest(
     'maxNameSize', 'Max Name Size', 'max-name-size', 'custom',
     '''Determine the maximum length of the name of a single cookie that can be 
 set and retrieved.''',
     #TODO(eric): different default for range here?
-    value_range=(0, 60000)),
+    value_range=(0, 60000), url_prepend=CLEAR_COOKIES_URL),
   CookiesTest(
     'maxValueSize', 'Max Value Size', 'max-value-size', 'custom',
     '''Determine the maximum length of the value of a single cookie that can be 
 set and retrieved.''',
     #TODO(eric): different default for range here?
-    value_range=(0, 60000)),
+    value_range=(0, 60000), url_prepend=CLEAR_COOKIES_URL),
   CookiesTest(
     'maxTotalSize', 'Max Total Size', 'max-total-size', 'custom',
     '''Determine the maximum length of the name and value of a single cookie 
 that can be set and retrieved.''',
     #TODO(eric): different default for range here?
-    value_range=(0, 60000)),
+    value_range=(0, 60000), url_prepend=CLEAR_COOKIES_URL),
 )
 
 
@@ -222,5 +226,5 @@ TEST_SET = CookiesTestSet(
     category=_CATEGORY,
     category_name='Cookies',
     tests=_TESTS,
-    test_page='/%s/frameset' % _CATEGORY,
+    test_page=util.MULTI_TEST_DRIVER_TEST_PAGE
 )

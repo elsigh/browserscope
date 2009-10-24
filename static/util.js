@@ -670,7 +670,7 @@ Util.TestDriver.prototype.runTestButtonClickHandler = function(e) {
  */
 Util.TestDriver.prototype.runTest = function() {
   var rand = Math.floor(Math.random() * 10000000);
-  var categoryTestUrl = this.testPage + '?r=' + rand;
+  var categoryTestUrl = this.testPage + '?category=' + this.category + '&r=' + rand;
   this.testFrame.location.href = categoryTestUrl;
 };
 

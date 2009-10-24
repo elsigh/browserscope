@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Network Test Driver</title>
+    <title>{{ category|title }} Test Driver</title>
 
     <style>
     {{ today_style|safe }}
@@ -24,7 +24,7 @@
 {% for test in tests %}
   <a id=test{{ forloop.counter0 }} target=testframe title="{{ test.name }}"
      onclick="doTestClick({{ forloop.counter0 }}); return false;"
-     href="/network/tests/{{ test.url_name }}?t={{ epoch }}">{{ forloop.counter }}</a>
+     href="/{{ category }}/tests/{{ test.url_name }}?t={{ epoch }}">{{ forloop.counter }}</a>
 {% endfor %}
 </div>
 <input id=startstop type=button value="{% if autorun %}Stop{% else %}Start{% endif %}" onclick="startstop()">
@@ -35,7 +35,13 @@
   </tr>
 </table>
 
+{% ifequal build "production" %}
 <script src="{{ "browserscope.js"|resource_path }}"></script>
+{% else %}
+<script src="{{ "xhrio.js"|resource_path }}"></script>
+<script src="{{ "util.js"|resource_path }}"></script>
+{% endifequal %}
+
 <script>
 var gbStop = false;
 var giLastTest = -1;
@@ -43,7 +49,7 @@ var gaResults = {};
 var sTests = "";
 var gNumTests = 0;
 var gsTests = {{% for test in tests %}
-    {{ test.key }}: ["{{ test.name }}", "{{ test.score_type }}", gNumTests++, "{{ test.url_name }}"],{% endfor %}
+    {{ test.key }}: ["{{ test.name }}", "{{ test.score_type }}", gNumTests++, "{{ test.url_name }}", "{{ test.url_prepend }}", {{ test.halt_tests_on_fail }}],{% endfor %}
     end: 0
 };
 
@@ -60,7 +66,7 @@ function doStop() {
 
 function doTest(iTest) {
 	document.getElementById('test' + iTest).style.backgroundColor = "#F2FA6B";
-	parent.testframe.location = document.getElementById('test' + iTest).href;
+	parent.testframe.location = gsTests[getTestKey(iTest)][4] + document.getElementById('test' + iTest).href;
 	if ( !gbStop ) {
 		giLastTest = iTest;
 	}
@@ -73,24 +79,37 @@ function saveResult(name, value) {
 		" = " + ( "boolean" == gsTests[name][1] ? ( 0 == value ? "no" : "yes" ) : value ) + "<br>" + document.getElementById('results').innerHTML;
 	document.getElementById('results').style.display = "block";
 	document.getElementById('test' + iTest).style.backgroundColor = "#C6E87D";
+	
 	if (!gbStop) {
-		doNextTest(iTest+1);
+		if (0 == value && gsTests[name][5]) {
+			sendResultsAndFinish();
+		} else {
+			doNextTest(iTest+1);
+		}
 	}
+}
+
+function getResult(name) {
+	return gaResults[name];
 }
 
 function doNextTest(iTest) {
 	if ( iTest < {{ tests|length }}) {
 		setTimeout("doTest(" + iTest + ")", 2000);
 	} else {
-		// Send results beacon.
-		var testResults = [];
-		for (var test in gaResults) {
-			if (gaResults.hasOwnProperty(test)) {
-				testResults.push(test + '=' + gaResults[test]);
-			}
-		}
-		parent.parent.sendScore(testResults);
+		sendResultsAndFinish();
 	}
+}
+
+function sendResultsAndFinish() {
+	var testResults = [];
+	for (var test in gaResults) {
+		if (gaResults.hasOwnProperty(test)) {
+			testResults.push(test + '=' + gaResults[test]);
+		}
+	}
+	
+	parent.parent.sendScore(testResults);
 }
 
 function doTestClick(iTest) {
@@ -104,14 +123,25 @@ function startstop() {
 		if ( "Start" == btn.value ) {
 			btn.value = "Stop";
 			doStart();
-		}
-		else {
+		} else {
 			btn.value = "Start";
 			doStop();
 		}
 	}
 }
 
+
+function getTestKey(testnumber) {
+	for ( test in gsTests ) {
+		if ( gsTests.hasOwnProperty(test) ) {
+			if ( testnumber == gsTests[test][2] ) {
+				return test;
+			}
+		}
+	}
+
+	return undefined;
+}
 
 function getTestNumber(testkey, testurl) {
 	if ( testkey ) {
@@ -122,8 +152,7 @@ function getTestNumber(testkey, testurl) {
 				}
 			}
 		}
-	}
-	else if ( testurl ) {
+	} else if ( testurl ) {
 		for ( test in gsTests ) {
 			if ( gsTests.hasOwnProperty(test) ) {
 				if ( testurl == gsTests[test][3] ) {
@@ -149,9 +178,7 @@ else if ( Util.getParam("testurl") ) {
 }
 </script>
 
-</div><!-- contents -->
-
-
+</div>
 
   </body>
 </html>
