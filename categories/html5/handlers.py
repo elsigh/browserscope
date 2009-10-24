@@ -26,9 +26,6 @@ CATEGORY = 'html5'
 
 def About(request):
   """About page."""
-  params = {
-    'page_title': 'What is the HTML5 Test?',
-    'tests': all_test_sets.GetTestSet(CATEGORY).tests,
-  }
-  return util.Render(request, 'templates/about.html', params, CATEGORY)
+  return util.About(request, CATEGORY, category_title='HTML5', 
+                    show_test_urls=True)
 

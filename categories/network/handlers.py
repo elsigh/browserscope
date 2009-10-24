@@ -40,7 +40,7 @@ RESOURCE_CGI = 'stevesouders.com/bin/resource.cgi'
 
 def About(request):
   """About page."""
-  return util.About(request, 'network')
+  return util.About(request, CATEGORY)
 
 
 def StatsTable(request):
