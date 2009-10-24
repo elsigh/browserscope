@@ -28,8 +28,7 @@ class NetworkTest(test_set_base.TestBase):
   TESTS_URL_PATH = '/%s/tests' % _CATEGORY
 
   def __init__(self, key, name, url_name, score_type, doc,
-               value_range=None, is_hidden_stat=False, cell_align='center',
-               url_prepend='',halt_tests_on_fail=False):
+               value_range=None, is_hidden_stat=False, cell_align='center'):
     """Initialze a network test.
 
     Args:
@@ -43,13 +42,6 @@ class NetworkTest(test_set_base.TestBase):
     """
     self.url_name = url_name
     self.is_hidden_stat = is_hidden_stat
-    self.url_prepend = url_prepend
-    # must use 0 and 1 so that the javascript side can use it
-    if halt_tests_on_fail:
-      self.halt_tests_on_fail = 1
-    else:
-      self.halt_tests_on_fail = 0
-    
     if value_range:
       min_value, max_value = value_range
     elif score_type == 'boolean':
