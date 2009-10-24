@@ -47,7 +47,8 @@ class ParseResultsValueError(Error):
 
 class TestBase(object):
   def __init__(self, key, name, url, score_type, doc, min_value, max_value,
-               test_set=None, cell_align='right'):
+               test_set=None, cell_align='right', url_prepend='', 
+               halt_tests_on_fail=False):
     self.key = key
     self.name = name
     self.url = url
@@ -57,6 +58,12 @@ class TestBase(object):
     self.max_value = max_value
     self.test_set = test_set
     self.cell_align = cell_align
+    self.url_prepend = url_prepend
+    # must use 0 and 1 so that the javascript side can use it
+    if halt_tests_on_fail:
+      self.halt_tests_on_fail = 1
+    else:
+      self.halt_tests_on_fail = 0
 
   def GetRanker(self, user_agent_version, params_str):
     return result_ranker.GetRanker(

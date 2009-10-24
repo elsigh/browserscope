@@ -30,7 +30,7 @@ class CookiesTest(test_set_base.TestBase):
 
   def __init__(self, key, name, url_name, score_type, doc,
                value_range=None, is_hidden_stat=False, cell_align='center', 
-               url_prepend='',halt_tests_on_fail=False):
+               url_prepend='', halt_tests_on_fail=False):
     """Initialze a cookies test.
 
     Args:
@@ -45,13 +45,6 @@ class CookiesTest(test_set_base.TestBase):
     """
     self.url_name = url_name
     self.is_hidden_stat = is_hidden_stat
-    self.url_prepend = url_prepend
-    # must use 0 and 1 so that the javascript side can use it
-    if halt_tests_on_fail:
-      self.halt_tests_on_fail = 1
-    else:
-      self.halt_tests_on_fail = 0
-    
     if value_range:
       min_value, max_value = value_range
     elif score_type == 'boolean':
@@ -68,7 +61,9 @@ class CookiesTest(test_set_base.TestBase):
         doc=doc,
         min_value=min_value,
         max_value=max_value,
-        cell_align=cell_align)
+        cell_align=cell_align,
+        url_prepend=url_prepend,
+        halt_tests_on_fail=halt_tests_on_fail)
 
 
   def GetScoreAndDisplayValue(self, median, medians=None, is_uri_result=False):
