@@ -66,6 +66,8 @@ urlpatterns = patterns('',
   # Category Test Handlers, i.e. /network/test
   (r'^[^\/]+/test$', 'base.util.CategoryTest'),
   (r'^category_test_driver$', 'base.util.CategoryTestDriver'),
+  (r'^multi_test_frameset$', 'base.util.MultiTestFrameset'),
+  (r'^multi_test_driver$', 'base.util.MultiTestDriver'),
 
   #############################################################################
   ## CATEGORY URLS BELOW
@@ -83,9 +85,7 @@ urlpatterns = patterns('',
   (r'^reflow/locations', 'categories.reflow.handlers.Locations'),
 
   # Network Performance main URLs
-  (r'^network/frameset$', 'categories.network.handlers.Frameset'),
   (r'^network/about$', 'categories.network.handlers.About'),
-  (r'^network/testdriver', 'categories.network.handlers.TestDriver'),
   (r'^network/stats_table$', 'categories.network.handlers.StatsTable'),
 
   # Network Performance test URLs
@@ -135,16 +135,12 @@ urlpatterns = patterns('',
 
   # Cookies URLs
  (r'^cookies/about$', 'categories.cookies.handlers.About'),
- (r'^cookies/frameset$', 'categories.cookies.handlers.Frameset'),
- (r'^cookies/testdriver$', 'categories.cookies.handlers.TestDriver'),
  (r'^cookies/tests/clear-cookies$', 'categories.cookies.handlers.ClearCookies'),
  (r'^cookies/tests/expires$', 'categories.cookies.handlers.Expires'),
  (r'^cookies/tests/expires2$', 'categories.cookies.handlers.Expires2'),
  (r'^cookies/tests/max-per-host$', 'categories.cookies.handlers.MaxPerHost'),
  (r'^cookies/tests/max-name-size$', 'categories.cookies.handlers.MaxNameSize'),
- (r'^cookies/tests/max-value-size$',
-   'categories.cookies.handlers.MaxValueSize'),
- (r'^cookies/tests/max-total-size$',
-   'categories.cookies.handlers.MaxTotalSize'),
+ (r'^cookies/tests/max-value-size$', 'categories.cookies.handlers.MaxValueSize'),
+ (r'^cookies/tests/max-total-size$', 'categories.cookies.handlers.MaxTotalSize'),
 
 )

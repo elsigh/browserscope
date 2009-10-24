@@ -53,7 +53,11 @@ from base import manage_dirty
 from base import summary_test_set
 
 
+MULTI_TEST_DRIVER_TEST_PAGE = '/multi_test_frameset'
+
 TEST_DRIVER_TPL = 'test_driver.html'
+MULTI_TEST_FRAMESET_TPL = 'multi_test_frameset.html'
+MULTI_TEST_DRIVER_TPL = 'multi_test_driver.html'
 
 
 #@decorators.trusted_tester_required
@@ -97,7 +101,9 @@ def Render(request, template, params={}, category=None):
       params['app_category_name'] = test_set.category_name
       params['app_category_index'] = i
 
-  if category != None and template != TEST_DRIVER_TPL:
+  if category != None and template != TEST_DRIVER_TPL \
+    and template != MULTI_TEST_DRIVER_TPL \
+    and template != MULTI_TEST_FRAMESET_TPL:
     template = '%s/%s' % (category, template)
 
   return shortcuts.render_to_response(template, params)
@@ -134,6 +140,42 @@ def CategoryTestDriver(request):
     'hide_footer': True
   }
   return Render(request, TEST_DRIVER_TPL, params, category)
+
+
+def MultiTestFrameset(request):
+  """Multi-Page Test Frameset - frames the multi-page test driver and the 
+current test page"""
+  params = {
+    'page_title': 'Multi-Test Frameset',
+    'autorun': request.GET.get('autorun', 1),
+    'testurl': request.GET.get('testurl', ''),
+    'category': request.GET.get('category', '')
+  }
+  return Render(request, MULTI_TEST_FRAMESET_TPL, params)
+
+
+def MultiTestDriver(request):
+  """Multi-Page Test Driver - runs each of multiple tests in sequence in a 
+single category"""
+  category = request.GET.get('category', '')
+  tests = all_test_sets.GetTestSet(category).tests
+  params = {
+    'page_title': 'Multi-Test Driver',
+    'tests': tests,
+    'autorun': request.GET.get('autorun'),
+    'testurl': request.GET.get('testurl'),
+    'category': category
+  }
+  return Render(request, MULTI_TEST_DRIVER_TPL, params)
+
+
+def About(request, category):
+  """Generic 'About' page."""
+  params = {
+    'page_title': "What are the %s Tests?" % (category.title()),
+    'tests': all_test_sets.GetTestSet(category).tests,
+  }
+  return Render(request, 'about.html', params)
 
 
 def GetServer(request):

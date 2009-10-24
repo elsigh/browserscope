@@ -40,33 +40,7 @@ CATEGORY = 'cookies'
 
 def About(request):
   """About page."""
-  params = {
-    'page_title': 'What are the Cookies Tests?',
-    'tests': all_test_sets.GetTestSet(CATEGORY).tests,
-  }
-  return util.Render(request, 'templates/about.html', params, CATEGORY)
-
-
-def Frameset(request):
-  params = {
-    'page_title': 'Cookie Handling - Tests',
-    'autorun': request.GET.get('autorun', 1),
-    'testurl': request.GET.get('testurl', ''),
-  }
-  return util.Render(request, 'templates/test.html', params, CATEGORY)
-
-
-def TestDriver(request):
-  """Cookie Handling Test Driver"""
-  tests = all_test_sets.GetTestSet(CATEGORY).tests
-  # tests = [tests[0]]
-  params = {
-    'page_title': 'Performance Test Driver',
-    'tests': tests,
-    'autorun': request.GET.get('autorun'),
-    'testurl': request.GET.get('testurl'),
-  }
-  return util.Render(request, 'templates/testdriver.html', params, CATEGORY)
+  return util.About(request, 'cookies')
 
 
 def ClearCookies(request):
