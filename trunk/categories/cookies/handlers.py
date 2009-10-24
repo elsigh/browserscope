@@ -40,7 +40,7 @@ CATEGORY = 'cookies'
 
 def About(request):
   """About page."""
-  return util.About(request, 'cookies')
+  return util.About(request, CATEGORY)
 
 
 def ClearCookies(request):

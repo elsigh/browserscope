@@ -4,10 +4,20 @@
 
   <h1>{{ page_title }}</h1>
 
+  {{ overview|safe }}
+
+  {% if overview %}
+  <h2 id="rt-tests">More About Each Test</h2>
+  {% endif %}
+  
   {% for test in tests %}
     <h3 id="rt-{{ test.key }}">{{ test.name }}</h3>
     <p>
       {{ test.doc|safe }}
+      {% if show_test_urls and test.url %}
+        <br>
+        <a href="{{ test.url }}">{{ test.url }}</a>
+      {% endif %}
     </p>
   {% endfor %}
 

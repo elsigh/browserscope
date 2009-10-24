@@ -55,6 +55,7 @@ from base import summary_test_set
 
 MULTI_TEST_DRIVER_TEST_PAGE = '/multi_test_frameset'
 
+ABOUT_TPL = 'about.html'
 TEST_DRIVER_TPL = 'test_driver.html'
 MULTI_TEST_FRAMESET_TPL = 'multi_test_frameset.html'
 MULTI_TEST_DRIVER_TPL = 'multi_test_driver.html'
@@ -103,7 +104,7 @@ def Render(request, template, params={}, category=None):
 
   if category != None and template != TEST_DRIVER_TPL \
     and template != MULTI_TEST_DRIVER_TPL \
-    and template != MULTI_TEST_FRAMESET_TPL:
+    and template != MULTI_TEST_FRAMESET_TPL and template != ABOUT_TPL:
     template = '%s/%s' % (category, template)
 
   return shortcuts.render_to_response(template, params)
@@ -145,13 +146,14 @@ def CategoryTestDriver(request):
 def MultiTestFrameset(request):
   """Multi-Page Test Frameset - frames the multi-page test driver and the 
 current test page"""
+  category = request.GET.get('category', '')
   params = {
     'page_title': 'Multi-Test Frameset',
     'autorun': request.GET.get('autorun', 1),
     'testurl': request.GET.get('testurl', ''),
-    'category': request.GET.get('category', '')
+    'category': category
   }
-  return Render(request, MULTI_TEST_FRAMESET_TPL, params)
+  return Render(request, MULTI_TEST_FRAMESET_TPL, params, category)
 
 
 def MultiTestDriver(request):
@@ -166,16 +168,27 @@ single category"""
     'testurl': request.GET.get('testurl'),
     'category': category
   }
-  return Render(request, MULTI_TEST_DRIVER_TPL, params)
+  return Render(request, MULTI_TEST_DRIVER_TPL, params, category)
 
 
-def About(request, category):
+def About(request, category, category_title=None, overview='', 
+          show_hidden=True, show_test_urls=False):
   """Generic 'About' page."""
+  if None == category_title:
+    category_title = category.title()
+  
+  if show_hidden:
+    tests = all_test_sets.GetTestSet(category).tests
+  else:
+    tests = [test for test in all_test_sets.GetTestSet(category).tests
+             if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat]
   params = {
-    'page_title': "What are the %s Tests?" % (category.title()),
-    'tests': all_test_sets.GetTestSet(category).tests,
+    'page_title': "What are the %s Tests?" % (category_title),
+    'overview': overview,
+    'tests': tests,
+    'show_test_urls': show_test_urls
   }
-  return Render(request, 'about.html', params)
+  return Render(request, ABOUT_TPL, params, category)
 
 
 def GetServer(request):

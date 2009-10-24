@@ -26,9 +26,13 @@ CATEGORY = 'security'
 
 def About(request):
   """About page."""
-  params = {
-    'page_title': 'What are the Security Tests?',
-    'tests': all_test_sets.GetTestSet(CATEGORY).tests,
-  }
-  return util.Render(request, 'templates/about.html', params, CATEGORY)
+  overview = """This page contains a suite of security tests that measure
+    whether the browser supports JavaScript APIs that allow safe
+    interactions between sites, and whether it follows industry
+    best practices for blocking harmful interactions between sites.
+    The initial set of tests were contributed by
+    <a href="http://www.adambarth.com/">Adam Barth</a>,
+    <a href="http://www.collinjackson.com/">Collin Jackson</a>,
+    and <a href="http://www.google.com/profiles/meacer">Mustafa Acer</a>."""
+  return util.About(request, CATEGORY, overview=overview)
 
