@@ -180,8 +180,8 @@ def About(request, category, category_title=None, overview='',
   if show_hidden:
     tests = all_test_sets.GetTestSet(category).tests
   else:
-    tests = [test for test in all_test_sets.GetTestSet(category).tests
-             if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat]
+    tests = GetVisibleTests(all_test_sets.GetTestSet(category).tests)
+  
   params = {
     'page_title': "What are the %s Tests?" % (category_title),
     'overview': overview,
@@ -189,6 +189,11 @@ def About(request, category, category_title=None, overview='',
     'show_test_urls': show_test_urls
   }
   return Render(request, ABOUT_TPL, params, category)
+
+
+def GetVisibleTests(tests):
+  return [test for test in tests 
+          if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat]
 
 
 def GetServer(request):
@@ -542,8 +547,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     return pickle.dumps(stats_data)
 
   # Reset tests now to only be "visible" tests.
-  tests = [test for test in tests
-           if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat]
+  tests = GetVisibleTests(tests)
 
   # Looks for a category_results=test1=X,test2=X url GET param.
   results = None
@@ -713,9 +717,7 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
             break
 
       # Reset tests now to only be the "visible" tests.
-      visible_tests = [test for test in tests
-                       if not hasattr(test, 'is_hidden_stat') or
-                       not test.is_hidden_stat]
+      visible_tests = GetVisibleTests(tests)
 
       # Now make a second pass with all the medians and call our formatter,
       # GetScoreAndDisplayValue.
