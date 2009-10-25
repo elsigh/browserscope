@@ -19,6 +19,8 @@
 import logging
 
 from categories import test_set_base
+# for some reason, this import doesn't work.  I (Eric) don't get why...
+#from base import util
 
 
 _CATEGORY = 'network'
@@ -212,6 +214,7 @@ class NetworkTestSet(test_set_base.TestSet):
     total_valid_tests = 0
     total_score = 0
     tests = self.tests
+#    visible_tests = util.GetVisibleTests(tests)
     visible_tests = [test for test in tests
                        if not hasattr(test, 'is_hidden_stat') or
                        not test.is_hidden_stat]
@@ -239,5 +242,6 @@ TEST_SET = NetworkTestSet(
     category=_CATEGORY,
     category_name='Network',
     tests=_TESTS,
+#    test_page=util.MULTI_TEST_DRIVER_TEST_PAGE
     test_page='/multi_test_frameset'
 )
