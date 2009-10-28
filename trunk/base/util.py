@@ -60,6 +60,7 @@ TEST_DRIVER_TPL = 'test_driver.html'
 MULTI_TEST_FRAMESET_TPL = 'multi_test_frameset.html'
 MULTI_TEST_DRIVER_TPL = 'multi_test_driver.html'
 
+BETA_PARAMS = 'beta'
 
 #@decorators.trusted_tester_required
 def Render(request, template, params={}, category=None):
@@ -92,7 +93,8 @@ def Render(request, template, params={}, category=None):
   # Creates a list of tuples categories and their ui names.
   for i, test_set in enumerate(all_test_sets.GetTestSetsIncludingBetas()):
     # This way we can show beta categories in local dev.
-    if (test_set.category in settings.CATEGORIES or
+    if ((test_set.category in settings.CATEGORIES and
+         test_set.category not in settings.CATEGORIES_INVISIBLE) or
         settings.BUILD == 'development'):
       params['app_categories'].append([test_set.category,
                                        test_set.category_name])
@@ -144,7 +146,7 @@ def CategoryTestDriver(request):
 
 
 def MultiTestFrameset(request):
-  """Multi-Page Test Frameset - frames the multi-page test driver and the 
+  """Multi-Page Test Frameset - frames the multi-page test driver and the
 current test page"""
   category = request.GET.get('category', '')
   params = {
@@ -157,7 +159,7 @@ current test page"""
 
 
 def MultiTestDriver(request):
-  """Multi-Page Test Driver - runs each of multiple tests in sequence in a 
+  """Multi-Page Test Driver - runs each of multiple tests in sequence in a
 single category"""
   category = request.GET.get('category', '')
   tests = all_test_sets.GetTestSet(category).tests
@@ -171,17 +173,17 @@ single category"""
   return Render(request, MULTI_TEST_DRIVER_TPL, params, category)
 
 
-def About(request, category, category_title=None, overview='', 
+def About(request, category, category_title=None, overview='',
           show_hidden=True, show_test_urls=False):
   """Generic 'About' page."""
   if None == category_title:
     category_title = category.title()
-  
+
   if show_hidden:
     tests = all_test_sets.GetTestSet(category).tests
   else:
     tests = GetVisibleTests(all_test_sets.GetTestSet(category).tests)
-  
+
   params = {
     'page_title': "What are the %s Tests?" % (category_title),
     'overview': overview,
@@ -192,7 +194,7 @@ def About(request, category, category_title=None, overview='',
 
 
 def GetVisibleTests(tests):
-  return [test for test in tests 
+  return [test for test in tests
           if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat]
 
 
@@ -257,7 +259,7 @@ def Home(request):
     params = {
       'page_title': 'Home',
       'results_params': '&'.join(results_params),
-      'ua_params': request.GET.get('ua'),
+      'ua_params': request.GET.get('ua', ''),
       'stats_table_category': test_set.category,
       'stats_table': stats_table,
       'recent_tests': recent_tests,
@@ -378,7 +380,7 @@ def ClearMemcache(request):
     logging.info('user_agent_strings are: %s' % user_agent_strings)
     for category in categories:
       for user_agent in user_agent_strings:
-        memcache_ua_key = '%s_%s' % (category, user_agent)
+        memcache_ua_key = ResultParent.GetMemcacheKey(category, user_agent)
         memcache.delete(key=memcache_ua_key, seconds=0,
                         namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
         logging.info('Deleting %s in memcache' % memcache_ua_key)
@@ -428,20 +430,24 @@ def Beacon(request):
   params_str = request.REQUEST.get('params')
 
   if not category or not results_str:
-    logging.debug('Got no category or results.')
+    logging.info('Got no category or results.')
     return http.HttpResponse(BAD_BEACON_MSG + 'Category/Results')
-  if settings.BUILD == 'production' and category not in settings.CATEGORIES:
+  if (settings.BUILD == 'production'
+      and category not in settings.CATEGORIES + settings.CATEGORIES_BETA):
     # Allows local developers to try out category beaconing.
-    logging.debug('Got a bogus category(%s) in production.' % category)
+    logging.info('Got a bogus category (%s).' % category)
     return http.HttpResponse(BAD_BEACON_MSG + 'Category in Production')
   if not all_test_sets.HasTestSet(category):
-    logging.debug('Could not get a test_set for category: %s' % category)
+    logging.info('Could not get a test_set for category: %s' % category)
     return http.HttpResponse(BAD_BEACON_MSG + 'TestSet')
 
   test_set = all_test_sets.GetTestSet(category)
-
   logging.info('Beacon category: %s\nresults_str: %s' % (category, results_str))
-  logging.info('js_user_agent_string: %s' % js_user_agent_string)
+
+  # Allow beta categories to save their data with a magic params string.
+  if category in settings.CATEGORIES_BETA:
+    logging.info('BETA %s is geting BETA_PARAMS' % category)
+    params_str = BETA_PARAMS
 
   if params_str:
     params_str = urllib.unquote(params_str)
@@ -508,8 +514,14 @@ def GetStats(request, test_set, output='html', opt_tests=None,
 
   tests = opt_tests or test_set.tests
   params_str = None
-  if test_set.default_params:
+  # Store beta data with a magic params_str.
+  if test_set.category in settings.CATEGORIES_BETA:
+    params_str = BETA_PARAMS
+    if test_set.default_params:
+      params_str += '_%s' % str(test_set.default_params)
+  elif test_set.default_params:
     params_str = str(test_set.default_params)
+
 
   # Enables a "static" pickle mode so that we still run the data through
   # the template processor (enabling us to display a user's test results)
@@ -523,7 +535,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       f.close()
     else:
       url = ('%s/%s_%s.py' % (settings.STATIC_SRC, test_set.category,
-                             version_level))
+                              version_level))
       result = urlfetch.fetch(url)
       pickled_data = result.content
       stats_data = pickle.loads(pickled_data)
@@ -631,7 +643,8 @@ def GetSummaryData(user_agent_strings, version_level):
           'score': 0,
           'display': 0
           }
-      memcache_ua_key = '%s_%s' % (test_set.category, user_agent)
+      memcache_ua_key = ResultParent.GetMemcacheKey(test_set.category,
+                                                    user_agent)
       row_stats = memcache.get(key=memcache_ua_key,
           namespace=settings.STATS_MEMCACHE_UA_ROW_SCORE_NS)
       if not row_stats:
@@ -664,14 +677,14 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
   if use_memcache:
     memcache_ua_keys = []
     for user_agent in user_agents:
-      memcache_ua_key = '%s_%s' % (category, user_agent)
+      memcache_ua_key = ResultParent.GetMemcacheKey(category, user_agent)
       memcache_ua_keys.append(memcache_ua_key)
     memcache_stats_data = memcache.get_multi(
           keys=memcache_ua_keys, namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
 
   for user_agent in user_agents:
     user_agent_stats = None
-    memcache_ua_key = '%s_%s' % (category, user_agent)
+    memcache_ua_key = ResultParent.GetMemcacheKey(category, user_agent)
     if memcache_stats_data.has_key(memcache_ua_key):
       user_agent_stats = memcache_stats_data[memcache_ua_key]
 
@@ -753,8 +766,8 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
         memcache.set(key=memcache_ua_key, value=user_agent_stats,
                      time=settings.STATS_MEMCACHE_TIMEOUT,
                      namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
-        logging.info('GetStatsData added %s user_agent:%s stats to memcache' %
-                     (category, user_agent))
+        logging.info('GetStatsData: added %s data to memcache' %
+                     (memcache_ua_key))
 
         # Add row total scores for overall results display.
         # TODO(elsigh): this is simply to fix the acid3 case where we set the

@@ -21,6 +21,7 @@ urlpatterns = patterns('',
   (r'^alltests', 'base.util.AllTests'),
   (r'^beacon.*', 'base.util.Beacon'),
   (r'^get_csrf',  'base.util.GetCsrf'),
+  (r'^resource',  'third_party.resource-cgi.resource.Handler'),
 
   # Admin functionality
   (r'^update_datastore', 'base.util.UpdateDatastore'),

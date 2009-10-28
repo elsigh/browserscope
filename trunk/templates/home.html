@@ -121,7 +121,7 @@
         userAgentPretty);
     var resultsUriParams = '{{ results_params }}';
     var uaUriParams = '{{ ua_params }}'
-    if (uaUriParams) {
+    if (uaUriParams != '') {
       resultsUriParams += '&ua=' + uaUriParams;
     }
     var controller = new Util.ResultTablesController(category, categories,
@@ -130,7 +130,6 @@
       var curUaStringEl = document.getElementById('bs-home-cur-ua-s');
       curUaStringEl.innerHTML = realUaString;
     }
-
     var cb = Util.createChromeFrameCheckbox(httpUserAgent, true);
     if (cb) {
       var curUaStringContainer = document.getElementById('bs-home-cur-ua');
