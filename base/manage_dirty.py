@@ -161,8 +161,11 @@ def UpdateDirty(request):
     try:
       dirty_query = DirtyResultTimesQuery(request.GET.get('result_parent_key'))
       dirty_result_times = dirty_query.Fetch()
+      logging.info('dirty_result_times: %s' % dirty_result_times)
       if dirty_result_times:
         result_parent = dirty_result_times[0].parent()
+        logging.info('ResultParent category: %s, ua: %s' %
+            (result_parent.category, result_parent.user_agent.pretty()))
         # Mark non-live test categories as not-dirty, don't rank their scores.
         if (result_parent.category not in settings.CATEGORIES and
             settings.BUILD == 'production'):
@@ -175,6 +178,7 @@ def UpdateDirty(request):
             result_time.increment_all_counts()
             num_completed += 1
           if dirty_query.IsResultParentDone():
+            logging.info('ResultParent done!')
             result_parent.invalidate_ua_memcache()
     except runtime.DeadlineExceededError:
       logging.warn('UpdateDirty DeadlineExceededError; '
