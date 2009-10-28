@@ -66,6 +66,14 @@ class ResultParent(db.Expando):
   params_str = db.StringProperty(default=None)
 
   @classmethod
+  def GetMemcacheKey(cls, category, user_agent):
+    memcache_ua_key = '%s_%s' % (category, user_agent)
+    if category in settings.CATEGORIES_BETA:
+      memcache_ua_key += '_beta'
+    return memcache_ua_key
+
+
+  @classmethod
   def AddResult(cls, test_set, ip, user_agent_string, results_str,
                 is_import=False, params_str=None, js_user_agent_string=None,
                 **kwds):
@@ -117,7 +125,7 @@ class ResultParent(db.Expando):
     return parent
 
   def invalidate_ua_memcache(self):
-    memcache_ua_keys = ['%s_%s' % (self.category, user_agent)
+    memcache_ua_keys = [ResultParent.GetMemcacheKey(self.category, user_agent)
                         for user_agent in self.get_user_agent_list()]
     #logging.debug('invalidate_ua_memcache, memcache_ua_keys: %s' %
     #             memcache_ua_keys)

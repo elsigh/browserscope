@@ -221,7 +221,6 @@ Util.ResultTablesController = function(category, categories, realUaString,
   this.xhrLoading = false;
   this.decorate();
   this.setCategory(category);
-
 };
 
 Util.ResultTablesController.prototype.decorate = function() {
@@ -366,9 +365,10 @@ Util.ResultTable.prototype.initTooltips = function () {
   var ths = thead.getElementsByTagName('th');
   for (var i = 0, th; th = ths[i]; i++) {
     if (th.title && th.title != '') {
-      var tt = new goog.ui.Tooltip(th);
-      tt.setHtml(th.title);
-      th.setAttribute('title', '');
+      // TODO(elsigh): bombs in IE6 for some reason..
+      //var tt = new goog.ui.Tooltip(th);
+      //tt.setHtml(th.title);
+      //th.setAttribute('title', '');
     }
   }
 };
