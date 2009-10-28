@@ -81,8 +81,10 @@ STATS_SCORE_FALSE = 'no'
 DEBUG = False
 BUILD = 'production'
 SERVER_SOFTWARE = os.getenv('SERVER_SOFTWARE')
-if (users.is_current_user_admin() or
-    (SERVER_SOFTWARE is not None and 'Dev' in SERVER_SOFTWARE)):
+if (SERVER_SOFTWARE is not None and 'Dev' in SERVER_SOFTWARE):
   BUILD = 'development'
+  DEBUG = True
+# Logged in admins should get to see stack traces.
+if users.is_current_user_admin():
   DEBUG = True
 TEMPLATE_DEBUG = DEBUG
