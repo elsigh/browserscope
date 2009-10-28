@@ -93,9 +93,11 @@ def Render(request, template, params={}, category=None):
   # Creates a list of tuples categories and their ui names.
   for i, test_set in enumerate(all_test_sets.GetTestSetsIncludingBetas()):
     # This way we can show beta categories in local dev.
-    if ((test_set.category in settings.CATEGORIES and
+    if (settings.BUILD == 'development' or
+        (test_set.category in settings.CATEGORIES and
          test_set.category not in settings.CATEGORIES_INVISIBLE) or
-        settings.BUILD == 'development'):
+        (params.has_key('stats_table_category') and
+         test_set.category == params['stats_table_category'])):
       params['app_categories'].append([test_set.category,
                                        test_set.category_name])
     # Select the current page's category.
@@ -104,9 +106,9 @@ def Render(request, template, params={}, category=None):
       params['app_category_name'] = test_set.category_name
       params['app_category_index'] = i
 
-  if category != None and template != TEST_DRIVER_TPL \
-    and template != MULTI_TEST_DRIVER_TPL \
-    and template != MULTI_TEST_FRAMESET_TPL and template != ABOUT_TPL:
+  if (category != None
+      and template not in (TEST_DRIVER_TPL, MULTI_TEST_DRIVER_TPL,
+                           MULTI_TEST_FRAMESET_TPL, ABOUT_TPL)):
     template = '%s/%s' % (category, template)
 
   return shortcuts.render_to_response(template, params)
@@ -218,7 +220,8 @@ def Home(request):
     ScheduleRecentTestsUpdate()
 
   results_params = []
-  for category in settings.CATEGORIES + settings.CATEGORIES_BETA:
+  for category in (settings.CATEGORIES + settings.CATEGORIES_INVISIBLE +
+                   settings.CATEGORIES_BETA):
     results_uri_string = request.GET.get('%s_results' % category)
     if results_uri_string:
       results_params.append('%s_results=%s' % (category, results_uri_string))
@@ -233,7 +236,8 @@ def Home(request):
     test_set = all_test_sets.GetTestSet(category)
   else:
     if len(results_params) > 0:
-      for category in settings.CATEGORIES + settings.CATEGORIES_BETA:
+      for category in (settings.CATEGORIES + settings.CATEGORIES_INVISIBLE +
+                       settings.CATEGORIES_BETA):
         if request.GET.get('%s_results' % category):
           test_set = all_test_sets.GetTestSet(category)
           break
