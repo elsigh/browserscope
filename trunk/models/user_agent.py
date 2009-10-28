@@ -432,7 +432,9 @@ class UserAgent(db.Expando):
       family, v1, v2, v3 = parser.Parse(user_agent_string)
       if family:
         break
-    if js_user_agent_string and user_agent_string.find('chromeframe') > -1:
+    # Override for Chrome Frame IFF Chrome is enabled.
+    if (js_user_agent_string and js_user_agent_string.find('Chrome/') > -1 and
+        user_agent_string.find('chromeframe') > -1):
       family = 'Chrome Frame (%s %s)' % (family, v1)
       cf_family, v1, v2, v3 = cls.parse(js_user_agent_string)
     return family or 'Other', v1, v2, v3

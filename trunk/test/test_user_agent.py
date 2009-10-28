@@ -193,6 +193,18 @@ class ChromeFrameTest(unittest.TestCase):
         js_user_agent_string=self.CHROME_UA_STRING)
     self.assertEqual(('Chrome Frame (IE 8)', '2', '0', '169'), parts)
 
+    # Make sure regular IE doesn't get parsed incorrectly if Chrome Frame is
+    # installed but not enabled.
+    ie8_js_ua_string = ('Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; '
+        'Trident/4.0; GTB6; chromeframe; .NET CLR 2.0.50727; '
+        '.NET CLR 1.1.4322; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022; '
+        '.NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)')
+    parts = UserAgent.parse(
+        'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; GTB6; '
+        'chromeframe; .NET CLR 2.0.50727; .NET CLR 1.1.4322; .NET CLR ' '3.0.04506.648; .NET CLR 3.5.21022; .NET CLR 3.0.4506.2152; .NET CLR ' '3.5.30729),gzip(gfe),gzip(gfe)',
+        js_user_agent_string=ie8_js_ua_string)
+    self.assertEqual(('IE', '8', '0', None), parts)
+
   def testChromeFrameFactoryExpandoProperty(self):
     ua_string = (
         'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 6.0; Trident/4.0; '
