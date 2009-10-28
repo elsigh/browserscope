@@ -49,15 +49,23 @@ def UserAgentGroup(request):
 def UpdateRecentTests(request):
   query = db.Query(ResultParent)
   query.order('-created')
-  recent_tests = query.fetch(10, 0)
+  recent_tests = query.fetch(30, 0)
 
   # need to get the score for a test
+  recent_tests_list = []
   for recent_test in recent_tests:
+    if len(recent_tests_list) == 10:
+      break
+    if (settings.BUILD == 'production' and
+        recent_test.category in settings.CATEGORIES_INVISIBLE +
+        settings.CATEGORIES_BETA):
+      continue
     score, display = recent_test.get_score_and_display()
     recent_test.score = score
     recent_test.display = display
     recent_test.user_agent_pretty = recent_test.user_agent.pretty()
+    recent_tests_list.append(recent_test)
 
-  memcache.set(key=util.RECENT_TESTS_MEMCACHE_KEY, value=recent_tests,
+  memcache.set(key=util.RECENT_TESTS_MEMCACHE_KEY, value=recent_tests_list,
                time=settings.STATS_MEMCACHE_TIMEOUT)
   return http.HttpResponse('Done')
