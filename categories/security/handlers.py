@@ -36,3 +36,8 @@ def About(request):
     and <a href="http://www.google.com/profiles/meacer">Mustafa Acer</a>."""
   return util.About(request, CATEGORY, overview=overview)
 
+
+def Test(request):
+  return util.Render(request, 'templates/test.html', params={},
+                     category=CATEGORY)
+
