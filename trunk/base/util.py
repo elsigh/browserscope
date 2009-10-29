@@ -51,6 +51,7 @@ from categories import test_set_params
 from base import decorators
 from base import manage_dirty
 from base import summary_test_set
+from base import custom_filters
 
 
 MULTI_TEST_DRIVER_TEST_PAGE = '/multi_test_frameset'
@@ -68,6 +69,7 @@ def Render(request, template, params={}, category=None):
   params['app_title'] = settings.APP_TITLE
   params['version_id'] = os.environ['CURRENT_VERSION_ID']
   params['build'] = settings.BUILD
+  params['resource_version'] = custom_filters.get_resource_version()
   params['epoch'] = int(time.time())
   params['request_path'] = request.get_full_path()
   params['request_path_lastbit'] = re.sub('^.+\/([^\/]+$)', '\\1', request.path)

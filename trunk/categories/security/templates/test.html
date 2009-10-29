@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script src='config.js'></script>
+    <script src="{{ "config.js"|resource_path:"security" }}"></script>
     <style>
     #results { background: #FFF; width: 600px; padding: 10px 40px; color: #000; font-size: 11px; line-height: 1.3em; }
     body.unfinished { background-color: orange; }
@@ -71,7 +71,8 @@
           });
         });
       }
-      iframe.src = src;
+      var cacheBustingVersion = '?v={{ resource_version }}';
+      iframe.src = src + cacheBustingVersion;
       document.getElementById('iframes').appendChild(iframe);
       return runTestCallback;
     }
