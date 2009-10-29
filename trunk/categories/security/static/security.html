@@ -102,9 +102,10 @@
       document.cookie = 'testHttpOnlyCookie=1; httpOnly';
       return document.cookie.indexOf('testHttpOnlyCookie') == -1;
     });
+    var attack = "<script>script_ran = true<\/script>";
     runIframeTest('Block reflected XSS',
-                  CROSS_ORIGIN_BASE_URL + "xss-frame-attacker.html",
-                  function (frame) { return !realTop.xss_filter_test_fail; });
+                  NON_APP_ENGINE_BASE_URL + "xss-frame-victim.html?" + attack,
+                  function (frame) { return realTop.xss_filter_test_result == 'true'; });
     try { eval("var location = '#';"); } catch (ex) { }
     runTest('Block location spoofing', function () {
       return window.location != "#";

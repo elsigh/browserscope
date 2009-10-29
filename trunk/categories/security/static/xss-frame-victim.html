@@ -1,1 +1,8 @@
-<script>top.xss_filter_test_fail = true;</script>
+<script src="config.js"></script>
+<!-- XSS filter should stop the following line from running -->
+<script>script_ran = true</script>
+<script type='text/javascript'>
+  var success = !window.script_ran;
+  document.write("<iframe src='" + SAME_ORIGIN_BASE_URL + "xss-filter-test-done.html?" + success + "'></iframe>");
+</script>
+</body>
