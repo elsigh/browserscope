@@ -175,8 +175,8 @@
         return true;
       }
     });
-    runIframeTest('Block UTF-7 sniffing', "{{ "utf7-sniff.html"|resource_path:"security" }}", function (frame) {
-      return !frame.contentWindow.script_ran;
+    runIframeTest('Block UTF-7 sniffing', "{{ "utf7-sniff-attacker.html"|resource_path:"security" }}", function (frame) {
+      return !frame.contentWindow.frames[0].script_ran;
     });
     runIframeTest('Block all UTF-7', "{{ "utf7.html"|resource_path:"security" }}", function (frame) {
       return !frame.contentWindow.script_ran;

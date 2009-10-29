@@ -35,6 +35,7 @@ branch of the tree. We are really looking forward to receiving your
 code in patch format. Currently the category maintainers are:
 Network: Steve Souders <souders@gmail.com>
 Reflow: Lindsey Simon <elsigh@gmail.com>
+Security: Adam Barth <adam@adambarth.com> and Collin Jackson <collin@collinjackson.com>
 
 
 To create a completely new test category:
