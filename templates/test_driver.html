@@ -44,11 +44,11 @@
   <script>
     var testDriver = new Util.TestDriver('{{ test_page }}', window.parent,
         '{{ app_category }}', '{{ app_category_name }}', '{{ csrf_token }}',
-        '{{ autorun }}', '{{ continue }}');
+        '{{ autorun }}', '{{ continue }}', '{{ testurl }}');
     {% for app_category in  app_categories %}
       testDriver.addCategory('{{ app_category.0 }}');
     {% endfor %}
-    {% if autorun %}
+    {% if autorun or testurl %}
       testDriver.runTest();
     {% endif %}
   </script>

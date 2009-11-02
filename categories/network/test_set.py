@@ -54,7 +54,7 @@ class NetworkTest(test_set_base.TestBase):
         self,
         key=key,
         name=name,
-        url='%s/test?testurl=%s' % (_CATEGORY, url_name),
+        url='/%s/tests/%s' % (_CATEGORY, url_name),
         score_type=score_type,
         doc=doc,
         min_value=min_value,

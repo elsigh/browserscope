@@ -451,10 +451,11 @@ Util.ResultTable.prototype.browserFamilyChangeHandler = function(e) {
  * @param {string} csrfToken
  * @param {boolean} autorun
  * @param {boolean} continueToNextTest
+ * @param {string} testUrl
  * @constructor
  */
 Util.TestDriver = function(testPage, windowParent, category, categoryName,
-    csrfToken, autorun, continueToNextTest) {
+    csrfToken, autorun, continueToNextTest, testUrl) {
 
   /**
    * @type {string}
@@ -492,6 +493,11 @@ Util.TestDriver = function(testPage, windowParent, category, categoryName,
    */
   this.continueToNextTest = (continueToNextTest != '' &&
       continueToNextTest != 'None');
+
+  /**
+   * @type {string}
+   */
+  this.testUrl = testUrl;
 
   /**
    * @type {Function}
@@ -669,9 +675,17 @@ Util.TestDriver.prototype.runTestButtonClickHandler = function(e) {
  * @export
  */
 Util.TestDriver.prototype.runTest = function() {
-  var rand = Math.floor(Math.random() * 10000000);
-  var categoryTestUrl = this.testPage + '?category=' + this.category + '&r=' + rand;
-  this.testFrame.location.href = categoryTestUrl;
+  // i.e. run just one test.
+  if (this.testUrl != '') {
+    this.sendBeaconCheckbox.style.display = 'none';
+    this.runTestButton.style.display = 'none';
+    goog.dom.$('bs-send-beacon-label').style.display = 'none';
+    this.testFrame.location.href = this.testUrl;
+  } else {
+    var rand = Math.floor(Math.random() * 10000000);
+    var categoryTestUrl = this.testPage + '?category=' + this.category + '&r=' + rand;
+    this.testFrame.location.href = categoryTestUrl;
+  }
 };
 
 /**
