@@ -31,11 +31,7 @@ import settings
 def by_key(array, key):
   try:
     value = array[key]
-  except IndexError:
-    value = ''
-  except TypeError:
-    value = ''
-  except KeyError:
+  except (IndexError, TypeError, KeyError):
     value = ''
   return value
 
