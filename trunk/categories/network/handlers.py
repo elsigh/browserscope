@@ -43,13 +43,6 @@ def About(request):
   return util.About(request, CATEGORY)
 
 
-def StatsTable(request):
-  params = {
-    'stats_table': util.GetStats(request, CATEGORY)
-  }
-  return util.Render(request, 'templates/stats_table.html', params, CATEGORY)
-
-
 def Faq(request):
   """Network Performance FAQ"""
 

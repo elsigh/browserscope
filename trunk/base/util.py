@@ -121,11 +121,19 @@ def CategoryTest(request):
   """Loads the test frameset for a category."""
   category = re.sub('\/test.*', '', request.path)[1:]
   test_set = all_test_sets.GetTestSet(category)
+
+  testurl = ''
+  test_key = request.GET.get('test_key')
+  if test_key:
+    test = test_set.GetTest(test_key)
+    testurl = test.url
+
   params = {
     'category': test_set.category,
     'page_title': '%s - Tests' % test_set.category_name,
     'continue': request.GET.get('continue', ''),
     'autorun': request.GET.get('autorun', ''),
+    'testurl': testurl,
     'test_page': test_set.test_page
   }
   #return shortcuts.render_to_response('test_frameset.html', params)
@@ -143,6 +151,7 @@ def CategoryTestDriver(request):
     'continue': request.GET.get('continue', ''),
     'autorun': request.GET.get('autorun', ''),
     'test_page': test_set.test_page,
+    'testurl': request.GET.get('testurl', ''),
     'csrf_token': request.session.get('csrf_token'),
     'hide_footer': True
   }
@@ -272,6 +281,28 @@ def Home(request):
       'message': request.GET.get('message'),
     }
     return Render(request, 'home.html', params)
+
+
+def BrowseResults(request):
+  ua = request.GET.get('ua')
+  bookmark = request.GET.get('bookmark')
+  limit = int(request.GET.get('limit', 100))
+  order = request.GET.get('order', 'desc')
+  query = pager.PagerQuery(ResultParent, keys_only=True)
+  #query.filter()
+  if order == 'desc':
+    query.order('-created')
+  else:
+    query.order('created')
+
+  prev_bookmark, results, next_bookmark = query.fetch(fetch_limit, bookmark)
+
+  params = {
+    'prev_bookmark': prev_bookmark,
+    'next_bookmark': next_bookmark,
+    'results': results
+  }
+  return ''
 
 
 def Faq(request):
