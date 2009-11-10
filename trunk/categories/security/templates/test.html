@@ -15,7 +15,6 @@
     var tests = [];
     var results = [];
     var committed = false;
-    var realTop = top;
     function commit() {
       window.committed = true;
       if (results.length >= tests.length) sendScore();
@@ -106,14 +105,10 @@
     var attack = "<script>script_ran = true<\/script>";
     runIframeTest('Block reflected XSS',
                   NON_APP_ENGINE_BASE_URL + "xss-frame-victim.html?" + attack,
-                  function (frame) { return realTop.xss_filter_test_result == 'true'; });
+                  function (frame) { return top.xss_filter_test_result == 'true'; });
     try { eval("var location = '#';"); } catch (ex) { }
     runTest('Block location spoofing', function () {
       return window.location != "#";
-    });
-    try { eval("var top = 'fake';"); } catch (ex) { }
-    runTest('Block window.top spoofing', function () {
-      return window.top != "fake";
     });
     runTest('Block JSON hijacking', function () {
       var fail = false;
@@ -174,12 +169,6 @@
       } catch (ex) {
         return true;
       }
-    });
-    runIframeTest('Block UTF-7 sniffing', "{{ "utf7-sniff-attacker.html"|resource_path:"security" }}", function (frame) {
-      return !frame.contentWindow.frames[0].script_ran;
-    });
-    runIframeTest('Block all UTF-7', "{{ "utf7.html"|resource_path:"security" }}", function (frame) {
-      return !frame.contentWindow.script_ran;
     });
     commit();
     </script>
