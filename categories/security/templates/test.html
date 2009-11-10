@@ -99,8 +99,8 @@
       return window.toStaticHTML;
     });
     runTest('httpOnly cookie API', function () {
-      document.cookie = 'testHttpOnlyCookie=1; httpOnly';
-      return document.cookie.indexOf('testHttpOnlyCookie') == -1;
+      return document.cookie.indexOf('regularTestCookie') != -1 &&
+             document.cookie.indexOf('httpOnlyTestCookie') == -1;
     });
     var attack = "<script>script_ran = true<\/script>";
     runIframeTest('Block reflected XSS',
