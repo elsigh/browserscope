@@ -38,6 +38,9 @@ def About(request):
 
 
 def Test(request):
-  return util.Render(request, 'templates/test.html', params={},
-                     category=CATEGORY)
+  response = util.Render(request, 'templates/test.html', params={},
+                         category=CATEGORY)
+  response.set_cookie('regularTestCookie', '1', expires=None, httponly=False, path='/security/')
+  response.set_cookie('httpOnlyTestCookie', '1', expires=None, httponly=True, path='/security/')
+  return response
 
