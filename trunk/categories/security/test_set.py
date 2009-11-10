@@ -75,12 +75,6 @@ _TESTS = (
   Browsers should block
   <a href="http://www.adambarth.com/papers/2009/adida-barth-jackson.pdf">JavaScript rootkits</a>
   that try to overwrite the location object.'''),
-  SecurityTest('Block window.top spoofing', 'Block window.top spoofing',
-  '''The global "top" variable is used by JavaScript to determine the URL of the main frame of the current
-  tab. It is used for frame busting, and Flash Player also uses it
-  to enforce its third-party cookie blocking policy. Browsers should block
-  <a href="http://www.adambarth.com/papers/2009/adida-barth-jackson.pdf">JavaScript rootkits</a>
-  that try to overwrite the top object.'''),
   SecurityTest('Block JSON hijacking', 'Block JSON hijacking',
   '''Documents encoded in JSON format can be read across domains if the browser
   supports a
@@ -107,16 +101,6 @@ _TESTS = (
   Accessing this property across origins is
   <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#security-2">prohibited
   by HTML5</a>.'''),
-  SecurityTest('Block UTF-7 sniffing', 'Block UTF-7 sniffing',
-  '''This test checks whether the browser will automatically detect UTF-7
-  encoded HTML documents.
-  <a href="http://code.google.com/p/browsersec/wiki/Part2">UTF-7 sniffing
-  is not recommended</a> because an attacker may use it to bypass cross-site
-  scripting filters.'''),
-  SecurityTest('Block all UTF-7', 'Block all UTF-7',
-  '''The UTF-7 encoding is prone to cross-site scripting attacks and is not
-  recommended for HTML documents. This test checks to see whether UTF-7 encoding
-  is completely blocked.'''),
 )
 
 
