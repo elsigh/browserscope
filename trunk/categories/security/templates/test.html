@@ -151,8 +151,9 @@
       return !fail;
     });
     window.script_in_css_pass = true;
-    document.write("<div id='testDiv' style='width:expression(window.script_in_css_pass=false);-moz-binding:url(static/xssmoz.xml#xss)'></div>");
-    var cssExpressionCallback = newTest('Block script in CSS');
+    document.write("<div id='testDiv' style='width:expression(window.script_in_css_pass=false);-moz-binding:url(" + CROSS_ORIGIN_BASE_URL + "xssmoz.xml#xss)'></div>");
+    document.write("<div id='xblTest'></div><link rel='stylesheet' href='" + CROSS_ORIGIN_BASE_URL + "xssmoz.css'>");
+    var cssExpressionCallback = newTest('Block XSS in CSS');
     observe(window, 'load', function () {
       cssExpressionCallback(function () { return window.script_in_css_pass; });
     });
