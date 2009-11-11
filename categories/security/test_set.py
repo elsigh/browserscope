@@ -83,11 +83,14 @@ _TESTS = (
   browser supports a
   <a href="http://haacked.com/archive/2009/06/25/json-hijacking.aspx">mutable setter function</a>
   for the Object prototype that is called when object literals are encountered.'''),
-  SecurityTest('Block script in CSS', 'Block script in CSS',
-  '''CSS Expressions are commonly used by attackers to evade server-side XSS filters.
-  They are proprietary to Internet Explorer and their support has been
+  SecurityTest('Block XSS in CSS', 'Block XSS in CSS',
+  '''Script in stylesheets can be used by attackers to evade server-side XSS filters.
+  Support for CSS expressions has been
   <a href="http://blogs.msdn.com/ie/archive/2008/10/16/ending-expressions.aspx">discontinued
-  in IE8 standards mode</a>.'''),
+  in IE8 standards mode</a> and XBL in stylesheets has been
+  <a href="http://www.mozilla.org/security/announce/2009/mfsa2009-18.html">restricted
+  to same-origin code in separate files</a> in Firefox. We check to make sure that script injected
+  into a site via stylesheet does not execute.'''),
   SecurityTest('Block cross-origin document', 'Block cross-origin document',
   '''Browsers should block cross-origin access to a frame's document to reduce the risk of
   <a href="http://www.adambarth.com/papers/2009/barth-weinberger-song.pdf">cross-origin capability leaks</a>.
