@@ -44,14 +44,13 @@ class ResultTime(db.Model):
   def GetOrCreateRankers(self):
     parent = self.parent()
     test_set = all_test_sets.GetTestSet(parent.category)
-    try:
-      test = test_set.GetTest(self.test)
-    except KeyError:
-      logging.warn('Test key not found in test_set: %s', self.test)
-    else:
+    test = test_set.GetTest(self.test)
+    if test:
       params_str = parent.params_str or None
       for user_agent_string in parent.get_user_agent_list():
         yield test.GetOrCreateRanker(user_agent_string, params_str)
+    else:
+      logging.warn('Test key not found in test_set: %s', self.test)
 
 
 class ResultParent(db.Expando):
