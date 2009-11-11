@@ -34,6 +34,8 @@ class ResultTime(db.Model):
   dirty = db.BooleanProperty(default=True)
 
   def increment_all_counts(self):
+    logging.info('ResultTime.increment_all_counts for test: %s, score: %s' %
+                 (self.test, self.score))
     for ranker in self.GetOrCreateRankers():
       ranker.Add(self.score)
     self.dirty = False

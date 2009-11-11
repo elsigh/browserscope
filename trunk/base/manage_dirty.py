@@ -169,6 +169,7 @@ def UpdateDirty(request):
         # Mark non-live test categories as not-dirty, don't rank their scores.
         if (result_parent.category not in settings.CATEGORIES and
             settings.BUILD == 'production'):
+          logging.info('Setting all result times to false for non-enabled cat')
           for result_time in dirty_result_times:
             result_time.dirty = False
           db.put(dirty_result_times)
