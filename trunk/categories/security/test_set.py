@@ -122,7 +122,7 @@ class SecurityTestSet(test_set_base.TestSet):
       And display is the text for the cell.
 
     """
-    #logging.info('network getrowscore results: %s' % results)
+    logging.info('security getrowscore results: %s' % results)
 
     total_tests = 0
     total_valid_tests = 0
@@ -130,15 +130,18 @@ class SecurityTestSet(test_set_base.TestSet):
     tests = self.tests
     for test in tests:
       total_tests += 1
-      if results.has_key(test.key):
+
+      if results.has_key(test.key) and results[test.key]['median'] is not None:
         score = results[test.key]['score']
-        #logging.info('test: %s, score: %s' % (test.key, score))
+        logging.info('test: %s, score: %s' % (test.key, score))
         total_valid_tests += 1
         # For booleans, when "score" is 10 that's test_type true.
         if score == 10:
           total_score += 1
+      else:
+        logging.info('test: %s has no median' % test)
 
-    #logging.info('%s, %s, %s' % (total_score, total_tests, total_valid_tests))
+    logging.info('%s, %s, %s' % (total_score, total_tests, total_valid_tests))
     score = int(round(100 * total_score / total_tests))
     display = '%s/%s' % (total_score, total_valid_tests)
 
