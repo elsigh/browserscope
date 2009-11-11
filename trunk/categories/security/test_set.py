@@ -83,7 +83,7 @@ _TESTS = (
   browser supports a
   <a href="http://haacked.com/archive/2009/06/25/json-hijacking.aspx">mutable setter function</a>
   for the Object prototype that is called when object literals are encountered.'''),
-  SecurityTest('Block CSS expressions', 'Block CSS expressions',
+  SecurityTest('Block script in CSS', 'Block script in CSS',
   '''CSS Expressions are commonly used by attackers to evade server-side XSS filters.
   They are proprietary to Internet Explorer and their support has been
   <a href="http://blogs.msdn.com/ie/archive/2008/10/16/ending-expressions.aspx">discontinued

@@ -150,11 +150,11 @@
       window.Object = normal_object;
       return !fail;
     });
-    window.css_expression_pass = true;
-    document.write("<div id='testDiv' style='width:expression(window.css_expression_pass=false)'></div>");
-    var cssExpressionCallback = newTest('Block CSS expressions');
+    window.script_in_css_pass = true;
+    document.write("<div id='testDiv' style='width:expression(window.script_in_css_pass=false);-moz-binding:url(static/xssmoz.xml#xss)'></div>");
+    var cssExpressionCallback = newTest('Block script in CSS');
     observe(window, 'load', function () {
-      cssExpressionCallback(function () { return window.css_expression_pass; });
+      cssExpressionCallback(function () { return window.script_in_css_pass; });
     });
     runIframeTest('Block cross-origin document', CROSS_ORIGIN_BASE_URL + "cross-origin-frame.html", function (frame) {
       try {
