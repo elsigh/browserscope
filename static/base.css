@@ -627,7 +627,9 @@ html>body .goog-inline-block {
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
 }
-
+.goog-tooltip a {
+  color: #fff;
+}
 
 /** FAQ **/
 #bs-faq dt {
