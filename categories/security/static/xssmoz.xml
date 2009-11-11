@@ -1,0 +1,7 @@
+<bindings xmlns="http://www.mozilla.org/xbl"> 
+  <binding id="xss"> 
+    <implementation> 
+      <constructor><![CDATA[window.script_in_css_pass=false]]></constructor> 
+    </implementation> 
+  </binding> 
+</bindings>
