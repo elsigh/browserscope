@@ -21,8 +21,10 @@ __author__ = 'elsigh@google.com (Lindsey Simon)'
 import unittest
 import logging
 
+from google.appengine.ext import db
 from models import result_ranker
 from models.result import ResultParent
+from models.result import ResultTime
 
 import mock_data
 
@@ -101,6 +103,30 @@ class ResultTest(unittest.TestCase):
     self.assertEqual(500, result_times[0].score)
     self.assertEqual('testVisibility', result_times[1].test)
     self.assertEqual(200, result_times[1].score)
+
+
+class IncrementAllCountsTest(unittest.TestCase):
+  def setUp(self):
+    db.delete(ResultTime.all(keys_only=True).fetch(1000))
+    db.delete(ResultParent.all(keys_only=True).fetch(1000))
+
+  def tearDown(self):
+    db.delete(ResultTime.all(keys_only=True).fetch(1000))
+    db.delete(ResultParent.all(keys_only=True).fetch(1000))
+
+  def testIncrementAllCountsBogusTest(self):
+    test_set = mock_data.MockTestSet('foo')
+    parent = ResultParent.AddResult(
+        test_set, '12.2.2.25', mock_data.GetUserAgentString(),
+        'testDisplay=500,testVisibility=0')
+    db.put(ResultTime(parent=parent,
+                      test='bogus test key',
+                      score=1,
+                      dirty=True))
+    self.assertEqual(3, ResultTime.all(keys_only=True).count())
+    parent.increment_all_counts()
+    dirty_query = ResultTime.all().filter('dirty =', True)
+    self.assertEqual(0, dirty_query.count())
 
 
 class ChromeFrameAddResultTest(unittest.TestCase):
