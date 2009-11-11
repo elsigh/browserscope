@@ -376,6 +376,8 @@ Util.ResultTable.prototype.setUpBrowserFamilyForm = function() {
   // hide submit
   goog.dom.$('rt-' + this.category + '-v-s').style.display =
       'none';
+  goog.events.listen(this.browserFamilySelect, 'click',
+      this.browserFamilyClickHandler, false, this);
   goog.events.listen(this.browserFamilySelect, 'change',
       this.browserFamilyChangeHandler, false, this);
 
@@ -386,12 +388,13 @@ Util.ResultTable.prototype.setUpBrowserFamilyForm = function() {
 
 Util.ResultTable.prototype.setUpSortableTable = function() {
   if (!this.table) { return; }
-  var tableSorter = new goog.ui.TableSorter();
-  tableSorter.setDefaultSortFunction(Util.alphaCaseInsensitiveCompare);
   // we know # tests should be numeric sort
   var thead = this.table.getElementsByTagName('thead')[0];
   var ths = thead.getElementsByTagName('th');
   var numTestsIndex = ths.length - 1;
+
+  var tableSorter = new goog.ui.TableSorter();
+  tableSorter.setDefaultSortFunction(Util.alphaCaseInsensitiveCompare);
   tableSorter.setSortFunction(numTestsIndex,
       goog.ui.TableSorter.numericSort);
   tableSorter.decorate(this.table);
@@ -399,9 +402,7 @@ Util.ResultTable.prototype.setUpSortableTable = function() {
       this.onTableSort, false, this);
 };
 Util.ResultTable.prototype.onTableSort = function(e) {
-  var tableSorter = e.target;
-  var yourResultsRow = goog.dom.$('rt-' +
-      this.category + '-ua-s-r');
+  var yourResultsRow = goog.dom.$('rt-' + this.category + '-ua-s-r');
   if (yourResultsRow) {
     yourResultsRow.style.display = 'none';
   }
@@ -435,6 +436,10 @@ Util.ResultTable.prototype.browserFamilyChangeHandler = function(e) {
     }
   }
   this.controller.xhrCategoryResults();
+  e.stopPropagation();
+};
+Util.ResultTable.prototype.browserFamilyClickHandler = function(e) {
+  // Prevents table cells from sorting just on click.
   e.stopPropagation();
 };
 
