@@ -145,4 +145,10 @@ urlpatterns = patterns('',
  (r'^cookies/tests/max-value-size$', 'categories.cookies.handlers.MaxValueSize'),
  (r'^cookies/tests/max-total-size$', 'categories.cookies.handlers.MaxTotalSize'),
 
+ # JSKB URLs
+ (r'^jskb/about$', 'categories.jskb.handlers.About'),
+ (r'^jskb/json$', 'categories.jskb.handlers.Json'),
+ (r'^jskb/environment-checks$', 'categories.jskb.handlers.EnvironmentChecks'),
+
+
 )
