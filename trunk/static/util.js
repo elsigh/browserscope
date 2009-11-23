@@ -22,6 +22,13 @@ goog.provide('Util.ResultTablesController');
 goog.provide('Util.ResultTable');
 goog.provide('Util.TestDriver');
 
+goog.require('goog.events');
+goog.require('goog.net.XhrIo');
+goog.require('goog.net.cookies');
+goog.require('goog.ui.TableSorter');
+goog.require('goog.ui.Tooltip');
+goog.require('goog.userAgent');
+
 
 /**
  * Adds CSS text to the DOM.
@@ -212,8 +219,8 @@ Util.ResultTablesController = function(category, categories, realUaString,
   this.realUaString = realUaString;
   this.browserFamily = 'top';
   this.resultsUriParams = resultsUriParams;
-  // If we have resultUriParams, scroll to them.
-  if (this.resultsUriParams) {
+  // If we have results in the resultUriParams, scroll to them.
+  if (this.resultsUriParams.indexOf('_results') !== -1) {
     window.location.hash = '#rt-' + this.category + '-cur-ua';
   }
 
@@ -301,8 +308,14 @@ Util.ResultTablesController.prototype.xhrCategoryResults = function() {
       this.categories[this.category]['name'] +
       ' Results ...';
 
+  // Strip off the ua= part if not custom
+  var additionalUriParams = this.resultsUriParams;
+  if (this.browserFamily != 'custom') {
+    additionalUriParams = additionalUriParams.replace(/&?ua=[^&]+/, '');
+  }
+
   this.url = '/?category=' + this.category +
-      '&o=xhr&v=' + this.browserFamily + '&' + this.resultsUriParams;
+      '&o=xhr&v=' + this.browserFamily + '&' + additionalUriParams;
   goog.net.XhrIo.send(this.url, goog.bind(this.loadStatsTableCallback, this),
       'get', null, null, 15000); // 15000 = 15 second timeout
 };
@@ -357,9 +370,92 @@ Util.ResultTable.prototype.init = function() {
   this.setUpSortableTable();
   this.fixRealUaStringInResults();
   this.initTooltips();
+  this.initCompareUas();
 };
 
-Util.ResultTable.prototype.initTooltips = function () {
+Util.ResultTable.prototype.initCompareUas = function() {
+  /**
+   * @type {Array.<HTMLInputElement>}
+   */
+  this.compareCbs = [];
+
+  /**
+   * @type {Array.<string>}
+   */
+  this.uasToCompare = [];
+
+  var rows = this.table.rows;
+  var cbNode = document.createElement('input');
+  cbNode.type = 'checkbox';
+  var labelNode = document.createElement('label');
+
+  var cells = goog.dom.$$('td', 'rt-ua', this.table);
+  for (var i = 0, cell; cell = cells[i]; i++) {
+    var uaNameCellList = goog.dom.$$('span', 'bs-ua-n', cell);
+    if (!uaNameCellList.length == 1) {
+      continue;
+    }
+    var uaNameCell = uaNameCellList[0];
+    var uaName = uaNameCell.innerHTML;
+    var cbClone = cbNode.cloneNode(false);
+    this.compareCbs.push(cbClone);
+    cbClone.id = 'rt-ua-cb-' + i;
+    cbClone.value = goog.dom.getTextContent(uaNameCell);
+    goog.events.listen(cbClone, 'click', this.cbClick, false, this);
+
+    var labelClone = labelNode.cloneNode(false);
+    labelClone.setAttribute('for', cbClone.id);
+    labelClone.appendChild(cbClone);
+    labelClone.appendChild(uaNameCell);
+
+    cell.appendChild(labelClone);
+  }
+
+  // If we didn't add any compare checkboxes just stop now.
+  if (this.compareCbs.length == 0) {
+    return;
+  }
+
+  this.compareUasBtn = document.createElement('button');
+  this.compareUasBtn.disabled = true;
+  this.compareUasBtn.innerHTML = 'Compare UAs';
+  goog.events.listen(this.compareUasBtn, 'click', this.compareUas, false, this);
+
+  var tFoot = this.table.createTFoot();
+  var tFootRow = tFoot.insertRow();
+  var tFootCell = tFootRow.insertCell();
+  tFootCell.setAttribute('colspan', rows[0].cells.length);
+  tFootCell.appendChild(this.compareUasBtn);
+};
+
+/**
+ * @param {goog.events.Event} e Browser click event.
+ */
+Util.ResultTable.prototype.cbClick = function(e) {
+  var cb = e.currentTarget;
+  if (cb.checked) {
+    goog.array.insert(this.uasToCompare, cb.value);
+  } else {
+    goog.array.remove(this.uasToCompare, cb.value);
+  }
+  if (this.compareUasBtn.disabled && this.uasToCompare.length > 0) {
+    this.compareUasBtn.disabled = false;
+  } else if (this.uasToCompare.length == 0) {
+    this.compareUasBtn.disabled = true;
+  }
+};
+
+/**
+ * @param {goog.events.Event} e Browser click event.
+ */
+Util.ResultTable.prototype.compareUas = function(e) {
+  var compareUasUrl = '/?category=' + this.category + '&' +
+      'v=custom&' +
+      'ua=' + encodeURIComponent(this.uasToCompare.join(','));
+  window.location.href = compareUasUrl;
+};
+
+Util.ResultTable.prototype.initTooltips = function() {
   if (!this.table) { return; }
   var thead = this.table.getElementsByTagName('thead')[0];
   var ths = thead.getElementsByTagName('th');
@@ -432,6 +528,10 @@ Util.ResultTable.prototype.browserFamilyChangeHandler = function(e) {
     for (var i = 0, downloadLink; downloadLink = downloadLinks[i]; i++) {
       var href = downloadLink.href;
       href = href.replace(/v=[^&]+/, 'v=' + this.browserFamily);
+      // Strip off the ua parts if they switch from a custom to a known v.
+      if (this.browserFamily != 'custom') {
+        href = href.replace(/&?ua=[^&]+/, '')
+      }
       downloadLink.href = href;
     }
   }

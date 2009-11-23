@@ -57,6 +57,9 @@ urlpatterns = patterns('',
   (r'^_ah/queue/user-agent-group$', 'base.cron.UserAgentGroup'),
   (r'^_ah/queue/recent-tests$', 'base.cron.UpdateRecentTests'),
 
+  # GViz Data source
+  #(r'^gviz$', 'base.util.Gviz'),
+
   # GAEBar
   (r'^gaebar/', include('third_party.gaebar.urls')),
 

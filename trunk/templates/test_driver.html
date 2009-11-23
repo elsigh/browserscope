@@ -4,7 +4,7 @@
   {% ifequal build "production" %}
     <script src="{{ "browserscope.js"|resource_path }}"></script>
   {% else %}
-    <script src="{{ "xhrio.js"|resource_path }}"></script>
+    <script src="{{ "dev.js"|resource_path }}"></script>
     <script src="{{ "util.js"|resource_path }}"></script>
   {% endifequal %}
 {% endblock %}
