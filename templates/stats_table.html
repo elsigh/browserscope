@@ -93,7 +93,7 @@
               {% ifequal user_agent current_user_agent %}
                 <span class="bs-cur-ua goog-inline-block"></span>
               {% endifequal %}
-              <span>{{ user_agent }}</span>
+              <span class="bs-ua-n">{{ user_agent }}</span>
               {% if is_admin %}
                 &nbsp;<a href="/clear_memcache?category={{ category }}&ua={{ user_agent }}&continue={{ request_path|urlencode }}" class="bs-admin">x</a>
               {% endif %}

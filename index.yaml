@@ -44,23 +44,19 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Unused in query history -- copied from input.
 - kind: ResultTime
   ancestor: yes
 
-# Unused in query history -- copied from input.
 - kind: UserAgent
   properties:
   - name: __key__
     direction: desc
 
-# Unused in query history -- copied from input.
 - kind: UserAgentGroup
   properties:
   - name: v
   - name: string
 
-# Unused in query history -- copied from input.
 - kind: UserAgentGroup
   properties:
   - name: v

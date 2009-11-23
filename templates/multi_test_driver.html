@@ -36,10 +36,10 @@
 </table>
 
 {% ifequal build "production" %}
-<script src="{{ "browserscope.js"|resource_path }}"></script>
+  <script src="{{ "browserscope.js"|resource_path }}"></script>
 {% else %}
-<script src="{{ "xhrio.js"|resource_path }}"></script>
-<script src="{{ "util.js"|resource_path }}"></script>
+  <script src="{{ "dev.js"|resource_path }}"></script>
+  <script src="{{ "util.js"|resource_path }}"></script>
 {% endifequal %}
 
 <script>
@@ -79,7 +79,7 @@ function saveResult(name, value) {
 		" = " + ( "boolean" == gsTests[name][1] ? ( 0 == value ? "no" : "yes" ) : value ) + "<br>" + document.getElementById('results').innerHTML;
 	document.getElementById('results').style.display = "block";
 	document.getElementById('test' + iTest).style.backgroundColor = "#C6E87D";
-	
+
 	if (!gbStop) {
 		if (0 == value && gsTests[name][5]) {
 			sendResultsAndFinish();
@@ -108,7 +108,7 @@ function sendResultsAndFinish() {
 			testResults.push(test + '=' + gaResults[test]);
 		}
 	}
-	
+
 	parent.parent.sendScore(testResults);
 }
 

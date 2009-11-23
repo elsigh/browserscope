@@ -53,6 +53,8 @@ from base import manage_dirty
 from base import summary_test_set
 from base import custom_filters
 
+from third_party.gviz import gviz_api
+
 
 MULTI_TEST_DRIVER_TEST_PAGE = '/multi_test_frameset'
 
@@ -260,7 +262,7 @@ def Home(request):
 
   # Tell GetStats what to output.
   output = request.GET.get('o', 'html')
-  if output not in ['pickle', 'xhr', 'html', 'csv']:
+  if output not in ['html', 'pickle', 'xhr', 'csv', 'gviz', 'gviz_data']:
     return http.HttpResponse('Invalid output specified')
   stats_table = GetStats(request, test_set, output)
 
@@ -268,7 +270,7 @@ def Home(request):
   if category in settings.STATIC_CATEGORIES and output in ['xhr', 'html']:
     stats_table = '%s%s' % (STATIC_MESSAGE, stats_table)
 
-  if output in ['xhr', 'pickle', 'csv']:
+  if output in ['xhr', 'pickle', 'csv', 'gviz', 'gviz_data']:
     return http.HttpResponse(stats_table)
   else:
     params = {
@@ -544,6 +546,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     ua_by_param = request.GET.get('ua')
     if ua_by_param:
       user_agent_strings = ua_by_param.split(',')
+      version_level = 'custom'
     else:
       user_agent_strings = UserAgentGroup.GetStrings(version_level)
     #logging.info('GetStats: v: %s, uas: %s' % (version_level,
@@ -660,10 +663,53 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   #logging.info("GetStats got params: %s", str(params))
   if output in ['html', 'xhr']:
     return GetStatsDataTemplatized(params, 'table')
-  elif output == 'csv':
-    return GetStatsDataTemplatized(params, 'csv')
+  elif output in ['csv', 'gviz']:
+    return GetStatsDataTemplatized(params, output)
+  elif output == 'gviz_data':
+    return FormatStatsDataAsGviz(params)
   else:
     return params
+
+
+def FormatStatsDataAsGviz(params):
+  """Takes the output of GetStats and returns a GViz appropriate response.
+  This makes use of the Python GViz API on Google Code.
+  Copied roughly from:
+    http://code.google.com/p/google-visualization-python/source/browse/trunk/examples/dynamic_example.py
+  Args:
+    params: The dict output from GetStats.
+  Returns:
+    A JSON string as content in a text/plain HttpResponse.
+  """
+  columns_order = ['user_agent', 'score', 'total_runs']
+  description = {'user_agent': ('string', 'UserAgent'),
+                 'score': ('number', 'Score'),
+                 'total_runs': ('number', '# Tests')}
+  for test in params['tests']:
+    gviz_coltype = test.score_type
+    if test.score_type == 'custom':
+      gviz_coltype = 'number'
+    description[test.key] = (gviz_coltype, test.name)
+    columns_order.append(test.key)
+
+  data = []
+  stats = params['stats']
+  logging.info('Stats: %s' % stats)
+  for user_agent in params['user_agents']:
+    if stats[user_agent].has_key('results'):
+      row_data = {}
+      row_data['user_agent'] = user_agent
+      row_data['score'] = stats[user_agent]['score']
+      row_data['total_runs'] = stats[user_agent]['total_runs']
+      for test in params['tests']:
+        row_data[test.key] = stats[user_agent]['results'][test.key]['median']
+      data.append(row_data)
+
+  data_table = gviz_api.DataTable(description)
+  data_table.LoadData(data)
+  json = data_table.ToJSonResponse(columns_order=columns_order,
+                                   order_by='user_agent')
+  return http.HttpResponse(json, mimetype='text/plain')
 
 
 def GetSummaryData(user_agent_strings, version_level):
@@ -821,7 +867,7 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
     # to the final dict. Otherwise, we look and see if there are any
     # test runs (total_runs) for this ua, if not, we don't add them in.
     # Casting user_agent as str here prevents unicode errors when unpickling.
-    if version_level == 'top' or user_agent_stats['total_runs']:
+    if version_level in ['top', 'custom'] or user_agent_stats['total_runs']:
       stats[user_agent] = user_agent_stats
       stats['total_runs'] += user_agent_stats['total_runs']
 
@@ -884,13 +930,13 @@ def GetScoreAndDisplayValue(test, median, medians, is_uri_result=False):
   return score, display
 
 
-def GetStatsDataTemplatized(params, template='html'):
+def GetStatsDataTemplatized(params, template='table'):
   """Returns the stats table run through a template.
 
   Args:
     params: Example:
             params = {
-              'v': one of the keys in BROWSER_NAV,
+              'v': one of the keys in user_agent.BROWSER_NAV,
               'current_user_agent': a user agent entity,
               'user_agents': list_of user agents,
               'tests': list of test names,
@@ -901,13 +947,15 @@ def GetStatsDataTemplatized(params, template='html'):
             }
 
   """
-  params['browser_nav'] = BROWSER_NAV
+  params['browser_nav'] = BROWSER_NAV[:]
+  if params['v'] == 'custom':
+    params['browser_nav'].append(('custom', 'Custom'))
   params['is_admin'] = users.is_current_user_admin()
   if not re.search('\?', params['request_path']):
     params['request_path'] = params['request_path'] + '?'
   t = loader.get_template('stats_%s.html' % template)
-  html = t.render(Context(params))
-  return html
+  template_rendered = t.render(Context(params))
+  return template_rendered
 
 
 @decorators.dev_appserver_only
