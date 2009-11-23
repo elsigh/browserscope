@@ -30,7 +30,7 @@ skip_files: |
   (\..*)|
   (BUILD)|
   (Makefile)|
-  (.*/closure/.*)|
+  (.*/closure-.*)|
   (.*/tools/.*)|
   (.*/django/contrib/admin.*)|
   (.*/django/contrib/auth.*)|
