@@ -35,7 +35,7 @@ CATEGORY = 'network'
 
 TEST_PAGE = '/%s/frameset' % CATEGORY
 
-RESOURCE_CGI = 'stevesouders.com/bin/resource.cgi'
+RESOURCE_CGI = '2.cuzillion.com/bin/resource.cgi'
 #RESOURCE_CGI = 'browsersrc.com/cgi-bin/resource.cgi'
 
 def About(request):
