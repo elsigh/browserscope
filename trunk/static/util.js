@@ -422,8 +422,8 @@ Util.ResultTable.prototype.initCompareUas = function() {
   goog.events.listen(this.compareUasBtn, 'click', this.compareUas, false, this);
 
   var tFoot = this.table.createTFoot();
-  var tFootRow = tFoot.insertRow();
-  var tFootCell = tFootRow.insertCell();
+  var tFootRow = tFoot.insertRow(0);
+  var tFootCell = tFootRow.insertCell(0);
   tFootCell.setAttribute('colspan', rows[0].cells.length);
   tFootCell.appendChild(this.compareUasBtn);
 };
