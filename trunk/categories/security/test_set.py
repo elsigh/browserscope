@@ -144,7 +144,7 @@ class SecurityTestSet(test_set_base.TestSet):
       else:
         logging.info('test: %s has no median' % test.key)
 
-    logging.info('%s, %s, %s' % (total_score, total_tests, total_valid_tests))
+    #logging.info('%s, %s, %s' % (total_score, total_tests, total_valid_tests))
     score = int(round(100 * total_score / total_tests))
     display = '%s/%s' % (total_score, total_valid_tests)
 
