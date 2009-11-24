@@ -22,7 +22,7 @@ function loadImage() {
   img = new Image();
   img.onload = imageOnload;
   t_start = Number(new Date());
-  img.src = "http://stevesouders.com//bin/resource.cgi?type=gif&n=" + (gaTimes.length+1) + "&giffile=pixel.gif&t={{ epoch }}";
+  img.src = "http://{{ resource_cgi }}?type=gif&n=" + (gaTimes.length+1) + "&giffile=pixel.gif&t={{ epoch }}";
 }
 
 function imageOnload() {
