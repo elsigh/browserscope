@@ -220,7 +220,7 @@ class NetworkTestSet(test_set_base.TestSet):
                        not test.is_hidden_stat]
     for test in visible_tests:
       total_tests += 1
-      if results.has_key(test.key):
+      if results.has_key(test.key) and results[test.key]['median'] is not None:
         score = results[test.key]['score']
         #logging.info('test: %s, score: %s' % (test.key, score))
         total_valid_tests += 1
