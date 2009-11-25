@@ -30,6 +30,6 @@ This test determines if redirects are cached <i>for resources in the page</i> (a
 <p>
 <img src='http://{{ resource_cgi }}?redir=1&type=gif&sleep=4&t={{ prevt }}'>
 <link type="text/css" rel="stylesheet" href="http://{{ resource_cgi }}?redir=1&type=css&sleep=4&t={{ prevt }}">
-<script src='http://1.cuzillion.com/bin/resource.cgi?redir=1&type=js&sleep=4&t={{ prevt }}' type='text/javascript'></script>
+<script src='http://{{ resource_cgi2 }}?redir=1&type=js&sleep=4&t={{ prevt }}' type='text/javascript'></script>
 
 {% endblock %}
