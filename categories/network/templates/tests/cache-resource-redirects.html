@@ -15,6 +15,6 @@ loading resource redirects to test caching...
 <p>
 <img src='http://{{ resource_cgi }}?redir=1&type=gif&sleep=4&t={{ epoch }}'>
 <link type="text/css" rel="stylesheet" href="http://{{ resource_cgi }}?redir=1&type=css&sleep=4&t={{ epoch }}">
-<script src='http://1.cuzillion.com/bin/resource.cgi?redir=1&type=js&sleep=4&t={{ epoch }}' type='text/javascript'></script>
+<script src='http://{{ resource_cgi2 }}?redir=1&type=js&sleep=4&t={{ epoch }}' type='text/javascript'></script>
 
 {% endblock %}
