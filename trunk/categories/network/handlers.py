@@ -274,6 +274,54 @@ def ScriptsBlock(request):
                      CATEGORY)
 
 
+def ScriptsBlockScripts(request):
+  """Network Performance Scripts Block Scripts Test"""
+
+  params = {
+    'page_title': 'Performance Scripts Block Scripts Test',
+    'resource_cgi': RESOURCE_CGI,
+    'resource_cgi2': RESOURCE_CGI2,
+  }
+  return util.Render(request, 'templates/tests/scripts-block-scripts.html', params,
+                     CATEGORY)
+
+
+def ScriptsBlockStylesheets(request):
+  """Network Performance Scripts Block Stylesheets Test"""
+
+  params = {
+    'page_title': 'Performance Scripts Block Stylesheets Test',
+    'resource_cgi': RESOURCE_CGI,
+    'resource_cgi2': RESOURCE_CGI2,
+  }
+  return util.Render(request, 'templates/tests/scripts-block-stylesheets.html', params,
+                     CATEGORY)
+
+
+def ScriptsBlockImages(request):
+  """Network Performance Scripts Block Images Test"""
+
+  params = {
+    'page_title': 'Performance Scripts Block Images Test',
+    'resource_cgi': RESOURCE_CGI,
+    'resource_cgi2': RESOURCE_CGI2,
+  }
+  return util.Render(request, 'templates/tests/scripts-block-images.html', params,
+                     CATEGORY)
+
+
+def ScriptsBlockIframes(request):
+  """Network Performance Scripts Block Iframes Test"""
+
+  params = {
+    'page_title': 'Performance Scripts Block Iframes Test',
+    'resource_cgi': RESOURCE_CGI,
+    'resource_cgi2': RESOURCE_CGI2,
+  }
+  return util.Render(request, 'templates/tests/scripts-block-iframes.html', params,
+                     CATEGORY)
+
+
 def StylesheetsBlock(request):
   """Network Performance Stylesheets Block Test"""
 
