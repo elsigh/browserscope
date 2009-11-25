@@ -62,7 +62,7 @@
   <p class="d-msg">{{ message }}</p>
 {% endif %}
 <div id="bs-results">
-  <ul id="bs-results-bycat" class="bs-compact">
+  <ul id="bs-results-bycat" class="bs-results-bycat bs-compact">
     {% ifequal stats_table_category "summary" %}
       <li
         id="summary-results">
@@ -99,6 +99,7 @@
 <script>
   (function(){
     var category = '{{ stats_table_category }}';
+    /*
     var categories = {};
     {% ifequal stats_table_category "summary" %}
       categories['{{ stats_table_category }}'] = {
@@ -115,6 +116,7 @@
         'name': '{{ app_category|by_key:1 }}'
       };
     {% endfor %}
+    */
     var httpUserAgent = '{{ current_ua_string }}';
     var userAgentPretty = '{{ current_ua }}';
     var realUaString = Util.reconcileClientServerUaPretty(httpUserAgent,
@@ -124,8 +126,9 @@
     if (uaUriParams != '') {
       resultsUriParams += '&ua=' + uaUriParams;
     }
-    var controller = new Util.ResultTablesController(category, categories,
-        realUaString, resultsUriParams);
+    var browserFamily = '{{ v }}';
+    var controller = new Util.ResultTablesController(category,
+        browserFamily, realUaString, resultsUriParams);
     if (realUaString != userAgentPretty) {
       var curUaStringEl = document.getElementById('bs-home-cur-ua-s');
       curUaStringEl.innerHTML = realUaString;

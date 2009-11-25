@@ -406,10 +406,9 @@ html>body .goog-inline-block {
 #bs-results-cats li:hover {
   background-color: #ddd;
 }
-#bs-results-bycat {
+.bs-results-bycat {
   padding: 3px;
   background: #ddd;
-   /*display: inline-block; wraps the table */
   -moz-border-radius: 4px;
   -webkit-border-radius: 4px;
 }
