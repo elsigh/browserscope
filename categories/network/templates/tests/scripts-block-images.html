@@ -1,0 +1,39 @@
+{% extends "simple.html" %}
+
+{% block head %}
+<script type="text/javascript">
+var t_start = Number(new Date());
+</script>
+{% endblock %}
+
+{% block body %}
+<h1>Parallel Scripts</h1>
+
+<div id=results>&nbsp;</div>
+
+<script>
+function doTest() {
+	var t_end = Number(new Date());
+
+	if ( (t_end - t_start) > 7000 ) {
+		document.getElementById('results').innerHTML = "scripts block images, they aren't loaded in parallel";
+		parent.saveResult('parscriptimage', 0);
+	}
+	else {
+		document.getElementById('results').innerHTML = "scripts are loaded in parallel with images";
+		parent.saveResult('parscriptimage', 1);
+	}
+}
+
+window.onload = doTest;
+</script>
+
+<p>
+This test determines if your browser can download a script and an image in parallel.
+This test loads a script and an image that each take 4 seconds to return.
+If the page load time is under 8 seconds that means the scripts were downloaded in parallel.
+
+<script src="http://{{ resource_cgi }}?type=js&sleep=4&t={{ epoch }}" type="text/javascript"></script>
+<img src="http://{{ resource_cgi2 }}?type=gif&sleep=4&t={{ epoch }}">
+
+{% endblock %}
