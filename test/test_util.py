@@ -210,7 +210,7 @@ class TestStats(unittest.TestCase):
     request.META = {'HTTP_USER_AGENT': 'Firefox 3.0.1'}
 
     stats = util.GetStatsData(test_set.category,
-        test_set.tests, user_agents, params_str=None,
+        test_set.tests, user_agents, ua_by_param=None, params_str=None,
         use_memcache=use_memcache)
 
     expected_medians = {'testDisplay': 300, 'testVisibility': 2}
@@ -239,13 +239,14 @@ class TestStats(unittest.TestCase):
     test_set = mock_data.MockTestSet('categore')
     self.assertRaises(
         ValueError,
-        util.GetStatsData, test_set.category, test_set.tests, ['ua1'], 'None')
+        util.GetStatsData, test_set.category, test_set.tests, ['ua1'], None,
+        'None')
 
   def testGetStatsDataWithParamsEmptyStringRaises(self):
     test_set = mock_data.MockTestSet('categore')
     self.assertRaises(
         ValueError,
-        util.GetStatsData, test_set.category, test_set.tests, ['ua1'], '')
+        util.GetStatsData, test_set.category, test_set.tests, ['ua1'], None, '')
 
 if __name__ == '__main__':
   unittest.main()

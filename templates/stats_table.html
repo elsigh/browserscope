@@ -1,14 +1,14 @@
 {% spaceless %}
-<div id="rt-{{ category }}" class="rt">
-  <table id="rt-{{ category }}-t" cellpadding="0" cellspacing="0">
+<div class="rt">
+  <table class="rt-t" cellpadding="0" cellspacing="0">
     <thead>
       <tr>
         <th scope="col" class="rt-ua">
           <div class="rt-b-f">
-            <form id="rt-{{ category }}-v-f" action="" method="get">
+            <form action="" method="get">
               <input type="hidden" name="category" value="{{ category }}">
               <input type="hidden" name="{{ category }}_results" value="{{ results_uri_string }}">
-              <select id="rt-{{ category }}-v" name="v">
+              <select name="v">
                 {% for tuple in browser_nav %}
                   {% with tuple|by_key:0 as version %}
                     <option
@@ -18,7 +18,7 @@
                   {% endwith %}
                 {% endfor %}
               </select>
-              <input id="rt-{{ category }}-v-s" type="submit" value="go">
+              <input class="rt-v-s" type="submit" value="go">
             </form>
           </div>
           <span>name</span>
@@ -41,7 +41,7 @@
       {% for user_agent in user_agents %}
         {% if stats|by_key:user_agent|by_key:"current_results" %}
           {% with stats|by_key:user_agent|by_key:"current_results" as results %}
-            <tr id="rt-{{ category }}-ua-s-r" class="rt-ua-s-hdr">
+            <tr class="rt-ua-s-hdr rt-ua-s-r">
               <td class="rt-ua">Your Test Results &darr;</td>
               <td class="rt-ua-s-d"></td>
               <td colspan="{{ tests|length|add:1 }}"></td>
@@ -52,7 +52,7 @@
                 class="rt-ua
                        rt-ua-s-{{ stats|by_key:user_agent|by_key:"current_score" }}">
                 <span class="bs-cur-ua goog-inline-block"></span>
-                <span id="rt-{{ category }}-cur-ua">{{ user_agent }}</span>
+                <span class="rt-cur-ua">{{ user_agent }}</span>
               </td>
               <td
                 class="rt-ua-s-d
@@ -151,7 +151,7 @@
       {{ stats|by_key:"total_runs" }} tests from {{ stats|length|add:"-1"}} browsers
     {% endif %}
 
-    <span id="rt-dl-{{category }}" class="bs-results-dl">
+    <span class="bs-results-dl">
       <span>Downloads:</span>
       <a class="bs-dl-py" href="/?category={{ category }}&v={{ v }}&o=pickle"
         >pickle</a>

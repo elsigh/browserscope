@@ -276,6 +276,7 @@ def Home(request):
     params = {
       'page_title': 'Home',
       'results_params': '&'.join(results_params),
+      'v': request.GET.get('v', 'top'),
       'ua_params': request.GET.get('ua', ''),
       'stats_table_category': test_set.category,
       'stats_table': stats_table,
@@ -542,11 +543,11 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       output in ['html', 'xhr'] and not override_static_mode):
     static_mode = True
 
+  ua_by_param = None
   if not static_mode:
     ua_by_param = request.GET.get('ua')
     if ua_by_param:
       user_agent_strings = ua_by_param.split(',')
-      version_level = 'custom'
     else:
       user_agent_strings = UserAgentGroup.GetStrings(version_level)
     #logging.info('GetStats: v: %s, uas: %s' % (version_level,
@@ -581,8 +582,16 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       stats_data = pickle.loads(pickled_data)
     logging.info('Retrieved static_mode stats_data.')
 
-    user_agent_strings = stats_data.keys()
-    UserAgentGroup.SortUserAgentStrings(user_agent_strings)
+    # If we got custom as a version level we only want matching keys.
+    if ua_by_param:
+      stats_data_copy = stats_data.copy()
+      stats_data = {}
+      for key, val in stats_data_copy.items():
+        if key in user_agent_strings:
+          stats_data[key] = val
+    else:
+      user_agent_strings = stats_data.keys()
+      UserAgentGroup.SortUserAgentStrings(user_agent_strings)
     #logging.info('Pickled stats_data: %s' % stats_data)
     #logging.info('pickled ua_strings: %s' % user_agent_strings)
 
@@ -591,7 +600,8 @@ def GetStats(request, test_set, output='html', opt_tests=None,
 
   else:
     stats_data = GetStatsData(test_set.category, tests, user_agent_strings,
-                              params_str, use_memcache, version_level)
+                              ua_by_param, params_str, use_memcache,
+                              version_level)
   #logging.info('GetStats got stats_data: %s' % stats_data)
 
   # If the output is pickle, we are done and need to return a string.
@@ -749,8 +759,8 @@ def GetSummaryData(user_agent_strings, version_level):
   return stats_data
 
 
-def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
-                 version_level='top'):
+def GetStatsData(category, tests, user_agents, ua_by_param,
+                 params_str, use_memcache=True, version_level='top'):
   """This is the meat and potatoes of the stats."""
   #logging.info('GetStatsData category:%s\n tests:%s\n user_agents:%s\n params:%s\nuse_memcache:%s\nversion_level:%s' % (category, tests, user_agents, params, use_memcache, version_level))
   stats = {'total_runs': 0}
@@ -864,14 +874,17 @@ def GetStatsData(category, tests, user_agents, params_str, use_memcache=True,
 
     # This adds the result dict to the output dict for this ua.
     # We check for version_level == 'top' b/c we always add every top ua
-    # to the final dict. Otherwise, we look and see if there are any
+    # to the final dict. Same goes if ua_by_param.
+    # Otherwise, we look and see if there are any
     # test runs (total_runs) for this ua, if not, we don't add them in.
     # Casting user_agent as str here prevents unicode errors when unpickling.
-    if version_level in ['top', 'custom'] or user_agent_stats['total_runs']:
+    if (version_level == 'top' or
+        ua_by_param or
+        user_agent_stats['total_runs']):
       stats[user_agent] = user_agent_stats
       stats['total_runs'] += user_agent_stats['total_runs']
 
-  #logging.info('GetStatsData done, stats: %s' % stats['total_runs'])
+  #logging.info('GetStatsData done, stats: %s' % stats)
   return stats
 
 
@@ -948,8 +961,6 @@ def GetStatsDataTemplatized(params, template='table'):
 
   """
   params['browser_nav'] = BROWSER_NAV[:]
-  if params['v'] == 'custom':
-    params['browser_nav'].append(('custom', 'Custom'))
   params['is_admin'] = users.is_current_user_admin()
   if not re.search('\?', params['request_path']):
     params['request_path'] = params['request_path'] + '?'
