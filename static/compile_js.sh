@@ -1,5 +1,7 @@
 #!/bin/sh
 
-../third_party/closure-library/closure/bin/calcdeps.py -i util.js  -p ../third_party/closure-library/ -o script > tmp;
+# Compiled for dev
+../third_party/closure-library/closure/bin/calcdeps.py -i util.js -p ../third_party/closure-library/ -o list | grep closure | xargs cat > dev.js
 
-java -jar ../third_party/closure-compiler/compiler.jar --js tmp --js_output_file browserscope.js --compilation_level ADVANCED_OPTIMIZATIONS
+# Compiled for production
+../third_party/closure-library/closure/bin/calcdeps.py -i util.js -p ../third_party/closure-library/ -o compiled -c ../third_party/closure-compiler/compiler.jar -f ADVANCED_OPTIMIZATIONS > browserscope.js;

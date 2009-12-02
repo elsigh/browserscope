@@ -94,6 +94,13 @@
                 <span class="bs-cur-ua goog-inline-block"></span>
               {% endifequal %}
               <span class="bs-ua-n">{{ user_agent }}</span>
+
+              {% if is_admin %}
+                {% ifequal v "3" %}{% else %}
+                  <a href="/?category={{ category }}&ua={{ user_agent }}*">&rarr;</a>
+                {% endifequal %}
+              {% endif %}
+
               {% if is_admin %}
                 &nbsp;<a href="/clear_memcache?category={{ category }}&ua={{ user_agent }}&continue={{ request_path|urlencode }}" class="bs-admin">x</a>
               {% endif %}
@@ -153,11 +160,18 @@
 
     <span class="bs-results-dl">
       <span>Downloads:</span>
-      <a class="bs-dl-py" href="/?category={{ category }}&v={{ v }}&o=pickle"
+      <a class="bs-dl-py"
+        href="/?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}&o=pickle"
         >pickle</a>
-      <a class="bs-dl-csv" href="/?category={{ category }}&v={{ v }}&o=csv"
+      <a class="bs-dl-csv"
+        href="/?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}&o=csv"
         >csv</a>
     </span>
+
+    <a
+      class="bs-l-p"
+      href="/?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}"
+      >Link to this page</a>
   </div>
 
 </div>

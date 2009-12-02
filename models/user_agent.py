@@ -279,15 +279,21 @@ class UserAgentGroup(db.Model):
     return is_cached
 
   @classmethod
-  def GetStrings(cls, version_level):
+  def GetStrings(cls, version_level, user_agent_filter=None):
     """Get all the strings for one version level.
 
     Args:
       version_level: an integer: 0 (family), 1 (major), 2 (minor), 3 (3rd)
+      user_agent_filter: A UA string to filter against, optionally.
     Returns:
       a sorted list of user_agent_version strings
       e.g. ['Firefox 3.1', 'Firefox 3.2', 'Safari 4.0', 'Safari 4.5', ...]
     """
+    # If we want to filter, we need to reset version_level to the
+    # most granular, i.e. 3.
+    if user_agent_filter is not None:
+      version_level = 3
+
     version_level = str(version_level)
     if version_level == 'top':
       user_agent_strings = TOP_USER_AGENT_GROUP_STRINGS[:]
@@ -297,6 +303,13 @@ class UserAgentGroup(db.Model):
       if not user_agent_strings:
         user_agent_strings = cls._QueryStrings(version_level)
         memcache.set(memcache_key, user_agent_strings)
+
+    # Optionally, filter the list by a user_agent string.
+    if user_agent_filter is not None:
+      for user_agent in user_agent_strings[:]:
+        if user_agent.find(user_agent_filter) == -1:
+          user_agent_strings.remove(user_agent)
+
     return user_agent_strings
 
   @classmethod
