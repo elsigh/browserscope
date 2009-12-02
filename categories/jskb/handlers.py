@@ -14,39 +14,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Handlers for the Selectors API Tests."""
+"""JavaScript Knowledge-Base.
 
-__author__ = 'elsigh@google.com (Lindsey Simon)'
+A set of JavaScript expressions that provide useful information to code optimizers.
+"""
 
+__author__ = 'msamuel@google.com (Mike Samuel)'
 
-from categories import all_test_sets
-from base import decorators
+import re
+#from categories import all_test_sets
+from categories.jskb import ecmascript_snippets
+#from base import decorators
 from base import util
 
 from django import http
-from django.template import Context, loader
+#from django.template import Context, loader
 
 
 CATEGORY = 'jskb'
 
 def About(request):
   """About page."""
-  overview = """This page contains a suite of security tests that measure
-    whether the browser supports JavaScript APIs that allow safe
-    interactions between sites, and whether it follows industry
-    best practices for blocking harmful interactions between sites.
-    The initial set of tests were contributed by
-    <a href="http://www.adambarth.com/">Adam Barth</a>,
-    <a href="http://www.collinjackson.com/">Collin Jackson</a>,
-    and <a href="http://www.google.com/profiles/meacer">Mustafa Acer</a>."""
+  overview = re.sub(
+      r'\r\n +', ' ',
+      """
+      This page contains side-effect free JavaScript expressions
+      that expose information about a browser that can be useful to
+      JavaScript code optimizers.""")
   return util.About(request, CATEGORY, overview=overview)
 
 
 def EnvironmentChecks(request):
   """The main test page."""
-  return util.Render(request, 'templates/environment-checks.html', params={},
+  return util.Render(request, 'templates/environment-checks.html',
+                     params={ 'snippets': repr(ecmascript_snippets._SNIPPETS) },
                      category=CATEGORY)
 
 
 def Json(request):
-  return http.HttpResponse('yo')
+  return http.HttpResponse('yo')  # TODO
