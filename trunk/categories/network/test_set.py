@@ -123,6 +123,10 @@ This test measures how many HTTP/1.1 connections are opened for the browser bein
 This test measures the maximum number of connections a browser will open total - across all hostnames.
 The upper limit is 60, so if a browser actually supports more than that it'll still show up as 60.''',
     cell_align='right'),
+  # parscript is deprecated.
+  NetworkTest(
+    'parscript', '|| Scripts', 'scripts-block', 'boolean', '',
+    is_hidden_stat=True),
   NetworkTest(
     'parscriptscript', '|| Script Script', 'scripts-block-scripts', 'boolean',
     '''When most browsers start downloading an external script, they wait until the script is done downloading, parsed, and executed
