@@ -99,36 +99,15 @@
 <script>
   (function(){
     var category = '{{ stats_table_category }}';
-    /*
-    var categories = {};
-    {% ifequal stats_table_category "summary" %}
-      categories['{{ stats_table_category }}'] = {
-        'container': document.getElementById(
-             '{{ stats_table_category }}-results'),
-        'name': 'Summary'
-      };
-    {% endifequal %}
-
-    {% for app_category in app_categories %}
-      categories['{{ app_category|by_key:0 }}'] = {
-        'container': document.getElementById(
-            '{{ app_category|by_key:0 }}-results'),
-        'name': '{{ app_category|by_key:1 }}'
-      };
-    {% endfor %}
-    */
     var httpUserAgent = '{{ current_ua_string }}';
     var userAgentPretty = '{{ current_ua }}';
     var realUaString = Util.reconcileClientServerUaPretty(httpUserAgent,
         userAgentPretty);
     var resultsUriParams = '{{ results_params }}';
-    var uaUriParams = '{{ ua_params }}'
-    if (uaUriParams != '') {
-      resultsUriParams += '&ua=' + uaUriParams;
-    }
+    var uaUriParams = '{{ ua_params }}';
     var browserFamily = '{{ v }}';
     var controller = new Util.ResultTablesController(category,
-        browserFamily, realUaString, resultsUriParams);
+        browserFamily, realUaString, uaUriParams, resultsUriParams);
     if (realUaString != userAgentPretty) {
       var curUaStringEl = document.getElementById('bs-home-cur-ua-s');
       curUaStringEl.innerHTML = realUaString;

@@ -548,6 +548,12 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     ua_by_param = request.GET.get('ua')
     if ua_by_param:
       user_agent_strings = ua_by_param.split(',')
+      # Account for UA* - note that this allows only a single UA* at this time.
+      if (len(user_agent_strings) == 1 and
+          user_agent_strings[0].find('*') != -1):
+        user_agent_filter = user_agent_strings[0].replace('*', '')
+        user_agent_strings = UserAgentGroup.GetStrings(version_level,
+                                                       user_agent_filter)
     else:
       user_agent_strings = UserAgentGroup.GetStrings(version_level)
     #logging.info('GetStats: v: %s, uas: %s' % (version_level,
@@ -663,6 +669,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     'category_name': test_set.category_name,
     'tests': tests,
     'v': version_level,
+    'ua_by_param': ua_by_param,
     'user_agents': user_agent_strings,
     'request_path': request.get_full_path(),
     'current_user_agent': current_ua_string,

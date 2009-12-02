@@ -28,6 +28,7 @@ goog.require('goog.net.XhrIo');
 goog.require('goog.net.cookies');
 goog.require('goog.ui.TableSorter');
 goog.require('goog.ui.Tooltip');
+goog.require('goog.uri.utils');
 goog.require('goog.userAgent');
 
 
@@ -208,38 +209,97 @@ Util.alphaCaseInsensitiveCompare = function(a, b) {
 /*****************************************/
 
 
+
 /**
  * @param {string} category The current category.
  * @param {string} browserFamily The current browserFamily.
  * @param {string} realUaString The actual user agent string.
+ * @param {string} uaUriParams ua=foo,bar etc..
  * @param {string} resultsUriParams category_results=foo,bar etc..
  * @constructor
  */
 Util.ResultTablesController = function(category, browserFamily,
-    realUaString, resultsUriParams) {
+    realUaString, uaUriParams, resultsUriParams) {
+
+  /**
+   * @type {string}
+   */
   this.category = category;
+
+  /**
+   * @type {string}
+   */
   this.browserFamily = browserFamily;
+
+  /**
+   * @type {string}
+   */
   this.realUaString = realUaString;
+
+  /**
+   * @type {string}
+   */
+  this.uaUriParams = uaUriParams;
+
+  /**
+   * @type {string}
+   */
   this.resultsUriParams = resultsUriParams;
-  // For string concat onto url..
-  if (this.resultsUriParams.indexOf('&') == -1) {
-    this.resultsUriParams = '&' + this.resultsUriParams;
-  }
-  this.resetUrl();
-
-  this.el = goog.dom.$('bs-results');
-  this.resultsEl = goog.dom.$dom('div', {'className': 'bs-results-bycat'});
-
-  this.categoryLinks = {};
-  this.categoryNames = {};
 
   // If we have results in the resultUriParams, scroll to them.
   if (this.resultsUriParams.indexOf('_results') !== -1) {
     window.location.hash = '#rt-' + this.category + '-cur-ua';
   }
 
+  /**
+   * @type {Element}
+   */
+  this.el = goog.dom.$('bs-results');
+
+  /**
+   * @type {Element}
+   */
+  this.resultsEl = goog.dom.$dom('div', {'className': 'bs-results-bycat'});
+
+
+  /**
+   * @type {Object}
+   */
+  this.categoryLinks = {};
+
+  /**
+   * @type {Object}
+   */
+  this.categoryNames = {};
+
+  /**
+   * @type {Object}
+   */
   this.tables = {};
+
+  /**
+   * @type {Object}
+   */
+  this.resultTables = {};
+
+  /**
+   * @type {boolean}
+   */
   this.xhrLoading = false;
+
+  /**
+   * @type {Array.<string>}
+   */
+  this.extraBrowserFamilyOpts = [];
+
+  /**
+   * @type {Element}
+   */
+  this.browserFamilySelect = null;
+
+  // Initialize.
+  this.updateExtraBrowserFamilyOpts();
+  this.resetUrl();
   this.decorate();
 };
 
@@ -263,7 +323,7 @@ Util.ResultTablesController.prototype.decorate = function() {
     goog.dom.removeNode(h3);
 
     var link = aClone.cloneNode(true);
-    link.href = '/?category=' + category + this.resultsUriParams;
+    link.href = goog.uri.utils.setParam(this.url, 'category', category);
     link.category = category;
     link.appendChild(goog.dom.createTextNode(categoryName));
     this.categoryLinks[category] = link;
@@ -288,9 +348,63 @@ Util.ResultTablesController.prototype.decorate = function() {
 
   // Inits the first ResultTable.
   this.resultsEl.appendChild(resultTableContainer);
-  var resultTable = new Util.ResultTable(this, resultTableContainer);
+
+  // Ensures a refresh doesn't make the form select look wrongly selected.
+  goog.dom.$$('form', null, resultTableContainer)[0].reset();
+
+  var select = goog.dom.$$('select', null, resultTableContainer)[0];
+  this.browserFamilySelect = goog.dom.removeNode(select);
+  goog.events.listen(this.browserFamilySelect, 'click',
+      this.browserFamilyClickHandler, false, this);
+  goog.events.listen(this.browserFamilySelect, 'change',
+      this.browserFamilyChangeHandler, false, this);
+
+  this.resultTables[this.url] =
+      new Util.ResultTable(this, resultTableContainer);
   goog.style.showElement(resultTableContainer, true);
 };
+
+/**
+ * @return {string} browserFamilyValue
+ */
+Util.ResultTablesController.prototype.getBrowserFamilyValue = function() {
+  var browserFamilyValue;
+  if (this.browserFamilySelect) {
+    browserFamilyValue = this.browserFamilySelect.options[
+        this.browserFamilySelect.options.selectedIndex].value;
+  }
+  return browserFamilyValue;
+};
+
+/**
+ * @param {goog.events.Event} e
+ */
+Util.ResultTablesController.prototype.browserFamilyChangeHandler = function(e) {
+
+  var browserFamily = this.getBrowserFamilyValue();
+
+  // Pluck and fix uaUriParams from the browserFamily option value string.
+  if (goog.uri.utils.hasParam(browserFamily, 'ua')) {
+    this.uaUriParams = goog.uri.utils.getParamValue(browserFamily, 'ua');
+    browserFamily = goog.uri.utils.removeParam(browserFamily, 'ua');
+  } else {
+    this.uaUriParams = null;
+  }
+
+  this.setBrowserFamily(browserFamily);
+
+  // Prevents table from sorting when changing the select.
+  e.stopPropagation();
+};
+
+/**
+ * Prevents table from sorting just on click.
+ * @param {goog.events.Event} e
+ */
+Util.ResultTablesController.prototype.browserFamilyClickHandler = function(e) {
+  e.stopPropagation();
+};
+
 
 /**
  * @param {goog.events.Event} e
@@ -333,8 +447,9 @@ Util.ResultTablesController.prototype.setBrowserFamily = function(
 };
 
 Util.ResultTablesController.prototype.resetUrl = function() {
-  this.url = '/?category=' + this.category +
-      '&o=xhr&v=' + this.browserFamily + this.resultsUriParams;
+  var url = Util.ResultTablesController.generateUrl(this.category,
+      this.browserFamily, this.uaUriParams, this.resultsUriParams);
+  this.url = url;
 };
 
 Util.ResultTablesController.prototype.hideTables = function() {
@@ -351,6 +466,7 @@ Util.ResultTablesController.prototype.updateTableDisplay = function() {
     this.xhrCategoryResults();
   } else {
     goog.style.showElement(this.tables[this.url], true);
+    this.resultTables[this.url].setUpBrowserFamilyForm();
   }
 };
 
@@ -374,7 +490,8 @@ Util.ResultTablesController.prototype.loadStatsTableCallback = function(e) {
     var html = xhrio.getResponseText();
     this.tables[this.url].className = '';
     this.tables[this.url].innerHTML = html;
-    var resultTable = new Util.ResultTable(this, this.tables[this.url]);
+    this.resultTables[this.url] =
+        new Util.ResultTable(this, this.tables[this.url]);
 
   } else {
     this.tables[this.url].className = 'rt-err';
@@ -393,6 +510,42 @@ Util.ResultTablesController.prototype.loadStatsTableCallback = function(e) {
 };
 
 /**
+ * @param {string} opt_category
+ * @param {string} opt_browserFamily
+ * @param {string} opt_uaUriParams
+ */
+Util.ResultTablesController.prototype.generateBrowserFamilyTableKey = function(
+    opt_browserFamily, opt_uaUriParams) {
+  var browserFamily = goog.isDef(opt_browserFamily) ? opt_browserFamily :
+      this.browserFamily;
+  var uaUriParams = goog.isDef(opt_uaUriParams) ? opt_uaUriParams :
+      this.uaUriParams;
+  var key = '';
+  if (browserFamily && uaUriParams) {
+    key = browserFamily + '&ua=' + uaUriParams;
+  }
+  return key;
+};
+
+/**
+ * @param {string} browserFamily
+ * @param {Array.<string>} uasToCompare
+ */
+Util.ResultTablesController.prototype.updateExtraBrowserFamilyOpts =
+    function() {
+  var key = this.generateBrowserFamilyTableKey();
+  if (key && !goog.array.contains(this.extraBrowserFamilyOpts, key)) {
+    this.extraBrowserFamilyOpts.push(key);
+    var opts = this.browserFamilySelect.options;
+    var len = this.browserFamilySelect.length;
+    opts[len] = new Option('Custom', key);
+    this.browserFamilySelect.selectedIndex = -1;
+    opts[len].selected = true;
+  }
+};
+
+
+/**
  * @param {Util.ResultTablesController} controller
  * @param {string} category
  * @param {Element} tableEl
@@ -408,16 +561,13 @@ Util.ResultTable = function(controller, el) {
   /**
    * @type {Element}
    */
-   this.table = goog.dom.$$('table', 'rt-t', el)[0];
+  this.table = goog.dom.$$('table', 'rt-t', el)[0];
 
   /**
    * @type {Element}
    */
-  this.browserFamilySelect = goog.dom.$$('select', null, this.table)[0];
-
-  // Copy a bunch of controller properties for reference.
-  this.category = this.controller.category;
-  this.browserFamily = this.controller.browserFamily;
+  this.formContainer = goog.dom.$$('div', 'rt-b-f', el)[0];
+  this.formContainer.innerHTML = '';
 
   this.init();
 };
@@ -463,9 +613,8 @@ Util.ResultTable.prototype.initCompareUas = function() {
     var labelClone = labelNode.cloneNode(false);
     labelClone.setAttribute('for', cbClone.id);
     labelClone.appendChild(cbClone);
+    cell.insertBefore(labelClone, uaNameCell);
     labelClone.appendChild(uaNameCell);
-
-    cell.appendChild(labelClone);
   }
 
   // If we didn't add any compare checkboxes just stop now.
@@ -506,10 +655,10 @@ Util.ResultTable.prototype.cbClick = function(e) {
  * @param {goog.events.Event} e Browser click event.
  */
 Util.ResultTable.prototype.compareUas = function(e) {
-  var compareUasUrl = '/?category=' + this.category + '&' +
-      'v=' + this.browserFamily + '&' +
-      'ua=' + encodeURIComponent(this.uasToCompare.join(','));
-  window.location.href = compareUasUrl;
+  this.controller.uaUriParams = this.uasToCompare.join(',');
+  this.controller.updateExtraBrowserFamilyOpts();
+  this.controller.resetUrl();
+  this.controller.updateTableDisplay();
 };
 
 Util.ResultTable.prototype.initTooltips = function() {
@@ -526,26 +675,7 @@ Util.ResultTable.prototype.initTooltips = function() {
 };
 
 Util.ResultTable.prototype.setUpBrowserFamilyForm = function() {
-
-  // Ensures a refresh doesn't make the form select look wrongly selected.
-  goog.dom.$$('form', null, this.table)[0].reset();
-
-  // Hides the submit since we'll make listeners.
-  goog.style.showElement(goog.dom.$$(null, 'rt-v-s', this.table)[0], false);
-
-  // Adds a "Custom" option if we have a ua param in the url.
-  if (this.controller.url.indexOf('ua=') != -1) {
-    var opts = this.browserFamilySelect.options;
-    var len = this.browserFamilySelect.length;
-    opts[len] = new Option('Custom', 'custom');
-    this.browserFamilySelect.selectedIndex = -1;
-    opts[len].selected = true;
-  }
-
-  goog.events.listen(this.browserFamilySelect, 'click',
-      this.browserFamilyClickHandler, false, this);
-  goog.events.listen(this.browserFamilySelect, 'change',
-      this.browserFamilyChangeHandler, false, this);
+  this.formContainer.appendChild(this.controller.browserFamilySelect);
 };
 
 Util.ResultTable.prototype.setUpSortableTable = function() {
@@ -565,7 +695,7 @@ Util.ResultTable.prototype.setUpSortableTable = function() {
 };
 Util.ResultTable.prototype.onTableSort = function(e) {
   var yourResultsRow = goog.dom.$('tr', 'rt-ua-s-r', this.table);
-  if (yourResultsRow.length) {
+  if (yourResultsRow && yourResultsRow.length) {
     goog.style.showElement(yourResultsRow[0], false);
   }
 };
@@ -575,44 +705,40 @@ Util.ResultTable.prototype.fixRealUaStringInResults = function() {
     resultUa[0].innerHTML = this.controller.realUaString;
   }
 };
-Util.ResultTable.prototype.getBrowserFamilyValue = function() {
-  var browserFamilyValue;
-  if (this.browserFamilySelect) {
-    browserFamilyValue = this.browserFamilySelect.options[
-        this.browserFamilySelect.options.selectedIndex].value;
+
+
+/**
+ * Static function for generating the results table URL.
+ * @param {string} category
+ * @param {string} opt_versionLevel
+ * @param {string} opt_ua
+ * @param {string} opt_results
+ * @param {string} opt_isXhr defaults to true.
+ * @return {string} url
+ */
+Util.ResultTablesController.generateUrl = function(category, opt_versionLevel,
+    opt_ua, opt_results, opt_isXhr) {
+  var url = '/';
+  var isXhr = goog.isDef(opt_isXhr) ? opt_isXhr : true;
+  url = goog.uri.utils.appendParam(url, 'category', category);
+
+  if (opt_versionLevel) {
+    url = goog.uri.utils.appendParam(url, 'v', opt_versionLevel);
   }
-  return browserFamilyValue;
-};
-Util.ResultTable.prototype.browserFamilyChangeHandler = function(e) {
-
-  // TODO(elsigh): Persist custom ua= options in the SELECT.
-  if (this.controller.url.indexOf('ua=') != -1) {
-
-  }
-
-  this.browserFamily = this.getBrowserFamilyValue();
-  this.controller.setBrowserFamily(this.browserFamily);
-
-  // fix the download links
-  var downloadsContainer = goog.dom.$$('span', 'bs-results-dl');
-  if (downloadsContainer.length) {
-    downloadsContainer = downloadsContainer[0];
-    var downloadLinks = downloadsContainer.getElementsByTagName('a');
-    for (var i = 0, downloadLink; downloadLink = downloadLinks[i]; i++) {
-      var href = downloadLink.href;
-      href = href.replace(/v=[^&]+/, 'v=' + this.browserFamily);
-      // Strip off the ua parts if they switch from a custom to a known v.
-      if (this.browserFamily != 'custom') {
-        href = href.replace(/&ua=[^&]+/, '');
-      }
-      downloadLink.href = href;
+  if (opt_ua) {
+    url = goog.uri.utils.appendParam(url, 'ua', opt_ua);
+    // reset to v=3 if ua*
+    if (opt_ua.indexOf('*') != -1) {
+      url = goog.uri.utils.setParam(url, 'v', '3');
     }
   }
-  e.stopPropagation();
-};
-Util.ResultTable.prototype.browserFamilyClickHandler = function(e) {
-  // Prevents table cells from sorting just on click.
-  e.stopPropagation();
+  if (opt_results) {
+    url += '&' + opt_results.replace('&', '');
+  }
+  if (isXhr) {
+    url = goog.uri.utils.appendParam(url, 'o', 'xhr');
+  }
+  return url;
 };
 
 

@@ -126,6 +126,8 @@ class UserAgentGroupTest(unittest.TestCase):
 
     user_agent_strings = [
         ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
+        'Gecko/2009011912 Firefox/2.5.1'),
+        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
         'Gecko/2009011912 Firefox/3.0.7'),
         ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
          'Gecko/2009011912 Firefox/3.1.8'),
@@ -148,20 +150,52 @@ class UserAgentGroupTest(unittest.TestCase):
 
   def test_update_groups_version_level_one(self):
     self.assertEqual(
-        ['Firefox 3', 'IE 7'],
+        ['Firefox 2', 'Firefox 3', 'IE 7'],
         UserAgentGroup.GetStrings(version_level=1))
 
   def test_update_groups_version_level_two(self):
     self.assertEqual(
-        ['Firefox 3.0', 'Firefox 3.1', 'IE 7.0'],
+        ['Firefox 2.5', 'Firefox 3.0', 'Firefox 3.1', 'IE 7.0'],
         UserAgentGroup.GetStrings(version_level=2))
 
   def test_update_groups_version_level_three(self):
     # This also tests that the order comes out the way we'd want even though
     # they didn't go in in that order.
     self.assertEqual(
-        ['Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8', 'IE 7.0'],
+        ['Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8',
+         'IE 7.0'],
         UserAgentGroup.GetStrings(version_level=3))
+
+  def test_get_strings_with_user_agent_filter_family(self):
+    self.assertEqual(
+        ['Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8'],
+        UserAgentGroup.GetStrings(version_level='top',
+                                  user_agent_filter='Firefox'))
+    self.assertEqual(
+        ['Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8'],
+        UserAgentGroup.GetStrings(version_level=0, user_agent_filter='Firefox'))
+    self.assertEqual(
+        ['Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8'],
+        UserAgentGroup.GetStrings(version_level=1, user_agent_filter='Firefox'))
+    self.assertEqual(
+        ['Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8'],
+        UserAgentGroup.GetStrings(version_level=2, user_agent_filter='Firefox'))
+
+  def test_get_strings_with_user_agent_filter_one(self):
+    self.assertEqual(
+        ['Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8'],
+        UserAgentGroup.GetStrings(version_level=2,
+                                  user_agent_filter='Firefox 3'))
+
+  def test_get_strings_with_user_agent_filter_two(self):
+    self.assertEqual(
+        ['Firefox 3.1.7', 'Firefox 3.1.8'],
+        UserAgentGroup.GetStrings(version_level=1,
+                                  user_agent_filter='Firefox 3.1'))
+    self.assertEqual(
+        ['Firefox 3.0.7'],
+        UserAgentGroup.GetStrings(version_level=1,
+                                  user_agent_filter='Firefox 3.0'))
 
 
 class ChromeFrameTest(unittest.TestCase):
