@@ -19,6 +19,7 @@
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 
+from categories.jskb import ecmascript_snippets
 from decimal import Decimal
 import logging
 
@@ -90,11 +91,12 @@ class JskbTest(test_set_base.TestBase):
     return score, display
 
 
-_TESTS = (
+_TESTS = tuple([
   # key, name, doc
   #SelectorsTest('score', 'Score', 'Selectors API test score'),
-  JskbTest('navigator.userAgent', 'User Agent', 'What this test tests...'),
-)
+  JskbTest(test['name'], test['code'], test.get('doc', 'DOC ME'))
+  for test in ecmascript_snippets._SNIPPETS
+])
 
 
 class JskbTestSet(test_set_base.TestSet):

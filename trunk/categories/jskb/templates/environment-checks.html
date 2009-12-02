@@ -17,16 +17,21 @@
 -->
 
 <!--
- - Displays the environment JSON.
+ - Collects information about the JavaScript environment into a JSON file which
+ - can be used to inform user-agent specific optimizations as documented at
+ - <a href="http://code.google.com/p/google-caja/wiki/UserAgentContext">
+ - UserAgentContext</a>.
  - @author mikesamuel@gmail.com
 -->
 
 <html><head>
 <title>Environment Check</title>
 </head>
+<pre style="display:none" id="json">{{ snippets }}</pre>
 <!-- Wait to run scripts so the environment observed includes a body. -->
 <body style="width:80em; font-family: monospace; white-space: pre-wrap"
 ><script src="{{ "environment-checks.js"|resource_path:"jskb" }}"></script><script>
+"use strict";
 (function () {
   var prefixes = ['\\x00', '\\x0', '\\x', '\\u0', '\\u'];
   function hex(ch) {
@@ -70,19 +75,36 @@
     }
     throw new Error('' + json + ' : ' + typeof json);
   }
-  var envJson = stringify(env);
-  document.body.appendChild(document.createTextNode(envJson));
 
-  // Here, loop through the object and create a browserscope-results array.
-  // The keys need to match the keys in your test_set.py
-  // Send the results to BrowserScope.
-  /*
-  var testResults = [
-    'passed=' + passed,
-    'failed=' + (tests - passed)
-  ];
-  parent.sendScore(testResults);
-  */
+  var tests = eval(document.getElementById('json').firstChild.nodeValue);
+
+  var testResults = [];
+  var environment = {};
+  for (var i = 0, n = tests.length; i < n; ++i) {
+    var test = tests[i];
+    var result = void 0;
+    try {
+      // Execute in the global scope
+      result = (new Function('return (' + test.code + ')'))();
+    } catch (ex) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('Error on (%s): %o', test, ex);
+      }
+      continue;
+    }
+    if (result === void 0) {
+      continue;
+    }
+    // Map the code snippet to the result it produces.
+    environment[test.code] = result;
+    testResults.push(
+        test.name + '=' + stringify(result).replace(/=/g, '\\u003d'));
+  }
+
+  if (parent.sendScore) { parent.sendScore(testResults); }
+
+  var envJson = stringify(environment);
+  document.body.appendChild(document.createTextNode(envJson));
 })();
 </script>
 </body></html>
