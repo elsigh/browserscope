@@ -33,6 +33,8 @@
 ><script src="{{ "environment-checks.js"|resource_path:"jskb" }}"></script><script>
 "use strict";
 (function () {
+  var canWarn = typeof console !== 'undefined' && console.warn;
+
   var prefixes = ['\\x00', '\\x0', '\\x', '\\u0', '\\u'];
   function hex(ch) {
     var hex = ch.charCodeAt(0).toString(16);
@@ -87,7 +89,7 @@
       // Execute in the global scope
       result = (new Function('return (' + test.code + ')'))();
     } catch (ex) {
-      if (typeof console !== 'undefined' && console.warn) {
+      if (canWarn) {
         console.warn('Error on (%s): %o', test, ex);
       }
       continue;
@@ -97,8 +99,22 @@
     }
     // Map the code snippet to the result it produces.
     environment[test.code] = result;
-    testResults.push(
-        test.name + '=' + stringify(result).replace(/=/g, '\\u003d'));
+    // Convert to a form that can be stored in the database.
+    var serializableResult = '-1';
+    if (result === +result && !isFinite(result)) {
+      if (result === 0 && (1/result) < 0) {
+        serializableResult = '-0';
+      } else {
+        serializableResult = '' + result;
+      }
+    } else {
+      serializableResult = '' + test.values.indexOf(stringify(result));
+      if (serializableResult === '-1' && canWarn) {
+        console.warn(test.name + ' produced unserializable value '
+                     + stringify(result) + ' not in ' + stringify(test.values));
+      }
+    }
+    testResults.push(test.name + '=' + serializableResult);
   }
 
   if (parent.sendScore) { parent.sendScore(testResults); }
