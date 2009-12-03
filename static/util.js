@@ -298,9 +298,9 @@ Util.ResultTablesController = function(category, browserFamily,
   this.browserFamilySelect = null;
 
   // Initialize.
-  this.updateExtraBrowserFamilyOpts();
   this.resetUrl();
   this.decorate();
+  this.updateExtraBrowserFamilyOpts();
 };
 
 Util.ResultTablesController.prototype.decorate = function() {
@@ -537,8 +537,18 @@ Util.ResultTablesController.prototype.updateExtraBrowserFamilyOpts =
   if (key && !goog.array.contains(this.extraBrowserFamilyOpts, key)) {
     this.extraBrowserFamilyOpts.push(key);
     var opts = this.browserFamilySelect.options;
-    var len = this.browserFamilySelect.length;
-    opts[len] = new Option('Custom', key);
+    var len = this.browserFamilySelect.length
+    var optionText;
+
+    // Need to look for the ua=foo* first
+    if (key.indexOf('*') !== -1) {
+      optionText = goog.uri.utils.getParamValue(key, 'ua');
+    } else if (goog.uri.utils.hasParam(key, 'ua')) {
+      optionText = 'Compare';
+    } else {
+      optionText = 'Custom';
+    }
+    opts[len] = new Option(optionText, key);
     this.browserFamilySelect.selectedIndex = -1;
     opts[len].selected = true;
   }
@@ -578,6 +588,27 @@ Util.ResultTable.prototype.init = function() {
   this.fixRealUaStringInResults();
   this.initTooltips();
   this.initCompareUas();
+  this.initUaStarLinks();
+};
+
+Util.ResultTable.prototype.initUaStarLinks = function() {
+  var links = goog.dom.$$('a', 'bs-ua-star', this.table);
+  for (var i = 0, el; el = links[i]; i++) {
+    goog.events.listen(el, 'click', this.compareUaStarClickHandler, false,
+        this);
+  }
+};
+
+/**
+ * @param {goog.events.Event} e
+ */
+Util.ResultTable.prototype.compareUaStarClickHandler = function(e) {
+  var uaStar = goog.uri.utils.getParamValue(e.currentTarget.href, 'ua');
+  this.controller.uaUriParams = uaStar;
+  this.controller.updateExtraBrowserFamilyOpts();
+  this.controller.resetUrl();
+  this.controller.updateTableDisplay();
+  e.preventDefault();
 };
 
 Util.ResultTable.prototype.initCompareUas = function() {
