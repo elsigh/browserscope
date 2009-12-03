@@ -95,11 +95,11 @@
               {% endifequal %}
               <span class="bs-ua-n">{{ user_agent }}</span>
 
-              {% if is_admin %}
-                {% ifequal v "3" %}{% else %}
-                  <!--<a href="/?category={{ category }}&ua={{ user_agent }}*">&rarr;</a>-->
-                {% endifequal %}
-              {% endif %}
+              {% ifequal v "3" %}{% else %}
+                <a
+                  class="bs-ua-star"
+                  href="/?category={{ category }}&ua={{ user_agent }}*">&rarr;</a>
+              {% endifequal %}
 
               {% if is_admin %}
                 &nbsp;<a href="/clear_memcache?category={{ category }}&ua={{ user_agent }}&continue={{ request_path|urlencode }}" class="bs-admin">x</a>

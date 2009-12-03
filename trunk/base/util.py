@@ -543,21 +543,22 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       output in ['html', 'xhr'] and not override_static_mode):
     static_mode = True
 
-  ua_by_param = None
-  if not static_mode:
-    ua_by_param = request.GET.get('ua')
-    if ua_by_param:
-      user_agent_strings = ua_by_param.split(',')
-      # Account for UA* - note that this allows only a single UA* at this time.
-      if (len(user_agent_strings) == 1 and
-          user_agent_strings[0].find('*') != -1):
-        user_agent_filter = user_agent_strings[0].replace('*', '')
+  user_agent_strings = None
+  user_agent_filter = None
+  ua_by_param = request.GET.get('ua')
+  if ua_by_param:
+    user_agent_strings = ua_by_param.split(',')
+    # Account for UA* - note that this allows only a single UA* at this time.
+    if (len(user_agent_strings) == 1 and
+        user_agent_strings[0].find('*') != -1):
+      user_agent_filter = user_agent_strings[0].replace('*', '')
+      if not static_mode:
         user_agent_strings = UserAgentGroup.GetStrings(version_level,
                                                        user_agent_filter)
-    else:
-      user_agent_strings = UserAgentGroup.GetStrings(version_level)
-    #logging.info('GetStats: v: %s, uas: %s' % (version_level,
-    #             user_agent_strings))
+  elif not static_mode:
+    user_agent_strings = UserAgentGroup.GetStrings(version_level)
+  #logging.info('GetStats: v: %s, uas: %s' % (version_level,
+  #             user_agent_strings))
 
   tests = opt_tests or test_set.tests
   params_str = None
@@ -590,14 +591,21 @@ def GetStats(request, test_set, output='html', opt_tests=None,
 
     # If we got custom as a version level we only want matching keys.
     if ua_by_param:
-      stats_data_copy = stats_data.copy()
-      stats_data = {}
-      for key, val in stats_data_copy.items():
-        if key in user_agent_strings:
-          stats_data[key] = val
-    else:
-      user_agent_strings = stats_data.keys()
-      UserAgentGroup.SortUserAgentStrings(user_agent_strings)
+      if user_agent_filter:
+        stats_data_copy = stats_data.copy()
+        stats_data = {}
+        for key, val in stats_data_copy.items():
+          if key.find(user_agent_filter) != -1:
+            stats_data[key] = val
+      elif user_agent_strings is not None:
+        stats_data_copy = stats_data.copy()
+        stats_data = {}
+        for key, val in stats_data_copy.items():
+          if key in user_agent_strings:
+            stats_data[key] = val
+
+    user_agent_strings = stats_data.keys()
+    UserAgentGroup.SortUserAgentStrings(user_agent_strings)
     #logging.info('Pickled stats_data: %s' % stats_data)
     #logging.info('pickled ua_strings: %s' % user_agent_strings)
 
