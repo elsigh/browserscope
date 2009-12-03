@@ -21,15 +21,12 @@ A set of JavaScript expressions that provide useful information to code optimize
 
 __author__ = 'msamuel@google.com (Mike Samuel)'
 
+import cStringIO
 import re
-#from categories import all_test_sets
 from categories.jskb import ecmascript_snippets
-#from base import decorators
 from base import util
 
 from django import http
-#from django.template import Context, loader
-
 
 CATEGORY = 'jskb'
 
@@ -46,10 +43,82 @@ def About(request):
 
 def EnvironmentChecks(request):
   """The main test page."""
-  return util.Render(request, 'templates/environment-checks.html',
-                     params={ 'snippets': repr(ecmascript_snippets._SNIPPETS) },
-                     category=CATEGORY)
+  return util.Render(
+      request, 'templates/environment-checks.html',
+      params={ 'snippets': to_json(ecmascript_snippets._SNIPPETS) },
+      category=CATEGORY)
 
 
 def Json(request):
-  return http.HttpResponse('yo')  # TODO
+  return http.HttpResponse('yo')  # TODO: serve a JSON file for the requested useragents.
+
+
+# roll our own JSON formatting since the django serializer stuff doesn't serialize dicts
+def json_formatter():
+  escs = {'"': '\\"', '\\': '\\\\', '\r': '\\r', '\n': '\\n'}
+  
+  def json_string(s, out):
+    out.write('"')
+    out.write(re.sub(r'[^\x09\x20\x21\x23-\x5b\x5d-\x7e]',
+                     lambda m: escs.get(m.group(0)) or '\\u%04x' % ord(m.group(0)), unicode(s))
+              .encode('UTF-8'))
+    out.write('"')
+
+  def json_array(arr, out):
+    out.write('[')
+    if len(arr):
+      json(arr[0], out)
+      for el in arr[1:]:
+        out.write(',')
+        json(el, out)
+    out.write(']')
+
+  def json_object(obj, out):
+    out.write('{')
+    first = True
+    for k, v in obj.iteritems():
+      if first:
+        first = False
+      else:
+        out.write(',')
+      json_string(k, out)
+      out.write(':')
+      json(v, out)
+    out.write('}')
+
+  def json_num(n, out):
+    out.write(str(n))
+
+  def json_bool(b, out):
+    if b:
+      out.write('true')
+    else:
+      out.write('false')
+
+  def json_null(v, out):
+    out.write('null')
+
+  handlers = {
+    str: json_string,
+    unicode: json_string,
+    list: json_array,
+    tuple: json_array,
+    dict: json_object,
+    int: json_num,
+    long: json_num,
+    float: json_num,
+    bool: json_bool,
+    type: json_null,
+    }
+
+  def json(v, out):
+    handlers[type(v)](v, out)
+
+  def to_json(v):
+    out = cStringIO.StringIO()
+    json(v, out)
+    return out.getvalue()
+
+  return to_json
+
+to_json = json_formatter()

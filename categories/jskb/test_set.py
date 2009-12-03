@@ -93,7 +93,6 @@ class JskbTest(test_set_base.TestBase):
 
 _TESTS = tuple([
   # key, name, doc
-  #SelectorsTest('score', 'Score', 'Selectors API test score'),
   JskbTest(test['name'], test['code'], test.get('doc', 'DOC ME'))
   for test in ecmascript_snippets._SNIPPETS
 ])
