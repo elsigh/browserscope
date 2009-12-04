@@ -73,7 +73,8 @@ def Render(request, template, params={}, category=None):
   params['build'] = settings.BUILD
   params['resource_version'] = custom_filters.get_resource_version()
   params['epoch'] = int(time.time())
-  params['request_path'] = request.get_full_path()
+  # we never want o=xhr in our request_path, right?
+  params['request_path'] = request.get_full_path().replace('&o=xhr', '')
   params['request_path_lastbit'] = re.sub('^.+\/([^\/]+$)', '\\1', request.path)
   params['current_ua_string'] = request.META['HTTP_USER_AGENT']
   params['current_ua'] = UserAgent.factory(params['current_ua_string']).pretty()
@@ -894,7 +895,7 @@ def GetStatsData(category, tests, user_agents, ua_by_param,
     # test runs (total_runs) for this ua, if not, we don't add them in.
     # Casting user_agent as str here prevents unicode errors when unpickling.
     if (version_level == 'top' or
-        ua_by_param or
+        (ua_by_param and ua_by_param.find('*') == -1) or
         user_agent_stats['total_runs']):
       stats[user_agent] = user_agent_stats
       stats['total_runs'] += user_agent_stats['total_runs']
