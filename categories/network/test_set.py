@@ -129,28 +129,28 @@ The upper limit is 60, so if a browser actually supports more than that it'll st
   #  is_hidden_stat=True),
   NetworkTest(
     'parscriptscript', '|| Script Script', 'scripts-block-scripts', 'boolean',
-    '''When most browsers start downloading an external script, they wait until the script is done downloading, parsed, and executed
+    '''When some browsers start downloading an external script, they wait until the script is done downloading, parsed, and executed
 before starting any other downloads. Although <i>parsing and executing</i> scripts in order is important for maintaining code dependencies,
 it's possible to safely <i>download</i> scripts in parallel with other resources in the page (including other scripts).
-This test determines if scripts can be downloaded in parallel with other resources in the page.'''),
+This test determines if the browser downloads scripts in parallel with other scripts in the page.'''),
   NetworkTest(
     'parscriptstylesheet', '|| Script Stylesheet', 'scripts-block-stylesheets', 'boolean',
-    '''When most browsers start downloading an external script, they wait until the script is done downloading, parsed, and executed
+    '''When some browsers start downloading an external script, they wait until the script is done downloading, parsed, and executed
 before starting any other downloads. Although <i>parsing and executing</i> scripts in order is important for maintaining code dependencies,
 it's possible to safely <i>download</i> scripts in parallel with other resources in the page (including other scripts).
-This test determines if scripts can be downloaded in parallel with other resources in the page.'''),
+This test determines if the browser downloads scripts in parallel with other stylesheets in the page.'''),
   NetworkTest(
     'parscriptimage', '|| Script Image', 'scripts-block-images', 'boolean',
-    '''When most browsers start downloading an external script, they wait until the script is done downloading, parsed, and executed
+    '''When some browsers start downloading an external script, they wait until the script is done downloading, parsed, and executed
 before starting any other downloads. Although <i>parsing and executing</i> scripts in order is important for maintaining code dependencies,
 it's possible to safely <i>download</i> scripts in parallel with other resources in the page (including other scripts).
-This test determines if scripts can be downloaded in parallel with other resources in the page.'''),
+This test determines if the browser downloads scripts in parallel with other images in the page.'''),
   NetworkTest(
     'parscriptiframe', '|| Script Iframe', 'scripts-block-iframes', 'boolean',
-    '''When most browsers start downloading an external script, they wait until the script is done downloading, parsed, and executed
+    '''When some browsers start downloading an external script, they wait until the script is done downloading, parsed, and executed
 before starting any other downloads. Although <i>parsing and executing</i> scripts in order is important for maintaining code dependencies,
 it's possible to safely <i>download</i> scripts in parallel with other resources in the page (including other scripts).
-This test determines if scripts can be downloaded in parallel with other resources in the page.'''),
+This test determines if the browser downloads scripts in parallel with other iframes in the page.'''),
   NetworkTest(
     'parsheet', '|| CSS', 'stylesheets-block', 'boolean',
     '''Similar to scripts, some browsers block all downloads once they start downloading a stylesheet.
