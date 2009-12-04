@@ -111,6 +111,7 @@ urlpatterns = patterns('',
   (r'^network/tests/scripts-block-stylesheets', 'categories.network.handlers.ScriptsBlockStylesheets'),
   (r'^network/tests/scripts-block-images', 'categories.network.handlers.ScriptsBlockImages'),
   (r'^network/tests/scripts-block-iframes', 'categories.network.handlers.ScriptsBlockIframes'),
+  (r'^network/tests/scripts-block$', 'categories.network.handlers.ScriptsBlock'),
   (r'^network/tests/stylesheets-block', 'categories.network.handlers.StylesheetsBlock'),
   # Network Performance admin URLs
   (r'^network/admin', 'categories.network.handlers.Admin'),
