@@ -78,49 +78,69 @@
     throw new Error('' + json + ' : ' + typeof json);
   }
 
-  var tests = eval(document.getElementById('json').firstChild.nodeValue);
+  var counter = 0;
+  function eventually(action) {
+    // Use counter to avoid relying on setTimeout queueing in order.
+    setTimeout(action, ++counter);
+  }
+
+  function innerText(el) {
+    var s = '';
+    for (var c = el.firstChild; c; c = c.nextSibling) {
+      if (c.nodeType === 3) { s += c.nodeValue; }
+    }
+    return s;
+  }
+
+  var tests = eval(innerText(document.getElementById('json')));
 
   var testResults = [];
   var environment = {};
   for (var i = 0, n = tests.length; i < n; ++i) {
     var test = tests[i];
-    var result = void 0;
-    try {
-      // Execute in the global scope
-      result = (new Function('return (' + test.code + ')'))();
-    } catch (ex) {
-      if (canWarn) {
-        console.warn('Error on (%s): %o', test, ex);
-      }
-      continue;
-    }
-    if (result === void 0) {
-      continue;
-    }
-    // Map the code snippet to the result it produces.
-    environment[test.code] = result;
-    // Convert to a form that can be stored in the database.
-    var serializableResult = '-1';
-    if (result === +result && !isFinite(result)) {
-      if (result === 0 && (1/result) < 0) {
-        serializableResult = '-0';
-      } else {
-        serializableResult = '' + result;
-      }
-    } else {
-      serializableResult = '' + test.values.indexOf(stringify(result));
-      if (serializableResult === '-1' && canWarn) {
-        console.warn(test.name + ' produced unserializable value '
-                     + stringify(result) + ' not in ' + stringify(test.values));
-      }
-    }
-    testResults.push(test.name + '=' + serializableResult);
+    // Perform the operation in the global scope without any try blocks on the
+    // stack.  If either condition is not met, then the results are unreliable.
+    // See FinallyWorks for a case with which the second condition interferes.
+    (function (test) {
+      var serializableResult = 'throw';
+      eventually(function () {
+        // Execute in the global scope
+        var result = (new Function('return (' + test.code + ')'))();
+
+        // Map the code snippet to the result it produces.
+        environment[test.code] = result;
+
+        // Convert to a form that can be stored in the database.
+        serializableResult = '-1';
+        if (result === +result && !isFinite(result)) {
+          if (result === 0 && (1/result) < 0) { 
+            serializableResult = '-0';
+          } else {
+            serializableResult = '' + result;
+          }
+        } else {
+          serializableResult = '' + test.values.indexOf(stringify(result));
+          if (serializableResult === '-1' && canWarn) {
+            console.warn(test.name + ' produced unserializable value '
+                         + stringify(result) + ' not in '
+                         + stringify(test.values));
+          }
+        }
+      });
+      eventually(function () {
+        testResults.push(test.name + '=' + serializableResult);
+      });
+    })(test);
   }
 
-  if (parent.sendScore) { parent.sendScore(testResults); }
+  if (parent.sendScore) {
+    eventually(function () { parent.sendScore(testResults); });
+  }
 
-  var envJson = stringify(environment);
-  document.body.appendChild(document.createTextNode(envJson));
+  eventually(function () {
+    var envJson = stringify(environment);
+    document.body.appendChild(document.createTextNode(envJson));
+  });
 })();
 </script>
 </body></html>

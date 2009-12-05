@@ -80,7 +80,7 @@ def json_formatter():
       if first:
         first = False
       else:
-        out.write(',')
+        out.write(',\n')
       json_string(k, out)
       out.write(':')
       json(v, out)
