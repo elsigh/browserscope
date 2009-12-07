@@ -209,6 +209,10 @@ _SNIPPETS = (
     NAME: 'StringSplitPreservesBlanks', VALUES: BOOL_VALUES,
     DOC: 'Does string.split work properly -- no skipping blanks?',
     SUMMARY: 'String.split OK', GOOD: ('true',) },
+  { CODE: "[,].length === 1",
+    NAME: 'ArrayTrailingComma', VALUES: BOOL_VALUES,
+    DOC: 'Is a trailing comma in an array ignored?',
+    SUMMARY: 'TrailingComma', GOOD: ('true',) },
 )
 
 def init():
