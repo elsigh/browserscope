@@ -21,9 +21,10 @@ A set of JavaScript expressions that provide useful information to code optimize
 
 __author__ = 'msamuel@google.com (Mike Samuel)'
 
-import cStringIO
 import re
 from categories.jskb import ecmascript_snippets
+from categories.jskb import json
+from models import user_agent
 from base import util
 
 from django import http
@@ -45,80 +46,52 @@ def EnvironmentChecks(request):
   """The main test page."""
   return util.Render(
       request, 'templates/environment-checks.html',
-      params={ 'snippets': to_json(ecmascript_snippets._SNIPPETS) },
+      params={ 'snippets': json.to_json(ecmascript_snippets._SNIPPETS) },
       category=CATEGORY)
 
 
 def Json(request):
-  return http.HttpResponse('yo')  # TODO: serve a JSON file for the requested useragents.
-
-
-# roll our own JSON formatting since the django serializer stuff doesn't serialize dicts
-def json_formatter():
-  escs = {'"': '\\"', '\\': '\\\\', '\r': '\\r', '\n': '\\n'}
+  def html(s):
+    return re.sub(r'<', '&lt;', re.sub('>', '&gt', re.sub(r'&', '&amp;', s)))
   
-  def json_string(s, out):
-    out.write('"')
-    out.write(re.sub(r'[^\x09\x20\x21\x23-\x5b\x5d-\x7e]',
-                     lambda m: escs.get(m.group(0)) or '\\u%04x' % ord(m.group(0)), unicode(s))
-              .encode('UTF-8'))
-    out.write('"')
+  def help_page(msg):
+    return (
+      '<title>%(msg)s</title>'
+      '<h1>%(msg)s</h1>'
+      'Serve JSON mapping code snippets to results.\n'
+      '<p>The JSON is the intersection of the (key, value) pairs accross all'
+      ' user agents requested, so if Firefox 3 was requested then only'
+      ' key/value pairs that are present in both Firefox 3.0, 3.1, etc.'
+      ' will be present.\n'
+      '<p>There will be an extra key value pair containing the user agents'
+      ' requested so that the output is self-describing.\n'
+      '\n'
+      '<p>CGI params<ul>\n'
+      '  <li><code>ua=Firefox/3.0</code>\n'
+      '  <li><code>ua=MSIE+6.0</code>\n'
+      '  <li><code>ot=application/json</code>\n'
+      '  <li><code>ot=text/plain</code>\n'
+      '</ul>'
+      ) % { 'msg': html(msg) }
 
-  def json_array(arr, out):
-    out.write('[')
-    if len(arr):
-      json(arr[0], out)
-      for el in arr[1:]:
-        out.write(',')
-        json(el, out)
-    out.write(']')
-
-  def json_object(obj, out):
-    out.write('{')
-    first = True
-    for k, v in obj.iteritems():
-      if first:
-        first = False
-      else:
-        out.write(',\n')
-      json_string(k, out)
-      out.write(':')
-      json(v, out)
-    out.write('}')
-
-  def json_num(n, out):
-    out.write(str(n))
-
-  def json_bool(b, out):
-    if b:
-      out.write('true')
+  if request.method != 'GET' and request.method != 'HEAD':
+    return http.HttpResponseBadRequest(
+        help_page('Bad method "%s"' % request.method), mimetype='text/html')
+  user_agent_string = None
+  out_type = 'text/plain'
+  for key, value in request.GET.iteritems():
+    if key == u'ua':
+      user_agent_string = value
+    elif key == u'ot' and value in ('text/plain', 'application/json'):
+      out_type = value
     else:
-      out.write('false')
+      return http.HttpResponseBadRequest(
+        help_page('Unknown CGI param "%s"' % key), mimetype='text/html')
+      raise Exception()
+  ua = user_agent.UserAgent.factory(user_agent_string)
 
-  def json_null(v, out):
-    out.write('null')
-
-  handlers = {
-    str: json_string,
-    unicode: json_string,
-    list: json_array,
-    tuple: json_array,
-    dict: json_object,
-    int: json_num,
-    long: json_num,
-    float: json_num,
-    bool: json_bool,
-    type: json_null,
-    }
-
-  def json(v, out):
-    handlers[type(v)](v, out)
-
-  def to_json(v):
-    out = cStringIO.StringIO()
-    json(v, out)
-    return out.getvalue()
-
-  return to_json
-
-to_json = json_formatter()
+  response = http.HttpResponse(mimetype='text/html')  # TODO: out_type
+  response.write(help_page(
+    'TODO(mikesamuel): implement me. '
+    'Requested useragent=%r' % ([ua.string, ua.family, ua.v1, ua.v2, ua.v3])))
+  return response

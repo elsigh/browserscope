@@ -20,9 +20,6 @@ __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 
 from categories.jskb import ecmascript_snippets
-from decimal import Decimal
-import logging
-
 from categories import test_set_base
 
 
@@ -67,6 +64,7 @@ class JskbTest(test_set_base.TestBase):
     """
     key = self.key
     snippet = ecmascript_snippets.with_name(key)
+    # TODO(mikesamuel): a confidence metric around the results.
     int_median = int(round(median))
 
     display = '?'
