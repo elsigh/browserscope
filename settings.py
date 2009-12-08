@@ -59,7 +59,7 @@ INSTALLED_APPS = (
 
 
 # BROWSERSCOPE SPECIFIC GLOBALS
-CATEGORIES = ['security', 'richtext', 'selectors', 'network', 'acid3',]
+CATEGORIES = ['security', 'richtext', 'selectors', 'network', 'acid3', 'jskb']
 # If a category is in this list it will not be visible in the nav, but
 # data for the category will save in prod to the main rankers.
 CATEGORIES_INVISIBLE = ['jskb']
@@ -87,4 +87,5 @@ if (SERVER_SOFTWARE is not None and 'Dev' in SERVER_SOFTWARE):
 # Logged in admins should get to see stack traces.
 if users.is_current_user_admin():
   DEBUG = True
+BUILD = 'production'
 TEMPLATE_DEBUG = DEBUG
