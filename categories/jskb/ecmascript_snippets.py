@@ -57,17 +57,20 @@ _SNIPPETS = (
   # map a User-Agent request header to an environment file.
   # Some ES global definitions
   { CODE: 'typeof undefined', NAME: 'Undefined', VALUES: TYPEOF_VALUES,
-    GOOD: ('"undefined"',) },
+    GOOD: ('"undefined"',), DOC: 'Is the global undefined really undefined',
+    SUMMARY: 'undef OK' },
   { CODE: 'Infinity === 1/0', NAME: 'Infinity', VALUES: BOOL_VALUES,
-    GOOD: ('true',) },
+    GOOD: ('true',), DOC: 'Is the global Infinity set properly',
+    SUMMARY: 'Inf OK' },
   { CODE: 'NaN !== NaN', NAME: 'NaN', VALUES: BOOL_VALUES,
-    GOOD: ('true',) },
+    GOOD: ('true',), DOC: 'Is the global NaN set properly',
+    SUMMARY: 'NaN OK' },
   { CODE: '!!this.window && this === window', NAME: 'WindowIsGlobal',
     VALUES: BOOL_VALUES, SUMMARY: 'window is global',
     DOC: 'Does "window" alias the global scope?', GOOD: ('true',) },
   { CODE: '!(function () { return this; }.call(null))',
     NAME: 'SupportsStrictMode', VALUES: BOOL_VALUES,
-    SUMMARY: 'Can "use strict"', DOC: 'Is EcmaScript5 Strict mode supported?',
+    SUMMARY: 'Can "use strict"', DOC: 'Is EcmaScript5 strict mode supported?',
     GOOD: ('true',) },
   ## Check whether native implementations are available
   { CODE: 'typeof JSON', NAME: 'NativeJSON', VALUES: TYPEOF_VALUES,
@@ -212,7 +215,26 @@ _SNIPPETS = (
   { CODE: "[,].length === 1",
     NAME: 'ArrayTrailingComma', VALUES: BOOL_VALUES,
     DOC: 'Is a trailing comma in an array ignored?',
-    SUMMARY: 'TrailingComma', GOOD: ('true',) },
+    SUMMARY: 'Trailing comma', GOOD: ('true',) },
+  { CODE: '(function (a) { a.length = 0; for (var _ in a) { return false; } return true; })([0])',
+    NAME: 'LengthDontEnum', VALUES: BOOL_VALUES,
+    DOC: 'Does the length property of arrays become enumerable after being set?',
+    SUMMARY: 'Length DontEnum', GOOD: ('true',) },
+  { CODE: '(function () { return arguments instanceof Array; })()',
+    NAME: 'ArgumentsIsArray', VALUES: BOOL_VALUES,
+    DOC: 'Is the arguments object an instanceof Array?',
+    SUMMARY: 'arguments instanceof Array', GOOD: ('false',) },
+  { CODE: ('(function () {'
+             ' return arguments instanceof Array'
+             ' && [].concat(arguments)[0][0] !== 1;'
+           ' })(1, 2)'),
+    NAME: 'ConcatArgumentsBuggy', VALUES: BOOL_VALUES,
+    DOC: "Safari makes arguments an Array but breaks concat.",
+    SUMMARY: 'Buggy arguments concat', GOOD: ('false',) },
+  { CODE: '(function () { for (var _ in {}) return false; return true; })()',
+    NAME: 'EmptyObj', VALUES: BOOL_VALUES,
+    DOC: "Have enumerable keys been added to Object.prototype?",
+    SUMMARY: '{} has no keys', GOOD: ('true',) },
 )
 
 def init():
