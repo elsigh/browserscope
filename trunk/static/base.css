@@ -620,6 +620,39 @@ a.bs-l-p {
   text-align: right;
 }
 
+/* results output toggle */
+.bs-o {
+  display: inline-block;
+  height: 20px;
+}
+.bs-o-gviz,
+.bs-o-xhr {
+  background: #ededec url(/static/img/table_bar_line_sprite.gif) 4px 3px no-repeat;
+  width: 24px;
+  height: 18px;
+  border: 1px solid #aaa;
+  display: inline-block;
+  cursor: pointer;
+}
+.bs-o-gviz {
+  background-position: -65px -21px;
+  -moz-border-radius-topright: 3px;
+  -moz-border-radius-bottomright: 3px;
+  -webkit-border-top-right-radius: 3px;
+  -webkit-border-bottom-right-radius: 3px;
+}
+.bs-o-xhr {
+  margin-left: 4px;
+  -moz-border-radius-topleft: 3px;
+  -moz-border-radius-bottomleft: 3px;
+  -webkit-border-top-left-radius: 3px;
+  -webkit-border-bottom-left-radius: 3px;
+}
+.bs-o .bs-o-sel {
+  border: 1px solid #666;
+  background-color: #8a8b89;
+}
+
 /* down arrow */
 .goog-tablesorter-sorted:after {
   content: "\2193";

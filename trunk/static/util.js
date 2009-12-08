@@ -136,7 +136,6 @@ Util.getIframeDocument = function(iframeId) {
   return doc;
 };
 
-
 /**
  * @type {string}
  */
@@ -219,7 +218,7 @@ Util.alphaCaseInsensitiveCompare = function(a, b) {
  * @constructor
  */
 Util.ResultTablesController = function(category, browserFamily,
-    realUaString, uaUriParams, resultsUriParams) {
+    output, realUaString, uaUriParams, resultsUriParams) {
 
   /**
    * @type {string}
@@ -230,6 +229,11 @@ Util.ResultTablesController = function(category, browserFamily,
    * @type {string}
    */
   this.browserFamily = browserFamily;
+
+  /**
+   * @type {string}
+   */
+  this.output = output == 'html' ? 'xhr': output;
 
   /**
    * @type {string}
@@ -297,6 +301,11 @@ Util.ResultTablesController = function(category, browserFamily,
    */
   this.browserFamilySelect = null;
 
+  /**
+   * @type {Element}
+   */
+  this.outputToggle = null;
+
   // Initialize.
   this.resetUrl();
   this.decorate();
@@ -359,9 +368,43 @@ Util.ResultTablesController.prototype.decorate = function() {
   goog.events.listen(this.browserFamilySelect, 'change',
       this.browserFamilyChangeHandler, false, this);
 
+  this.outputToggleXhr = goog.dom.$dom('span',
+      {'className': 'bs-o-xhr bs-o-sel', 'tabIndex': 0});
+  this.outputToggleGviz = goog.dom.$dom('span',
+      {'className': 'bs-o-gviz', 'tabIndex': 0});
+  this.outputToggles = [this.outputToggleXhr, this.outputToggleGviz];
+  this.outputToggle = goog.dom.$dom('span', {'className': 'bs-o'});
+  goog.events.listen(this.outputToggle, 'click',
+      this.outputToggleClickHandler, false, this);
+  this.outputToggle.appendChild(this.outputToggleXhr);
+  this.outputToggle.appendChild(this.outputToggleGviz);
+
   this.resultTables[this.url] =
       new Util.ResultTable(this, resultTableContainer);
   goog.style.showElement(resultTableContainer, true);
+};
+
+/**
+ * @param {goog.events.Event} e
+ */
+Util.ResultTablesController.prototype.outputToggleClickHandler = function(e) {
+  var el = e.target;
+  var newOutput = el.className.replace('bs-o-', '');
+  if (newOutput == this.output) {
+    return;
+  }
+  this.output = newOutput;
+
+  for (var i = 0, el; el = this.outputToggles[i]; i++) {
+    if (goog.dom.classes.has(el, 'bs-o-' + this.output)) {
+      goog.dom.classes.add(el, 'bs-o-sel');
+    } else {
+      goog.dom.classes.remove(el, 'bs-o-sel');
+    }
+  }
+  this.resetUrl();
+  this.updateTableDisplay();
+  e.stopPropagation();
 };
 
 /**
@@ -390,6 +433,9 @@ Util.ResultTablesController.prototype.browserFamilyChangeHandler = function(e) {
   } else {
     this.uaUriParams = null;
   }
+
+  // always reset output to xhr here.
+  this.output = 'xhr';
 
   this.setBrowserFamily(browserFamily);
 
@@ -448,7 +494,7 @@ Util.ResultTablesController.prototype.setBrowserFamily = function(
 
 Util.ResultTablesController.prototype.resetUrl = function() {
   var url = Util.ResultTablesController.generateUrl(this.category,
-      this.browserFamily, this.uaUriParams, this.resultsUriParams);
+      this.output, this.browserFamily, this.uaUriParams, this.resultsUriParams);
   this.url = url;
 };
 
@@ -463,32 +509,55 @@ Util.ResultTablesController.prototype.hideTables = function() {
 Util.ResultTablesController.prototype.updateTableDisplay = function() {
   this.hideTables();
   if (!goog.object.containsKey(this.tables, this.url)) {
-    this.xhrCategoryResults();
+    if (this.output == 'xhr') {
+      this.xhrCategoryResults();
+    } else if (this.output == 'gviz') {
+      this.tables[this.url] = goog.dom.$dom('div',
+          {'className': 'rt'},
+          goog.dom.$dom('div', {'className': 'rt-b-f'}),
+          goog.dom.$dom('div', {'className': 'rt-gviz'}));
+      this.resultsEl.appendChild(this.tables[this.url]);
+      this.setLoading(true);
+      this.resultTables[this.url] = new Util.ResultTable(this,
+          this.tables[this.url]);
+    }
   } else {
     goog.style.showElement(this.tables[this.url], true);
     this.resultTables[this.url].setUpBrowserFamilyForm();
   }
 };
 
+/**
+ * @param {boolean} isLoading
+ */
+Util.ResultTablesController.prototype.setLoading = function(isLoading) {
+  this.xhrLoading = isLoading;
+  if (this.xhrLoading) {
+    if (!this.tables[this.url]) {
+      var textContent = 'Loading the ' +
+          this.categoryNames[this.category] +
+          ' Results ...';
+      this.tables[this.url] = goog.dom.$dom('div',
+          null, textContent);
+      this.resultsEl.appendChild(this.tables[this.url]);
+    }
+    goog.dom.classes.add(this.tables[this.url], 'rt-loading');
+  } else {
+    goog.dom.classes.remove(this.tables[this.url], 'rt-loading');
+  }
+};
+
 Util.ResultTablesController.prototype.xhrCategoryResults = function() {
-  this.xhrLoading = true;
-
-  var textContent = 'Loading the ' +
-      this.categoryNames[this.category] +
-      ' Results ...';
-  this.tables[this.url] = goog.dom.$dom('div',
-      {'className': 'rt-loading'}, textContent);
-  this.resultsEl.appendChild(this.tables[this.url]);
-
+  this.setLoading(true);
   goog.net.XhrIo.send(this.url, goog.bind(this.loadStatsTableCallback, this),
       'get', null, null, 15000); // 15000 = 15 second timeout
 };
 
 Util.ResultTablesController.prototype.loadStatsTableCallback = function(e) {
   var xhrio = e.target;
+  this.setLoading(false);
   if (xhrio.isSuccess()) {
     var html = xhrio.getResponseText();
-    this.tables[this.url].className = '';
     this.tables[this.url].innerHTML = html;
     this.resultTables[this.url] =
         new Util.ResultTable(this, this.tables[this.url]);
@@ -506,7 +575,6 @@ Util.ResultTablesController.prototype.loadStatsTableCallback = function(e) {
     link.innerHTML = 'Feel free to try again.';
     this.tables[this.url].appendChild(link);
   }
-  this.xhrLoading = false;
 };
 
 /**
@@ -568,10 +636,14 @@ Util.ResultTable = function(controller, el) {
    */
   this.controller = controller;
 
-  /**
-   * @type {Element}
-   */
-  this.table = goog.dom.$$('table', 'rt-t', el)[0];
+  var tables = goog.dom.$$('table', 'rt-t', el);
+  var gvizLines = goog.dom.$$('div', 'rt-gviz', el);
+
+  if (tables.length) {
+    this.table = tables[0];
+  } else if (gvizLines.length) {
+    this.gvizLineEl = gvizLines[0];
+  }
 
   /**
    * @type {Element}
@@ -582,13 +654,67 @@ Util.ResultTable = function(controller, el) {
   this.init();
 };
 
+/**
+ * @type {Element}
+ */
+Util.ResultTable.prototype.table = null;
+
+/**
+ * @type {Element}
+ */
+Util.ResultTable.prototype.gvizLineEl = null;
+
 Util.ResultTable.prototype.init = function() {
   this.setUpBrowserFamilyForm();
-  this.setUpSortableTable();
-  this.fixRealUaStringInResults();
-  this.initTooltips();
-  this.initCompareUas();
-  this.initUaStarLinks();
+  if (this.table) {
+    this.setUpSortableTable();
+    this.fixRealUaStringInResults();
+    this.initTooltips();
+    this.initCompareUas();
+    this.initUaStarLinks();
+  } else if (this.gvizLineEl) {
+    this.initGvizLine();
+  }
+};
+
+Util.ResultTable.prototype.initGvizLine = function() {
+  google.load('visualization', '1',
+      {'packages': ['linechart'],
+       'callback': goog.bind(this.initGvizLineReady, this)});
+};
+
+Util.ResultTable.prototype.initGvizLineReady = function() {
+  url = goog.uri.utils.setParam(this.controller.url, 'o', 'gviz_data');
+  url = goog.uri.utils.appendParam(url, 'tqx',
+      'reqId:' + Math.floor(Math.random() * 100000));
+  url = 'http://elsigh.latest.ua-profiler.appspot.com' + url;
+  var query = new google.visualization.Query(url);
+  query.send(goog.bind(this.initGvizQueryResponse, this));
+};
+
+Util.ResultTable.prototype.initGvizQueryResponse = function(response) {
+  this.gvizLoaded = true;
+  if (response.isError()) {
+    alert('Error in query: ' + response.getMessage() + ' ' +
+        response.getDetailedMessage());
+    return;
+  }
+
+  this.controller.setLoading(false);
+  goog.style.showElement(this.formContainer, true);
+
+  var data = response.getDataTable();
+
+  var chart = new google.visualization.LineChart(this.gvizLineEl);
+  //var chart = new google.visualization.ColumnChart(this.gvizLineEl);
+  chart.draw(data, {
+    'height': 400,
+    'min': 0,
+    'max': 10,
+    'axisFontSize': 10,
+    'smoothLine': true,
+    'legend': 'none'
+  });
 };
 
 Util.ResultTable.prototype.initUaStarLinks = function() {
@@ -621,6 +747,10 @@ Util.ResultTable.prototype.initCompareUas = function() {
    * @type {Array.<string>}
    */
   this.uasToCompare = [];
+
+  if (!this.table) {
+    return;
+  }
 
   var rows = this.table.rows;
   var cbNode = document.createElement('input');
@@ -655,7 +785,7 @@ Util.ResultTable.prototype.initCompareUas = function() {
 
   this.compareUasBtn = document.createElement('button');
   this.compareUasBtn.disabled = true;
-  this.compareUasBtn.innerHTML = 'Compare UAs';
+  this.compareUasBtn.innerHTML = 'Compare Browsers';
   goog.events.listen(this.compareUasBtn, 'click', this.compareUas, false, this);
 
   var tFoot = this.table.createTFoot();
@@ -707,6 +837,17 @@ Util.ResultTable.prototype.initTooltips = function() {
 
 Util.ResultTable.prototype.setUpBrowserFamilyForm = function() {
   this.formContainer.appendChild(this.controller.browserFamilySelect);
+  this.formContainer.appendChild(this.controller.outputToggle);
+  if (this.controller.uaUriParams &&
+    this.controller.uaUriParams.indexOf('*') !== -1) {
+    goog.style.showElement(this.controller.outputToggle, true);
+    if (this.controller.output == 'gviz' && !this.gvizLoaded) {
+      goog.style.showElement(this.formContainer, false);
+    }
+  } else {
+    goog.style.showElement(this.controller.outputToggle, false);
+    goog.style.showElement(this.controller.browserFamilySelect, true);
+  }
 };
 
 Util.ResultTable.prototype.setUpSortableTable = function() {
@@ -741,17 +882,17 @@ Util.ResultTable.prototype.fixRealUaStringInResults = function() {
 /**
  * Static function for generating the results table URL.
  * @param {string} category
+ * @param {string} output xhr or gviz
  * @param {string} opt_versionLevel
  * @param {string} opt_ua
  * @param {string} opt_results
- * @param {string} opt_isXhr defaults to true.
  * @return {string} url
  */
-Util.ResultTablesController.generateUrl = function(category, opt_versionLevel,
-    opt_ua, opt_results, opt_isXhr) {
+Util.ResultTablesController.generateUrl = function(category, output,
+    opt_versionLevel, opt_ua, opt_results, opt_output) {
   var url = '/';
-  var isXhr = goog.isDef(opt_isXhr) ? opt_isXhr : true;
   url = goog.uri.utils.appendParam(url, 'category', category);
+  url = goog.uri.utils.appendParam(url, 'o', output);
 
   if (opt_versionLevel) {
     url = goog.uri.utils.appendParam(url, 'v', opt_versionLevel);
@@ -766,9 +907,8 @@ Util.ResultTablesController.generateUrl = function(category, opt_versionLevel,
   if (opt_results) {
     url += '&' + opt_results.replace('&', '');
   }
-  if (isXhr) {
-    url = goog.uri.utils.appendParam(url, 'o', 'xhr');
-  }
+
+
   return url;
 };
 

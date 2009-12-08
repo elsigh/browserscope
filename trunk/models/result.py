@@ -126,10 +126,11 @@ class ResultParent(db.Expando):
     return parent
 
   def invalidate_ua_memcache(self):
+    ua_string_list = self.get_user_agent_list()
     memcache_ua_keys = [ResultParent.GetMemcacheKey(self.category, user_agent)
-                        for user_agent in self.get_user_agent_list()]
-    #logging.debug('invalidate_ua_memcache, memcache_ua_keys: %s' %
-    #             memcache_ua_keys)
+                        for user_agent in ua_string_list]
+    logging.debug('invalidate_ua_memcache, memcache_ua_keys: %s, %s' %
+                  (memcache_ua_keys, ua_string_list))
     memcache.delete_multi(keys=memcache_ua_keys, seconds=0,
                           namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
 
