@@ -394,14 +394,6 @@ Util.ResultTablesController.prototype.outputToggleClickHandler = function(e) {
     return;
   }
   this.output = newOutput;
-
-  for (var i = 0, el; el = this.outputToggles[i]; i++) {
-    if (goog.dom.classes.has(el, 'bs-o-' + this.output)) {
-      goog.dom.classes.add(el, 'bs-o-sel');
-    } else {
-      goog.dom.classes.remove(el, 'bs-o-sel');
-    }
-  }
   this.resetUrl();
   this.updateTableDisplay();
   e.stopPropagation();
@@ -508,6 +500,15 @@ Util.ResultTablesController.prototype.hideTables = function() {
 
 Util.ResultTablesController.prototype.updateTableDisplay = function() {
   this.hideTables();
+
+  for (var i = 0, el; el = this.outputToggles[i]; i++) {
+    if (goog.dom.classes.has(el, 'bs-o-' + this.output)) {
+      goog.dom.classes.add(el, 'bs-o-sel');
+    } else {
+      goog.dom.classes.remove(el, 'bs-o-sel');
+    }
+  }
+
   if (!goog.object.containsKey(this.tables, this.url)) {
     if (this.output == 'xhr') {
       this.xhrCategoryResults();

@@ -622,8 +622,8 @@ a.bs-l-p {
 
 /* results output toggle */
 .bs-o {
-  display: inline-block;
-  height: 20px;
+  position: relative;
+  top: 4px;
 }
 .bs-o-gviz,
 .bs-o-xhr {
