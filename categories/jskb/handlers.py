@@ -21,7 +21,9 @@ A set of JavaScript expressions that provide useful information to code optimize
 
 __author__ = 'msamuel@google.com (Mike Samuel)'
 
+import logging
 import re
+from categories import all_test_sets
 from categories.jskb import ecmascript_snippets
 from categories.jskb import json
 from models import user_agent
@@ -53,11 +55,12 @@ def EnvironmentChecks(request):
 def Json(request):
   def html(s):
     return re.sub(r'<', '&lt;', re.sub('>', '&gt', re.sub(r'&', '&amp;', s)))
-  
-  def help_page(msg):
+
+  def help_page(msg, stats_data):
     return (
       '<title>%(msg)s</title>'
       '<h1>%(msg)s</h1>'
+      '<p><code>%(stats_data)s</code></p>'
       'Serve JSON mapping code snippets to results.\n'
       '<p>The JSON is the intersection of the (key, value) pairs accross all'
       ' user agents requested, so if Firefox 3 was requested then only'
@@ -78,7 +81,7 @@ def Json(request):
       '  <li><code>ot=application%%2Fjson</code>\n'
       '  <li><code>ot=text%%2Fplain</code>\n'
       '</ul>'
-      ) % { 'msg': html(msg) }
+      ) % { 'msg': html(msg), 'stats_data': html('%s' % stats_data) }
 
   if request.method != 'GET' and request.method != 'HEAD':
     return http.HttpResponseBadRequest(
@@ -94,10 +97,17 @@ def Json(request):
       return http.HttpResponseBadRequest(
         help_page('Unknown CGI param "%s"' % key), mimetype='text/html')
       raise Exception()
-  ua = user_agent.UserAgent.factory(user_agent_string)
+  #ua = user_agent.UserAgent.factory(user_agent_string)
+  #ua = user_agent.UserAgent.parse_to_string_list(user_agent_string)
+  user_agent_strings = user_agent_string.split(',')
+  tests = all_test_sets.GetTestSet(CATEGORY).tests
+  stats_data = util.GetStatsData(CATEGORY, tests, user_agent_strings,
+                                 ua_by_param=None, params_str=None,
+                                 version_level='1')
 
   response = http.HttpResponse(mimetype='text/html')  # TODO: out_type
   response.write(help_page(
-    'TODO(mikesamuel): implement me. '
-    'Requested useragent=%r' % ([ua.string, ua.family, ua.v1, ua.v2, ua.v3])))
+    ('TODO(mikesamuel): implement me. '
+    'Requested useragent=%r' % (user_agent_strings)),
+    stats_data))
   return response
