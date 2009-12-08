@@ -687,7 +687,7 @@ Util.ResultTable.prototype.initGvizLineReady = function() {
   url = goog.uri.utils.setParam(this.controller.url, 'o', 'gviz_data');
   url = goog.uri.utils.appendParam(url, 'tqx',
       'reqId:' + Math.floor(Math.random() * 100000));
-  url = 'http://elsigh.latest.ua-profiler.appspot.com' + url;
+  //url = 'http://elsigh.latest.ua-profiler.appspot.com' + url;
   var query = new google.visualization.Query(url);
   query.send(goog.bind(this.initGvizQueryResponse, this));
 };
