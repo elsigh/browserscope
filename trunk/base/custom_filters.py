@@ -96,4 +96,4 @@ def as_range(end_range):
 
 @register.filter
 def utc_to_pst(utc_dt):
-  return utc_dt - timedelta(hours=7)
+  return utc_dt - timedelta(hours=8)

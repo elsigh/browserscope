@@ -87,5 +87,4 @@ if (SERVER_SOFTWARE is not None and 'Dev' in SERVER_SOFTWARE):
 # Logged in admins should get to see stack traces.
 if users.is_current_user_admin():
   DEBUG = True
-BUILD = 'production'
 TEMPLATE_DEBUG = DEBUG
