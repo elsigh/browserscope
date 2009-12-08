@@ -60,7 +60,7 @@
         switch (Object.prototype.toString.call(json)) {
           case '[object Array]':
             var els = [];
-            for (var i = json.length; --i != 0;) {
+            for (var i = json.length; --i >= 0;) {
               els[i] = stringify(json[i]);
             }
             return '[' + els + ']';
@@ -92,42 +92,58 @@
     return s;
   }
 
+  function indexOf(arr, el) {
+    if (el !== el) {
+      for (var i = 0, n = arr.length; i < n; ++i) {
+        el = arr[i];
+        if (el !== el) { return i; }
+      }
+    } else {
+      for (var i = 0, n = arr.length; i < n; ++i) {
+        if (el === arr[i]) { return i; }
+      }
+    }
+    return -1;
+  }
+
   var tests = eval(innerText(document.getElementById('json')));
 
   var testResults = [];
   var environment = {};
+  var THROW = { 'throw': null };
+
   for (var i = 0, n = tests.length; i < n; ++i) {
     var test = tests[i];
     // Perform the operation in the global scope without any try blocks on the
     // stack.  If either condition is not met, then the results are unreliable.
     // See FinallyWorks for a case with which the second condition interferes.
     (function (test) {
-      var serializableResult = 'throw';
+      var result = THROW;
       eventually(function () {
         // Execute in the global scope
-        var result = (new Function('return (' + test.code + ')'))();
-
+        result = (new Function('return (' + test.code + ')'))();
+      });
+      eventually(function () {
         // Map the code snippet to the result it produces.
         environment[test.code] = result;
 
         // Convert to a form that can be stored in the database.
-        serializableResult = '-1';
-        if (result === +result && !isFinite(result)) {
+        var serializableResult = '-1';
+        if (result === +result && isFinite(result)) {
           if (result === 0 && (1/result) < 0) { 
             serializableResult = '-0';
           } else {
             serializableResult = '' + result;
           }
         } else {
-          serializableResult = '' + test.values.indexOf(stringify(result));
+          var stringResult = result === THROW ? 'throw' : stringify(result);
+          serializableResult = '' + indexOf(test.values, stringResult);
           if (serializableResult === '-1' && canWarn) {
             console.warn(test.name + ' produced unserializable value '
-                         + stringify(result) + ' not in '
-                         + stringify(test.values));
+                         + stringResult + ' not in ' + stringify(test.values));
           }
         }
-      });
-      eventually(function () {
+
         testResults.push(test.name + '=' + serializableResult);
       });
     })(test);
