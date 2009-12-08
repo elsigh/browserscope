@@ -100,6 +100,7 @@
   (function(){
     var category = '{{ stats_table_category }}';
     var httpUserAgent = '{{ current_ua_string }}';
+    var output = '{{ output }}';
     var userAgentPretty = '{{ current_ua }}';
     var realUaString = Util.reconcileClientServerUaPretty(httpUserAgent,
         userAgentPretty);
@@ -107,7 +108,7 @@
     var uaUriParams = '{{ ua_params }}';
     var browserFamily = '{{ v }}';
     var controller = new Util.ResultTablesController(category,
-        browserFamily, realUaString, uaUriParams, resultsUriParams);
+        browserFamily, output, realUaString, uaUriParams, resultsUriParams);
     if (realUaString != userAgentPretty) {
       var curUaStringEl = document.getElementById('bs-home-cur-ua-s');
       curUaStringEl.innerHTML = realUaString;
@@ -119,5 +120,7 @@
     }
   })();
 </script>
+<script src="http://www.google.com/jsapi" defer></script>
+
 {% endblock %}
 
