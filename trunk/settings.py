@@ -62,8 +62,8 @@ INSTALLED_APPS = (
 CATEGORIES = ['security', 'richtext', 'selectors', 'network', 'acid3',]
 # If a category is in this list it will not be visible in the nav, but
 # data for the category will save in prod to the main rankers.
-CATEGORIES_INVISIBLE = []
-CATEGORIES_BETA = ['html5', 'reflow', 'cookies', 'jskb']
+CATEGORIES_INVISIBLE = ['jskb']
+CATEGORIES_BETA = ['html5', 'reflow', 'cookies']
 
 STATIC_CATEGORIES = ['richtext']
 # Where we'll read the static files from. Either 'local' or an url.
