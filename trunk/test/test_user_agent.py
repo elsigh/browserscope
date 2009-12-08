@@ -166,6 +166,34 @@ class UserAgentGroupTest(unittest.TestCase):
          'IE 7.0'],
         UserAgentGroup.GetStrings(version_level=3))
 
+
+class UserAgentGroupWithFilterText(unittest.TestCase):
+  def setUp(self):
+    for version_level, _ in BROWSER_NAV:
+      UserAgentGroup.ClearMemcache(version_level)
+
+    user_agent_strings = [
+        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
+        'Gecko/2009011912 Firefox/2.5.1'),
+        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
+        'Gecko/2009011912 Firefox/3.0.7'),
+        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
+         'Gecko/2009011912 Firefox/3.1.8'),
+        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
+         'Gecko/2009011912 Firefox/3.1.8'),
+        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
+         'Gecko/2009011912 Firefox/3.1.7'),
+        ('Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; '
+         '.NET CLR 2.0.50727; .NET CLR 1.1.4322; .NET CLR 3.0.04506.648;'
+         '.NET CLR 3.5.21022)'),
+        ('Opera/9.70 (Linux ppc64 ; U; en) Presto/2.2.1'),
+        ('Opera/9.50 (J2ME/MIDP; Opera Mini/4.0.10031/298; U; en)'),
+
+        ]
+    for user_agent_string in user_agent_strings:
+      user_agent = UserAgent.factory(user_agent_string)
+      user_agent.update_groups()
+
   def test_get_strings_with_user_agent_filter_family(self):
     self.assertEqual(
         ['Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8'],
@@ -180,6 +208,16 @@ class UserAgentGroupTest(unittest.TestCase):
     self.assertEqual(
         ['Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8'],
         UserAgentGroup.GetStrings(version_level=2, user_agent_filter='Firefox'))
+    self.assertEqual(
+        ['Opera 9.70'],
+        UserAgentGroup.GetStrings(version_level=2, user_agent_filter='Opera'))
+    self.assertEqual(
+        ['Opera Mini 4.0.10031'],
+        UserAgentGroup.GetStrings(version_level=2,
+                                  user_agent_filter='Opera Mini'))
+    self.assertEqual(
+        ['IE 7.0'],
+        UserAgentGroup.GetStrings(version_level=2, user_agent_filter='IE'))
 
   def test_get_strings_with_user_agent_filter_one(self):
     self.assertEqual(

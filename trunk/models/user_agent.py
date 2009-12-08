@@ -306,8 +306,13 @@ class UserAgentGroup(db.Model):
 
     # Optionally, filter the list by a user_agent string.
     if user_agent_filter is not None:
+      # Fun fix just for Opera / Opera Mini.
+      if user_agent_filter == 'Opera':
+        regex = re.compile('^%s(?! Mini)' % user_agent_filter)
+      else:
+        regex = re.compile('^%s' % user_agent_filter)
       for user_agent in user_agent_strings[:]:
-        if user_agent.find(user_agent_filter) == -1:
+        if not regex.match(user_agent):
           user_agent_strings.remove(user_agent)
 
     return user_agent_strings
