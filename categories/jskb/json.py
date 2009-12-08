@@ -33,7 +33,7 @@ def json_formatter():
     out.write('"')
     out.write(re.sub(r'[^\x09\x20\x21\x23-\x5b\x5d-\x7e]',
                      lambda m: (escs.get(m.group(0))
-                                or '\\u%04x' % ord(m.group(0)), unicode(s)))
+                                or '\\u%04x' % ord(m.group(0))), unicode(s))
               .encode('UTF-8'))
     out.write('"')
 
