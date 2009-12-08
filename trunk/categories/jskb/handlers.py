@@ -97,17 +97,32 @@ def Json(request):
       return http.HttpResponseBadRequest(
         help_page('Unknown CGI param "%s"' % key), mimetype='text/html')
       raise Exception()
-  #ua = user_agent.UserAgent.factory(user_agent_string)
-  #ua = user_agent.UserAgent.parse_to_string_list(user_agent_string)
+
+  if user_agent_string is None:
+      return http.HttpResponseBadRequest(
+          help_page('Please specify useragent'), mimetype='text/html')
+
   user_agent_strings = user_agent_string.split(',')
   tests = all_test_sets.GetTestSet(CATEGORY).tests
   stats_data = util.GetStatsData(CATEGORY, tests, user_agent_strings,
                                  ua_by_param=None, params_str=None,
                                  version_level='1')
 
-  response = http.HttpResponse(mimetype='text/html')  # TODO: out_type
-  response.write(help_page(
-    ('TODO(mikesamuel): implement me. '
-    'Requested useragent=%r' % (user_agent_strings)),
-    stats_data))
+  ua_stats = [(k, stats_data[k].get('results'))
+              for k in stats_data.iterkeys() if k != 'total_runs']
+
+  combined = None
+  for ua, stats in ua_stats:
+    if combined is None:
+      combined = dict([(k, v.get('display')) for (k, v) in stats.iteritems()])
+    else:
+      old_combined = combined
+      combined = dict([(k, v.get('display')) for (k, v) in stats.iteritems()
+                       if (k in old_combined
+                           and old_combined.get(k) == v.get('display'))])
+  if combined is None: combined = {}
+  combined['userAgent'] = [ua for (ua, _) in ua_stats]
+
+  response = http.HttpResponse(mimetype=out_type)
+  response.write(json.to_json(combined))
   return response

@@ -81,7 +81,7 @@ def json_formatter():
     long: json_num,
     float: json_num,
     bool: json_bool,
-    type: json_null,
+    type(None): json_null,
     }
 
   def json(v, out):
