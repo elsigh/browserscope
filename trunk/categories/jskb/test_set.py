@@ -21,6 +21,7 @@ __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 from categories.jskb import ecmascript_snippets
 from categories import test_set_base
+import re
 
 
 _CATEGORY = 'jskb'
@@ -84,9 +85,12 @@ class JskbTest(test_set_base.TestBase):
     return score, display
 
 
+def html(text):
+  return re.sub('<', '&lt;', re.sub('>', '&gt;', re.sub('&', '&amp;', text)))
+
 def new_test(test):
   name = test['name']
-  code = '<pre>%s</pre>' % test['code']
+  code = '<pre>%s</pre>' % html(test['code'])
   summary = test.get('summary', None)
   doc = test.get('doc', None)
   if summary is None:

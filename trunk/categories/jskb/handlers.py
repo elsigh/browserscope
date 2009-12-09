@@ -40,7 +40,11 @@ def About(request):
       """
       This page contains side-effect free JavaScript expressions
       that expose information about a browser that can be useful to
-      JavaScript code optimizers.""")
+      JavaScript code optimizers.
+
+      <p>Optimizers should get output in a JSON format at
+      <a href=\"json?ua=Firefox+3.5\"><tt>json?ua=&hellip;</tt></a>.
+      """)
   return util.About(request, CATEGORY, overview=overview)
 
 
