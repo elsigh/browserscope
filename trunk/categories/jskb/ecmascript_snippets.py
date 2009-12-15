@@ -238,6 +238,18 @@ _SNIPPETS = (
     NAME: 'EmptyObj', VALUES: BOOL_VALUES,
     DOC: "Have enumerable keys been added to Object.prototype?",
     SUMMARY: '{} empty', GOOD: ('true',) },
+  { CODE: '"name" in function () {}',
+    NAME: 'FnNameProperty', VALUES: BOOL_VALUES,
+    DOC: "Do functions have a <tt>name</tt> property?",
+    SUMMARY: 'fn.name' },
+  { CODE: ('(function () {'
+           ' function c() {}'
+           ' c.prototype = {p:0};'
+           ' return (new c).propertyIsEnumerable("p");'
+           ' })()'),
+    NAME: 'InheritedPropertyIsEnumerable', VALUES: BOOL_VALUES,
+    DOC: "Are inherited properties inumerable?",
+    SUMMARY: 'inherited enumerable' },
 )
 
 def init():
