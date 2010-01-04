@@ -30,7 +30,8 @@
 <pre style="display:none" id="json">{{ snippets }}</pre>
 <!-- Wait to run scripts so the environment observed includes a body. -->
 <body style="width:80em; font-family: monospace; white-space: pre-wrap"
-><script src="{{ "environment-checks.js"|resource_path:"jskb" }}"></script><script>
+><script src="{{ "environment-checks.js"|resource_path:"jskb" }}"
+></script><script>
 "use strict";
 (function () {
   var canWarn = typeof console !== 'undefined' && console.warn;
@@ -106,47 +107,57 @@
     return -1;
   }
 
-  var tests = eval(innerText(document.getElementById('json')));
+  var groups = eval(innerText(document.getElementById('json')));
 
   var testResults = [];
   var environment = {};
   var THROW = { 'throw': null };
 
-  for (var i = 0, n = tests.length; i < n; ++i) {
-    var test = tests[i];
-    // Perform the operation in the global scope without any try blocks on the
-    // stack.  If either condition is not met, then the results are unreliable.
-    // See FinallyWorks for a case with which the second condition interferes.
-    (function (test) {
-      var result = THROW;
-      eventually(function () {
-        // Execute in the global scope
-        result = (new Function('return (' + test.code + ')'))();
-      });
-      eventually(function () {
-        // Map the code snippet to the result it produces.
-        environment[test.code] = result;
+  for (var j = 0, n = groups.length; j < n; ++j) {
+    var group = groups[j];
+    for (var i = 1, m = group.length; i < m; ++i) {
+      var test = group[i];
+      // Perform the operation in the global scope without any try blocks on the
+      // stack.  If either condition is not met, then the results are
+      // unreliable.
+      // See FinallyWorks for a case with which the second condition interferes.
+      (function (test) {
+        var result = THROW;
+        eventually(function () {
+          // Execute in the global scope
+          result = (new Function('return (' + test.code + ')'))();
+        });
+        eventually(function () {
+          // Map the code snippet to the result it produces.
+          environment[test.code] = result;
 
-        // Convert to a form that can be stored in the database.
-        var serializableResult = '-1';
-        if (result === +result && isFinite(result)) {
-          if (result === 0 && (1/result) < 0) { 
-            serializableResult = '-0';
+          // Convert to a form that can be stored in the database.
+          var serializableResult = '-1';
+          if (result === +result && isFinite(result)) {
+            if (result === 0 && (1/result) < 0) {
+              serializableResult = '-0';
+            } else {
+              serializableResult = '' + result;
+            }
           } else {
-            serializableResult = '' + result;
+            var stringResult = result === THROW ? 'throw' : stringify(result);
+            serializableResult = '' + indexOf(test.values, stringResult);
+            if (serializableResult === '-1' && canWarn) {
+              console.warn(test.name + ' produced unserializable value '
+                           + stringResult + ' not in '
+                           + stringify(test.values));
+            }
           }
-        } else {
-          var stringResult = result === THROW ? 'throw' : stringify(result);
-          serializableResult = '' + indexOf(test.values, stringResult);
-          if (serializableResult === '-1' && canWarn) {
-            console.warn(test.name + ' produced unserializable value '
-                         + stringResult + ' not in ' + stringify(test.values));
-          }
-        }
 
-        testResults.push(test.name + '=' + serializableResult);
+          testResults.push(test.name + '=' + serializableResult);
+        });
+      })(test);
+    }
+    (function (group) {
+      eventually(function () {
+        testResults.push(group[0].name + '=0');
       });
-    })(test);
+    })(group);
   }
 
   if (parent.sendScore) {

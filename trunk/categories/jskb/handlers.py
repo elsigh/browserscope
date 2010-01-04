@@ -16,7 +16,8 @@
 
 """JavaScript Knowledge-Base.
 
-A set of JavaScript expressions that provide useful information to code optimizers.
+A set of JavaScript expressions that provide useful information to
+code optimizers.
 """
 
 __author__ = 'msamuel@google.com (Mike Samuel)'
@@ -52,7 +53,7 @@ def EnvironmentChecks(request):
   """The main test page."""
   return util.Render(
       request, 'templates/environment-checks.html',
-      params={ 'snippets': json.to_json(ecmascript_snippets._SNIPPETS) },
+      params={ 'snippets': json.to_json(ecmascript_snippets._SNIPPET_GROUPS) },
       category=CATEGORY)
 
 
