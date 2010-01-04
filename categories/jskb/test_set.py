@@ -22,6 +22,7 @@ __author__ = 'elsigh@google.com (Lindsey Simon)'
 from categories.jskb import ecmascript_snippets
 from categories import test_set_base
 import re
+import sys
 
 
 _CATEGORY = 'jskb'
@@ -30,17 +31,17 @@ _CATEGORY = 'jskb'
 class JskbTest(test_set_base.TestBase):
   TESTS_URL_PATH = '/%s/test' % _CATEGORY
 
-  def __init__(self, key, name, doc):
+  def __init__(self, key, name, doc, is_hidden_stat, group_members=()):
     """Initialze a benchmark test.
 
     Args:
       key: key for this in dict's
       name: a human readable label for display
-      url_name: the name used in the url
-      score_type: 'boolean' or 'custom'
       doc: a description of the test
-      value_range: (min_value, max_value) as integer values
+      is_hidden_stat: should it be shown on the summary page
     """
+    self.is_hidden_stat = is_hidden_stat
+    self.group_members = group_members
     test_set_base.TestBase.__init__(
         self,
         key=key,
@@ -49,7 +50,7 @@ class JskbTest(test_set_base.TestBase):
         url=self.TESTS_URL_PATH,
         score_type='custom',
         min_value=0,
-        max_value=2200)
+        max_value=2200)  # TODO(mikesamuel): what is a sensible max value?
 
   def GetScoreAndDisplayValue(self, median, medians=None, is_uri_result=False):
     """Custom scoring function.
@@ -64,6 +65,28 @@ class JskbTest(test_set_base.TestBase):
       And display is the text for the cell.
     """
     key = self.key
+
+    if len(self.group_members):
+      if medians is None: return 50, ''
+      abbrevs = set()
+      total_score = 0
+      n_scored = 0
+      for member in self.group_members:
+        snippet = ecmascript_snippets.with_name(member.key)
+        member_median = medians.get(member.key)
+        if member_median is not None:
+          score, display = member.GetScoreAndDisplayValue(
+              member_median, medians, is_uri_result)
+          if ecmascript_snippets.ABBREV in snippet:
+            abbrev = snippet.get(ecmascript_snippets.ABBREV).get(display)
+            if abbrev: abbrevs.add(abbrev)
+          total_score += score
+          n_scored += 1
+      avg_score = (n_scored and int(100 * (total_score / n_scored))) or 50
+      abbrevs = list(abbrevs)
+      abbrevs.sort()
+      return avg_score, ', '.join(abbrevs)
+
     snippet = ecmascript_snippets.with_name(key)
     # TODO(mikesamuel): a confidence metric around the results.
     int_median = int(round(median))
@@ -73,36 +96,45 @@ class JskbTest(test_set_base.TestBase):
     if int_median >= 0 and int_median < len(values):
       display = values[int_median]
 
-    good = snippet.get(ecmascript_snippets.GOOD)
-    # TODO(mikesamuel): 3 scores chosen because of the pretty colors they make
-    if good is not None:
-      if display in good:
-        score = 100
-      else:
-        score = 50
-    else:
-      score = 75
-    return score, display
+    return rate_display(display, snippet.get(ecmascript_snippets.GOOD)), display
 
+def rate_display(display, good):
+  # TODO(mikesamuel): 3 scores chosen because of the pretty colors they make
+  if good is not None:
+    if display in good: return 100
+    return 50
+  return 75
 
 def html(text):
   return re.sub('<', '&lt;', re.sub('>', '&gt;', re.sub('&', '&amp;', text)))
 
-def new_test(test):
-  name = test['name']
-  code = '<pre>%s</pre>' % html(test['code'])
-  summary = test.get('summary', None)
-  doc = test.get('doc', None)
-  if summary is None:
-    summary = test['code']
-  elif doc is None:
-    doc = code
-  else:
-    doc = '%s\n%s' % (doc, code)
-  return JskbTest(name, summary, doc)
+def make_test_list():
+  tests = []
 
-_TESTS = tuple([new_test(test) for test in ecmascript_snippets._SNIPPETS])
+  def new_test(test):
+    name = test[ecmascript_snippets.NAME]
+    code = '<pre>%s</pre>' % html(test[ecmascript_snippets.CODE])
+    summary = test.get(ecmascript_snippets.SUMMARY, None)
+    doc = test.get(ecmascript_snippets.DOC, None)
+    if summary is None:
+      summary = test[ecmascript_snippets.CODE]
+    elif doc is None:
+      doc = code
+    else:
+      doc = '%s\n%s' % (doc, code)
+    return JskbTest(name, summary, doc, True)
 
+  for group in ecmascript_snippets._SNIPPET_GROUPS:
+    group_info = group[0]
+    group_members = [new_test(test) for test in group[1:]]
+    tests.extend(group_members)
+    tests.append(JskbTest(group_info[ecmascript_snippets.NAME],
+                          group_info[ecmascript_snippets.NAME],
+                          group_info[ecmascript_snippets.DOC],
+                          False, tuple(group_members)))
+  return tests
+
+_TESTS = tuple(make_test_list())
 
 class JskbTestSet(test_set_base.TestSet):
 
