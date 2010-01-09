@@ -24,6 +24,7 @@ __author__ = 'msamuel@google.com (Mike Samuel)'
 
 import logging
 import re
+
 from categories import all_test_sets
 from categories.jskb import ecmascript_snippets
 from categories.jskb import json
@@ -61,11 +62,10 @@ def Json(request):
   def html(s):
     return re.sub(r'<', '&lt;', re.sub('>', '&gt', re.sub(r'&', '&amp;', s)))
 
-  def help_page(msg, stats_data):
+  def help_page(msg):
     return (
       '<title>%(msg)s</title>'
       '<h1>%(msg)s</h1>'
-      '<p><code>%(stats_data)s</code></p>'
       'Serve JSON mapping code snippets to results.\n'
       '<p>The JSON is the intersection of the (key, value) pairs accross all'
       ' user agents requested, so if Firefox 3 was requested then only'
@@ -86,7 +86,7 @@ def Json(request):
       '  <li><code>ot=application%%2Fjson</code>\n'
       '  <li><code>ot=text%%2Fplain</code>\n'
       '</ul>'
-      ) % { 'msg': html(msg), 'stats_data': html('%s' % stats_data) }
+      ) % { 'msg': html(msg) }
 
   if request.method != 'GET' and request.method != 'HEAD':
     return http.HttpResponseBadRequest(
