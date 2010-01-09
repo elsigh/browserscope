@@ -41,6 +41,24 @@
     var hex = ch.charCodeAt(0).toString(16);
     return prefixes[hex.length] + hex;
   }
+  function map(arr, f) {
+    var out = [];
+    for (var i = 0, n = arr.length; i < n; ++i) {
+      out[i] = f(arr[i]);
+    }
+    return out;
+  }
+  function pack(arr) {
+    var packed = '';
+    for (var i = 0, n = arr.length; i < n; ++i) {
+      // Assume all numbers in the range [-1, 98]
+      var x = arr[i];
+      if (x < -1 || x >= 99 || x !== (x | 0)) { throw new Error(n); }
+      packed = (x < 10 ? x < 0 ? '99' : '0' + x : '' + x) + packed;
+    }
+    console.log('packed ' + arr + ' to ' + packed);
+    return packed || '0';
+  }
   function stringify(json) {
     if (json === null) { return 'null'; }
     switch (typeof json) {
@@ -110,18 +128,21 @@
   var groups = eval(innerText(document.getElementById('json')));
 
   var testResults = [];
+  var groupResults = [];
   var environment = {};
   var THROW = { 'throw': null };
 
   for (var j = 0, n = groups.length; j < n; ++j) {
     var group = groups[j];
+    var groupResult = [];
+    groupResults.push({ name: group[0].name, results: groupResult });
     for (var i = 1, m = group.length; i < m; ++i) {
       var test = group[i];
       // Perform the operation in the global scope without any try blocks on the
       // stack.  If either condition is not met, then the results are
       // unreliable.
       // See FinallyWorks for a case with which the second condition interferes.
-      (function (test) {
+      (function (test, groupResult) {
         var result = THROW;
         eventually(function () {
           // Execute in the global scope
@@ -147,11 +168,12 @@
                            + stringResult + ' not in '
                            + stringify(test.values));
             }
+            groupResult.push(+serializableResult);
           }
 
           testResults.push(test.name + '=' + serializableResult);
         });
-      })(test);
+      })(test, groupResult);
     }
     (function (group) {
       eventually(function () {
@@ -161,7 +183,12 @@
   }
 
   if (parent.sendScore) {
-    eventually(function () { parent.sendScore(testResults); });
+    eventually(function () {
+      var groups = map(
+          groupResults,
+          function (g) { return g.name + '=' + pack(g.results); });
+      parent.sendScore(testResults, groups);
+    });
   }
 
   eventually(function () {

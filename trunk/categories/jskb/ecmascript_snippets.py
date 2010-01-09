@@ -266,11 +266,12 @@ _SNIPPET_GROUPS = (
       DOC: 'Do finally blocks fire even if there\'s no catch on the stack.',
       SUMMARY: 'finally OK', GOOD: ('true',),
       ABBREV: { 'false': 'finally broken' } },
-    { CODE: ('0 === (function () {'
+    { CODE: ('0 === (function x() {'
              ' var toString = 0; return (function () { return toString; })();'
              ' })()'),
       NAME: 'NReifScope', VALUES: BOOL_VALUES,
-      DOC: ('Do function scope frames not inherit from Object.prototype?'
+      DOC: ('Do function scope frames for named functions not inherit'
+            ' from Object.prototype?'
             '  http://yura.thinkweb2.com/named-function-expressions/'
             '#spidermonkey-peculiarity'),
       SUMMARY: 'function scope OK', GOOD: ('true',),

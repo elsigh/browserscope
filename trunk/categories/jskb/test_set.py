@@ -67,6 +67,12 @@ class JskbTest(test_set_base.TestBase):
     key = self.key
 
     if len(self.group_members):
+      if is_uri_result:
+        snippet = ecmascript_snippets.with_name(key)
+        medians = {}
+        for member in self.group_members:
+          medians[member.key] = median % 100
+          median /= 100
       if medians is None: return 50, ''
       abbrevs = set()
       total_score = 0
