@@ -341,6 +341,16 @@ _SNIPPET_GROUPS = (
       NAME: 'PropEnum', VALUES: BOOL_VALUES,
       DOC: "Are inherited properties inumerable?",
       SUMMARY: 'inherited enumerable', ABBREV: {} },
+    { CODE: ('(function (x) {'
+                'return eval("x",'
+                            'function(x) {'
+                              'return function() { return x * 0; }'
+                            '}(true))'
+              '}(false))'),
+      NAME: 'Eval2', VALUES: BOOL_VALUES + THROWS,
+      DOC: "Does eval violate integrity of closures?",
+      SUMMARY: 'eval(s,f)',
+      ABBREV: { 'true': 'eval(s,f) bug', 'throw': 'eval(s,f) global' } },
   ),
 )
 
