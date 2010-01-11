@@ -56,7 +56,6 @@
       if (x < -1 || x >= 99 || x !== (x | 0)) { throw new Error(n); }
       packed = (x < 10 ? x < 0 ? '99' : '0' + x : '' + x) + packed;
     }
-    console.log('packed ' + arr + ' to ' + packed);
     return packed || '0';
   }
   function stringify(json) {
