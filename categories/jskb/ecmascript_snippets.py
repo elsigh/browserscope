@@ -19,8 +19,9 @@ Defines the code snippets that the JavaScript Knowledge Base tracks.
 """
 
 __author__ = 'msamuel@google.com (Mike Samuel)'
-__all__ = ['_SNIPPET_GROUPS', 'with_name',
-           'CODE', 'DOC', 'GOOD', 'NAME', 'SUMMARY', 'VALUES', 'ABBREV']
+__all__ = ['SNIPPET_GROUPS', 'with_name',
+           'CODE', 'DOC', 'GOOD', 'NAME', 'SUMMARY', 'VALUES', 'ABBREV',
+           'SNIPPET_NAMES']
 
 def alt(mayThrow, altValue):
   """Combines an expression with a fallback to use if the first expression
@@ -61,7 +62,7 @@ THROWS = ('throw',)
 # about the environment in which JS runs.
 # This is an object whose repr() form is properly formatted JSON.
 # For this to work, it must not contain any non-ASCII codepoints.
-_SNIPPET_GROUPS = (
+SNIPPET_GROUPS = (
   # Get information about the browser that we can use when trying to
   # map a User-Agent request header to an environment file.
   # Some ES global definitions
@@ -97,7 +98,7 @@ _SNIPPET_GROUPS = (
       DOC: 'Are getters/setters supported?',
       SUMMARY: 'getters', GOOD: ('true',), ABBREV: { 'true' : 'getters' } },
     { CODE: '(function (undefined) { return (0,eval)("undefined") === 1; })(1)',
-      NAME: 'ES5 eval', GOOD: ('true',), SUMMARY: 'eval function',
+      NAME: 'ES5Eval', GOOD: ('true',), SUMMARY: 'eval function',
       VALUES: BOOL_VALUES,
       DOC: ('Does eval differ when used as a function vs. as an operator?'
             '  See ES5 sec 15.1.2.1.1.'),
@@ -355,7 +356,8 @@ _SNIPPET_GROUPS = (
 )
 
 def init():
-  global BY_NAME
+  global __BY_NAME
+  global SNIPPET_NAMES
 
   def dupes(items):
     seen = set()
@@ -368,7 +370,7 @@ def init():
     return dupes
   # sanity checks
   all_snippets = []
-  for group in _SNIPPET_GROUPS:
+  for group in SNIPPET_GROUPS:
     assert tuple is type(group)
     group_info = group[0]
     assert dict is type(group_info)
@@ -402,15 +404,25 @@ def init():
               and '\n' not in summary), (repr(snippet))
     names = [snippet[NAME] for snippet in all_snippets]
     assert len(set(names)) == len(all_snippets), repr(dupes(names))
-    group_names = [group[0][NAME] for group in _SNIPPET_GROUPS]
-    assert len(set(group_names)) == len(_SNIPPET_GROUPS), (
+    group_names = [group[0][NAME] for group in SNIPPET_GROUPS]
+    assert len(set(group_names)) == len(SNIPPET_GROUPS), (
         repr(dupes(group_names)))
 
     # initialize derived globals
-    BY_NAME = dict([(snippet[NAME], snippet) for snippet in all_snippets])
+    __BY_NAME = dict([(snippet[NAME], snippet) for snippet in all_snippets])
+    SNIPPET_NAMES = set(__BY_NAME.keys())
+
+    for group in SNIPPET_GROUPS:
+      __BY_NAME[group[0][NAME]] = group
+
+    group_0_name = SNIPPET_GROUPS[0][0][NAME]
+    # group names should not show up in SNIPPET_NAMES
+    assert group_0_name not in SNIPPET_NAMES, group_0_name
+    # but they should show up in with_name(...)
+    assert group_0_name in __BY_NAME, group_0_name
 
 init()
 
 def with_name(name):
   """The snippet with the given name or None"""
-  return BY_NAME.get(name)
+  return __BY_NAME.get(name)

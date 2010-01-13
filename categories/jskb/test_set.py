@@ -68,7 +68,6 @@ class JskbTest(test_set_base.TestBase):
 
     if len(self.group_members):
       if is_uri_result:
-        snippet = ecmascript_snippets.with_name(key)
         medians = {}
         for member in self.group_members:
           medians[member.key] = median % 100
@@ -130,7 +129,7 @@ def make_test_list():
       doc = '%s\n%s' % (doc, code)
     return JskbTest(name, summary, doc, True)
 
-  for group in ecmascript_snippets._SNIPPET_GROUPS:
+  for group in ecmascript_snippets.SNIPPET_GROUPS:
     group_info = group[0]
     group_members = [new_test(test) for test in group[1:]]
     tests.extend(group_members)
