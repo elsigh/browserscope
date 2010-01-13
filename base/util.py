@@ -804,7 +804,8 @@ def GetSummaryData(user_agent_strings, version_level):
 
 
 def GetStatsData(category, tests, user_agents, ua_by_param,
-                 params_str, use_memcache=True, version_level='top'):
+                 params_str, use_memcache=True, version_level='top',
+                 ignore_hidden_stats=True):
   """This is the meat and potatoes of the stats."""
   #logging.info('GetStatsData category:%s\n tests:%s\n user_agents:%s\n params:%s\nuse_memcache:%s\nversion_level:%s' % (category, tests, user_agents, params, use_memcache, version_level))
   stats = {'total_runs': 0}
@@ -867,28 +868,30 @@ def GetStatsData(category, tests, user_agents, ua_by_param,
             break
 
       # Reset tests now to only be the "visible" tests.
-      visible_tests = GetVisibleTests(tests)
+      if ignore_hidden_stats:
+        visible_tests = GetVisibleTests(tests)
+      else:
+        visible_tests = tests
 
       # Now make a second pass with all the medians and call our formatter,
       # GetScoreAndDisplayValue.
       for test in visible_tests:
-        if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat:
-          #logging.info('user_agent: %s, total_runs: %s' % (user_agent, total_runs))
-          if medians is None:
-            user_agent_results[test.key] = {
-              'median': None,
-              'score': 0,
-              'display': '',
-            }
-          else:
-            score, display = GetScoreAndDisplayValue(test, medians[test.key],
-                                                     medians,
-                                                     is_uri_result=False)
-            user_agent_results[test.key] = {
-              'median': medians[test.key],
-              'score': score,
-              'display': display,
-            }
+        #logging.info('user_agent: %s, total_runs: %s' % (user_agent, total_runs))
+        if medians is None:
+          user_agent_results[test.key] = {
+            'median': None,
+            'score': 0,
+            'display': '',
+          }
+        else:
+          score, display = GetScoreAndDisplayValue(test, medians[test.key],
+                                                   medians,
+                                                   is_uri_result=False)
+          user_agent_results[test.key] = {
+            'median': medians[test.key],
+            'score': score,
+            'display': display,
+          }
 
       #logging.info('GetRowScoreAndDisplayValue for ua: %s' % user_agent)
       row_score, row_display = all_test_sets.GetTestSet(
