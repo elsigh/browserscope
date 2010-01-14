@@ -132,10 +132,15 @@ def Json(request):
                        if (k in old_combined
                            and old_combined.get(k) == v.get('display'))])
   if combined is None: combined = {}
-  result = dict([(ecmascript_snippets.with_name(k)[ecmascript_snippets.CODE], v)
-                 for (k, v) in combined.iteritems()])
-  result['*userAgent*'] = [ua for (ua, _) in ua_stats]
+  result = [(ecmascript_snippets.with_name(k)[ecmascript_snippets.CODE], v)
+            for (k, v) in combined.iteritems()]
+  result.append(('*userAgent*', json.to_json([ua for (ua, _) in ua_stats])))
 
+  def check_json_value(v):
+    if v == 'throw':
+      return '{ "throw": true }'
+    return v
   response = http.HttpResponse(mimetype=out_type)
-  response.write(json.to_json(result))
+  response.write('{%s}' % ',\n'.join(
+      [('%s:%s' % (json.to_json(k), check_json_value(v))) for (k, v) in result]))
   return response

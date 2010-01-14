@@ -267,9 +267,9 @@ SNIPPET_GROUPS = (
       DOC: 'Do finally blocks fire even if there\'s no catch on the stack.',
       SUMMARY: 'finally OK', GOOD: ('true',),
       ABBREV: { 'false': 'finally broken' } },
-    { CODE: ('0 === (function x() {'
-             ' var toString = 0; return (function () { return toString; })();'
-             ' })()'),
+    { CODE: ('0 === (function () {'
+             '  var toString = 0; return (function x() { return toString; })();'
+             '})()'),
       NAME: 'NReifScope', VALUES: BOOL_VALUES,
       DOC: ('Do function scope frames for named functions not inherit'
             ' from Object.prototype?'
@@ -345,8 +345,8 @@ SNIPPET_GROUPS = (
     { CODE: ('(function (x) {'
                 'return eval("x",'
                             'function(x) {'
-                              'return function() { return x * 0; }'
-                            '}(true))'
+                              'return function() { return x * 0; };'
+                            '}(true));'
               '}(false))'),
       NAME: 'Eval2', VALUES: BOOL_VALUES + THROWS,
       DOC: "Does eval violate integrity of closures?",
