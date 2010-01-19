@@ -213,6 +213,11 @@ SNIPPET_GROUPS = (
       SUMMARY: '2 param setAttribute',
       DOC: 'Does setAttribute need only the two parameters?',
       ABBREV: { 'true': 'setAttribute 2 params' } },
+    { CODE: 'typeof toStaticHTML',
+      NAME: 'stcHTML', VALUES: TYPEOF_VALUES,
+      SUMMARY: 'toStaticHTML', GOOD: (T_FUN,),
+      DOC: 'Does window.toStaticHTML exist?',
+      ABBREV: { T_FUN: 'toStaticHTML' } },
   ),
 
   (
@@ -247,6 +252,9 @@ SNIPPET_GROUPS = (
     { CODE: 'typeof ActiveXObject', NAME: 'ActiveX',
       VALUES: TYPEOF_VALUES, SUMMARY: 'ActiveXObject',
       ABBREV: { T_FUN: 'ActiveXObject', T_OBJ: 'ActiveXObject' } },
+    { CODE: 'typeof postMessage', NAME: 'postMsg',
+      VALUES: TYPEOF_VALUES, SUMMARY: 'postMessage',
+      GOOD: (T_FUN,), ABBREV: { T_FUN: 'postMessage', T_OBJ: 'postMessage' } },
   ),
 
   (
