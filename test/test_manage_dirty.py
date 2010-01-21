@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2008 Google Inc.
 #
@@ -37,12 +37,14 @@ class TestManageDirty(unittest.TestCase):
   CATEGORY = 'test_manage_dirty'
 
   def setUp(self):
-    self.old_limit = manage_dirty.UPDATE_DIRTY_RESULT_TIME_LIMIT
+    self.old_schedule_dirty_update = manage_dirty.ScheduleDirtyUpdate
+    self.old_limit = manage_dirty.DirtyResultTimesQuery.RESULT_TIME_LIMIT
     self.client = Client()
 
   def tearDown(self):
     """Need to clean up it seems."""
-    manage_dirty.UPDATE_DIRTY_RESULT_TIME_LIMIT = self.old_limit
+    manage_dirty.ScheduleDirtyUpdate = self.old_schedule_dirty_update
+    manage_dirty.DirtyResultTimesQuery.RESULT_TIME_LIMIT = self.old_limit
     query = db.GqlQuery("SELECT __key__ FROM ResultParent WHERE category = :1",
                         self.CATEGORY)
     for parent_key in query.fetch(1000):
@@ -68,7 +70,7 @@ class TestManageDirty(unittest.TestCase):
     test_set = mock_data.MockTestSet(self.CATEGORY)
     category = self.CATEGORY
     ResultParent.AddResult(test_set, '12.2.2.11', ua_string,
-                           'testDisplay=500,testVisibility=3')
+                           'apple=0,banana=99,coconut=101')
 
     response = self.client.get('/admin/update_dirty', {},
         **mock_data.UNIT_TEST_UA)
@@ -83,43 +85,31 @@ class TestManageDirty(unittest.TestCase):
     query = db.Query(ResultParent)
     result_parent = query.get()
     result_times = ResultTime.all().ancestor(result_parent)
-    self.assertEqual([False, False],
+    self.assertEqual([False, False, False],
                      [x.dirty for x in result_times])
 
     ranker = result_ranker.GetRanker(
-        category, test_set.GetTest('testDisplay'), 'Firefox 3')
-    self.assertEqual((500, 1), ranker.GetMedianAndNumScores())
+        test_set.GetTest('coconut'), 'Firefox 3')
+    self.assertEqual((101, 1), ranker.GetMedianAndNumScores())
 
   def testUpdateDirtyOverMultipleRequests(self):
-    # First, create a "dirty" ResultParent
-    manage_dirty.UPDATE_DIRTY_RESULT_TIME_LIMIT = 1
+    schedule_dirty_args = []
+    def _ScheduleDirtyUpdate(x):
+      # Make sure ScheduleDirtyUpdate gets called to finish the dirty work.
+      schedule_dirty_args.append(x)
+    manage_dirty.ScheduleDirtyUpdate = _ScheduleDirtyUpdate # needs restore
+    manage_dirty.DirtyResultTimesQuery.RESULT_TIME_LIMIT = 2
     ua_string = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
                  'Gecko/2009011912 Firefox/3.0.6')
 
     test_set = mock_data.MockTestSet(self.CATEGORY)
     category = self.CATEGORY
-    ResultParent.AddResult(test_set, '12.2.2.11', ua_string,
-                           'testDisplay=500,testVisibility=3')
+    result_parent = ResultParent.AddResult(test_set, '12.2.2.11', ua_string,
+                                           'apple=0,banana=99,coconut=101')
+    self.assertEqual([False, False, True],
+                     sorted([x.dirty for x in result_parent.GetResultTimes()]))
+    self.assertEqual([result_parent.key()], schedule_dirty_args)
 
-    response = self.client.get('/admin/update_dirty', {},
-        **mock_data.UNIT_TEST_UA)
-    self.assertEqual(200, response.status_code)
-    self.assertEqual(manage_dirty.UPDATE_DIRTY_ADDED_TASK, response.content)
-
-    response = self.client.get('/admin/update_dirty', {},
-        **mock_data.UNIT_TEST_UA)
-    self.assertEqual(200, response.status_code)
-    self.assertEqual(manage_dirty.UPDATE_DIRTY_DONE, response.content)
-
-    query = db.Query(ResultParent)
-    result_parent = query.get()
-    result_times = ResultTime.all().ancestor(result_parent)
-    self.assertEqual([False, False],
-                     [x.dirty for x in result_times])
-
-    ranker = result_ranker.GetRanker(
-        category, test_set.GetTest('testDisplay'), 'Firefox 3')
-    self.assertEqual((500, 1), ranker.GetMedianAndNumScores())
 
 if __name__ == '__main__':
   unittest.main()

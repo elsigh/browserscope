@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2009 Google Inc.
 #
@@ -44,6 +44,7 @@ add_to_builtins('base.custom_filters')
 
 import settings
 
+from models import result_stats
 from models.result import *
 from models.user_agent import *
 from categories import all_test_sets
@@ -63,7 +64,6 @@ TEST_DRIVER_TPL = 'test_driver.html'
 MULTI_TEST_FRAMESET_TPL = 'multi_test_frameset.html'
 MULTI_TEST_DRIVER_TPL = 'multi_test_driver.html'
 
-BETA_PARAMS = 'beta'
 
 #@decorators.trusted_tester_required
 def Render(request, template, params={}, category=None):
@@ -195,10 +195,11 @@ def About(request, category, category_title=None, overview='',
   if None == category_title:
     category_title = category.title()
 
+  test_set = all_test_sets.GetTestSet(category)
   if show_hidden:
-    tests = all_test_sets.GetTestSet(category).tests
+    tests = test_set.tests
   else:
-    tests = GetVisibleTests(all_test_sets.GetTestSet(category).tests)
+    tests = test_set.VisibleTests()
 
   params = {
     'page_title': "What are the %s Tests?" % (category_title),
@@ -207,11 +208,6 @@ def About(request, category, category_title=None, overview='',
     'show_test_urls': show_test_urls
   }
   return Render(request, ABOUT_TPL, params, category)
-
-
-def GetVisibleTests(tests):
-  return [test for test in tests
-          if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat]
 
 
 def GetServer(request):
@@ -400,7 +396,7 @@ def ClearMemcache(request):
   else:
     recent = request.GET.get('recent')
     if recent:
-      memcache.delete(key=RECENT_TESTS_MEMCACHE_KEY, seconds=0)
+      memcache.delete(RECENT_TESTS_MEMCACHE_KEY)
       message.append('Cleared memcache for recent tests.')
 
     category = request.GET.get('category')
@@ -409,26 +405,27 @@ def ClearMemcache(request):
     else:
       categories = settings.CATEGORIES
 
+    browsers = []
     ua = request.GET.get('ua')
     version_level = request.GET.get('v')
     if ua:
-      user_agent_strings = ua.split(',')
-    elif version_level:
-      user_agent_strings = UserAgentGroup.GetStrings(version_level)
-    else:
+      browsers = ua.split(',')
+      logging.info('browsers are: %s' % browsers)
+    elif not version_level:
       return http.HttpResponse('Either pass in ua= or v=')
 
     logging.info('categories are: %s' % categories)
-    logging.info('user_agent_strings are: %s' % user_agent_strings)
     for category in categories:
-      for user_agent in user_agent_strings:
-        memcache_ua_key = ResultParent.GetMemcacheKey(category, user_agent)
-        memcache.delete(key=memcache_ua_key, seconds=0,
-                        namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
-        logging.info('Deleting %s in memcache' % memcache_ua_key)
+      if not browsers:
+        browsers = result_stats.CategoryBrowserManager.GetBrowsers(
+            category, version_level)
+        result_stats.CategoryBrowserManager.DeleteMemcacheValue(
+            category, version_level)
+      result_stats.CategoryStatsManager.DeleteMemcacheValues(
+          category, browsers)
 
-    message.append('Cleared memcache for categories: %s and '
-                   'user_agent_strings: %s' % (categories, user_agent_strings))
+    message.append('Cleared memcache for categories: %s and browsers: %s' %
+                   (categories, browsers))
 
   # All done.
   if continue_url:
@@ -486,11 +483,6 @@ def Beacon(request):
   test_set = all_test_sets.GetTestSet(category)
   logging.info('Beacon category: %s\nresults_str: %s' % (category, results_str))
 
-  # Allow beta categories to save their data with a magic params string.
-  if category in settings.CATEGORIES_BETA:
-    logging.info('BETA %s is geting BETA_PARAMS' % category)
-    params_str = BETA_PARAMS
-
   if params_str:
     params_str = urllib.unquote(params_str)
   result_parent = ResultParent.AddResult(
@@ -498,8 +490,6 @@ def Beacon(request):
       js_user_agent_string=js_user_agent_string)
   if not result_parent:
     return http.HttpResponse(BAD_BEACON_MSG + 'ResultParent')
-
-  manage_dirty.ScheduleDirtyUpdate()
   ScheduleRecentTestsUpdate()
 
   if callback:
@@ -525,7 +515,7 @@ def GetCsrf(request):
   return http.HttpResponse(msg)
 
 
-def GetStats(request, test_set, output='html', opt_tests=None,
+def GetStats(request, test_set, output='html',  opt_tests=None,
              use_memcache=True):
   """Returns the stats table.
   Args:
@@ -535,156 +525,86 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     opt_tests: list of tests.
     use_memcache: Use memcache or not.
   """
-  logging.info('GetStats for %s' % test_set.category)
+  category = test_set.category
+  logging.info('GetStats for %s' % category)
   version_level = request.GET.get('v', 'top')
+  is_skip_static = request.GET.get('sc')  # 'sc' for skip cache
+  browser_param = request.GET.get('ua')
+  results_str = request.GET.get('%s_results' % category, '')
+  current_user_agent_string = request.META['HTTP_USER_AGENT']
 
-  # Check for static mode here to enable other optimizations.
-  override_static_mode = request.GET.get('sc') # sc for skip cache
-  static_mode = False
-  if (test_set.category in settings.STATIC_CATEGORIES and
-      output in ['html', 'xhr'] and not override_static_mode):
-    static_mode = True
+  visible_test_keys = [t.key for t in test_set.VisibleTests()]
 
-  user_agent_strings = None
-  user_agent_filter = None
-  ua_by_param = request.GET.get('ua')
-  if ua_by_param:
-    user_agent_strings = ua_by_param.split(',')
-    # Account for UA* - note that this allows only a single UA* at this time.
-    if (len(user_agent_strings) == 1 and
-        user_agent_strings[0].find('*') != -1):
-      user_agent_filter = user_agent_strings[0].replace('*', '')
-      if not static_mode:
-        user_agent_strings = UserAgentGroup.GetStrings(version_level,
-                                                       user_agent_filter)
-  elif not static_mode:
-    user_agent_strings = UserAgentGroup.GetStrings(version_level)
-  #logging.info('GetStats: v: %s, uas: %s' % (version_level,
-  #             user_agent_strings))
-
-  tests = opt_tests or test_set.tests
-  params_str = None
-  # Store beta data with a magic params_str.
-  if test_set.category in settings.CATEGORIES_BETA:
-    params_str = BETA_PARAMS
-    if test_set.default_params:
-      params_str += '_%s' % str(test_set.default_params)
-  elif test_set.default_params:
-    params_str = str(test_set.default_params)
-
-
-  # Enables a "static" pickle mode so that we still run the data through
-  # the template processor (enabling us to display a user's test results)
-  # but read the datastore-heavy data part from a static, pickled file.
-  if static_mode:
-    if settings.STATIC_SRC == 'local':
-      pickle_file = ('static_mode/%s_%s.py' % (test_set.category,
-                                               version_level))
-      f = open(pickle_file, 'r')
-      stats_data = pickle.load(f)
-      f.close()
+  browsers = browser_param and browser_param.split(',') or None
+  if browsers and len(browsers) == 1 and browsers[0][-1] == '*':
+    browsers = result_stats.CategoryBrowserManager.GetFilteredBrowsers(
+        category, browsers[0][:-1])
+  if (not is_skip_static and category in settings.STATIC_CATEGORIES
+      and output in ('html', 'xhr')):
+    # Use pickle'd data to which we can integrate a user's results.
+    static_source = settings.STATIC_SOURCE_FORMAT % {
+        'category': category,
+        'version_level': version_level
+        }
+    if static_source.startswith('http'):
+      logging.info('Loading stats from url: %s' % static_source)
+      response = urlfetch.fetch(static_source)
+      stats_data = pickle.loads(response.content)
     else:
-      url = ('%s/%s_%s.py' % (settings.STATIC_SRC, test_set.category,
-                              version_level))
-      logging.info('Loading stats from url: %s' % url)
-      result = urlfetch.fetch(url)
-      pickled_data = result.content
-      stats_data = pickle.loads(pickled_data)
-    logging.info('Retrieved static_mode stats_data.')
-
-    # If we got custom as a version level we only want matching keys.
-    if ua_by_param:
-      if user_agent_filter:
-        stats_data_copy = stats_data.copy()
-        stats_data = {}
-        for key, val in stats_data_copy.items():
-          if key.find(user_agent_filter) != -1:
-            stats_data[key] = val
-      elif user_agent_strings is not None:
-        stats_data_copy = stats_data.copy()
-        stats_data = {}
-        for key, val in stats_data_copy.items():
-          if key in user_agent_strings:
-            stats_data[key] = val
-
-    user_agent_strings = stats_data.keys()
-    UserAgentGroup.SortUserAgentStrings(user_agent_strings)
-    #logging.info('Pickled stats_data: %s' % stats_data)
-    #logging.info('pickled ua_strings: %s' % user_agent_strings)
-
-  elif test_set.category == 'summary':
-    stats_data = GetSummaryData(user_agent_strings, version_level)
-
+      stats_data = pickle.load(open(static_source))
+    if not browsers:
+      browsers = stats_data.keys()
+      result_stats.CategoryBrowserManager.SortBrowsers(browsers)
+    logging.info('Retrieved static stats: category=%s', category)
+  # elif test_set.category == 'summary':
+  # TODO(slamm): write-something tailored to the summary.
   else:
-    stats_data = GetStatsData(test_set.category, tests, user_agent_strings,
-                              ua_by_param, params_str, use_memcache,
-                              version_level)
-  #logging.info('GetStats got stats_data: %s' % stats_data)
+    if not browsers:
+      browsers = result_stats.CategoryBrowserManager.GetBrowsers(
+          category, version_level)
+    stats_data = result_stats.CategoryStatsManager.GetStats(
+        test_set, browsers, visible_test_keys, use_memcache=use_memcache)
 
   # If the output is pickle, we are done and need to return a string.
   if output == 'pickle':
     return pickle.dumps(stats_data)
 
-  # Reset tests now to only be "visible" tests.
-  tests = GetVisibleTests(tests)
-
-  # Looks for a category_results=test1=X,test2=X url GET param.
-  results = None
-  results_str = request.GET.get('%s_results' % test_set.category, '')
+  current_scores = None
   if results_str:
-    results = dict((x['key'], x)
-                   for x in test_set.ParseResults(results_str,
-                       is_import_or_uri_results_str=True))
+    results = test_set.GetResults(results_str, ignore_key_errors=True)
+    current_scores = dict((test_key, result['raw_score'])
+                          for test_key, result in results.items())
 
-  # Set current_ua_string to one in user_agent_strings
-  current_ua = UserAgent.factory(request.META['HTTP_USER_AGENT'])
-  current_ua_string = current_ua.pretty()
-  for ua_string in user_agent_strings:
-    if current_ua_string.startswith(ua_string):
-      current_ua_string = ua_string
+
+  # Set current_browser to one in browsers or add it if not found.
+  current_browser = UserAgent.factory(current_user_agent_string).pretty()
+  for browser in browsers:
+    if current_browser.startswith(browser):
+      current_browser = browser
       break
   else:
-    # current_ua_string was not found in user_agent_strings.
-    if results:
-      user_agent_strings.append(current_ua_string)
-      UserAgentGroup.SortUserAgentStrings(user_agent_strings)
+    if current_scores:
+      result_stats.CategoryBrowserManager.InsortBrowser(
+          browsers, current_browser)
 
   # Adds the current results into the stats_data dict.
-  if results:
-    stats_data.setdefault(current_ua_string, {})
-    current_results = {}
-    stats_data[current_ua_string]['current_results'] = current_results
-    current_ua_score = 0
-    medians = dict((test.key, results[test.key]['score']) for test in tests)
-    for test in tests:
-      if test.key in results:
-        median = medians[test.key]
-        score, display = GetScoreAndDisplayValue(
-	    test, median, medians, is_uri_result=True)
-        stats_data[current_ua_string]['current_results'][test.key] = {
-            'median': median,
-            'score': score,
-            'display': display,
-            'expando': results[test.key].get('expando', None),
-            }
-    current_score, current_display = test_set.GetRowScoreAndDisplayValue(
-        current_results)
-    current_score = Convert100to10Base(current_score)
-    stats_data[current_ua_string]['current_score'] = current_score
-    stats_data[current_ua_string]['current_display'] = current_display
+  if current_scores:
+    current_stats = test_set.GetStats(visible_test_keys, current_scores)
+    browser_stats = stats_data.setdefault(current_browser, {})
+    browser_stats['current_results'] = current_stats['results']
+    browser_stats['current_score'] = current_stats['summary_score']
+    browser_stats['current_display'] = current_stats['summary_display']
 
-  #logging.info('stats_data now: %s' % stats_data)
-  #logging.info('user_agent_strings: %s' % user_agent_strings)
   params = {
-    'category': test_set.category,
+    'category': category,
     'category_name': test_set.category_name,
-    'tests': tests,
+    'tests': opt_tests or test_set.VisibleTests(),
     'v': version_level,
     'output': output,
-    'ua_by_param': ua_by_param,
-    'user_agents': user_agent_strings,
+    'ua_by_param': browser_param,
+    'user_agents': browsers,
     'request_path': request.get_full_path(),
-    'current_user_agent': current_ua_string,
+    'current_user_agent': current_browser,
     'stats': stats_data,
     'params': test_set.default_params,
     'results_uri_string': results_str
@@ -710,284 +630,17 @@ def FormatStatsDataAsGviz(params, request):
   Returns:
     A JSON string as content in a text/plain HttpResponse.
   """
-  columns_order = ['user_agent',
-                   'score',
-                   #'total_runs'
-                  ]
-  take1 = False
-  take2 = True
-  if take1:
-    description = {'user_agent': ('string', 'User Agent'),
-                   'score': ('number', 'Score'),
-                   #'total_runs': ('number', '# Tests')
-                  }
-  elif take2:
-    description = [('user_agent', 'string'),
-                   ('score', 'number')]
-
-  with_tests = False
-  if with_tests:
-    for test in params['tests']:
-      gviz_coltype = test.score_type
-      if test.score_type == 'custom':
-        gviz_coltype = 'number'
-      description[test.key] = (gviz_coltype, test.name)
-      columns_order.append(test.key)
-
   data = []
-  stats = params['stats']
   for user_agent in params['user_agents']:
-    # Munge user_agent in this case to get rid of things like (Namaroka) which
-    # make for the charts pretty awful.
-    splitted = user_agent.split(' ')
-    v_bit = splitted[len(splitted) - 1]
-
-    if (stats.has_key(user_agent) and
-        stats[user_agent].has_key('results') and
-        stats[user_agent]['score'] != 0):
-      if take1:
-        row_data = {}
-        row_data['user_agent'] = v_bit
-        row_data['score'] = stats[user_agent]['score']
-      elif take2:
-        row_data = [v_bit, stats[user_agent]['score']]
-
-      if with_tests:
-        row_data['total_runs'] = stats[user_agent]['total_runs']
-        for test in params['tests']:
-          row_data[test.key] = stats[user_agent]['results'][test.key]['median']
-      data.append(row_data)
-
+    summary_score = params['stats'].get(user_agent, {}).get('summary_score', 0)
+    if summary_score:
+      version_string = user_agent.rsplit(' ')[-1]
+      data.append([version_string, summary_score])
+  description = [('user_agent', 'string'), ('score', 'number')]
   data_table = gviz_api.DataTable(description)
   data_table.LoadData(data)
 
-  return data_table.ToResponse(columns_order=columns_order,
-                               order_by='user_agent',
-                               tqx=request.GET.get('tqx', ''))
-
-
-def GetSummaryData(user_agent_strings, version_level):
-  """Returns a data dictionary for rendering a summary stats_table.html"""
-  stats_data = {}
-  for user_agent in user_agent_strings:
-    ua_score_avg = 0
-    total_runs = 0
-    for test_set in all_test_sets.GetTestSets():
-      if not stats_data.has_key(user_agent):
-        stats_data[user_agent] = {
-          'total_runs': 0,
-          'results': {},
-          'score': 0,
-          'display': 0
-          }
-      memcache_ua_key = ResultParent.GetMemcacheKey(test_set.category,
-                                                    user_agent)
-      row_stats = memcache.get(key=memcache_ua_key,
-          namespace=settings.STATS_MEMCACHE_UA_ROW_SCORE_NS)
-      if not row_stats:
-        row_stats = {'row_score': 0, 'row_display': '', 'total_runs': 0}
-      stats_data[user_agent]['results'][test_set.category] = {
-          'median': row_stats['row_score'],
-          'score': Convert100to10Base(row_stats['row_score']),
-          'display': row_stats['row_display'],
-          'total_runs': row_stats['total_runs'],
-          'expando': None,
-          }
-      ua_score_avg += int(row_stats['row_score'])
-      total_runs += int(row_stats['total_runs'])
-
-    avg_score = int(ua_score_avg / len(settings.CATEGORIES))
-    stats_data[user_agent]['score'] = avg_score
-    stats_data[user_agent]['display'] = avg_score
-    stats_data[user_agent]['total_runs'] = total_runs
-  return stats_data
-
-
-def GetStatsData(category, tests, user_agents, ua_by_param,
-                 params_str, use_memcache=True, version_level='top',
-                 ignore_hidden_stats=True):
-  """This is the meat and potatoes of the stats."""
-  #logging.info('GetStatsData category:%s\n tests:%s\n user_agents:%s\n params:%s\nuse_memcache:%s\nversion_level:%s' % (category, tests, user_agents, params, use_memcache, version_level))
-  stats = {'total_runs': 0}
-
-  # Do a initial optimized-for-memcache-get_multi pass.
-  memcache_stats_data = {}
-  if use_memcache:
-    memcache_ua_keys = []
-    for user_agent in user_agents:
-      memcache_ua_key = ResultParent.GetMemcacheKey(category, user_agent)
-      memcache_ua_keys.append(memcache_ua_key)
-    memcache_stats_data = memcache.get_multi(
-          keys=memcache_ua_keys, namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
-
-  for user_agent in user_agents:
-    user_agent_stats = None
-    memcache_ua_key = ResultParent.GetMemcacheKey(category, user_agent)
-    if memcache_stats_data.has_key(memcache_ua_key):
-      user_agent_stats = memcache_stats_data[memcache_ua_key]
-
-    # Just for logging
-    if user_agent_stats is None:
-      logging.info('Diving into the rankers for %s...' % user_agent)
-    else:
-      logging.info('GetStatsData from memcache ua: %s, len(uastats)stats:%s' %
-                   (user_agent, len(user_agent_stats)))
-
-    if user_agent_stats is None:
-      medians = {}
-      total_runs = None
-      user_agent_results = {}
-      user_agent_score = 0
-      for test in tests:
-        #logging.info('GetStatsData working on test: %s, ua: %s' %
-        #             (test.key, user_agent))
-        ranker = test.GetRanker(user_agent, params_str)
-
-        if ranker:
-          #start_time = time.time()
-          median, total_runs = ranker.GetMedianAndNumScores()
-          medians[test.key] = median
-          #end_time = time.time()
-          #logging.info('GetStatsData test: %s, delta: %s' %
-          #              (test.key, (end_time - start_time)))
-          #logging.info('Got median: %s, total_runs: %s' % (median, total_runs))
-
-        # If total_runs is 0, or we find no ranker, then we should skip
-        # trying to look for data, because this is a user agent that has not
-        # run this test category.
-        if total_runs == 0 or not ranker:
-          if not ranker:
-            logging.warn('GetStatsData: Ranker not found: %s, %s, %s, %s',
-                         category, test.key, user_agent, params_str)
-            medians[test.key] = None
-          else:
-            logging.info('test_runs was 0, so we can infer no tests '
-                         'for this user_agent.')
-            medians = None
-            logging.info('Breaking out of the loop!')
-            break
-
-      # Reset tests now to only be the "visible" tests.
-      if ignore_hidden_stats:
-        visible_tests = GetVisibleTests(tests)
-      else:
-        visible_tests = tests
-
-      # Now make a second pass with all the medians and call our formatter,
-      # GetScoreAndDisplayValue.
-      for test in visible_tests:
-        #logging.info('user_agent: %s, total_runs: %s' % (user_agent, total_runs))
-        if medians is None:
-          user_agent_results[test.key] = {
-            'median': None,
-            'score': 0,
-            'display': '',
-          }
-        else:
-          score, display = GetScoreAndDisplayValue(test, medians[test.key],
-                                                   medians,
-                                                   is_uri_result=False)
-          user_agent_results[test.key] = {
-            'median': medians[test.key],
-            'score': score,
-            'display': display,
-          }
-
-      #logging.info('GetRowScoreAndDisplayValue for ua: %s' % user_agent)
-      row_score, row_display = all_test_sets.GetTestSet(
-          category).GetRowScoreAndDisplayValue(user_agent_results)
-      user_agent_stats = {
-        'total_runs': total_runs or 0,
-        'results': user_agent_results,
-        'score': Convert100to10Base(row_score),
-        'display': row_display
-      }
-      if use_memcache:
-        memcache.set(key=memcache_ua_key, value=user_agent_stats,
-                     time=settings.STATS_MEMCACHE_TIMEOUT,
-                     namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
-        logging.info('GetStatsData: added %s data to memcache' %
-                     (memcache_ua_key))
-
-        # Add row total scores for overall results display.
-        # TODO(elsigh): this is simply to fix the acid3 case where we set the
-        # row_display to '' because that's the only metric we're storing.
-        if category == 'acid3':
-          row_display = '%s/%s' % (row_score, '100')
-        row_stats = {'row_score': row_score, 'row_display': row_display,
-                     'total_runs': total_runs or 0}
-        memcache.set(key=memcache_ua_key, value=row_stats, time=0,
-                     namespace=settings.STATS_MEMCACHE_UA_ROW_SCORE_NS)
-
-    # This adds the result dict to the output dict for this ua.
-    # We check for version_level == 'top' b/c we always add every top ua
-    # to the final dict. Same goes if ua_by_param.
-    # Otherwise, we look and see if there are any
-    # test runs (total_runs) for this ua, if not, we don't add them in.
-    # Casting user_agent as str here prevents unicode errors when unpickling.
-    if (version_level == 'top' or
-        (ua_by_param and ua_by_param.find('*') == -1) or
-        user_agent_stats['total_runs']):
-      stats[user_agent] = user_agent_stats
-      stats['total_runs'] += user_agent_stats['total_runs']
-
-  #logging.info('GetStatsData done, stats: %s' % stats)
-  return stats
-
-
-def Convert100to10Base(value):
-  """Converts some value 1-100 to some value 1-10
-  Args:
-    1_100_value: A number, 1-100
-  Returns:
-    A number 1-10
-  """
-  return int(round(float('%s.0' % int(value)) / 10))
-
-
-def GetScoreAndDisplayValue(test, median, medians, is_uri_result=False):
-  """For a test, get its score and display value.
-  A basic version exists here to handle the common boolean case.
-  TODO(slamm,elsigh): Should this be in the test_base?
-  Args:
-    test: A TestBase instance.
-    median: A number, the score median.
-    medians: All the medians in case we need to pass them for normalization.
-    is_uri_result: Boolean, is this a result bit in the url instead of from
-                   the datastore?
-  Returns:
-    (score, display)
-    A tuple of (score, display)
-    Where score is a value between 1-10.
-    And display is the text for the cell.
-  """
-  if median is None:
-    score = 0
-    display = ''
-
-  # Score for the template classnames is a value of 0-10.
-  elif test.score_type == 'boolean':
-    # Boolean scores are 1 or 10.
-    if median == 0:
-      score = 1
-      display = settings.STATS_SCORE_FALSE
-    else:
-      score = 10
-      display = settings.STATS_SCORE_TRUE
-  elif test.score_type == 'custom':
-    score, display = test.GetScoreAndDisplayValue(median, medians,
-                                                  is_uri_result)
-    #logging.info('test.url: %s, key: %s, score %s, display %s' %
-    #             (test.url, test.key, score, display))
-
-    # The custom_tests_function returns a score between 1-100 which we'll
-    # turn into a 0-10 display.
-    score = Convert100to10Base(score)
-
-    #logging.info('got display:%s, score:%s for %s w/ median: %s' %
-    #             (display, score, test.key, median))
-
-  return score, display
+  return data_table.ToResponse(tqx=request.GET.get('tqx', ''))
 
 
 def GetStatsDataTemplatized(params, template='table'):
@@ -1007,7 +660,7 @@ def GetStatsDataTemplatized(params, template='table'):
             }
 
   """
-  params['browser_nav'] = BROWSER_NAV[:]
+  params['browser_nav'] = result_stats.BROWSER_NAV
   params['is_admin'] = users.is_current_user_admin()
   if not re.search('\?', params['request_path']):
     params['request_path'] = params['request_path'] + '?'
@@ -1036,8 +689,7 @@ def SeedDatastore(request):
 
   for user_agent_string in TOP_USER_AGENT_STRINGS:
     user_agent = UserAgent.factory(user_agent_string)
-    user_agent.update_groups()
-    logging.info(' - update_groups: %s', user_agent.pretty())
+    logging.info(' - user_agent: %s', user_agent.pretty())
   for category in categories:
     test_set = all_test_sets.GetTestSet(category)
     logging.info(' -- category: %s', category)
@@ -1054,10 +706,6 @@ def SeedDatastore(request):
             test_set, '1.2.3.4', user_agent_string, results_str, params_str)
         logging.info(' ------ AddResult, %s of %s: %s',
                      i + 1, NUM_RECORDS, results_str)
-        if increment_counts:
-          result_parent.increment_all_counts()
-          logging.info(' ------ INCREMENTED ALL COUNTS')
-
   memcache.flush_all()
   return http.HttpResponseRedirect('?message=Datastore got seeded.')
 
@@ -1079,15 +727,15 @@ def UpdateDatastore(request):
   if key:
     query.filter('__key__ >', db.Key(key))
   query.order('__key__')
-  record = query.get()
-  if not record:
+  user_agent = query.get()
+  if not user_agent:
     return http.HttpResponse('All Done!')
 
-  record.update_groups()
+  # Do something with user_agent here.
 
   params = {
-    'next_url': '/update_datastore?key=%s' % record.key(),
-    'current_name': record.get_string_list(),
+    'next_url': '/update_datastore?key=%s' % user_agent.key(),
+    'current_name': user_agent.get_string_list(),
     'next_name': 'nextosity'
   }
   return Render(request, 'update_datastore.html', params)

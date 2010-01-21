@@ -40,7 +40,6 @@ class JskbTest(test_set_base.TestBase):
       doc: a description of the test
       is_hidden_stat: should it be shown on the summary page
     """
-    self.is_hidden_stat = is_hidden_stat
     self.group_members = group_members
     test_set_base.TestBase.__init__(
         self,
@@ -48,65 +47,16 @@ class JskbTest(test_set_base.TestBase):
         name=name,
         doc=doc,
         url=self.TESTS_URL_PATH,
-        score_type='custom',
         min_value=0,
-        max_value=2200)  # TODO(mikesamuel): what is a sensible max value?
+        max_value=2200,  # TODO(mikesamuel): what is a sensible max value?
+        is_hidden_stat=is_hidden_stat)
 
-  def GetScoreAndDisplayValue(self, median, medians=None, is_uri_result=False):
-    """Custom scoring function.
-
-    Args:
-      median: The actual median for this test from all scores.
-      medians: A dict of the medians for all tests indexed by key.
-      is_uri_result: Boolean, if results are in the url, i.e. home page.
-    Returns:
-      (score, display)
-      Where score is a value between 1-100.
-      And display is the text for the cell.
-    """
-    key = self.key
-
-    if len(self.group_members):
-      if is_uri_result:
-        medians = {}
-        for member in self.group_members:
-          medians[member.key] = median % 100
-          median /= 100
-      if medians is None: return 50, ''
-      abbrevs = set()
-      total_score = 0
-      n_scored = 0
-      for member in self.group_members:
-        snippet = ecmascript_snippets.with_name(member.key)
-        member_median = medians.get(member.key)
-        if member_median is not None:
-          score, display = member.GetScoreAndDisplayValue(
-              member_median, medians, is_uri_result)
-          if ecmascript_snippets.ABBREV in snippet:
-            abbrev = snippet.get(ecmascript_snippets.ABBREV).get(display)
-            if abbrev: abbrevs.add(abbrev)
-          total_score += score
-          n_scored += 1
-      avg_score = (n_scored and int(100 * (total_score / n_scored))) or 50
-      abbrevs = list(abbrevs)
-      abbrevs.sort()
-      return avg_score, ', '.join(abbrevs)
-
-    snippet = ecmascript_snippets.with_name(key)
-    # TODO(mikesamuel): a confidence metric around the results.
-    int_median = int(round(median))
-
-    display = '?'
-    values = snippet[ecmascript_snippets.VALUES]
-    if int_median >= 0 and int_median < len(values):
-      display = values[int_median]
-
-    return rate_display(display, snippet.get(ecmascript_snippets.GOOD)), display
 
 def rate_display(display, good):
   # TODO(mikesamuel): 3 scores chosen because of the pretty colors they make
   if good is not None:
-    if display in good: return 100
+    if display in good:
+      return 100
     return 50
   return 75
 
@@ -127,7 +77,7 @@ def make_test_list():
       doc = code
     else:
       doc = '%s\n%s' % (doc, code)
-    return JskbTest(name, summary, doc, True)
+    return JskbTest(name, summary, doc, is_hidden_stat=True)
 
   for group in ecmascript_snippets.SNIPPET_GROUPS:
     group_info = group[0]
@@ -136,27 +86,110 @@ def make_test_list():
     tests.append(JskbTest(group_info[ecmascript_snippets.NAME],
                           group_info[ecmascript_snippets.NAME],
                           group_info[ecmascript_snippets.DOC],
-                          False, tuple(group_members)))
+                          is_hidden_stat=False,
+                          group_members=tuple(group_members)))
   return tests
 
 _TESTS = tuple(make_test_list())
 
 class JskbTestSet(test_set_base.TestSet):
 
+  def ParseResults(self, results_str, ignore_key_errors=False):
+    """Parses a results string.
+
+    Args:
+      results_str: a string like 'test_1=raw_score_1,test_2=raw_score_2, ...'.
+      ignore_key_errors: if true, skip checking keys with list of tests
+    Returns:
+      {test_1: {'raw_score': score_1}, test_2: {'raw_score': score_2}, ...}
+    """
+    test_scores = [x.split('=') for x in str(results_str).split(',')]
+    test_keys = sorted([x[0] for x in test_scores])
+
+    group_keys = [group[0][ecmascript_snippets.NAME]
+                  for group in ecmascript_snippets.SNIPPET_GROUPS]
+    if test_keys == group_keys:
+      # A packed format is used for showing results on the home page.
+      parsed_results = {}
+      for group_key, values in test_scores:
+        group = self.GetTest(group_key)
+        values = int(values)
+        for member in group.group_members:
+          parsed_results[member.key] = {'raw_score': values % 100}
+          values /= 100
+      test_scores = unpacked_test_scores
+    elif test_keys == self._test_keys:
+      try:
+        parsed_results = dict([(key, {'raw_score': int(score)})
+                               for key, score in test_scores])
+      except ValueError:
+        raise ParseResultsValueError
+    else:
+      raise ParseResultsKeyError(expected=self._test_keys, actual=test_keys)
+
+    return parsed_results
+
+  def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
+    """Get a normalized score (0 to 100) and a value to output to the display.
+
+    Args:
+      test_key: a key for a test_set test.
+      raw_scores: a dict of raw_scores indexed by test keys.
+    Returns:
+      score, display_value
+          # score is from 0 to 100.
+          # display_value is the text for the cell.
+    """
+    test = self.GetTest(test_key)
+    group_members = test.group_members
+    if len(group_members):
+      if raw_scores is None:
+        return 50, ''
+      abbrevs = set()
+      total_score = 0
+      n_scored = 0
+      for member in group_members:
+        snippet = ecmascript_snippets.with_name(member.key)
+        member_median = raw_scores.get(member.key)
+        if member_median is not None:
+          score, display = self.GetTestScoreAndDisplayValue(
+              member.key, raw_scores)
+          if ecmascript_snippets.ABBREV in snippet:
+            abbrev = snippet.get(ecmascript_snippets.ABBREV).get(display)
+            if abbrev:
+              abbrevs.add(abbrev)
+          total_score += score
+          n_scored += 1
+      avg_score = (n_scored and int(100 * (total_score / n_scored))) or 50
+      abbrevs = list(abbrevs)
+      abbrevs.sort()
+      return avg_score, ', '.join(abbrevs)
+
+    snippet = ecmascript_snippets.with_name(test_key)
+    median = raw_scores[test_key]
+    # TODO(mikesamuel): a confidence metric around the results.
+    int_median = int(round(median))
+
+    display = '?'
+    values = snippet[ecmascript_snippets.VALUES]
+    if int_median >= 0 and int_median < len(values):
+      display = values[int_median]
+
+    return rate_display(display, snippet.get(ecmascript_snippets.GOOD)), display
+
   def GetRowScoreAndDisplayValue(self, results):
     """Get the overall score for this row of results data.
-    Args:
-      results: A dictionary that looks like:
-      {
-        'testkey1': {'score': 1-10, 'median': median, 'display': 'celltext'},
-        'testkey2': {'score': 1-10, 'median': median, 'display': 'celltext'},
-        etc...
-      }
 
+    Args:
+      results: {
+          'test_key_1': {'score': score_1, 'raw_score': raw_score_1, ...},
+          'test_key_2': {'score': score_2, 'raw_score': raw_score_2, ...},
+          ...
+          }
     Returns:
-      A tuple of (score, display)
-      Where score is a value between 1-100.
-      And display is the text for the cell.
+      score, display_value
+          # score is from 0 to 100.
+          # display_value is the text for the cell.
     """
     if (not results.has_key('passed') or results['passed']['median']
         or results['failed']['median'] is None):

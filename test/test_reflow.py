@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 # -*- coding: utf-8 -*-
 #
 # Copyright 2008 Google Inc.
@@ -7,7 +7,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http:#www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an 'AS IS' BASIS,
@@ -28,57 +28,65 @@ from categories.reflow import test_set
 
 class ReflowTestTest(unittest.TestCase):
 
+  def setUp(self):
+    self.test_set = test_set.TEST_SET
+
   def testScoreAndDisplayValueNone(self):
-    test = test_set.ReflowTest('testVisibility', 'zero', 'Zero Test')
-    score, display = test.GetScoreAndDisplayValue(None)
-    self.assertEqual((90, ''), (score, display))
+    self.assertEqual((90, ''), self.test_set.GetTestScoreAndDisplayValue(
+        'testVisibility', {}))
+    self.assertEqual((90, ''), self.test_set.GetTestScoreAndDisplayValue(
+        'testVisibility', {'testVisibility': None}))
+    self.assertEqual((90, ''), self.test_set.GetTestScoreAndDisplayValue(
+        'testVisibility', {'testVisibility': ''}))
 
   def testScoreAndDisplayValueZero(self):
-    test = test_set.ReflowTest('testVisibility', 'zero', 'Zero Test')
-    score, display = test.GetScoreAndDisplayValue(0)
-    self.assertEqual((100, '0X'), (score, display))
+    self.assertEqual((100, '0X'), self.test_set.GetTestScoreAndDisplayValue(
+        'testVisibility', {'testVisibility': 0}))
 
   def testScoreAndDisplayValueVisibility(self):
-    test = test_set.ReflowTest('testVisibility', 'da viz', 'da Viz Test')
-    score, display = test.GetScoreAndDisplayValue(20)
-    self.assertEqual((97, '¼X'), (score, display))
-    score, display = test.GetScoreAndDisplayValue(40)
-    self.assertEqual((95, '½X'), (score, display))
-    score, display = test.GetScoreAndDisplayValue(100)
-    self.assertEqual((90, '1X'), (score, display))
-    score, display = test.GetScoreAndDisplayValue(150)
-    self.assertEqual((80, '2X'), (score, display))
-    score, display = test.GetScoreAndDisplayValue(180)
-    self.assertEqual((80, '2X'), (score, display))
-    score, display = test.GetScoreAndDisplayValue(200)
-    self.assertEqual((60, '3X'), (score, display))
+    self.assertEqual((97, '¼X'), self.test_set.GetTestScoreAndDisplayValue(
+        'testVisibility', {'testVisibility': 20}))
+    self.assertEqual((95, '½X'), self.test_set.GetTestScoreAndDisplayValue(
+        'testVisibility', {'testVisibility': 40}))
+    self.assertEqual((90, '1X'), self.test_set.GetTestScoreAndDisplayValue(
+        'testVisibility', {'testVisibility': 100}))
+    self.assertEqual((80, '2X'), self.test_set.GetTestScoreAndDisplayValue(
+        'testVisibility', {'testVisibility': 150}))
+    self.assertEqual((80, '2X'), self.test_set.GetTestScoreAndDisplayValue(
+        'testVisibility', {'testVisibility': 180}))
+    self.assertEqual((60, '3X'), self.test_set.GetTestScoreAndDisplayValue(
+        'testVisibility', {'testVisibility': 200}))
 
   def testAdjustResults(self):
     reflow_test_set = test_set.TEST_SET
-    results = [
-      {'key': test_set.BASELINE_TEST_NAME, 'score': 100},
-      {'key': 'testTwo', 'score': 50},
-      {'key': 'testThree', 'score': 150},
-      {'key': 'testThree', 'score': 200}]
+    results = {
+      test_set.BASELINE_TEST_NAME: {'raw_score': 100},
+      'testTwo': {'raw_score': 50},
+      'testThree': {'raw_score': 150},
+      'testThree': {'raw_score': 200},
+      }
     parsed_results = reflow_test_set.AdjustResults(results)
-    expected_results = [
-      {'expando': 100, 'score': 100, 'key': test_set.BASELINE_TEST_NAME},
-      {'expando': 50, 'score': 50, 'key': 'testTwo'},
-      {'expando': 150, 'score': 150, 'key': 'testThree'},
-      {'expando': 200, 'score': 200, 'key': 'testThree'}]
+    expected_results = {
+      test_set.BASELINE_TEST_NAME: {'expando': 100, 'raw_score': 100},
+      'testTwo': {'expando': 50, 'raw_score': 50},
+      'testThree': {'expando': 150, 'raw_score': 150},
+      'testThree': {'expando': 200, 'raw_score': 200},
+      }
     self.assertTrue(expected_results == parsed_results)
 
-    results = [
-      {'key': test_set.BASELINE_TEST_NAME, 'score': 400},
-      {'key': 'testTwo', 'score': 300},
-      {'key': 'testThree', 'score': 276},
-      {'key': 'testThree', 'score': 149}]
+    results = {
+      test_set.BASELINE_TEST_NAME: {'raw_score': 400},
+      'testTwo': {'raw_score': 300},
+      'testThree': {'raw_score': 276},
+      'testThree': {'raw_score': 149},
+      }
     parsed_results = reflow_test_set.AdjustResults(results)
-    expected_results = [
-      {'expando': 400, 'score': 100, 'key': test_set.BASELINE_TEST_NAME},
-      {'expando': 300, 'score': 75, 'key': 'testTwo'},
-      {'expando': 276, 'score': 69, 'key': 'testThree'},
-      {'expando': 149, 'score': 37, 'key': 'testThree'}]
+    expected_results = {
+      test_set.BASELINE_TEST_NAME: {'expando': 400, 'raw_score': 100},
+      'testTwo': {'expando': 300, 'raw_score': 75},
+      'testThree': {'expando': 276, 'raw_score': 69},
+      'testThree': {'expando': 149, 'raw_score': 37},
+      }
     self.assertTrue(expected_results == parsed_results)
 
 

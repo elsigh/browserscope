@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2009 Google Inc.
 #
@@ -37,10 +37,7 @@ class SelectorsTest(test_set_base.TestBase):
     Args:
       key: key for this in dict's
       name: a human readable label for display
-      url_name: the name used in the url
-      score_type: 'boolean' or 'custom'
       doc: a description of the test
-      value_range: (min_value, max_value) as integer values
     """
     test_set_base.TestBase.__init__(
         self,
@@ -48,46 +45,8 @@ class SelectorsTest(test_set_base.TestBase):
         name=name,
         doc=doc,
         url=self.TESTS_URL_PATH,
-        score_type='custom',
         min_value=0,
         max_value=2200)
-
-  def GetScoreAndDisplayValue(self, median, medians=None, is_uri_result=False):
-    """Custom scoring function.
-
-    Args:
-      median: The actual median for this test from all scores.
-      medians: A dict of the medians for all tests indexed by key.
-      is_uri_result: Boolean, if results are in the url, i.e. home page.
-    Returns:
-      (score, display)
-      Where score is a value between 1-100.
-      And display is the text for the cell.
-    """
-    score = median
-    display = median
-    if self.key == 'passed':
-      if median >= 2100:
-        score = 95
-      elif median >= 2000:
-        score = 85
-      elif median >= 1950:
-        score = 75
-      elif median >= 1800:
-        score = 65
-      else:
-        score = 50
-    elif self.key == 'failed':
-      if median == 0:
-        score = 95
-      elif median <= 5:
-        score = 85
-      elif median <= 20:
-        score = 75
-      else:
-        score = 50
-    #logging.info('score %s, display %s' % (score, display))
-    return score, display
 
 
 _TESTS = (
@@ -100,43 +59,68 @@ _TESTS = (
 
 class SelectorsTestSet(test_set_base.TestSet):
 
+  def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
+    """Get a normalized score (0 to 100) and a value to output to the display.
+
+    Args:
+      test_key: a key for a test_set test.
+      raw_scores: a dict of raw_scores indexed by test keys.
+    Returns:
+      score, display_value
+          # score is from 0 to 100.
+          # display_value is the text for the cell.
+    """
+    raw_score = raw_scores.get(test_key, 0)
+    score = 0
+    if test_key == 'passed':
+      if raw_score >= 2100:
+        score = 95
+      elif raw_score >= 2000:
+        score = 85
+      elif raw_score >= 1950:
+        score = 75
+      elif raw_score >= 1800:
+        score = 65
+      else:
+        score = 50
+    elif test_key == 'failed':
+      if raw_score == 0:
+        score = 95
+      elif raw_score <= 5:
+        score = 85
+      elif raw_score <= 20:
+        score = 75
+      else:
+        score = 50
+    return score, str(raw_score)
+
   def GetRowScoreAndDisplayValue(self, results):
     """Get the overall score for this row of results data.
+
     Args:
-      results: A dictionary that looks like:
-      {
-        'testkey1': {'score': 1-10, 'median': median, 'display': 'celltext'},
-        'testkey2': {'score': 1-10, 'median': median, 'display': 'celltext'},
-        etc...
-      }
-
+      results: {
+          'test_key_1': {'score': score_1, 'raw_score': raw_score_1, ...},
+          'test_key_2': {'score': score_2, 'raw_score': raw_score_2, ...},
+          ...
+          }
     Returns:
-      A tuple of (score, display)
-      Where score is a value between 1-100.
-      And display is the text for the cell.
+      score, display_value
+          # score is from 0 to 100.
+          # display_value is the text for the cell.
     """
-    #logging.info('%s GetRowScore, results:%s' % (self.category, results))
-    if (not results.has_key('passed') or results['passed']['median'] is None or
-        results['failed']['median'] is None):
-      score = 0
-      display = ''
-    else:
-      score = str(int(100.0 * results['passed']['median'] /
-          (results['passed']['median'] + results['failed']['median'])))
-
-      num = round(100.0 * results['passed']['median'] /
-                                    (results['passed']['median'] + results['failed']['median']),
-                                    1)
-      #logging.info('num: %s', num)
-      #percent = str(Decimal(str()))
-      score = int(num)
-      if score == 0:
-        score = 10
-        display = '0%'
+    logging.info('GetRowScoreAndDisplayVAlue: category=%s, results=%s',
+                 self.category, results)
+    passed = results.get('passed', {}).get('raw_score', None)
+    failed = results.get('failed', {}).get('raw_score', None)
+    if passed is not None and failed is not None:
+      percent_passed = 100.0 * passed / (passed + failed)
+      if percent_passed:
+        return percent_passed, '%.1f%%' % percent_passed
       else:
-        display = str(num) + '%'
-    #logging.info('Row score: %s' % score)
-    return score, display
+        return 100, '0%'
+    else:
+      return 0, ''
+
 
 TEST_SET = SelectorsTestSet(
     category=_CATEGORY,

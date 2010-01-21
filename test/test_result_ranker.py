@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2008 Google Inc.
 #
@@ -24,161 +24,190 @@ import unittest
 from google.appengine.api import datastore
 from google.appengine.api import datastore_errors
 from google.appengine.api import memcache
+from categories import test_set_base
 from models import result_ranker
+from third_party import mox
+
 import mock_data
 
-
-class ResultRankerGrandparentTest(unittest.TestCase):
-  def testKeyNameNoParams(self):
-    key_name = result_ranker.ResultRankerGrandparent.KeyName(
-        'category', 'test', 'user_agent_version', '')
-    self.assertEqual('category_test_user_agent_version', key_name)
-
-  def testKeyNameWithParams(self):
-    key_name = result_ranker.ResultRankerGrandparent.KeyName(
-        'category', 'test', 'user_agent_version', 'param1=val1,param2=val2')
-    self.assertEqual(
-        'category_test_user_agent_version_e2d0b92f7dde373c9889f4c4cde6c59d',
-        key_name)
+MockTestSet = mock_data.MockTestSet
 
 
-class ResultRankerParentTest(unittest.TestCase):
+class RankerCacherTest(unittest.TestCase):
+  def setUp(self):
+    self.mox = mox.Mox()
+    self.cls = result_ranker.RankerCacher
+    self.memcache_params = {'namespace': self.cls.MEMCACHE_NAMESPACE}
 
-  def testGetOrCreateMakesDatastoreEntities(self):
-    mock_test = mock_data.MockTest('da test', 'Da Test', 'url', 'boolean')
-    # test not there
-    grandparent_key_name = result_ranker.ResultRankerGrandparent.KeyName(
-        'cate', 'da test', 'C 3.p0', '')
-    grandparent = result_ranker.ResultRankerParent.get_by_key_name(
-        grandparent_key_name)
-    self.assertEqual(None, grandparent)
-    result_ranker_parent = result_ranker.ResultRankerParent.GetOrCreate(
-        'cate', mock_test, 'C 3.p0', params_str=None)
-    grandparent = result_ranker.ResultRankerGrandparent.get_by_key_name(
-        grandparent_key_name)
-    self.assertEqual('cate', grandparent.category)
-    query = result_ranker.ResultRankerParent.all()
-    query.ancestor(grandparent)
-    query.filter('ranker_version =', result_ranker.DEFAULT_RANKER_VERSION)
-    result_ranker_parent = query.get()
-    self.assertNotEqual(None, result_ranker_parent)
+  def tearDown(self):
+    self.mox.UnsetStubs()
 
-  def testDelete(self):
-    category, test_key, ua_version, params_str = 'cat', 'dog', 'mouse 1.0', None
-    mock_test = mock_data.MockTest(test_key, test_key.capitalize(), 'url', 'oo')
-    result_ranker_parent = result_ranker.ResultRankerParent.GetOrCreate(
-        category, mock_test, ua_version, params_str=params_str)
-    result_ranker_parent.delete()
-    grandparent_key_name = result_ranker.ResultRankerGrandparent.KeyName(
-        category, test_key, ua_version, params_str)
-    memcache_params = result_ranker.ResultRankerParent.MemcacheParams(
-        'current', grandparent_key_name)
-    self.assertEqual(None, memcache.get(**memcache_params))
-    grandparent = result_ranker.ResultRankerGrandparent.get_by_key_name(
-        grandparent_key_name)
-    self.assertEqual(None, grandparent)
-    query = result_ranker.ResultRankerParent.all()
-    query.filter('ranker_version =', 'current')
-    result_ranker_parent = query.get()
-    self.assertEqual(None, result_ranker_parent)
+  def testCacheGetOneItemInMemcache(self):
+    ranker_class = self.mox.CreateMock(result_ranker.CountRanker)
+    self.mox.StubOutWithMock(memcache, 'get_multi')
+    memcache.get_multi(['k1'], **self.memcache_params).AndReturn({'k1': 's1'})
+    ranker_class.FromString('k1', 's1').AndReturn('r1')
+    self.mox.ReplayAll()
+    rankers = self.cls.CacheGet(['k1'], {'k1': ranker_class})
+    self.mox.VerifyAll()
+    self.assertEqual({'k1': 'r1'}, rankers)
 
-  def testReleaseNotNextRaises(self):
-    category = 'cat'
-    test = mock_data.MockTest('foo', 'Boo Hoo', '/poopoo', 'custom')
-    user_agent_version = 'Chrome 3'
-    params_str = None
-    ranker = result_ranker.ResultRankerParent.GetOrCreate(
-        category, test, user_agent_version, params_str,
-        ranker_version='current')
-    self.assertRaises(result_ranker.ReleaseError, ranker.Release)
+  def testCacheGetOneItemInDb(self):
+    ranker_class = self.mox.CreateMock(result_ranker.CountRanker)
+    self.mox.StubOutWithMock(memcache, 'get_multi')
+    memcache.get_multi(['k1'], **self.memcache_params).AndReturn({})
+    ranker_class.get_by_key_name(['k1']).AndReturn(['r1'])
+    self.mox.ReplayAll()
+    rankers = self.cls.CacheGet(['k1'], {'k1': ranker_class})
+    self.mox.VerifyAll()
+    self.assertEqual({'k1': 'r1'}, rankers)
 
-  def testReleaseBasic(self):
-    category = 'cat'
-    test = mock_data.MockTest('foo', 'Boo Hoo', '/poopoo', 'custom')
-    user_agent_version = 'Chrome 3'
-    params_str = None
-    ranker = None
-    for min_value, ranker_version in (
-        (3, 'previous'), (5, 'current'), (7, 'next')):
-      ranker_parent = result_ranker.ResultRankerParent.GetOrCreate(
-          category, test, user_agent_version, params_str, ranker_version)
-      ranker_parent.min_value = min_value
-      ranker_parent.put()
-    ranker_parent.Release()
+  def testCacheGetOneItemNotFound(self):
+    ranker_class = self.mox.CreateMock(result_ranker.CountRanker)
+    self.mox.StubOutWithMock(memcache, 'get_multi')
+    memcache.get_multi(['k1'], **self.memcache_params).AndReturn({})
+    ranker_class.get_by_key_name(['k1']).AndReturn([None])
+    self.mox.ReplayAll()
+    rankers = self.cls.CacheGet(['k1'], {'k1': ranker_class})
+    self.mox.VerifyAll()
+    self.assertEqual({}, rankers)
 
-    previous_parent = result_ranker.ResultRankerParent.Get(
-        category, test, user_agent_version, params_str, 'previous')
-    self.assertEqual(5, previous_parent.min_value)
-
-    current_parent = result_ranker.ResultRankerParent.Get(
-        category, test, user_agent_version, params_str, 'current')
-    self.assertEqual(7, current_parent.min_value)
-
-    next_parent = result_ranker.ResultRankerParent.Get(
-        category, test, user_agent_version, params_str, 'next')
-    self.assertEqual(None, next_parent)
-
-    # TODO: test that 'previous' was deleted
+  def testCacheGetMulti(self):
+    ranker_class_a = self.mox.CreateMock(result_ranker.CountRanker)
+    ranker_class_b = self.mox.CreateMock(result_ranker.LastNRanker)
+    self.mox.StubOutWithMock(memcache, 'get_multi')
+    memcache.get_multi(
+        ['ka1', 'ka2', 'kb1', 'kb2', 'kb3'], **self.memcache_params).AndReturn(
+        {'ka2': 'sa2'})
+    ranker_class_a.FromString('ka2', 'sa2').AndReturn('ra2')
+    ranker_class_a.get_by_key_name(['ka1']).InAnyOrder().AndReturn([])
+    ranker_class_b.get_by_key_name(['kb1', 'kb2', 'kb3']).InAnyOrder(
+        ).AndReturn([None, 'rb2', None])
+    self.mox.ReplayAll()
+    rankers = self.cls.CacheGet(['ka1', 'ka2', 'kb1', 'kb2', 'kb3'], {
+        'ka1': ranker_class_a,
+        'ka2': ranker_class_a,
+        'kb1': ranker_class_b,
+        'kb2': ranker_class_b,
+        'kb3': ranker_class_b,
+        })
+    self.mox.VerifyAll()
+    self.assertEqual({'ka2': 'ra2', 'kb2': 'rb2'}, rankers)
 
 
-class ResultRankerTest(unittest.TestCase):
-  def testTotalRankedScoresGivesZeroOnEmpty(self):
-    mock_test = mock_data.MockTest('empty', 'Empty', '/empty', 'ugly')
-    r = result_ranker.ResultRanker.GetOrCreate('cat', mock_test, 'gg 1')
-    self.assertEqual(0, r.TotalRankedScores())
+class CountRankerTest(unittest.TestCase):
+  def setUp(self):
+    self.test_set = MockTestSet()
+    self.ranker_params = (self.test_set.tests[1], 'Android 0.5')
+    self.ranker = result_ranker.GetOrCreateRanker(*self.ranker_params)
 
-  def testTotalRankedScoresGivesOneAfterAdd(self):
-    mock_test = mock_data.MockTest('one', 'One', '/one', 'tall')
-    r = result_ranker.ResultRanker.GetOrCreate('cat', mock_test, 'gg 2')
-    r.Add(10)
-    self.assertEqual(1, r.TotalRankedScores())
+  def tearDown(self):
+    self.ranker.delete()
 
-  def testFindScoreCanRetrieveAllScores(self):
-    mock_test = mock_data.MockTest('find', 'Find', '/find', 'lost')
-    r = result_ranker.ResultRanker.GetOrCreate('cat', mock_test, 'hh 3')
-    scores = [0, 4, 4, 5, 6, 10]
-    r.Update(scores)
-    self.assertEqual(scores,
-                     [r.FindScore(x) for x in range(len(scores))])
+  def testAddScore(self):
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    ranker.Add(2)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual([0, 0, 1], ranker.counts)
+    self.assertEqual((2, 1), ranker.GetMedianAndNumScores())
+    ranker.Add(4)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual([0, 0, 1, 0, 1], ranker.counts)
+    self.assertEqual((4, 2), ranker.GetMedianAndNumScores())
+    ranker.Add(2)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual([0, 0, 2, 0, 1], ranker.counts)
+    self.assertEqual((2, 3), ranker.GetMedianAndNumScores())
 
-  def testAddAfterInitialUpdateSucceeds(self):
-    mock_test = mock_data.MockTest('add', 'Add', '/add', 'moire')
-    mock_test.min_value = 0
-    mock_test.max_value = 60000
-    r = result_ranker.ResultRanker.GetOrCreate('cat', mock_test, 'ii 4')
-    scores = [0, 554, 555, 555, 59888]
-    r.Update(scores)
-    r.Add(554)
-    self.assertEqual(sorted(scores + [554]),
-                     [r.FindScore(x) for x in range(len(scores) + 1)])
+  def testSetValues(self):
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    ranker.SetValues([0, 3, 1, 3], 7)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual((2, 7), ranker.GetMedianAndNumScores())
+    ranker.SetValues([4, 3], 7)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual((0, 7), ranker.GetMedianAndNumScores())
+    ranker.Add(1)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual((1, 8), ranker.GetMedianAndNumScores())
 
-  def testRemoveAfterInitialUpdateSucceeds(self):
-    mock_test = mock_data.MockTest('del', 'Del', '/del', 'pickle')
-    mock_test.min_value = 0
-    mock_test.max_value = 60000
-    r = result_ranker.ResultRanker.GetOrCreate('cat', mock_test, 'jj 6')
-    scores = [0, 554, 555, 555, 59888]
-    r.Update(scores)
-    r.Remove(554)
-    self.assertEqual([0, 555, 555, 59888],
-                     [r.FindScore(x) for x in range(len(scores) - 1)])
+  def testAddScoreTooBig(self):
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    ranker.Add(101)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual((100, 1), ranker.GetMedianAndNumScores())
 
-  def testReset(self):
-    mock_test = mock_data.MockTest('del', 'Del', '/del', 'pickle')
-    mock_test.min_value = 0
-    mock_test.max_value = 60000
-    r = result_ranker.ResultRanker.GetOrCreate('cat', mock_test, 'jj 6')
-    scores = [0, 554, 555, 555, 59888]
-    r.Update(scores)
-    r.Reset()
-    self.assertEqual((None, 0), r.GetMedianAndNumScores())
+  def testAddScoreTooSmall(self):
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    ranker.Add(-1)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual((0, 1), ranker.GetMedianAndNumScores())
 
 
-  def testGetMedianAndNumScores(self):
-    mock_test = mock_data.MockTest('del', 'Del', '/del', 'pickle')
-    mock_test.min_value = 0
-    mock_test.max_value = 60000
-    r = result_ranker.ResultRanker.GetOrCreate('cat', mock_test, 'jj 6')
-    scores = [0, 554, 555, 555, 59888]
-    r.Update(scores)
-    self.assertEqual((555, 5), r.GetMedianAndNumScores())
+class LastNRankerTest(unittest.TestCase):
+  def setUp(self):
+    self.test_set = MockTestSet()
+    self.ranker_params = (self.test_set.tests[2], 'Safari 4.1')
+    self.ranker = result_ranker.GetOrCreateRanker(*self.ranker_params)
+    self.old_max_num_scores = result_ranker.LastNRanker.MAX_NUM_SAMPLED_SCORES
+
+  def tearDown(self):
+    self.ranker.delete()
+    result_ranker.LastNRanker.MAX_NUM_SAMPLED_SCORES = self.old_max_num_scores
+
+  def testAddScore(self):
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    ranker.Add(1000)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual([1000], ranker.scores)
+    self.assertEqual((1000, 1), ranker.GetMedianAndNumScores())
+
+    ranker.Add(0)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual([0, 1000], ranker.scores)
+    self.assertEqual((1000, 2), ranker.GetMedianAndNumScores())
+    ranker.Add(500)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual([0, 500, 1000], ranker.scores)
+    self.assertEqual((500, 3), ranker.GetMedianAndNumScores())
+
+  def testSetValues(self):
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    ranker.SetValues([4, 4, 5, 5, 6], 10)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual((5, 10), ranker.GetMedianAndNumScores())
+    ranker.Add(4)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual((5, 11), ranker.GetMedianAndNumScores())
+    ranker.Add(4)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual([4, 4, 4, 4, 5, 5, 6], ranker.scores)
+    self.assertEqual((4, 12), ranker.GetMedianAndNumScores())
+
+  def testDropLowScore(self):
+    result_ranker.LastNRanker.MAX_NUM_SAMPLED_SCORES = 5
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    ranker.SetValues([4, 4, 5, 5, 6], 15)
+    ranker.Add(5)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual([4, 5, 5, 5, 6], ranker.scores)
+    self.assertEqual((5, 16), ranker.GetMedianAndNumScores())
+
+  def testDropHighScore(self):
+    result_ranker.LastNRanker.MAX_NUM_SAMPLED_SCORES = 4
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    ranker.SetValues([4, 4, 5, 5], 20)
+    ranker.Add(4)
+    ranker = result_ranker.GetRanker(*self.ranker_params)
+    self.assertEqual([4, 4, 4, 5], ranker.scores)
+    self.assertEqual((4, 21), ranker.GetMedianAndNumScores())
+
+
+class GetRankersTest(unittest.TestCase):
+  def setUp(self):
+    self.test_set = MockTestSet()
+
+  def testGetRankersOneDoesNotExist(self):
+    test = self.test_set.tests[0]
+    rankers = result_ranker.GetRankers([(test, 'Android 1.5')])
+    self.assertEqual([None], rankers)

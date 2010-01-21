@@ -24,10 +24,10 @@ __author__ = 'msamuel@google.com (Mike Samuel)'
 
 import logging
 import re
-
 from categories import all_test_sets
 from categories.jskb import ecmascript_snippets
 from categories.jskb import json
+from models import result_stats
 from models import user_agent
 from base import util
 
@@ -66,10 +66,11 @@ def Json(request):
   def html(s):
     return re.sub(r'<', '&lt;', re.sub('>', '&gt', re.sub(r'&', '&amp;', s)))
 
-  def help_page(msg):
+  def help_page(msg, stats_data):
     return (
       '<title>%(msg)s</title>'
       '<h1>%(msg)s</h1>'
+      '<p><code>%(stats_data)s</code></p>'
       'Serve JSON mapping code snippets to results.\n'
       '<p>The JSON is the intersection of the (key, value) pairs accross all'
       ' user agents requested, so if Firefox 3 was requested then only'
@@ -90,7 +91,7 @@ def Json(request):
       '  <li><code>ot=application%%2Fjson</code>\n'
       '  <li><code>ot=text%%2Fplain</code>\n'
       '</ul>'
-      ) % { 'msg': html(msg) }
+      ) % { 'msg': html(msg), 'stats_data': html('%s' % stats_data) }
 
   if request.method != 'GET' and request.method != 'HEAD':
     return http.HttpResponseBadRequest(
@@ -112,17 +113,16 @@ def Json(request):
           help_page('Please specify useragent'), mimetype='text/html')
 
   user_agent_strings = user_agent_string.split(',')
-  tests = all_test_sets.GetTestSet(CATEGORY).tests
-  stats_data = util.GetStatsData(CATEGORY, tests, user_agent_strings,
-                                 ua_by_param=None, params_str=None,
-                                 version_level='1', ignore_hidden_stats=False)
-
-  ua_stats = [(k, stats_data[k].get('results'))
-              for k in stats_data.iterkeys() if k != 'total_runs']
+  test_set = all_test_sets.GetTestSet(CATEGORY)
+  test_keys = [t.key for t in test_set.tests]
+  stats_data = result_stats.CategoryStatsManager.GetStats(
+      test_set, user_agent_strings, test_keys)
+  del stats_data['total_runs']
 
   # Keep only those items that are common across all the user agents requested.
   combined = None
-  for _, stats in ua_stats:
+  for browser_stats in stats_data.values():
+    stats = browser_stats['results']
     if combined is None:
       combined = dict([(k, v.get('display')) for (k, v) in stats.iteritems()
                        if k in ecmascript_snippets.SNIPPET_NAMES])
@@ -134,7 +134,7 @@ def Json(request):
   if combined is None: combined = {}
   result = [(ecmascript_snippets.with_name(k)[ecmascript_snippets.CODE], v)
             for (k, v) in combined.iteritems()]
-  result.append(('*userAgent*', json.to_json([ua for (ua, _) in ua_stats])))
+  result.append(('*userAgent*', json.to_json(stats_data.keys())))
 
   def check_json_value(v):
     if v == 'throw':

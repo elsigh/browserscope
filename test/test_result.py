@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2008 Google Inc.
 #
@@ -22,87 +22,111 @@ import unittest
 import logging
 
 from google.appengine.ext import db
-from models import result_ranker
+from categories import test_set_params
+from base import manage_dirty
+from models import result_stats
 from models.result import ResultParent
 from models.result import ResultTime
 
 import mock_data
 
+
+class MockTestSetWithAdjustResults(mock_data.MockTestSet):
+  def AdjustResults(self, results):
+    for values in results.values():
+      # Add the raw value to be expando'd and store a munged value in score.
+      values['expando'] = values['raw_score']
+      values['raw_score'] = int(round(values['raw_score'] / 2.0))
+    return results
+
+
 class ResultTest(unittest.TestCase):
 
-  def testTotalRankedScores(self):
-    test_set = mock_data.AddOneTest()
-
-    ranker = result_ranker.GetRanker(
-        test_set.category, test_set.GetTest('testDisplay'), 'Firefox 3')
-    self.assertEqual(1, ranker.TotalRankedScores())
-
-    ranker = result_ranker.GetRanker(
-        test_set.category, test_set.GetTest('testDisplay'), 'Firefox 3.0')
-    self.assertEqual(1, ranker.TotalRankedScores())
-
-    ranker = result_ranker.GetRanker(
-        test_set.category, test_set.GetTest('testVisibility'), 'Firefox 3')
-    self.assertEqual(1, ranker.TotalRankedScores())
-
-    ranker = result_ranker.GetRanker(
-        test_set.category, test_set.GetTest('testDisplay'), 'Firefox 3.0.6')
-    self.assertEqual(1, ranker.TotalRankedScores())
-
-
   def testGetMedianAndNumScores(self):
-    test_set = mock_data.AddFiveResultsAndIncrementAllCounts()
-
-    ranker = result_ranker.GetRanker(
-        test_set.category, test_set.GetTest('testDisplay'), 'Firefox 3')
-    self.assertEqual((300, 5), ranker.GetMedianAndNumScores())
-
-    ranker = result_ranker.GetRanker(
-        test_set.category, test_set.GetTest('testVisibility'), 'Firefox 3')
-    self.assertEqual((2, 5), ranker.GetMedianAndNumScores())
-
+    test_set = mock_data.MockTestSet()
+    for scores in ((0, 0, 500), (1, 1, 200),
+                   (0, 2, 300), (1, 3, 100), (0, 4, 400)):
+      parent = ResultParent.AddResult(
+          test_set, '12.2.2.25', mock_data.GetUserAgentString('Firefox 3.5'),
+          'apple=%s,banana=%s,coconut=%s' % scores)
+    rankers = test_set.GetRankers('Firefox 3')
+    self.assertEqual([(0, 5), (2, 5), (300, 5)],
+                     [ranker.GetMedianAndNumScores() for ranker in rankers])
 
   def testGetMedianAndNumScoresWithParams(self):
-    test_set = mock_data.AddThreeResultsWithParamsAndIncrementAllCounts()
-
-    ranker = result_ranker.GetRanker(
-        test_set.category, test_set.GetTest('testDisplay'), 'Firefox 3',
-        str(test_set.default_params))
+    params = test_set_params.Params('w-params', 'a=b', 'c=d', 'e=f')
+    params_str = str(params)
+    test_set = mock_data.MockTestSet(params=params)
+    for scores in ((1, 0, 2), (1, 1, 1), (0, 2, 200)):
+      parent = ResultParent.AddResult(
+          test_set, '12.2.2.25', mock_data.GetUserAgentString('Firefox 3.5'),
+          'apple=%s,banana=%s,coconut=%s' % scores, params_str=params_str)
+    ranker = test_set.GetTest('coconut').GetRanker('Firefox 3')
     self.assertEqual((2, 3), ranker.GetMedianAndNumScores())
 
-
   def testAddResult(self):
-    parent = mock_data.AddOneTestUsingAddResult()
-    result_times = parent.get_result_times()
-    self.assertEqual(2, len(result_times))
-    self.assertEqual('testDisplay', result_times[0].test)
-    self.assertEqual(500, result_times[0].score)
-    self.assertEqual('testVisibility', result_times[1].test)
-    self.assertEqual(200, result_times[1].score)
-
+    test_set = mock_data.MockTestSet()
+    parent = ResultParent.AddResult(
+        test_set, '12.2.2.25', mock_data.GetUserAgentString('Firefox 3.5'),
+        'apple=1,banana=11,coconut=111')
+    expected_results = {
+        'apple': 1,
+        'banana': 11,
+        'coconut': 111,
+        }
+    self.assertEqual(expected_results, parent.GetResults())
 
   def testAddResultForTestSetWithAdjustResults(self):
-    parent = mock_data.AddOneTestUsingAddResultWithAdjustResults()
-    self.assertEqual(500, parent.testDisplay)
-    self.assertEqual(200, parent.testVisibility)
-    result_times = parent.get_result_times()
-    self.assertEqual(2, len(result_times))
-    self.assertEqual('testDisplay', result_times[0].test)
-    self.assertEqual(250, result_times[0].score)
-    self.assertEqual('testVisibility', result_times[1].test)
-    self.assertEqual(100, result_times[1].score)
+    test_set = MockTestSetWithAdjustResults()
+    parent = ResultParent.AddResult(
+        test_set, '12.2.2.25', mock_data.GetUserAgentString('Firefox 3.5'),
+        'apple=0,banana=80,coconut=200')
+    self.assertEqual(0, parent.apple)
+    self.assertEqual(80, parent.banana)
+    self.assertEqual(200, parent.coconut)
+    expected_results = {
+        'apple': 0,
+        'banana': 40,
+        'coconut': 100,
+        }
+    self.assertEqual(expected_results, parent.GetResults())
 
 
   def testAddResultWithExpando(self):
-    parent = mock_data.AddOneTestUsingAddResultWithExpando()
-    result_times = parent.get_result_times()
-    self.assertEqual(2, len(result_times))
-    self.assertEqual(20, parent.testDisplay)
-    self.assertEqual('testeroo', parent.testVisibility)
-    self.assertEqual('testDisplay', result_times[0].test)
-    self.assertEqual(500, result_times[0].score)
-    self.assertEqual('testVisibility', result_times[1].test)
-    self.assertEqual(200, result_times[1].score)
+    test_set = MockTestSetWithAdjustResults()
+    parent = ResultParent.AddResult(
+        test_set, '12.2.2.25', mock_data.GetUserAgentString('Firefox 3.5'),
+        'apple=1,banana=49,coconut=499')
+    self.assertEqual(1, parent.apple)
+    self.assertEqual(49, parent.banana)
+    self.assertEqual(499, parent.coconut)
+    expected_results = {
+        'apple': 1,
+        'banana': 25,
+        'coconut': 250,
+        }
+    self.assertEqual(expected_results, parent.GetResults())
+
+  def testAddResultWithParamsLiteralNoneRaises(self):
+    # A params_str with a None value is fine, but not a 'None' string
+    test_set = mock_data.MockTestSet()
+    ua_string = (
+        'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 6.0; Trident/4.0; '
+        'chromeframe; SLCC1; .NET CLR 2.0.5077; 3.0.30729),gzip(gfe),gzip(gfe)')
+    self.assertRaises(
+        ValueError,
+        ResultParent.AddResult, test_set, '12.1.1.1', ua_string,
+        'testDisplay=500,testVisibility=200', params_str='None')
+
+  def testGetStatsDataWithParamsEmptyStringRaises(self):
+    test_set = mock_data.MockTestSet()
+    ua_string = (
+        'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 6.0; Trident/4.0; '
+        'chromeframe; SLCC1; .NET CLR 2.0.5077; 3.0.30729),gzip(gfe),gzip(gfe)')
+    self.assertRaises(
+        ValueError,
+        ResultParent.AddResult, test_set, '12.1.1.1', ua_string,
+        'testDisplay=500,testVisibility=200', params_str='')
 
 
 class IncrementAllCountsTest(unittest.TestCase):
@@ -117,16 +141,16 @@ class IncrementAllCountsTest(unittest.TestCase):
   def testIncrementAllCountsBogusTest(self):
     test_set = mock_data.MockTestSet('foo')
     parent = ResultParent.AddResult(
-        test_set, '12.2.2.25', mock_data.GetUserAgentString(),
-        'testDisplay=500,testVisibility=0')
+        test_set, '12.2.2.25', mock_data.GetUserAgentString('Firefox 3.5'),
+        'apple=0,banana=44,coconut=444')
     db.put(ResultTime(parent=parent,
                       test='bogus test key',
                       score=1,
                       dirty=True))
-    self.assertEqual(3, ResultTime.all(keys_only=True).count())
-    parent.increment_all_counts()
-    dirty_query = ResultTime.all().filter('dirty =', True)
-    self.assertEqual(0, dirty_query.count())
+    self.assertEqual(3 + 1, ResultTime.all(keys_only=True).count())
+    dirty_query = manage_dirty.DirtyResultTimesQuery()
+    parent.UpdateStatsFromDirty(dirty_query)
+    self.assert_(dirty_query.IsResultParentDone())
 
 
 class ChromeFrameAddResultTest(unittest.TestCase):
@@ -139,9 +163,9 @@ class ChromeFrameAddResultTest(unittest.TestCase):
         'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 6.0; Trident/4.0; '
         'chromeframe; SLCC1; .NET CLR 2.0.5077; 3.0.30729),gzip(gfe),gzip(gfe)')
 
-    test_set = mock_data.MockTestSet('category-for-chrome-frame-test')
+    test_set = mock_data.MockTestSet()
     parent = ResultParent.AddResult(
-        test_set, '12.2.2.25', ua_string, 'testDisplay=500,testVisibility=200',
+        test_set, '12.2.2.25', ua_string, 'apple=1,banana=3,coconut=500',
         js_user_agent_string=chrome_ua_string)
     self.assertEqual(chrome_ua_string,
                      parent.user_agent.js_user_agent_string)

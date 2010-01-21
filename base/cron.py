@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2009 Google Inc.
 #
@@ -18,14 +18,17 @@
 
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
+import logging
+import time
 
 from google.appengine.api import memcache
 from google.appengine.ext import db
 
-
 import django
 from django import http
 
+from categories import all_test_sets
+from models import result_stats
 from models.result import ResultParent
 from models.user_agent import UserAgent
 
@@ -34,38 +37,67 @@ import settings
 
 
 def UserAgentGroup(request):
-  key = request.GET.get('key')
-  dbkey = db.Key(key)
-  if not key:
+  category = request.REQUEST.get('category')
+  user_agent_key = request.REQUEST.get('user_agent_key')
+  if not category:
+    logging.info('cron.UserAgentGroup: No category')
+    return http.HttpResponse('No category')
+  if not all_test_sets.HasTestSet(category):
+    logging.info('cron.UserAgentGroup: Bad category: %s', category)
+    return http.HttpResponse('Bad category: %s' % category)
+  if not user_agent_key:
+    logging.info('cron.UserAgentGroup: No key')
     return http.HttpResponse('No key')
-  user_agent = UserAgent.get(dbkey)
+  try:
+    user_agent = UserAgent.get(db.Key(user_agent_key))
+  except db.BadKeyError:
+    logging.info('cron.UserAgentGroup: Invalid UserAgent key: %s', user_agent_key)
+    return http.HttpResponse('Invalid UserAgent key: %s' % user_agent_key)
   if user_agent:
-    user_agent.update_groups()
-    return http.HttpResponse('Done with UserAgent key=%s' % key)
+    logging.info('cron.UserAgentGroup: UpdateCategory(%s, %s)', category, user_agent)
+    result_stats.UpdateCategory(category, user_agent)
+    return http.HttpResponse('Done with UserAgent key=%s' % user_agent_key)
   else:
     return http.HttpResponse('No user_agent with this key.')
 
 
 def UpdateRecentTests(request):
-  query = db.Query(ResultParent)
-  query.order('-created')
-  recent_tests = query.fetch(30, 0)
+  max_recent_tests = 10
+  skip_categories = settings.CATEGORIES_INVISIBLE + settings.CATEGORIES_BETA
 
-  # need to get the score for a test
-  recent_tests_list = []
-  for recent_test in recent_tests:
-    if len(recent_tests_list) == 10:
-      break
+  prev_recent_tests = memcache.get(util.RECENT_TESTS_MEMCACHE_KEY)
+  prev_result_parent_key = None
+  if prev_recent_tests:
+    prev_result_parent_key = prev_recent_tests[0]['result_parent_key']
+
+  recent_tests = []
+  recent_query = db.Query(ResultParent).order('-created')
+  for result_parent in recent_query.fetch(30):
     if (settings.BUILD == 'production' and
-        recent_test.category in settings.CATEGORIES_INVISIBLE +
-        settings.CATEGORIES_BETA):
+        recent_parent.category in skip_categories):
       continue
-    score, display = recent_test.get_score_and_display()
-    recent_test.score = score
-    recent_test.display = display
-    recent_test.user_agent_pretty = recent_test.user_agent.pretty()
-    recent_tests_list.append(recent_test)
+    if str(result_parent.key()) == prev_result_parent_key:
+      num_needed = max_recent_tests - len(recent_tests)
+      if num_needed == max_recent_tests:
+        return http.HttpResponse('No update needed.')
+      else:
+        recent_tests.extend(prev_recent_tests[:num_needed])
+        break
+    recent_scores = result_parent.GetResults()
+    test_set = all_test_sets.GetTestSet(result_parent.category)
+    visible_test_keys = [t.key for t in test_set.VisibleTests()]
+    recent_stats = test_set.GetStats(visible_test_keys, recent_scores)
+    recent_tests.append({
+        'result_parent_key': str(result_parent.key()),
+        'category': result_parent.category,
+        'created': result_parent.created,
+        'user_agent_pretty': result_parent.user_agent.pretty(),
+        'score': recent_stats['summary_score'],
+        'display': recent_stats['summary_display'],
+        })
+    if len(recent_tests) >= max_recent_tests:
+      break
 
-  memcache.set(key=util.RECENT_TESTS_MEMCACHE_KEY, value=recent_tests_list,
+  memcache.set(util.RECENT_TESTS_MEMCACHE_KEY, recent_tests,
                time=settings.STATS_MEMCACHE_TIMEOUT)
   return http.HttpResponse('Done')

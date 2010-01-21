@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2009 Google Inc.
 #
@@ -33,41 +33,16 @@ class Acid3Test(test_set_base.TestBase):
     Args:
       key: key for this in dict's
       name: a human readable label for display
-      url_name: the name used in the url
-      score_type: 'boolean' or 'custom'
       doc: a description of the test
-      value_range: (min_value, max_value) as integer values
     """
     test_set_base.TestBase.__init__(
         self,
         key=key,
         name=name,
         url=self.TESTS_URL_PATH,
-        score_type='custom',
         doc=doc,
         min_value=0,
         max_value=100)
-
-  def GetScoreAndDisplayValue(self, median, medians=None, is_uri_result=False):
-    """Custom scoring function.
-
-    Args:
-      median: The actual median for this test from all scores.
-      medians: A dict of the medians for all tests indexed by key.
-      is_uri_result: Boolean, if results are in the url, i.e. home page.
-    Returns:
-      (score, display)
-      Where score is a value between 1-100.
-      And display is the text for the cell.
-    """
-    if median == None or median == '':
-      return 0, ''
-
-    median = int(median)
-    score = median
-    display = '%s/%s' % (median, '100')
-    #logging.info('acid3 %s, %s' % (score, display))
-    return score, display
 
 
 _TESTS = (
@@ -80,26 +55,39 @@ _TESTS = (
 
 class Acid3TestSet(test_set_base.TestSet):
 
+  def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
+    """Get a normalized score (0 to 100) and a value to output to the display.
+
+    Args:
+      test_key: a key for a test_set test.
+      raw_scores: a dict of raw_scores indexed by key.
+    Returns:
+      score, display_value
+          # score is an integer in 0 to 100.
+          # display_value is the text for the cell.
+    """
+    raw_score = raw_scores.get(test_key, 0)
+    if raw_score:
+      return raw_score, '%s/100' % raw_score
+    else:
+      return 0, ''
+
   def GetRowScoreAndDisplayValue(self, results):
     """Get the overall score for this row of results data.
-    Args:
-      results: A dictionary that looks like:
-      {
-        'testkey1': {'score': 1-10, 'median': median, 'display': 'celltext'},
-        'testkey2': {'score': 1-10, 'median': median, 'display': 'celltext'},
-        etc...
-      }
 
+    Args:
+      results: {
+          'test_key_1': {'score': score_1, 'raw_score': raw_score_1, ...},
+          'test_key_2': {'score': score_2, 'raw_score': raw_score_2, ...},
+          ...
+          }
     Returns:
-      A tuple of (score, display)
-      Where score is a value between 1-100.
-      And display is the text for the cell.
+      score, display_value
+          # score is from 0 to 100.
+          # display_value is the text for the cell.
     """
-    #logging.info('acid3 getrowscore results: %s' % results)
-    if not results.has_key('score') or results['score']['median'] is None:
-      score = 0
-    else:
-      score = results['score']['median']
+    test_key = 'score'
+    score = results.get(test_key, {}).get('score', None) or 0
     return score, ''
 
 

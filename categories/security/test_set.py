@@ -34,7 +34,6 @@ class SecurityTest(test_set_base.TestBase):
       key: key for this in dict's
       name: a human readable label for display
       url_name: the name used in the url
-      score_type: 'boolean' or 'custom'
       doc: a description of the test
       value_range: (min_value, max_value) as integer values
     """
@@ -43,7 +42,6 @@ class SecurityTest(test_set_base.TestBase):
         key=key,
         name=name,
         url=self.TESTS_URL_PATH,
-        score_type='boolean',
         doc=doc,
         min_value=0,
         max_value=1)
@@ -111,19 +109,17 @@ class SecurityTestSet(test_set_base.TestSet):
 
   def GetRowScoreAndDisplayValue(self, results):
     """Get the overall score for this row of results data.
+
     Args:
-      results: A dictionary that looks like:
-      {
-        'testkey1': {'score': 1-10, 'median': median, 'display': 'celltext'},
-        'testkey2': {'score': 1-10, 'median': median, 'display': 'celltext'},
-        etc...
-      }
-
+      results: {
+          'test_key_1': {'score': score_1, 'raw_score': raw_score_1, ...},
+          'test_key_2': {'score': score_2, 'raw_score': raw_score_2, ...},
+          ...
+          }
     Returns:
-      A tuple of (score, display)
-      Where score is a value between 1-100.
-      And display is the text for the cell.
-
+      score, display_value
+          # score is from 0 to 100.
+          # display_value is the text for the cell.
     """
     logging.info('security getrowscore results: %s' % results)
 
@@ -134,12 +130,12 @@ class SecurityTestSet(test_set_base.TestSet):
     for test in tests:
       total_tests += 1
 
-      if results.has_key(test.key) and results[test.key]['median'] is not None:
+      if results.has_key(test.key) and results[test.key]['raw_score'] is not None:
         score = results[test.key]['score']
         logging.info('test: %s, score: %s' % (test.key, score))
         total_valid_tests += 1
-        # For booleans, when "score" is 10 that's test_type true.
-        if score == 10:
+        # For booleans, when "score" is 100 that's test_type true.
+        if score == 100:
           total_score += 1
       else:
         logging.info('test: %s has no median' % test.key)

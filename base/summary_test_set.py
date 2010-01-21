@@ -30,7 +30,6 @@ class SummaryTest(test_set_base.TestBase):
         key=category,
         name=category_name,
         url=None,
-        score_type='custom',
         doc=None,
         min_value=0,
         max_value=0)

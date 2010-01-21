@@ -58,13 +58,15 @@ __copyright__= "Copyright (c) 2008-2009, George Lei and Steven R. Farley"
 __license__ = "BSD"
 __url__ = "http://code.google.com/p/gaeunit"
 
-import sys
-import os
-import unittest
-import time
-import logging
+import base64
 import cgi
+import logging
+import os
 import re
+import sys
+import time
+import unittest
+import urlparse
 import django.utils.simplejson
 
 # Must set this env var before importing any part of Django
@@ -73,11 +75,15 @@ from appengine_django import have_django_zip
 from appengine_django import django_zip_path
 InstallAppengineHelperForDjango()
 
+from django.test import client
+
 from xml.sax.saxutils import unescape
 from google.appengine.ext import webapp
 from google.appengine.api import apiproxy_stub_map
 from google.appengine.api import datastore_file_stub
+from google.appengine.api import urlfetch
 from google.appengine.api.memcache import memcache_stub
+from google.appengine.api.labs.taskqueue import taskqueue_stub
 from google.appengine.ext.webapp.util import run_wsgi_app
 
 _LOCAL_TEST_DIR = 'test'  # location of files
@@ -291,7 +297,7 @@ class JsonTestResult(unittest.TestResult):
             'failures': self._list(self.failures),
             }
 
-        stream.write(django.utils.simplejson.dumps(result).replace('},', '},\n'))
+        stream.write(django.utils.simplejson.dumps(result))
 
     def _list(self, list):
         dict = []
@@ -366,9 +372,10 @@ def _create_suite(package_name, test_name, test_dir):
         if suite.countTestCases() == 0:
             raise Exception("'%s' is not found or does not contain any tests." %  \
                             (test_name or package_name or 'local directory: \"%s\"' % _LOCAL_TEST_DIR))
-    except Exception, e:
-        print e
-        error = str(e)
+    except Exception:
+        import traceback
+        error = traceback.format_exc()
+        print error
         _log_error(error)
 
     return (suite, error)
@@ -378,6 +385,10 @@ def _load_default_test_modules(test_dir):
     if not test_dir in sys.path:
         sys.path.append(test_dir)
     module_names = [mf[0:-3] for mf in os.listdir(test_dir) if mf.endswith(".py")]
+    emacs_temp_files = [mf for mf in module_names if mf.startswith(".#")]
+    if emacs_temp_files:
+        raise Exception("Found emacs temporary files (indicates unsaved files): %s" %
+                        ", ".join(["%s.py" % x for x in emacs_temp_files]))
     return [reload(__import__(name)) for name in module_names]
 
 
@@ -416,6 +427,42 @@ def _test_suite_to_json(suite):
     return django.utils.simplejson.dumps(test_dict)
 
 
+class ExecuteImmediatelyTaskQueueService(taskqueue_stub.TaskQueueServiceStub):
+
+    def _Dynamic_Add(self, request, response):
+        # TODO(slamm): Handle task errors
+        taskqueue_stub.TaskQueueServiceStub._Dynamic_Add(self, request, response)
+        for queue in self.GetQueues():
+            queue_name = queue['name']
+            for task in self.GetTasks(queue_name):
+                headers = task['headers']
+                c = client.Client()
+                if task['method'] == 'GET':
+                    try:
+                        # Only Django 1.1 or greater can handle a query string.
+                        url_parts = list(urlparse.urlsplit(task['url']))
+                        query = url_parts[3]
+                        query_data = {}
+                        if query:
+                            query_data = dict(
+                                kv.split('=') for kv in url_parts[3].split('&'))
+                        url_parts[3] = ''
+                        url = urlparse.urlunsplit(url_parts)
+                        logging.info("Execute task immediately: GET %s, query=%s", url, query_data)
+                        c.get(url, query_data, content_type=headers['Content-Type'])
+                    except:
+                        import traceback
+                        error = traceback.format_exc()
+                        _log_error(error)
+                        raise
+                elif task['method'] == 'POST':
+                    body = base64.b64decode(task['body'])
+                    logging.info("Execute task immediately: POST %s, body=%s", task['url'], body)
+                    c.post(task['url'], data=body, content_type=task['headers']['Content-Type'])
+                else:
+                    raise NotImplementedError
+            self.FlushQueue(queue_name)
+
 def _run_test_suite(runner, suite):
     """Run the test suite.
 
@@ -433,9 +480,13 @@ def _run_test_suite(runner, suite):
        apiproxy_stub_map.apiproxy.RegisterStub(
            'memcache',
            memcache_stub.MemcacheServiceStub())# setup mock
+       apiproxy_stub_map.apiproxy.RegisterStub(
+           'taskqueue',
+           ExecuteImmediatelyTaskQueueService(root_path='.'))
        # Allow the other services to be used as-is for tests.
        for name in ['user', 'urlfetch', 'mail', 'images']:
            apiproxy_stub_map.apiproxy.RegisterStub(name, original_apiproxy.GetStub(name))
+       # TODO(slamm): add coverage tool here.
        runner.run(suite)
     finally:
        apiproxy_stub_map.apiproxy = original_apiproxy
@@ -456,16 +507,23 @@ _MAIN_PAGE_CONTENT = """
 <html>
 <head>
     <style>
-        body {font-family:arial,sans-serif; text-align:center}
-        #title {font-family:"Times New Roman","Times Roman",TimesNR,times,serif; font-size:28px; font-weight:bold; text-align:center}
-        #version {font-size:87%%; text-align:center;}
-        #weblink {font-style:italic; text-align:center; padding-top:7px; padding-bottom:7px}
-        #results {padding-top:20px; margin:0pt auto; text-align:center; font-weight:bold}
+        body {font-family:arial,sans-serif}
+        #title {font-family:"Times New Roman","Times Roman",TimesNR,times,serif; font-size:28px; font-weight:bold}
+        #version {font-size:87%%}
+        #weblink {font-style:italic; padding-top:7px; padding-bottom:7px}
+        #results {padding-top:20px; margin:0pt; font-weight:bold;}
         #testindicator {width:750px; height:16px; border-style:solid; border-width:2px 1px 1px 2px; background-color:#f8f8f8;}
-        #footerarea {text-align:center; font-size:83%%; padding-top:25px}
+        #footerarea {font-size:83%%; padding-top:25px}
         #errorarea {padding-top:25px}
-        .error {border-color: #c3d9ff; border-style: solid; border-width: 2px 1px 2px 1px; width:750px; padding:1px; margin:0pt auto; text-align:left}
+        .error {border-color: #c3d9ff; border-style: solid; border-width: 2px 1px 2px 1px; padding:1px; margin:0pt; text-align:left}
         .errtitle {background-color:#c3d9ff; font-weight:bold}
+        pre {
+        white-space: pre-wrap;       /* css-3 */
+        white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+        white-space: -pre-wrap;      /* Opera 4-6 */
+        white-space: -o-pre-wrap;    /* Opera 7 */
+        word-wrap: break-word;       /* Internet Explorer 5.5+ */
+        }
     </style>
     <script language="javascript" type="text/javascript">
         var testsToRun = %s;
@@ -494,6 +552,7 @@ _MAIN_PAGE_CONTENT = """
                 }
                 if (xmlHttp.status == 200) {
                     var result = eval("(" + xmlHttp.responseText + ")");
+
                     totalRuns += parseInt(result.runs);
                     totalErrors += result.errors.length;
                     totalFailures += result.failures.length;

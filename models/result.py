@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2008 Google Inc.
 #
@@ -6,7 +6,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http:#www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an 'AS IS' BASIS,
@@ -19,10 +19,11 @@ import sys
 
 from google.appengine.ext import db
 from google.appengine.api import memcache
+from google.appengine.api.labs import taskqueue
 
 from categories import all_test_sets
 from categories import test_set_base
-from models import user_agent
+from models import result_stats
 from models.user_agent import UserAgent
 
 import settings
@@ -33,13 +34,11 @@ class ResultTime(db.Model):
   score = db.IntegerProperty()
   dirty = db.BooleanProperty(default=True)
 
-  def increment_all_counts(self):
-    logging.info('ResultTime.increment_all_counts for test: %s, score: %s' %
+  def UpdateStats(self):
+    logging.info('ResultTime.UpdateStats for test: %s, score: %s' %
                  (self.test, self.score))
     for ranker in self.GetOrCreateRankers():
       ranker.Add(self.score)
-    self.dirty = False
-    self.put()
 
   def GetOrCreateRankers(self):
     parent = self.parent()
@@ -47,10 +46,10 @@ class ResultTime(db.Model):
     test = test_set.GetTest(self.test)
     if test:
       params_str = parent.params_str or None
-      for user_agent_string in parent.get_user_agent_list():
-        yield test.GetOrCreateRanker(user_agent_string, params_str)
+      return test.GetOrCreateRankers(parent.GetBrowsers(), params_str)
     else:
       logging.warn('Test key not found in test_set: %s', self.test)
+      return []
 
 
 class ResultParent(db.Expando):
@@ -67,17 +66,9 @@ class ResultParent(db.Expando):
   params_str = db.StringProperty(default=None)
 
   @classmethod
-  def GetMemcacheKey(cls, category, user_agent):
-    memcache_ua_key = '%s_%s' % (category, user_agent)
-    if category in settings.CATEGORIES_BETA:
-      memcache_ua_key += '_beta'
-    return memcache_ua_key
-
-
-  @classmethod
   def AddResult(cls, test_set, ip, user_agent_string, results_str,
-                is_import=False, params_str=None, js_user_agent_string=None,
-                **kwds):
+                is_import=False, params_str=None,
+                js_user_agent_string=None, **kwds):
     """Create result models and stores them as one transaction.
 
     Args:
@@ -85,6 +76,8 @@ class ResultParent(db.Expando):
       ip: a string to store as the user's IP. This should be hashed beforehand.
       user_agent_string: the http user agent string.
       results_str: a string like 'test1=time1,test2=time2,[...]'.
+      is_import: if True, skip checking test_keys and do not mark dirty.
+      params_str: a string representation of test_set_params.Params.
       js_user_agent_string: chrome frame ua string from client-side JavaScript.
       kwds: optional fields including 'loader_id'.
     Returns:
@@ -102,7 +95,7 @@ class ResultParent(db.Expando):
                  user_agent=user_agent,
                  params_str=params_str, **kwds)
     try:
-      results = test_set.GetResults(results_str, is_import)
+      results = test_set.GetResults(results_str, ignore_key_errors=is_import)
     except test_set_base.ParseResultsKeyError, e:
       logging.warn(e)
       return None
@@ -110,102 +103,72 @@ class ResultParent(db.Expando):
       logging.warn('Results string with bad value(s): %s', results_str)
       return None
 
-    for result in results:
-      if 'expando' in result:
+    for test_key, values in results.items():
+      if 'expando' in values:
         # test_set.GetResults may add 'expando' value; save it on the parent.
-        parent.__setattr__(result['key'], result['expando'])
+        parent.__setattr__(test_key, values['expando'])
 
     def _AddResultInTransaction():
       parent.put()
-      for result in results:
+      for test_key, values in results.items():
         db.put(ResultTime(parent=parent,
-                          test=result['key'],
-                          score=result['score'],
+                          test=test_key,
+                          score=values['raw_score'],
                           dirty=not is_import))
     db.run_in_transaction(_AddResultInTransaction)
+    parent.ScheduleDirtyUpdate(parent.key())
     return parent
 
-  def invalidate_ua_memcache(self):
-    ua_string_list = self.get_user_agent_list()
-    memcache_ua_keys = [ResultParent.GetMemcacheKey(self.category, user_agent)
-                        for user_agent in ua_string_list]
-    logging.debug('invalidate_ua_memcache, memcache_ua_keys: %s, %s' %
-                  (memcache_ua_keys, ua_string_list))
-    memcache.delete_multi(keys=memcache_ua_keys, seconds=0,
-                          namespace=settings.STATS_MEMCACHE_UA_ROW_NS)
+  @classmethod
+  def ScheduleDirtyUpdate(cls, result_parent_key):
+    task = taskqueue.Task(
+        method='GET', params={'result_parent_key': result_parent_key})
+    task.add(queue_name='update-dirty')
 
-  def increment_all_counts(self):
+  @classmethod
+  def UpdateStatsFromDirty(cls, dirty_query):
+    """Aggregate the results of dirty ResultTime's.
+
+    Args:
+      dirty_query: a DirtyResultTimesQuery instance
+    """
+    dirty_result_times = dirty_query.Fetch()
+    logging.info('dirty_result_times: %s' % dirty_result_times)
+    if dirty_result_times:
+      result_parent = dirty_result_times[0].parent()
+      logging.info('ResultParent category: %s, ua: %s' %
+                   (result_parent.category, result_parent.user_agent.pretty()))
+      is_stats_update_needed = (result_parent.category in settings.CATEGORIES or
+                                settings.BUILD != 'production')
+      if not is_stats_update_needed:
+        logging.info('Skipping UpdateStats for result_times.')
+      for result_time in dirty_result_times:
+        if is_stats_update_needed:
+          result_time.UpdateStats()
+        result_time.dirty = False
+      db.put(dirty_result_times)
+      if is_stats_update_needed and dirty_query.IsResultParentDone():
+        logging.info('Scheduling CategoryUpdate(%s, %s)',
+                     result_parent.category, result_parent.user_agent.pretty())
+        result_stats.ScheduleCategoryUpdate(
+            result_parent.category, result_parent.user_agent)
+
+  def UpdateStatsNonProduction(self):
     """This is not efficient enough to be used in prod."""
-    result_times = self.get_result_times_as_query()
+    result_times = self.GetResultTimes()
     for result_time in result_times:
-      #logging.debug('ResultTime key is %s ' % (result_time.key()))
-      #logging.debug('w/ ua: %s' %  result_time.parent().user_agent)
-      result_time.increment_all_counts()
+      result_time.UpdateStats()
 
-  def get_result_times_as_query(self):
+  def ResultTimesQuery(self):
     return ResultTime.all().ancestor(self)
 
-  def get_result_times(self):
-    """As long as a parent has less than 1000 result times,
-       this will return them all.
-    """
-    return self.get_result_times_as_query().fetch(1000, 0)
+  def GetResultTimes(self):
+    return self.ResultTimesQuery().fetch(1000)
 
-  def get_user_agent_list(self):
-    """Get user_agent string list."""
+  def GetResults(self):
+    """Return a dict of scores indexed by test key names."""
+    return dict((x.test, x.score) for x in self.GetResultTimes())
+
+  def GetBrowsers(self):
+    """Get browser list (e.g. ['Firefox', 'Firefox 3', 'Firefox 3.5])."""
     return self.user_agent.get_string_list()
-
-  def get_score_and_display(self):
-    """Gets a row score for this ResultParent data set from the test_set.
-    """
-    # look in memcache first
-    memcache_key = str(self.key())
-    score_ns = 'SCORE_DISPLAY'
-
-    score_display = memcache.get(memcache_key, score_ns)
-    if score_display:
-      row_score = score_display['score']
-      row_display = score_display['display']
-      logging.info('get_score_and_display memcache for score: %s, display: %s' %
-                   (row_score, row_display))
-    else:
-      test_set = all_test_sets.GetTestSet(self.category)
-      result_times = self.get_result_times()
-      #logging.info('cat: %s, test_set: %s, %s' %
-      #             (self.category, test_set, len(result_times)))
-
-      results = {}
-      medians = {}
-      visible_tests = []
-      for result_time in result_times:
-        #logging.info('result_time.test: %s, .score: %s, key: %s' %
-        #             (result_time.test, result_time.score, result_time.key()))
-        medians[result_time.test] = result_time.score
-        test = test_set.GetTest(result_time.test)
-        if test is None:
-          continue
-        if not hasattr(test, 'is_hidden_stat') or not test.is_hidden_stat:
-          visible_tests.append(test)
-
-      for test in visible_tests:
-        score, display = base.util.GetScoreAndDisplayValue(
-            test, medians[test.key], medians)
-        #logging.info('%s score %s, display: %s' % (test.key, score, display))
-        results[test.key] = {
-          'score': score,
-          'median': medians[test.key],
-          'display': display
-        }
-      row_score, row_display = test_set.GetRowScoreAndDisplayValue(results)
-      #logging.info('get_score_and_display, row_score: %s, row_display: %s' %
-      #             (row_score, row_display))
-      score_display = {
-        'score': row_score,
-        'display': row_display
-      }
-      memcache.set(key=memcache_key, value=score_display, time=300,
-          namespace=score_ns)
-      logging.info('set memcache for key: %s, score: %s, display: %s' %
-                   (memcache_key, score, display))
-
-    return row_score, row_display

@@ -97,3 +97,18 @@ def as_range(end_range):
 @register.filter
 def utc_to_pst(utc_dt):
   return utc_dt - timedelta(hours=8)
+
+@register.filter
+def scale_100_to_10(value):
+  """Convert a value from 0-100 range to 0-10 range.
+
+  Args:
+    value: an integer from 0 to 100.
+  Returns:
+    an integer from 0 to 10
+  """
+  value = int(value or 0)
+  if value == 0:
+    return 0
+  else:
+    return max(1, (int(value) + 5) / 10)
