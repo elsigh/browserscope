@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2008 Google Inc.
 #
@@ -6,7 +6,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http:#www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an 'AS IS' BASIS,
@@ -39,13 +39,13 @@ class TestCategories(unittest.TestCase):
     self.assertEqual(settings.CATEGORIES,
                      [x.category for x in all_test_sets.GetTestSets()])
 
-  # TODO(slamm): Re-enable? This test was failing for "Selectors API" w/
-  # AssertionError: 'Css selectors' != 'CSS Selectors'
-  #def testCategoryNamesCapitalized(self):
-    #for test_set in all_test_sets.GetTestSets():
+  def testCategoryNamesCapitalized(self):
+    for test_set in all_test_sets.GetTestSets():
       # Make sure category name is a string and that it is capitalized.
-      #self.assertEqual(test_set.category_name.capitalize(),
-      #                 test_set.category_name)
+      self.assertEqual(
+          ' '.join(['%s%s' % (x[0].capitalize(), x[1:])
+                    for x in test_set.category_name.split(' ')]),
+          test_set.category_name)
 
   def testTestsDefinedWithRequireAttributes(self):
     for test_set in all_test_sets.GetTestSets():
@@ -82,24 +82,20 @@ class TestCanBeacon(unittest.TestCase):
     self.client = Client()
 
   def testBeacon(self):
-    for category in settings.CATEGORIES:
-      test_set = all_test_sets.GetTestSet(category)
+    for test_set in all_test_sets.GetTestSets():
+      category = test_set.category
       csrf_token = self.client.get('/get_csrf').content
       # Constructs a reasonably random result set
-      results = []
-      for test in test_set.tests:
-        if test.score_type == 'boolean':
-          score = random.randrange(0, 1)
-        elif test.score_type == 'custom':
-          score = random.randrange(5, 2000)
-        results.append('%s=%s' % (test.key, score))
-
+      results = [
+          '%s=%s' % (test.key, random.randrange(test.min_value, test.max_value))
+          for test in test_set.tests]
       params = {
         'category': category,
         'results': ','.join(results),
         'csrf_token': csrf_token,
       }
       response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
+      self.assertEqual('', response.content)
       self.assertEqual(204, response.status_code)
 
       # Did a ResultParent get created?
@@ -109,6 +105,5 @@ class TestCanBeacon(unittest.TestCase):
       self.assertNotEqual(result_parent, None)
 
       # Were the right number of ResultTimes created?
-      result_times = result_parent.get_result_times()
+      result_times = result_parent.GetResultTimes()
       self.assertEqual(len(test_set.tests), len(result_times))
-

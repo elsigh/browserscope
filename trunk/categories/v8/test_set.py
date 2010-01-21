@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2009 Google Inc.
 #
@@ -33,32 +33,16 @@ class V8Test(test_set_base.TestBase):
     Args:
       key: key for this in dict's
       name: a human readable label for display
-      url_name: the name used in the url
-      score_type: 'boolean' or 'custom'
       doc: a description of the test
-      value_range: (min_value, max_value) as integer values
-      is_hidden_stat: whether or not the test shown in the stats table
     """
     test_set_base.TestBase.__init__(
         self,
         key=key,
         name=name,
         url=self.TESTS_URL_PATH,
-        score_type='custom',
         doc=doc,
         min_value=0,
         max_value=60000)
-
-  def GetScoreAndDisplayValue(self, median):
-    """Returns a tuple with display text for the cell as well as a 1-100 value.
-    """
-    if median == None or median == '':
-      return 0, ''
-
-    median = int(median)
-    score = median
-    display = median
-    return score, display
 
 
 _TESTS = (
@@ -89,7 +73,28 @@ _TESTS = (
   ),
 )
 
-TEST_SET = test_set_base.TestSet(
+
+class V8TestSet(test_set_base.TestSet):
+
+  def GetTestScoreAndDisplayValue(self, test, raw_scores):
+    """Get a normalized score (0 to 100) and a value to output to the display.
+
+    Args:
+      test_key: a key for a test_set test.
+      raw_scores: a dict of raw_scores indexed by test keys.
+    Returns:
+      score, display_value
+          # score is from 0 to 100.
+          # display_value is the text for the cell.
+    """
+    raw_score = raw_scores.get(test_key, None)
+    if raw_score:
+      return raw_score, raw_score
+    else:
+      return 0, ''
+
+
+TEST_SET = V8TestSet(
     category=_CATEGORY,
     category_name='V8 Benchmark',
     subnav={

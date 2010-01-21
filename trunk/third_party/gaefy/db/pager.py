@@ -57,6 +57,7 @@ from cgi import parse_qsl
 from datetime import datetime
 
 from google.appengine.ext import db
+from google.appengine.ext.db import polymodel
 from google.appengine.ext.search import SearchableQuery, SearchableMultiQuery
 from google.appengine.api import datastore_errors
 
@@ -250,12 +251,12 @@ class PagerQuery(object):
 
         return (prev, res, next)
 
-    def get_bookmark(self, entity):
+    def get_bookmark(self, entity_or_key):
         """Return a bookmark for the given entity.
 
         The bookmark may be used to fetch results after the given entity.
         """
-        return encode_bookmark(self._get_bookmark_values(entity))
+        return encode_bookmark(self._get_bookmark_values(entity_or_key))
 
     def _fetch_from_bookmark(self, limit, bookmark):
         """Fetches results resuming a query from a bookmark. This may require
@@ -320,8 +321,12 @@ class PagerQuery(object):
         Returns:
           A google.appengine.ext.db.Query instance.
         """
-        query = self.__class__._query_class(self._model_class,
-            keys_only=self._keys_only)
+        #query = self.__class__._query_class(self._model_class,
+        #    keys_only=self._keys_only)
+        if issubclass(self._model_class, polymodel.PolyModel):
+            query = self._model_class.all()
+        else:
+            query = self._model_class.all(keys_only=self._keys_only)
 
         if self._ancestor:
             query.ancestor(self._ancestor)
@@ -338,7 +343,7 @@ class PagerQuery(object):
 
         return query
 
-    def _get_bookmark_values(self, entity):
+    def _get_bookmark_values(self, entity_or_key):
         """Returns a dictionary to build a bookmark. The properties used are
         the filter inequalities and the query sort orders, plus the entity key
         and the key_name or id of the very first result of the first page.
@@ -346,11 +351,13 @@ class PagerQuery(object):
         Returns:
           A dictionary of property names/values to build a bookmark.
         """
-        if self._keys_only:
+        if hasattr(entity_or_key, 'key'):
+            entity = entity_or_key
+        else:
             # When fetching only keys, we still need to get an entity to
             # build the bookmark.
-            entity = self._model_class.get(entity)
-
+            key = entity_or_key
+            entity = self._model_class.get(key)
         values = {}
         for prop_name in self._bookmark_properties:
             if prop_name == '__key__':
@@ -362,6 +369,7 @@ class PagerQuery(object):
                     values[prop_name] = str(value.key())
                 else:
                     values[prop_name] = str(value)
+
         if self._first_result:
             values['_'] = str(self._first_result)
 

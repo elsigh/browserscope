@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2009 Google Inc.
 #
@@ -19,6 +19,7 @@
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
 
+import logging
 import settings
 
 
@@ -51,5 +52,6 @@ def AddTestSet(test_set):
 
 def _ImportTestSet(category):
   """Modules that define tests must add them."""
+  logging.debug('Import category test_set: %s', category)
   return __import__('categories.%s.test_set' % category,
                     globals(), locals(), [category]).TEST_SET

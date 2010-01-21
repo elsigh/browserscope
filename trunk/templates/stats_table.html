@@ -9,13 +9,11 @@
               <input type="hidden" name="category" value="{{ category }}">
               <input type="hidden" name="{{ category }}_results" value="{{ results_uri_string }}">
               <select name="v">
-                {% for tuple in browser_nav %}
-                  {% with tuple|by_key:0 as version %}
+                {% for version, version_label in browser_nav %}
                     <option
                       value="{{ version }}"
                       {% ifequal v version %}selected="selected"{% endifequal %}
-                      >{{ tuple|by_key:1 }}</option>
-                  {% endwith %}
+                      >{{ version_label }}</option>
                 {% endfor %}
               </select>
               <input class="rt-v-s" type="submit" value="go">
@@ -24,9 +22,9 @@
           <span>name</span>
         </th>
         <th class="rt-ua-s-d">
-          {% ifequal category "acid3" %}{% else %}
+          {% ifnotequal category "acid3" %}
             score
-          {% endifequal %}
+          {% endifnotequal %}
         </th>
 
         {% for test in tests %}
@@ -39,8 +37,8 @@
     </thead>
     <tbody>
       {% for user_agent in user_agents %}
-        {% if stats|by_key:user_agent|by_key:"current_results" %}
-          {% with stats|by_key:user_agent|by_key:"current_results" as results %}
+        {% with stats|by_key:user_agent|by_key:"current_results" as results %}
+          {% if results %}
             <tr class="rt-ua-s-hdr rt-ua-s-r">
               <td class="rt-ua">Your Test Results &darr;</td>
               <td class="rt-ua-s-d"></td>
@@ -49,32 +47,32 @@
             <tr class="rt-res">
               <td
                 scope="row"
-                class="rt-ua
-                       rt-ua-s-{{ stats|by_key:user_agent|by_key:"current_score" }}">
+                class="rt-ua rt-ua-s-{{ stats|by_key:user_agent|by_key:"current_score"|scale_100_to_10 }}">
                 <span class="bs-cur-ua goog-inline-block"></span>
                 <span class="rt-cur-ua">{{ user_agent }}</span>
               </td>
               <td
-                class="rt-ua-s-d
-                       rt-ua-s-{{ stats|by_key:user_agent|by_key:"current_score" }}">
+                class="rt-ua-s-d rt-ua-s-{{ stats|by_key:user_agent|by_key:"current_score"|scale_100_to_10 }}">
                 {{ stats|by_key:user_agent|by_key:"current_display" }}
               </td>
               {% for test in tests %}
                 <td
                   align="{{ test.cell_align }}"
-                  class="rt-t-s-{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"score" }}"
-                  >{{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"display" }}
+                  class="rt-t-s-{{ results|by_key:test.key|by_key:"score"|scale_100_to_10 }}"
+                  >{{ results|by_key:test.key|by_key:"display" }}
                   {% if is_admin %}
-                    {% if stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"expando" %}
-                      <small>({{ stats|by_key:user_agent|by_key:"current_results"|by_key:test.key|by_key:"expando" }}ms)</small>
-                    {% endif %}
+                    {% with results|by_key:test.key|by_key:"expando" as expando %}
+                      {% if expando %}
+                        <small>({{ expando }}ms)</small>
+                      {% endif %}
+                    {% endwith %}
                   {% endif %}
                 </td>
               {% endfor %}
               <td class="rt-tot"></td>
             </tr>
-          {% endwith %}
-        {% endif %}
+          {% endif %}
+        {% endwith %}
 
         {% if stats|by_key:user_agent|by_key:"results" %}
           <tr
@@ -89,7 +87,7 @@
             >
             <td
               scope="row"
-              class="rt-ua rt-ua-s-{{ stats|by_key:user_agent|by_key:"score" }}">
+              class="rt-ua rt-ua-s-{{ stats|by_key:user_agent|by_key:"summary_score"|scale_100_to_10 }}">
               {% ifequal user_agent current_user_agent %}
                 <span class="bs-cur-ua goog-inline-block"></span>
               {% endifequal %}
@@ -107,27 +105,22 @@
             </td>
 
             <td
-              class="rt-ua-s-d
-                     rt-ua-s-{{ stats|by_key:user_agent|by_key:"score" }}">
-              {{ stats|by_key:user_agent|by_key:"display" }}
+              class="rt-ua-s-d rt-ua-s-{{ stats|by_key:user_agent|by_key:"summary_score"|scale_100_to_10 }}">
+              {{ stats|by_key:user_agent|by_key:"summary_display" }}
             </td>
 
             {% for test in tests %}
               <td
                 align="{{ test.cell_align }}"
-                class="rt-t-s-{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"score" }}"
+                class="rt-t-s-{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"score"|scale_100_to_10 }}"
                 >{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"display" }}
               </td>
             {% endfor %}
             <td class="rt-tot">
               {% if stats|by_key:user_agent|by_key:"current_results" %}
-                {% if stats|by_key:user_agent|by_key:"total_runs" %}
-                  {{ stats|by_key:user_agent|by_key:"total_runs"|add:1 }}
-                {% else %}
-                  0
-                {% endif %}
+                {{ stats|by_key:user_agent|by_key:"total_runs"|default:0|add:1 }}
               {% else %}
-                {{ stats|by_key:user_agent|by_key:"total_runs" }}
+                {{ stats|by_key:user_agent|by_key:"total_runs"|default:0 }}
               {% endif %}
             </td>
           </tr>

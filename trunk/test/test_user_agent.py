@@ -1,4 +1,4 @@
-#!/usr/bin/python2.4
+#!/usr/bin/python2.5
 #
 # Copyright 2008 Google Inc.
 #
@@ -6,7 +6,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http:#www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an 'AS IS' BASIS,
@@ -62,6 +62,22 @@ class UserAgentTest(unittest.TestCase):
     ua_string = 'SomethingWeNeverKnewExisted'
     self.assertEqual(('Other', None, None, None), UserAgent.parse(ua_string))
 
+  def test_parse_pretty(self):
+    browsers = (
+        ('Chrome Frame (IE 6) 4.0.223', ('Chrome Frame (IE 6)', '4', '0', '223')),
+        ('Firefox 3.0', ('Firefox', '3', '0', None)),
+        ('Firefox 3.0pre', ('Firefox', '3', '0pre', None)),
+        ('Firefox 3.0b5', ('Firefox', '3', '0b5', None)),
+        ('Firefox (Shiretoko) 3.5.6pre', ('Firefox (Shiretoko)', '3', '5', '6pre')),
+        ('Firefox 3.5.4', ('Firefox', '3', '5', '4')),
+        ('Opera Mini 5.0.16875', ('Opera Mini', '5', '0', '16875')),
+        ('OLPC 0', ('OLPC', '0', None, None)),
+        ('Sony Ericsson K800i', ('Sony Ericsson K800i', None, None, None)),
+        ('Space Bison 0.02', ('Space Bison', '0', '02', None)),
+        ('Teleca Q7', ('Teleca Q7', None, None, None)),
+        )
+    for browser, parts in browsers:
+      self.assertEqual(parts, UserAgent.parse_pretty(browser))
 
   def test_get_string_list(self):
     ua_string = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
@@ -113,127 +129,8 @@ class UserAgentTest(unittest.TestCase):
                      UserAgent.parse_to_string_list('Chrome 5.4.3'))
 
     self.assertEqual(
-        ['Safari', 'Safari 100', 'Safari 100.33', 'Safari 100.33preA4'],
+        ['Safari', 'Safari 100', 'Safari 100.33preA4'],
         UserAgent.parse_to_string_list('Safari 100.33preA4'))
-
-
-
-class UserAgentGroupTest(unittest.TestCase):
-
-  def setUp(self):
-    for version_level, _ in BROWSER_NAV:
-      UserAgentGroup.ClearMemcache(version_level)
-
-    user_agent_strings = [
-        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-        'Gecko/2009011912 Firefox/2.5.1'),
-        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-        'Gecko/2009011912 Firefox/3.0.7'),
-        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-         'Gecko/2009011912 Firefox/3.1.8'),
-        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-         'Gecko/2009011912 Firefox/3.1.8'),
-        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-         'Gecko/2009011912 Firefox/3.1.7'),
-        ('Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; '
-         '.NET CLR 2.0.50727; .NET CLR 1.1.4322; .NET CLR 3.0.04506.648;'
-         '.NET CLR 3.5.21022)'),
-        ]
-    for user_agent_string in user_agent_strings:
-      user_agent = UserAgent.factory(user_agent_string)
-      user_agent.update_groups()
-
-  def test_update_groups_version_level_zero(self):
-    self.assertEqual(
-        ['Firefox', 'IE'],
-        UserAgentGroup.GetStrings(version_level=0))
-
-  def test_update_groups_version_level_one(self):
-    self.assertEqual(
-        ['Firefox 2', 'Firefox 3', 'IE 7'],
-        UserAgentGroup.GetStrings(version_level=1))
-
-  def test_update_groups_version_level_two(self):
-    self.assertEqual(
-        ['Firefox 2.5', 'Firefox 3.0', 'Firefox 3.1', 'IE 7.0'],
-        UserAgentGroup.GetStrings(version_level=2))
-
-  def test_update_groups_version_level_three(self):
-    # This also tests that the order comes out the way we'd want even though
-    # they didn't go in in that order.
-    self.assertEqual(
-        ['Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8',
-         'IE 7.0'],
-        UserAgentGroup.GetStrings(version_level=3))
-
-
-class UserAgentGroupWithFilterText(unittest.TestCase):
-  def setUp(self):
-    for version_level, _ in BROWSER_NAV:
-      UserAgentGroup.ClearMemcache(version_level)
-
-    user_agent_strings = [
-        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-        'Gecko/2009011912 Firefox/2.5.1'),
-        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-        'Gecko/2009011912 Firefox/3.0.7'),
-        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-         'Gecko/2009011912 Firefox/3.1.8'),
-        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-         'Gecko/2009011912 Firefox/3.1.8'),
-        ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-         'Gecko/2009011912 Firefox/3.1.7'),
-        ('Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; '
-         '.NET CLR 2.0.50727; .NET CLR 1.1.4322; .NET CLR 3.0.04506.648;'
-         '.NET CLR 3.5.21022)'),
-        ('Opera/9.70 (Linux ppc64 ; U; en) Presto/2.2.1'),
-        ('Opera/9.50 (J2ME/MIDP; Opera Mini/4.0.10031/298; U; en)'),
-
-        ]
-    for user_agent_string in user_agent_strings:
-      user_agent = UserAgent.factory(user_agent_string)
-      user_agent.update_groups()
-
-  def test_get_strings_with_user_agent_filter_family(self):
-    self.assertEqual(
-        ['Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8'],
-        UserAgentGroup.GetStrings(version_level='top',
-                                  user_agent_filter='Firefox'))
-    self.assertEqual(
-        ['Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8'],
-        UserAgentGroup.GetStrings(version_level=0, user_agent_filter='Firefox'))
-    self.assertEqual(
-        ['Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8'],
-        UserAgentGroup.GetStrings(version_level=1, user_agent_filter='Firefox'))
-    self.assertEqual(
-        ['Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8'],
-        UserAgentGroup.GetStrings(version_level=2, user_agent_filter='Firefox'))
-    self.assertEqual(
-        ['Opera 9.70'],
-        UserAgentGroup.GetStrings(version_level=2, user_agent_filter='Opera'))
-    self.assertEqual(
-        ['Opera Mini 4.0.10031'],
-        UserAgentGroup.GetStrings(version_level=2,
-                                  user_agent_filter='Opera Mini'))
-    self.assertEqual(
-        ['IE 7.0'],
-        UserAgentGroup.GetStrings(version_level=2, user_agent_filter='IE'))
-
-  def test_get_strings_with_user_agent_filter_one(self):
-    self.assertEqual(
-        ['Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8'],
-        UserAgentGroup.GetStrings(version_level=2,
-                                  user_agent_filter='Firefox 3'))
-
-  def test_get_strings_with_user_agent_filter_two(self):
-    self.assertEqual(
-        ['Firefox 3.1.7', 'Firefox 3.1.8'],
-        UserAgentGroup.GetStrings(version_level=1,
-                                  user_agent_filter='Firefox 3.1'))
-    self.assertEqual(
-        ['Firefox 3.0.7'],
-        UserAgentGroup.GetStrings(version_level=1,
-                                  user_agent_filter='Firefox 3.0'))
 
 
 class ChromeFrameTest(unittest.TestCase):
