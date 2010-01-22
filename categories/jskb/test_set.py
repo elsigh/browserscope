@@ -51,7 +51,6 @@ class JskbTest(test_set_base.TestBase):
         max_value=2200,  # TODO(mikesamuel): what is a sensible max value?
         is_hidden_stat=is_hidden_stat)
 
-
 def rate_display(display, good):
   # TODO(mikesamuel): 3 scores chosen because of the pretty colors they make
   if good is not None:
@@ -105,28 +104,27 @@ class JskbTestSet(test_set_base.TestSet):
     """
     test_scores = [x.split('=') for x in str(results_str).split(',')]
     test_keys = sorted([x[0] for x in test_scores])
-
-    group_keys = [group[0][ecmascript_snippets.NAME]
-                  for group in ecmascript_snippets.SNIPPET_GROUPS]
+    group_keys = sorted(group[0][ecmascript_snippets.NAME]
+                        for group in ecmascript_snippets.SNIPPET_GROUPS)
     if test_keys == group_keys:
       # A packed format is used for showing results on the home page.
       parsed_results = {}
       for group_key, values in test_scores:
         group = self.GetTest(group_key)
         values = int(values)
+        parsed_results[group_key] = {'raw_score': values}
         for member in group.group_members:
           parsed_results[member.key] = {'raw_score': values % 100}
           values /= 100
-      test_scores = unpacked_test_scores
     elif test_keys == self._test_keys:
       try:
         parsed_results = dict([(key, {'raw_score': int(score)})
                                for key, score in test_scores])
       except ValueError:
-        raise ParseResultsValueError
+        raise test_set_base.ParseResultsValueError
     else:
-      raise ParseResultsKeyError(expected=self._test_keys, actual=test_keys)
-
+      raise test_set_base.ParseResultsKeyError(expected=self._test_keys,
+                                               actual=test_keys)
     return parsed_results
 
   def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
@@ -151,6 +149,7 @@ class JskbTestSet(test_set_base.TestSet):
       for member in group_members:
         snippet = ecmascript_snippets.with_name(member.key)
         member_median = raw_scores.get(member.key)
+        logging.info('member median: %s=%s', member.key, member_median)
         if member_median is not None:
           score, display = self.GetTestScoreAndDisplayValue(
               member.key, raw_scores)

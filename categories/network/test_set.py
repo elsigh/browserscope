@@ -189,7 +189,9 @@ class NetworkTestSet(test_set_base.TestSet):
           # display_value is the text for the cell.
     """
     score = 0
-    raw_score = raw_scores.get(test_key, 0)
+    raw_score = raw_scores.get(test_key, None)
+    if raw_score is None:
+      return 0, ''
     if test_key == 'hostconn':
       if raw_score > 2:
         score = 100

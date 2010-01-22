@@ -251,10 +251,10 @@ class TestSet(object):
       if num_scores:
         total_runs = max(total_runs, num_scores[test_key])
       raw_score = raw_scores.get(test_key)
-      if raw_score is None:
-        score, display = 0, ''
-      elif self.IsBooleanTest(test_key):
-        if raw_score:
+      if self.IsBooleanTest(test_key):
+        if raw_score is None:
+          score, display = 0, ''
+        elif raw_score:
           score, display = 100, settings.STATS_SCORE_TRUE
         else:
           score, display = 1, settings.STATS_SCORE_FALSE
