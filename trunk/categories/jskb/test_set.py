@@ -149,7 +149,6 @@ class JskbTestSet(test_set_base.TestSet):
       for member in group_members:
         snippet = ecmascript_snippets.with_name(member.key)
         member_median = raw_scores.get(member.key)
-        logging.info('member median: %s=%s', member.key, member_median)
         if member_median is not None:
           score, display = self.GetTestScoreAndDisplayValue(
               member.key, raw_scores)
