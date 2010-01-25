@@ -178,5 +178,20 @@ class TestUtilFunctions(unittest.TestCase):
     self.assertFalse(util.CheckThrottleIpAddress(ip, ua_string))
 
 
+class TestClearMemcache(unittest.TestCase):
+  def setUp(self):
+    self.client = Client()
+
+  def tearDown(self):
+    memcache.flush_all()
+
+  def testClearMemcacheRecentTests(self):
+    memcache.set(util.RECENT_TESTS_MEMCACHE_KEY, 'foo')
+    params = {'recent': 1}
+    response = self.client.get('/clear_memcache', params)
+    recent_tests = memcache.get(util.RECENT_TESTS_MEMCACHE_KEY)
+    self.assertEqual(None, recent_tests)
+    self.assertEqual(200, response.status_code)
+
 if __name__ == '__main__':
   unittest.main()
