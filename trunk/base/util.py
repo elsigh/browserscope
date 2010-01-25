@@ -398,35 +398,33 @@ def ClearMemcache(request):
     if recent:
       memcache.delete(RECENT_TESTS_MEMCACHE_KEY)
       message.append('Cleared memcache for recent tests.')
-
-    category = request.GET.get('category')
-    if category:
-      categories = category.split(',')
     else:
-      categories = settings.CATEGORIES
+      category = request.GET.get('category')
+      if category:
+        categories = category.split(',')
+      else:
+        categories = settings.CATEGORIES
 
-    browsers = []
-    ua = request.GET.get('ua')
-    version_level = request.GET.get('v')
-    if ua:
-      browsers = ua.split(',')
-      logging.info('browsers are: %s' % browsers)
-    elif not version_level:
-      return http.HttpResponse('Either pass in ua= or v=')
+      browsers = []
+      ua = request.GET.get('ua')
+      version_level = request.GET.get('v')
+      if ua:
+        browsers = ua.split(',')
+        logging.info('browsers are: %s' % browsers)
+      elif not version_level:
+        return http.HttpResponse('Either pass in ua= or v=')
 
-    logging.info('categories are: %s' % categories)
-    for category in categories:
-      if not browsers:
-        browsers = result_stats.CategoryBrowserManager.GetBrowsers(
-            category, version_level)
-        result_stats.CategoryBrowserManager.DeleteMemcacheValue(
-            category, version_level)
-      result_stats.CategoryStatsManager.DeleteMemcacheValues(
-          category, browsers)
-
-    message.append('Cleared memcache for categories: %s and browsers: %s' %
-                   (categories, browsers))
-
+      logging.info('categories are: %s' % categories)
+      for category in categories:
+        if not browsers:
+          browsers = result_stats.CategoryBrowserManager.GetBrowsers(
+              category, version_level)
+          result_stats.CategoryBrowserManager.DeleteMemcacheValue(
+              category, version_level)
+        result_stats.CategoryStatsManager.DeleteMemcacheValues(
+            category, browsers)
+      message.append('Cleared memcache for categories: %s and browsers: %s' %
+                     (categories, browsers))
   # All done.
   if continue_url:
     if not re.search('\?', continue_url):
