@@ -435,7 +435,7 @@ class ExecuteImmediatelyTaskQueueService(taskqueue_stub.TaskQueueServiceStub):
         for queue in self.GetQueues():
             queue_name = queue['name']
             for task in self.GetTasks(queue_name):
-                headers = task['headers']
+                content_type = dict(task['headers'])['Content-Type']
                 c = client.Client()
                 if task['method'] == 'GET':
                     try:
@@ -449,7 +449,7 @@ class ExecuteImmediatelyTaskQueueService(taskqueue_stub.TaskQueueServiceStub):
                         url_parts[3] = ''
                         url = urlparse.urlunsplit(url_parts)
                         logging.info("Execute task immediately: GET %s, query=%s", url, query_data)
-                        c.get(url, query_data, content_type=headers['Content-Type'])
+                        c.get(url, query_data, content_type=content_type)
                     except:
                         import traceback
                         error = traceback.format_exc()
@@ -458,7 +458,7 @@ class ExecuteImmediatelyTaskQueueService(taskqueue_stub.TaskQueueServiceStub):
                 elif task['method'] == 'POST':
                     body = base64.b64decode(task['body'])
                     logging.info("Execute task immediately: POST %s, body=%s", task['url'], body)
-                    c.post(task['url'], data=body, content_type=task['headers']['Content-Type'])
+                    c.post(task['url'], data=body, content_type=content_type)
                 else:
                     raise NotImplementedError
             self.FlushQueue(queue_name)
