@@ -190,96 +190,90 @@ def DataDump(request):
   else:
     return http.HttpResponseBadRequest(
         'model must be one of "ResultParent", "UserAgent".')
-  try:
-    data = []
-    error = None
-    if model == 'ResultParent':
-      result_time_query = ResultTime.gql('WHERE ANCESTOR IS :1')
-      for result_parent_key in keys:
-        if (datetime.datetime.now() - start_time).seconds > time_limit:
-          error = 'Over time limit'
-          break
-        try:
-          p = ResultParent.get(result_parent_key)
-        except db.Timeout:
-          error = 'db.Timeout: ResultParent'
-          break
-        if not p:
-          data.append({
-            'model_class': 'ResultParent',
-            'lost_key': result_parent_key,
-            })
-          continue
-        result_time_query.bind(p.key())
-        try:
-          result_times = result_time_query.fetch(1000)
-        except db.Timeout:
-          error = 'db.Timeout: ResultTime'
-          break
-        row_data = [{
-            'model_class': 'ResultParent',
-            'result_parent_key': result_parent_key,
-            'category': p.category,
-            'user_agent_key': str(
-                ResultParent.user_agent.get_value_for_datastore(p)),
-            'ip': p.ip,
-            'user_id': p.user and p.user.user_id() or None,
-            'created': p.created and p.created.isoformat() or None,
-            'params_str': p.params_str,
-            'loader_id': hasattr(p, 'loader_id') and p.loader_id or None,
-            }]
-        is_dirty = False
-        for result_time in result_times:
-          if result_time.dirty:
-            is_dirty = True
-            break
-          row_data.append({
-              'model_class': 'ResultTime',
-              'result_time_key': str(result_time.key()),
-              'result_parent_key': str(result_parent_key),
-              'test': result_time.test,
-              'score': result_time.score,
-              })
-        if is_dirty:
-          data.append({'dirty_key': result_parent_key,})
-        else:
-          data.extend(row_data)
-    elif model == 'UserAgent':
+  data = []
+  error = None
+  if model == 'ResultParent':
+    result_time_query = ResultTime.gql('WHERE ANCESTOR IS :1')
+    for result_parent_key in keys:
+      if (datetime.datetime.now() - start_time).seconds > time_limit:
+        error = 'Over time limit'
+        break
       try:
-        user_agents = UserAgent.get(keys)
+        p = ResultParent.get(result_parent_key)
       except db.Timeout:
-        error = 'db.Timeout: UserAgent'
+        error = 'db.Timeout: ResultParent'
+        break
+      if not p:
+        data.append({
+          'model_class': 'ResultParent',
+          'lost_key': result_parent_key,
+          })
+        continue
+      result_time_query.bind(p.key())
+      try:
+        result_times = result_time_query.fetch(1000)
+      except db.Timeout:
+        error = 'db.Timeout: ResultTime'
+        break
+      row_data = [{
+          'model_class': 'ResultParent',
+          'result_parent_key': result_parent_key,
+          'category': p.category,
+          'user_agent_key': str(
+              ResultParent.user_agent.get_value_for_datastore(p)),
+          'ip': p.ip,
+          'user_id': p.user and p.user.user_id() or None,
+          'created': p.created and p.created.isoformat() or None,
+          'params_str': p.params_str,
+          'loader_id': hasattr(p, 'loader_id') and p.loader_id or None,
+          }]
+      is_dirty = False
+      for result_time in result_times:
+        if result_time.dirty:
+          is_dirty = True
+          break
+        row_data.append({
+            'model_class': 'ResultTime',
+            'result_time_key': str(result_time.key()),
+            'result_parent_key': str(result_parent_key),
+            'test': result_time.test,
+            'score': result_time.score,
+            })
+      if is_dirty:
+        data.append({'dirty_key': result_parent_key,})
       else:
-        for key, ua in zip(keys, user_agents):
-          if ua:
-            data.append({
-                'model_class': 'UserAgent',
-                'user_agent_key': key,
-                'string': ua.string,
-                'family': ua.family,
-                'v1': ua.v1,
-                'v2': ua.v2,
-                'v3': ua.v3,
-                'confirmed': ua.confirmed,
-                'created': ua.created and ua.created.isoformat() or None,
-                'js_user_agent_string': (hasattr(ua, 'js_user_agent_string') and
-                                         ua.js_user_agent_string or None),
-                })
-          else:
-            data.append({
-                'model_class': 'UserAgent',
-                'lost_key': key,
-                })
-    response_params = {
-        'data': data,
-        }
-    if error:
-      response_params['error'] = error
-  except Exception:
-    import traceback
-    error = traceback.format_exc()
-    logging.info("Uh-oh: %s", error)
-    return http.HttpResponse('bailing: %s' % error)
+        data.extend(row_data)
+  elif model == 'UserAgent':
+    try:
+      user_agents = UserAgent.get(keys)
+    except db.Timeout:
+      error = 'db.Timeout: UserAgent'
+    else:
+      for key, ua in zip(keys, user_agents):
+        if ua:
+          data.append({
+              'model_class': 'UserAgent',
+              'user_agent_key': key,
+              'string': ua.string,
+              'family': ua.family,
+              'v1': ua.v1,
+              'v2': ua.v2,
+              'v3': ua.v3,
+              'confirmed': ua.confirmed,
+              'created': ua.created and ua.created.isoformat() or None,
+              'js_user_agent_string': (hasattr(ua, 'js_user_agent_string') and
+                                       ua.js_user_agent_string or None),
+              })
+        else:
+          data.append({
+              'model_class': 'UserAgent',
+              'lost_key': key,
+              })
+  response_params = {
+      'data': data,
+      }
+  if error:
+    response_params['error'] = error
   return http.HttpResponse(content=simplejson.dumps(response_params),
                            content_type='application/json')
 
@@ -338,15 +332,11 @@ def UploadCategoryBrowsers(request):
     return http.HttpResponseServerError(
         'Must set "browsers" (comma-separated list).')
 
-  try:
-    version_level = int(version_level)
-    browsers = browsers_str.split(',')
-    result_stats.CategoryBrowserManager.SetBrowsers(
-        category, version_level, browsers)
-    return http.HttpResponse('Success.')
-  except:
-    error = traceback.format_exc()
-    return http.HttpResponseServerError(error)
+  version_level = int(version_level)
+  browsers = browsers_str.split(',')
+  result_stats.CategoryBrowserManager.SetBrowsers(
+      category, version_level, browsers)
+  return http.HttpResponse('Success.')
 
 
 def UpdateStatsCache(request):
@@ -361,12 +351,8 @@ def UpdateStatsCache(request):
     logging.info('UpdateStatsCache: Must set browsers.')
     return http.HttpResponseServerError('Must set "browsers" '
                                         '(comma-separated list).')
-  try:
-    browsers = browsers_str.split(',')
-    result_stats.CategoryStatsManager.UpdateStatsCache(category, browsers)
-  except:
-    error = traceback.format_exc()
-    return http.HttpResponseServerError(error)
+  browsers = browsers_str.split(',')
+  result_stats.CategoryStatsManager.UpdateStatsCache(category, browsers)
   return http.HttpResponse('Success.')
 
 

@@ -63,46 +63,42 @@ def UserAgentGroup(request):
 
 
 def UpdateRecentTests(request):
-  try:
-    max_recent_tests = 10
-    skip_categories = settings.CATEGORIES_INVISIBLE + settings.CATEGORIES_BETA
+  max_recent_tests = 10
+  skip_categories = settings.CATEGORIES_INVISIBLE + settings.CATEGORIES_BETA
 
-    prev_recent_tests = memcache.get(util.RECENT_TESTS_MEMCACHE_KEY)
-    prev_result_parent_key = None
-    if prev_recent_tests:
-      prev_result_parent_key = prev_recent_tests[0]['result_parent_key']
+  prev_recent_tests = memcache.get(util.RECENT_TESTS_MEMCACHE_KEY)
+  prev_result_parent_key = None
+  if prev_recent_tests:
+    prev_result_parent_key = prev_recent_tests[0]['result_parent_key']
 
-    recent_tests = []
-    recent_query = db.Query(ResultParent).order('-created')
-    for result_parent in recent_query.fetch(30):
-      if (settings.BUILD == 'production' and
-          result_parent.category in skip_categories):
-        continue
-      if str(result_parent.key()) == prev_result_parent_key:
-        num_needed = max_recent_tests - len(recent_tests)
-        if num_needed == max_recent_tests:
-          return http.HttpResponse('No update needed.')
-        else:
-          recent_tests.extend(prev_recent_tests[:num_needed])
-          break
-      recent_scores = result_parent.GetResults()
-      test_set = all_test_sets.GetTestSet(result_parent.category)
-      visible_test_keys = [t.key for t in test_set.VisibleTests()]
-      recent_stats = test_set.GetStats(visible_test_keys, recent_scores)
-      recent_tests.append({
-          'result_parent_key': str(result_parent.key()),
-          'category': result_parent.category,
-          'created': result_parent.created,
-          'user_agent_pretty': result_parent.user_agent.pretty(),
-          'score': recent_stats['summary_score'],
-          'display': recent_stats['summary_display'],
-          })
-      if len(recent_tests) >= max_recent_tests:
+  recent_tests = []
+  recent_query = db.Query(ResultParent).order('-created')
+  for result_parent in recent_query.fetch(30):
+    if (settings.BUILD == 'production' and
+        result_parent.category in skip_categories):
+      continue
+    if str(result_parent.key()) == prev_result_parent_key:
+      num_needed = max_recent_tests - len(recent_tests)
+      if num_needed == max_recent_tests:
+        return http.HttpResponse('No update needed.')
+      else:
+        recent_tests.extend(prev_recent_tests[:num_needed])
         break
+    recent_scores = result_parent.GetResults()
+    test_set = all_test_sets.GetTestSet(result_parent.category)
+    visible_test_keys = [t.key for t in test_set.VisibleTests()]
+    recent_stats = test_set.GetStats(visible_test_keys, recent_scores)
+    recent_tests.append({
+        'result_parent_key': str(result_parent.key()),
+        'category': result_parent.category,
+        'created': result_parent.created,
+        'user_agent_pretty': result_parent.user_agent.pretty(),
+        'score': recent_stats['summary_score'],
+        'display': recent_stats['summary_display'],
+        })
+    if len(recent_tests) >= max_recent_tests:
+      break
 
-    memcache.set(util.RECENT_TESTS_MEMCACHE_KEY, recent_tests,
-                 time=settings.STATS_MEMCACHE_TIMEOUT)
-  except:
-    error = traceback.format_exc()
-    return http.HttpResponseServerError(error)
+  memcache.set(util.RECENT_TESTS_MEMCACHE_KEY, recent_tests,
+               time=settings.STATS_MEMCACHE_TIMEOUT)
   return http.HttpResponse('Done')

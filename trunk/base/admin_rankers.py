@@ -49,37 +49,32 @@ def UploadRankers(request):
   if not ranker_values_json:
     return http.HttpResponseServerError('Must send "ranker_values_json".')
 
-  try:
-    test_key_browsers = simplejson.loads(test_key_browsers_json)
-    ranker_values = simplejson.loads(ranker_values_json)
-    start_time = time.clock()
+  test_key_browsers = simplejson.loads(test_key_browsers_json)
+  ranker_values = simplejson.loads(ranker_values_json)
+  start_time = time.clock()
 
-    message = None
-    test_set = all_test_sets.GetTestSet(category)
-    test_browsers = [(test_set.GetTest(test_key), browser)
-                     for test_key, browser in test_key_browsers]
-    rankers = result_ranker.GetOrCreateRankers(test_browsers, params_str)
+  message = None
+  test_set = all_test_sets.GetTestSet(category)
+  test_browsers = [(test_set.GetTest(test_key), browser)
+                   for test_key, browser in test_key_browsers]
+  rankers = result_ranker.GetOrCreateRankers(test_browsers, params_str)
 
-    for ranker, (median, num_scores, values_str) in zip(rankers, ranker_values):
-      if time.clock() - start_time > time_limit:
-        message = 'Over time limit'
-        break
-      if ranker.GetMedianAndNumScores() == (median, num_scores):
-        logging.info('Skipping ranker with unchanged values: %s',
-                     ranker.key().name())
-        continue
-      values = map(int, values_str.split('|'))
-      try:
-        ranker.SetValues(values, num_scores)
-      except db.Timeout:
-        message = 'db.Timeout'
-        break
-    response_params = {}
-    if message:
-      logging.info('message: %s', message)
-      response_params['message'] = message
-    return http.HttpResponse(simplejson.dumps(response_params))
-  except:
-    error = traceback.format_exc()
-    logging.info('error: %s', error)
-    return http.HttpResponseServerError(error)
+  for ranker, (median, num_scores, values_str) in zip(rankers, ranker_values):
+    if time.clock() - start_time > time_limit:
+      message = 'Over time limit'
+      break
+    if ranker.GetMedianAndNumScores() == (median, num_scores):
+      logging.info('Skipping ranker with unchanged values: %s',
+                   ranker.key().name())
+      continue
+    values = map(int, values_str.split('|'))
+    try:
+      ranker.SetValues(values, num_scores)
+    except db.Timeout:
+      message = 'db.Timeout'
+      break
+  response_params = {}
+  if message:
+    logging.info('message: %s', message)
+    response_params['message'] = message
+  return http.HttpResponse(simplejson.dumps(response_params))
