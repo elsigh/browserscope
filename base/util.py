@@ -76,8 +76,10 @@ def Render(request, template, params={}, category=None):
   # we never want o=xhr in our request_path, right?
   params['request_path'] = request.get_full_path().replace('&o=xhr', '')
   params['request_path_lastbit'] = re.sub('^.+\/([^\/]+$)', '\\1', request.path)
-  params['current_ua_string'] = request.META['HTTP_USER_AGENT']
-  params['current_ua'] = UserAgent.factory(params['current_ua_string']).pretty()
+  params['current_ua_string'] = request.META.get('HTTP_USER_AGENT')
+  if params['current_ua_string']:
+    params['current_ua'] = UserAgent.factory(
+        params['current_ua_string']).pretty()
   params['chromeframe_enabled'] = request.COOKIES.get(
       'browserscope-chromeframe-enabled', '0')
   params['app_categories'] = []

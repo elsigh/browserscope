@@ -41,6 +41,7 @@ MIDDLEWARE_CLASSES = (
   #'appstats.recording.AppStatsDjangoMiddleware',
   'django.middleware.common.CommonMiddleware',
   'django.contrib.sessions.middleware.SessionMiddleware', # needed by CSRF
+  'base.middleware.ExceptionMiddleware',
 )
 TEMPLATE_CONTEXT_PROCESSORS = (
   'django.core.context_processors.debug'

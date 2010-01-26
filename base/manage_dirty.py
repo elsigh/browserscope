@@ -169,8 +169,6 @@ def UpdateDirty(request):
       return http.HttpResponse(UPDATE_DIRTY_ADDED_TASK)
     else:
       return http.HttpResponse(UPDATE_DIRTY_DONE)
-  except:
-    return http.HttpResponse('UpdateDirty: bailed: %s' % traceback.format_exc())
   finally:
     UpdateDirtyController.ReleaseLock()
 
@@ -217,17 +215,14 @@ def ScheduleDirtyUpdate(result_parent_instance_or_key=None):
     # The update will happen when UpdateDirty is unpaused.
     logging.info('ScheduleDirtyUpdate: UpdateDirtyController.IsPaused')
     return
-  try:
-    result_parent_key = result_parent_instance_or_key
-    if hasattr(result_parent_instance_or_key, 'key'):
-      result_parent_key = result_parent_instance_or_key.key()
-    logging.info('ScheduleDirtyUpdate result_parent_key: %s' %
-                 result_parent_key)
-    if not result_parent_key:
-      result_parent_key = DirtyResultTimesQuery().NextResultParentKey()
-    if result_parent_key:
-      ResultParent.ScheduleDirtyUpdate(result_parent_key)
-    else:
-      logging.info('No dirty result times to schedule.')
-  except:
-    logging.warn('Unable to add update-dirty task: %s' % traceback.format_exc())
+  result_parent_key = result_parent_instance_or_key
+  if hasattr(result_parent_instance_or_key, 'key'):
+    result_parent_key = result_parent_instance_or_key.key()
+  logging.info('ScheduleDirtyUpdate result_parent_key: %s' %
+               result_parent_key)
+  if not result_parent_key:
+    result_parent_key = DirtyResultTimesQuery().NextResultParentKey()
+  if result_parent_key:
+    ResultParent.ScheduleDirtyUpdate(result_parent_key)
+  else:
+    logging.info('No dirty result times to schedule.')
