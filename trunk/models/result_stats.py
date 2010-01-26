@@ -213,7 +213,7 @@ class CategoryBrowserManager(db.Model):
       nondigit_index = 0
       while v[nondigit_index].isdigit():
         nondigit_index += 1
-      digits, nondigits = int(v[:nondigit_index]), v[nondigit_index:]
+      digits, nondigits = int(v[:nondigit_index] or 0), v[nondigit_index:]
     return '%.08d %-8s' % (digits, nondigits)
 
 

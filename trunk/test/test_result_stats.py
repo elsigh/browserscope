@@ -33,39 +33,35 @@ import mock_data
 class CategoryBrowserManagerTest(unittest.TestCase):
 
   def setUp(self):
-    db.delete(result_stats.CategoryBrowserManager.all(keys_only=True).fetch(1000))
+    self.cls = result_stats.CategoryBrowserManager
+    db.delete(self.cls.all(keys_only=True).fetch(1000))
     memcache.flush_all()
 
   def tearDown(self):
-    db.delete(result_stats.CategoryBrowserManager.all(keys_only=True).fetch(1000))
+    db.delete(self.cls.all(keys_only=True).fetch(1000))
     memcache.flush_all()
 
   def testEmpty(self):
     category = 'network'
     version_level = 1
-    browsers = result_stats.CategoryBrowserManager.GetBrowsers(
-        category, version_level)
+    browsers = self.cls.GetBrowsers(category, version_level)
     self.assertEqual([], browsers)
 
   def testAddUserAgentBasic(self):
     category = 'network'
-    result_stats.CategoryBrowserManager.AddUserAgent(
-        category, mock_data.GetUserAgent('Firefox 3.5'))
-    result_stats.CategoryBrowserManager.AddUserAgent(
-        category, mock_data.GetUserAgent('Firefox 3.0.7'))
+    self.cls.AddUserAgent(category, mock_data.GetUserAgent('Firefox 3.5'))
+    self.cls.AddUserAgent(category, mock_data.GetUserAgent('Firefox 3.0.7'))
     for version_level, expected_browsers in enumerate((
         ['Firefox'],
         ['Firefox 3'],
         ['Firefox 3.0', 'Firefox 3.5'],
         ['Firefox 3.0.7', 'Firefox 3.5'])):
-      browsers = result_stats.CategoryBrowserManager.GetBrowsers(
-        category, version_level)
+      browsers = self.cls.GetBrowsers(category, version_level)
       self.assertEqual(expected_browsers, browsers)
 
   def testGetBrowsersTop(self):
     expected_browsers = result_stats.TOP_BROWSERS
-    browsers = result_stats.CategoryBrowserManager.GetBrowsers(
-        category='foo', version_level='top')
+    browsers = self.cls.GetBrowsers(category='foo', version_level='top')
     self.assertEqual(expected_browsers, browsers)
 
   def testGetBrowsersDbAndMemcacheUse(self):
@@ -91,24 +87,19 @@ class CategoryBrowserManagerTest(unittest.TestCase):
     category = 'basil'
     version_level = 1
     expected_browsers = ['IE 8', 'Safari 5.8.2', 'Firefox 3.0']
-    result_stats.CategoryBrowserManager.SetBrowsers(
-        category, version_level, expected_browsers)
-    browsers = result_stats.CategoryBrowserManager.GetBrowsers(
-        category, version_level)
+    self.cls.SetBrowsers(category, version_level, expected_browsers)
+    browsers = self.cls.GetBrowsers(category, version_level)
     self.assertEqual(sorted(expected_browsers), browsers)
 
   def testSetBrowsersDbAndMemcacheUse(self):
     category = 'basil'
     version_level = 1
     expected_browsers = ['Firefox 3.0', 'IE 8', 'Safari 5.8.2']
-    result_stats.CategoryBrowserManager.SetBrowsers(
-        category, version_level, expected_browsers)
-    browsers = result_stats.CategoryBrowserManager.GetBrowsers(
-        category, version_level)
+    self.cls.SetBrowsers(category, version_level, expected_browsers)
+    browsers = self.cls.GetBrowsers(category, version_level)
     self.assertEqual(expected_browsers, browsers)
 
   def testSortBrowsers(self):
-    cls = result_stats.CategoryBrowserManager
     expected_browsers = [
         'Firefox',
         'Firefox (Minefield)',
@@ -133,15 +124,23 @@ class CategoryBrowserManagerTest(unittest.TestCase):
     browsers = expected_browsers[:]
     random.seed(5)
     random.shuffle(browsers)
-    cls.SortBrowsers(browsers)
+    self.cls.SortBrowsers(browsers)
     self.assertEqual(expected_browsers, browsers)
 
   def testInsortBrowser(self):
-    cls = result_stats.CategoryBrowserManager
     browsers = ['Firefox 3.0', 'Firefox 3.5', 'Safari 5.0']
-    cls.InsortBrowser(browsers, 'iPhone 1.1')
+    self.cls.InsortBrowser(browsers, 'iPhone 1.1')
     self.assertEqual(['Firefox 3.0', 'Firefox 3.5', 'iPhone 1.1', 'Safari 5.0'],
                      browsers)
+
+  def testSortBrowsersOldStyleAlphaVersion(self):
+    """Test that sort handles bad version string sensibly."""
+    expected_browsers = ['Firefox 3.0.a4', 'Firefox 3.5']
+    browsers = expected_browsers[:]
+    random.seed(5)
+    random.shuffle(browsers)
+    self.cls.SortBrowsers(browsers)
+    self.assertEqual(expected_browsers, browsers)
 
 
 class CategoryBrowserManagerFilterTest(unittest.TestCase):
