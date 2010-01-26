@@ -356,7 +356,6 @@ def UpdateStatsCache(request):
   return http.HttpResponse('Success.')
 
 
-@decorators.admin_required
 def UpdateAllStatsCache(request):
   tests_per_batch = int(request.REQUEST.get('tests_per_batch', 1200))
   categories_str = request.REQUEST.get('categories')
