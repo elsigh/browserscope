@@ -293,17 +293,14 @@ class RichTextTestSet(test_set_base.TestSet):
     """
     category_tests = self.GetTestsByCategory(test_key)
     num_tests = len(category_tests)
-    if test_key in raw_scores:
-      display_score = int(raw_scores[test_key])
-    else:
-      display_score = 0
-      for category_test in category_tests:
-        raw_score = raw_score.get(category_test.key, None)
-        if raw_score is None:
-          # This could happen if we don't have any results for a new test.
-          num_tests -= 1
-        else:
-          display_score += test_median
+    display_score = 0
+    for category_test in category_tests:
+      raw_score = raw_scores[category_test.key]
+      if raw_score is None:
+        # This could happen if we don't have any results for a new test.
+        num_tests -= 1
+      else:
+        display_score += raw_score
 
     if num_tests <= 0:
       # This really should not happen.
