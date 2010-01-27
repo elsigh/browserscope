@@ -101,6 +101,7 @@ def Render(request, template, params={}, category=None):
   for i, test_set in enumerate(all_test_sets.GetTestSetsIncludingBetas()):
     # This way we can show beta categories in local dev.
     if (settings.BUILD == 'development' or
+        category == test_set.category or
         (test_set.category in settings.CATEGORIES and
          test_set.category not in settings.CATEGORIES_INVISIBLE) or
         (params.has_key('stats_table_category') and
