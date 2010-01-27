@@ -34,7 +34,22 @@
         <ul id="bs-nav-cats" class="g-section bs-compact bs-list-horz">
         {% for tuple in app_categories %}
           <li>
-            <a href="/{{ tuple|by_key:0 }}/test" target="_top">{{ tuple|by_key:1 }}</a>
+            <a href="/{{ tuple|by_key:0 }}/test" target="_top"
+              >{{ tuple|by_key:1 }}</a>
+            <ul>
+              <li>
+                <a target="_top"
+                  href="/?category={{ tuple|by_key:0 }}">Results</a>
+              </li>
+              <li>
+                <a target="_top"
+                  href="/{{ tuple|by_key:0 }}/test">Tests</a>
+              </li>
+              <li>
+                <a target="_top"
+                  href="/{{ tuple|by_key:0 }}/about">About</a>
+              </li>
+            </ul>
           </li>
         {% endfor %}
         </ul>
@@ -60,13 +75,6 @@
 
 
   <div id="bs-body">
-    {% ifequal request_path_lastbit "about" %}
-      <a
-        href="/{{ app_category }}/test"
-        class="bs-bc"
-        target="_top"><strong>Go to the {{ app_category_name }} Tests &raquo;</strong></a>
-    {% endifequal %}
-
     {% block body %}{% endblock %}
   </div>
 

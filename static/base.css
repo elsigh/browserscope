@@ -167,7 +167,7 @@ a.bs-admin {
 }
 #bs-nav {
   overflow: hidden;
-  padding: 5px 0;
+  padding: 2px 0 0;
   background: #f90;
   -moz-border-radius: 15px;
   -webkit-border-radius: 15px;
@@ -198,11 +198,69 @@ a.bs-admin {
 #bs-nav-sub span {
   font-size: 80%;
 }
-#bs-nav-cats li a {
+
+#bs-nav-cats a {
   width: auto;
   padding: 3px 5px;
-  margin-right: .6em;
+  text-decoration: none;
+  display: block;
+  margin: 0 .5em 0 0;
 }
+#bs-nav-cats a:hover {
+  text-decoration: none;
+}
+#bs-nav-cats li ul {
+  display: none;
+  opacity: 0;
+  height: 0;
+  line-height: 0;
+  position: absolute;
+  width: 7em;
+  background: #f90;
+  border: 1px solid #ccc;
+  border-top: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius-topright: 0;
+  -moz-border-radius-topleft: 0;
+  -webkit-border-top-right-radius: 0;
+  -webkit-border-top-left-radius: 0;
+  -moz-box-shadow: 0 1px 1px rgba(102, 102, 102, .4);
+  -webkit-box-shadow: 0 1px 1px rgba(102, 102, 102, .4);
+}
+#bs-nav-cats li:hover ul {
+  display: block;
+  opacity: 1;
+  font-size: 90%;
+  height: auto;
+  line-height: 1.2;
+}
+#bs-nav-cats li:hover ul {
+  -webkit-transition: all .3s;
+}
+#bs-nav-cats li:hover a {
+  color: #222;
+  text-shadow: 0 1px 2px #fff;
+  background: #eee;
+}
+#bs-nav-cats li:hover li a {
+  background: #f90;
+}
+#bs-nav-cats li:hover li a:hover {
+  background: #eee;
+}
+#bs-nav-cats li li {
+  float: none;
+  padding: 0;
+}
+#bs-nav-cats li li a {
+  margin: 0;
+}
+
+
 .bs-bc {
   float: right;
   margin-right: 7px;
@@ -413,7 +471,6 @@ html>body .goog-inline-block {
   margin: 0 .5em;
 }
 .bs-results-dl {
-  margin-left: 2em;
   font-size: 95%;
 }
 .bs-results-dl span {
