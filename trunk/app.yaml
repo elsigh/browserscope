@@ -63,6 +63,10 @@ handlers:
   login: admin
   script: main.py
 
+# Static Mode files.
+- url: /static_mode
+  static_dir: static_mode
+
 # Static files in categories.
 # - url: /(.+)/static/(.*)
 #   static_files: categories/\1/static/\2
