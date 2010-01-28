@@ -357,7 +357,7 @@ def UpdateStatsCache(request):
 
 
 def UpdateAllStatsCache(request):
-  tests_per_batch = int(request.REQUEST.get('tests_per_batch', 1200))
+  tests_per_batch = int(request.REQUEST.get('tests_per_batch', 600))
   categories_str = request.REQUEST.get('categories')
   if categories_str:
     categories = categories_str.split(',')
