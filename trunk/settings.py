@@ -66,7 +66,7 @@ CATEGORIES = ['security', 'richtext', 'selectors', 'network', 'acid3', 'jskb']
 CATEGORIES_INVISIBLE = ['jskb']
 CATEGORIES_BETA = ['html5', 'reflow', 'cookies']
 
-STATIC_CATEGORIES = ['richtext']
+STATIC_CATEGORIES = []
 # Where we'll read the static files from (can be a local path or a url).
 #STATIC_SOURCE_FORMAT = 'static_mode/%(category)s_%(version_level)s.py'
 STATIC_SOURCE_FORMAT = 'http://static.latest.ua-profiler.appspot.com/static_mode/%(category)s_%(version_level)s.py'
