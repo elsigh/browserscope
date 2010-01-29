@@ -64,6 +64,15 @@ _TESTS = (
   '''Checks whether the browser supports the
   <a href="http://tools.ietf.org/html/draft-abarth-cookie-02#section-5.1.6">httpOnly cookie attribute</a>,
   which is a mitigation for cross-site scripting attacks.'''),
+  SecurityTest('X-Frame-Options API',
+               'X-Frame-Options API',
+  '''Checks whether the browser supports the 
+  <a href="http://blogs.msdn.com/ie/archive/2009/01/27/ie8-security-part-vii-clickjacking-defenses.aspx">X-Frame-Options API</a>,
+  which prevents clickjacking attacks by restricting how pages may be framed.'''),
+  SecurityTest('X-Content-Type-Options API',
+               'X-Content-Type-Options API',
+  '''Checks whether the browser supports the <a href="http://ajaxian.com/archives/ie-8-security">X-Content-Type-Options API</a>, 
+  which <a href="http://www.adambarth.com/papers/2009/barth-caballero-song.pdf">prevents MIME sniffing</a>.'''),
   SecurityTest('Block reflected XSS', 'Block reflected XSS',
   '''Checks whether the browser blocks execution of JavaScript code that appears in the request
   URL. Browser-based XSS filters mitigate some classes of cross-site scripting attacks.'''),
@@ -101,7 +110,7 @@ _TESTS = (
   <a href="http://www.adambarth.com/papers/2009/barth-weinberger-song.pdf">cross-origin capability leaks</a>.
   Accessing this property across origins is
   <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#security-2">prohibited
-  by HTML5</a>.'''),
+  by HTML5</a>.'''),  
 )
 
 

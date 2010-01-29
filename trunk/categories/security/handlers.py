@@ -19,7 +19,7 @@
 
 from categories import all_test_sets
 from base import util
-
+from django.http import HttpResponse
 
 CATEGORY = 'security'
 
@@ -43,4 +43,19 @@ def Test(request):
   response.set_cookie('regularTestCookie', '1', expires=None, httponly=False, path='/security/')
   response.set_cookie('httpOnlyTestCookie', '1', expires=None, httponly=True, path='/security/')
   return response
+
+def XFrameOptionsTest(request):
+  response = HttpResponse()
+  response['X-FRAME-OPTIONS'] = 'DENY'
+  response.write('<html><meta http-equiv="X-Frame-Options" content="deny"><body>LOADED')
+  response.write("<script>top.xframe_options_test_fail=true;</script></body></html>")
+  return response
+
+def XContentTypeOptionsTest(request):
+  response = HttpResponse()
+  response.write('<html>LOADED <script>top.xcontenttype_options_test_fail=true;</script></html>')
+  response['X-CONTENT-TYPE-OPTIONS'] = 'nosniff'
+  response['Content-type'] = 'text'
+  return response
+
 
