@@ -15,6 +15,7 @@
     var tests = [];
     var results = [];
     var committed = false;
+    var realTop = top;
     function commit() {
       window.committed = true;
       if (results.length >= tests.length) sendScore();
@@ -101,6 +102,12 @@
     runTest('httpOnly cookie API', function () {
       return document.cookie.indexOf('regularTestCookie') != -1 &&
              document.cookie.indexOf('httpOnlyTestCookie') == -1;
+    });
+    runIframeTest('X-Frame-Options API', SAME_ORIGIN_BASE_URL + 'xframe-outer.html', function (frame) {
+      return !realTop.xframe_options_test_fail;
+    });
+    runIframeTest('X-Content-Type-Options API', 'test/xcontenttype', function (frame) {
+      return !realTop.xcontenttype_options_test_fail;
     });
     var attack = "<script>script_ran = true<\/script>";
     runIframeTest('Block reflected XSS',
