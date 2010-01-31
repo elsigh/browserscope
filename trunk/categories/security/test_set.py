@@ -98,6 +98,11 @@ _TESTS = (
   <a href="http://www.mozilla.org/security/announce/2009/mfsa2009-18.html">restricted
   to same-origin code in separate files</a> in Firefox. We check to make sure that script injected
   into a site via stylesheet does not execute.'''),
+  SecurityTest('Sandbox attribute',
+               'Sandbox attribute',
+  '''Checks whether the browser supports the
+  <a href="http://www.whatwg.org/specs/web-apps/current-work/#attr-iframe-sandbox">sandbox attribute</a>,
+  which enables a set of extra restrictions on any content hosted by the iframe.'''),
 )
 
 

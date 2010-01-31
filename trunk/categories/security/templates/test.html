@@ -64,6 +64,9 @@
     function runIframeTest(key, src, onload) {
       var runTestCallback = newTest(key);
       var iframe = document.createElement('iframe');
+      if (key == 'Sandbox attribute') {
+        iframe.setAttribute('sandbox', 'allow-same-origin');
+      }
       if (onload) {
         observe(iframe, 'load', function () {
           runTestCallback(function() {
@@ -163,6 +166,9 @@
     var cssExpressionCallback = newTest('Block XSS in CSS');
     observe(window, 'load', function () {
       cssExpressionCallback(function () { return window.script_in_css_pass; });
+    });
+    runIframeTest('Sandbox attribute', SAME_ORIGIN_BASE_URL + "sandbox-frame.html", function (frame) {
+      return !frame.contentDocument.documentElement.innerHTML.match(/FAIL/);
     });
     commit();
     </script>
