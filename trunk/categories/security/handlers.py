@@ -58,4 +58,10 @@ def XContentTypeOptionsTest(request):
   response['Content-type'] = 'text'
   return response
 
-
+def OriginHeaderTest(request):
+  response = HttpResponse()
+  if 'HTTP_ORIGIN' in request.META:
+    response.write('<html>PASS</html>')
+  else:
+    response.write('<html>FAIL</html>')
+  return response
