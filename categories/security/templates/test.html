@@ -164,20 +164,6 @@
     observe(window, 'load', function () {
       cssExpressionCallback(function () { return window.script_in_css_pass; });
     });
-    runIframeTest('Block cross-origin document', CROSS_ORIGIN_BASE_URL + "cross-origin-frame.html", function (frame) {
-      try {
-        return !frame.contentWindow.document;
-      } catch (ex) {
-        return true;
-      }
-    });
-    runIframeTest('Block cross-origin contentDocument', CROSS_ORIGIN_BASE_URL + "cross-origin-frame.html", function (frame) {
-      try {
-        return !frame.contentDocument;
-      } catch (ex) {
-        return true;
-      }
-    });
     commit();
     </script>
   </body>

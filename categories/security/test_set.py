@@ -98,19 +98,6 @@ _TESTS = (
   <a href="http://www.mozilla.org/security/announce/2009/mfsa2009-18.html">restricted
   to same-origin code in separate files</a> in Firefox. We check to make sure that script injected
   into a site via stylesheet does not execute.'''),
-  SecurityTest('Block cross-origin document', 'Block cross-origin document',
-  '''Browsers should block cross-origin access to a frame's document to reduce the risk of
-  <a href="http://www.adambarth.com/papers/2009/barth-weinberger-song.pdf">cross-origin capability leaks</a>.
-  Accessing this property across origins is
-  <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#security-2">prohibited
-  by HTML5</a>.'''),
-  SecurityTest('Block cross-origin contentDocument',
-               'Block cross-origin contentDocument',
-  '''Browsers should block cross-origin access to a frame's contentDocument to reduce the risk of
-  <a href="http://www.adambarth.com/papers/2009/barth-weinberger-song.pdf">cross-origin capability leaks</a>.
-  Accessing this property across origins is
-  <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#security-2">prohibited
-  by HTML5</a>.'''),  
 )
 
 
