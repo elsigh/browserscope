@@ -86,6 +86,26 @@
         element.attachEvent("on" + actualEventName, responder);
       }
     }
+    function runAjaxTest(key, url, callback) {
+      var runTestCallback = newTest(key);
+      var xmlhttp = newXMLHttpRequest();
+      xmlhttp.open('POST', url, true);
+      xmlhttp.onreadystatechange = function() {
+        if(xmlhttp.readyState == 4) {
+          runTestCallback(function() {
+            return callback.call(null, xmlhttp);
+          });
+        }
+      };
+      xmlhttp.send(null);
+    }
+    function newXMLHttpRequest() {
+      if(window.XMLHttpRequest) {
+        return new XMLHttpRequest();
+      } else {
+        return new ActiveXObject("Microsoft.XMLHTTP"); 
+      }
+    }
     </script>
   </head>
   <body class='unfinished'>
@@ -169,6 +189,9 @@
     });
     runIframeTest('Sandbox attribute', SAME_ORIGIN_BASE_URL + "sandbox-frame.html", function (frame) {
       return !frame.contentDocument.documentElement.innerHTML.match(/FAIL/);
+    });
+    runAjaxTest('Origin header', 'test/originheader', function(xmlhttp) {
+      return !xmlhttp.responseText.match(/FAIL/);
     });
     commit();
     </script>

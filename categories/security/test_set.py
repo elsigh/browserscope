@@ -103,6 +103,11 @@ _TESTS = (
   '''Checks whether the browser supports the
   <a href="http://www.whatwg.org/specs/web-apps/current-work/#attr-iframe-sandbox">sandbox attribute</a>,
   which enables a set of extra restrictions on any content hosted by the iframe.'''),
+  SecurityTest('Origin header',
+               'Origin header',
+  '''Checks whether the browser supports the
+  <a href="http://tools.ietf.org/html/draft-abarth-origin">Origin header</a>, which is a mitigation for
+  <a href="http://en.wikipedia.org/wiki/Cross-site_request_forgery">Cross-Site Request Forgery</a> (CSRF) attacks.'''),
 )
 
 
