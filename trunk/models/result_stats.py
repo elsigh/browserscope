@@ -186,6 +186,8 @@ class CategoryBrowserManager(db.Model):
         high = mid
       else:
         low = mid + 1
+    if not hasattr(browsers, 'insert'):
+      logging.fatal('Unexpected browsers list: %s', browsers)
     browsers.insert(low, browser)
 
   @classmethod
@@ -278,14 +280,22 @@ class CategoryStatsManager(object):
 
   @classmethod
   def UpdateStatsCache(cls, category, browsers):
-    logging.info('UpdateStatsCache: category=%s, browsers=%s', category, browsers)
     test_set = all_test_sets.GetTestSet(category)
     test_keys = [t.key for t in test_set.VisibleTests()]
     ua_stats = {}
+    unhandled_browsers = []
+    is_timed_out = False
     for browser in browsers:
-      medians, num_scores = test_set.GetMediansAndNumScores(browser)
-      ua_stats[browser] = test_set.GetStats(test_keys, medians, num_scores)
+      try:
+        medians, num_scores = test_set.GetMediansAndNumScores(browser)
+      except db.Timeout:
+        is_timed_out = True
+      if is_timed_out:
+        unhandled_browsers.append(browser)
+      else:
+        ua_stats[browser] = test_set.GetStats(test_keys, medians, num_scores)
     memcache.set_multi(ua_stats, **cls.MemcacheParams(category))
+    return unhandled_browsers
 
   @classmethod
   def MemcacheParams(cls, category):
