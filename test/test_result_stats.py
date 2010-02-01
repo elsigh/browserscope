@@ -133,6 +133,11 @@ class CategoryBrowserManagerTest(unittest.TestCase):
     self.assertEqual(['Firefox 3.0', 'Firefox 3.5', 'iPhone 1.1', 'Safari 5.0'],
                      browsers)
 
+  def testInsortBrowserWithTupleRaises(self):
+    browsers = ('Firefox 3.0', 'Firefox 3.5', 'Safari 5.0')
+    self.assertRaises(AttributeError,
+                      self.cls.InsortBrowser, browsers, 'iPhone 1.1')
+
   def testSortBrowsersOldStyleAlphaVersion(self):
     """Test that sort handles bad version string sensibly."""
     expected_browsers = ['Firefox 3.0.a4', 'Firefox 3.5']
