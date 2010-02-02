@@ -60,7 +60,7 @@ class CategoryBrowserManagerTest(unittest.TestCase):
       self.assertEqual(expected_browsers, browsers)
 
   def testGetBrowsersTop(self):
-    expected_browsers = result_stats.TOP_BROWSERS
+    expected_browsers = list(result_stats.TOP_BROWSERS)
     browsers = self.cls.GetBrowsers(category='foo', version_level='top')
     self.assertEqual(expected_browsers, browsers)
 
@@ -137,6 +137,13 @@ class CategoryBrowserManagerTest(unittest.TestCase):
     browsers = ('Firefox 3.0', 'Firefox 3.5', 'Safari 5.0')
     self.assertRaises(AttributeError,
                       self.cls.InsortBrowser, browsers, 'iPhone 1.1')
+
+  def testInsortWithTopBrowsers(self):
+    expected_browsers = list(result_stats.TOP_BROWSERS)
+    expected_browsers.append('ZZZzzzz 999.99.9')
+    browsers = self.cls.GetBrowsers(category='foo', version_level='top')
+    self.cls.InsortBrowser(browsers, 'ZZZzzzz 999.99.9')
+    self.assertEqual(expected_browsers, browsers)
 
   def testSortBrowsersOldStyleAlphaVersion(self):
     """Test that sort handles bad version string sensibly."""

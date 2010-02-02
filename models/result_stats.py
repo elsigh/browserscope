@@ -106,10 +106,10 @@ class CategoryBrowserManager(db.Model):
       category: a category string like 'network' or 'reflow'.
       version_level: 'top', 0 (family), 1 (major), 2 (minor), 3 (3rd)
     Returns:
-      ('Firefox 3.1', 'Safari 4.0', 'Safari 4.5', ...)
+      ['Firefox 3.1', 'Safari 4.0', 'Safari 4.5', ...]
     """
     if version_level == 'top':
-      browsers = TOP_BROWSERS
+      browsers = list(TOP_BROWSERS)
     else:
       key_name = cls.KeyName(category, version_level)
       browsers = memcache.get(key_name, namespace=cls.MEMCACHE_NAMESPACE)
