@@ -1037,7 +1037,7 @@ Util.TestDriver.prototype.sendScore = function(testResults,
       reFormattedResults.push(test['test'] + '=' +
           (test['result'] === true ? '1' : 0));
     }
-    testResults = reFormattedResults
+    testResults = reFormattedResults;
   }
   var continueParams = opt_continueParams || null;
   this.testResults = testResults;

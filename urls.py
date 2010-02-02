@@ -82,6 +82,8 @@ urlpatterns = patterns('',
 
   # Reflow Timer URLs
   (r'^reflow/about$', 'categories.reflow.handlers.About'),
+  (r'^reflow/home$', 'categories.reflow.handlers.OldHome'),
+  (r'^reflow/test_acid1$', 'categories.reflow.handlers.TestAcid1'),
   (r'^reflow/test_selectors$', 'categories.reflow.handlers.TestSelectors'),
   (r'^reflow/test_gen_css$', 'categories.reflow.handlers.TestGenCss'),
   (r'^reflow/test/nested_tables$', 'categories.reflow.handlers.NestedTables'),
@@ -144,7 +146,7 @@ urlpatterns = patterns('',
   (r'^security/test/xframe$', 'categories.security.handlers.XFrameOptionsTest'),
   (r'^security/test/xcontenttype$', 'categories.security.handlers.XContentTypeOptionsTest'),
   (r'^security/test/originheader$', 'categories.security.handlers.OriginHeaderTest'),
-  
+
   # HTML5 urls
   (r'^html5/about$', 'categories.html5.handlers.About'),
 

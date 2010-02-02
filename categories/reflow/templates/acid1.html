@@ -3,13 +3,6 @@
 
 {% block head %}
 <style>
-#rt-text {
-  position: absolute;
-  width: 200px;
-  background: #fff;
-  z-index: 2;
-  margin-top: 10px;
-}
 #g-intro {
   font-size: 110%;
   color: #333;
@@ -124,7 +117,7 @@
 }
 </style>
 
-<script src="{{ "js/reflow_timer_build.js"|resource_path:"reflow" }}"></script>
+<script src="{{ "js/reflow_timer.js"|resource_path:"reflow" }}"></script>
 <script>
 function runTest() {
   var btn = document.getElementById('rt-runtest');
@@ -134,7 +127,7 @@ function runTest() {
   ReflowTimer.SERVER = '{{ server }}';
   var el = document.getElementById('g-content');
   {% if test %}
-    var t = new ReflowTimer(false, el);
+    var t = new ReflowTimer(el);
     t.tests = ['{{ test.key }}'];
     t.renderResults = true;
     t.onTestsComplete = function(results) {
@@ -143,24 +136,12 @@ function runTest() {
       }
     };
   {% else %}
-    var t = new ReflowTimer(true, el);
+    var t = new ReflowTimer(el);
     t.renderResults = false;
-    t.onBeaconComplete = function() {
-      var continueUrl = unescape(Util.getParam('continue'));
-      var results = 'reflow_results=' + t.resultsParams.join(',');
-      var nextUrl;
-      if (continueUrl != '') {
-        nextUrl = continueUrl + '&' + results;
-      } else {
-        nextUrl = '/?' + results;
-      }
-      // TODO(elsigh): this won't scale.
-      var network_results = Util.getParam('network_results');
-      if (network_results) {
-        nextUrl = nextUrl + '&network_results=' + network_results;
-      }
-      window.location.href = nextUrl;
-    }
+    t.onTestsComplete = function(testResults) {
+      parent.sendScore(this.resultsParams);
+    };
+
   {% endif %}
   t.run();
 }
@@ -171,34 +152,6 @@ function runTest() {
 {% block body %}
 <input id="rt-params" type="hidden" value="{{ params|urlencode }}">
 <input id="csrf_token" type="hidden" value="{{ csrf_token }}">
-<div id="rt-text">
-  <h1>{{ page_title }}</h1>
-
-
-  {% if autorun %}
-    <p>
-      Autorunning the Reflow tests ... <br>
-      Please wait while until all the tests are completed. At the end, your results will be sent back and automatically incorporated into the public result set.
-    </p>
-  {% else %}
-    <p>
-      <button id="rt-runtest" onclick="runTest();" class="bs-runtest">
-        {% if test %}
-          Run the test - {{ test.label }}
-        {% else %}
-          Start
-        {% endif %}
-      </button>
-    </p>
-    <p>
-      {% if test %}
-        Learn more about the <a href="/reflow/about#rt-{{ test.key }}">{{ test.name }} test</a>.
-      {% else %}
-        Clicking the button will run <a href="/reflow/about#rt-tests">each of the reflow tests</a> on the Acid1 test container and then send back the results to the public score database.
-      {% endif %}
-    </p>
-  {% endif %}
-</div>
 
 <div id="g-content">
   <div id="g-content-c">
@@ -259,10 +212,6 @@ function runTest() {
 </div>
 
 <script>
-  {% if autorun %}
-    runTest();
-  {% else %}
-    document.getElementById('rt-runtest').disabled = false;
-  {% endif %}
+  runTest();
 </script>
 {% endblock %}
