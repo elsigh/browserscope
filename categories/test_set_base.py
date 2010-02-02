@@ -163,6 +163,8 @@ class TestSet(object):
       parsed_results = dict([(key, {'raw_score': int(score)})
                              for key, score in test_scores])
     except ValueError:
+      logging.error('ValueError in results_str (%s): test_scores=%s',
+                    results_str, test_scores)
       raise ParseResultsValueError
     return parsed_results
 
