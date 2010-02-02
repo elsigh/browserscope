@@ -12,306 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * @fileoverview Shared javascript.
- * @author elsigh@google.com (Lindsey Simon)
- */
-
-/**
- * Namespace for utility functions.
- * @type {Object}
- */
-var Util = {};
-
-/**
- * Adds CSS text to the DOM.
- * @param {string} cssText The css text to add.
- * @param {string} opt_id The id for the new stylesheet element.
- * @return {Element} cssNode the added css DOM node.
- */
-Util.addCssText = function(cssText, opt_id) {
-  var cssNode = document.createElement('style');
-  cssNode.type = 'text/css';
-  cssNode.id = opt_id ? opt_id : 'cssh-sheet-' + document.styleSheets.length;
-
-  var headEl = document.getElementsByTagName('head')[0];
-  headEl.appendChild(cssNode);
-
-  // IE
-  if (cssNode.styleSheet) {
-    cssNode.styleSheet.cssText = cssText;
-  // W3C
-  } else {
-    var cssText = document.createTextNode(cssText);
-    cssNode.appendChild(cssText);
-  }
-
-  return cssNode;
-};
-
-
-/**
- * Preserve scope in timeouts.
- * @type {Object} scope
- * @type {Function} fn
- */
-Util.curry = function(scope, fn) {
-  var scope = scope || window;
-  var args = [];
-  for (var i = 2, len = arguments.length; i < len; ++i) {
-    args.push(arguments[i]);
-  };
-  return function() {
-    fn.apply(scope, args);
-  };
-};
-
-
-/**
- * @return {boolean} true if IE, false otherwise.
- */
-Util.isInternetExplorer = function() {
-   return /msie/i.test(navigator.userAgent) &&
-       !/opera/i.test(navigator.userAgent);
-};
-
-
-/**
- * Read url param value from href.
- * @param {string} param The param to look for
- * @return {string} The value of the param or an empty string.
- */
-Util.getParam = function(param) {
-  param = param.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]');
-  var regexString = '[\\?&]' + param + '=([^&#]*)';
-  var regex = new RegExp(regexString);
-  var results = regex.exec(window.location.href);
-  if (results == null) {
-    return '';
-  } else {
-    return results[1];
-  }
-};
-
-
-/**
- * @param {IFRAMEElement} iframe
- * @reutrn {string} The iframe's id.
- */
-Util.getIframeDocument = function(iframeId) {
-  var doc;
-  var iframe = window.frames[iframeId];
-  if (!iframe) {
-    iframe = document.getElementById(iframeId);
-  }
-  if (!iframe) {
-    return;
-  }
-  if (iframe.contentDocument) {
-    // For NS6
-    doc = iframe.contentDocument;
-  } else if (iframe.contentWindow) {
-    // For IE5.5 and IE6
-    doc = iframe.contentWindow.document;
-  } else if (iframe.document) {
-    // For IE5
-    doc = iframe.document;
-  }
-  return doc;
-};
-
-/**
- * Makes it so that links in iframes load in a new tab/window.
- * @param {IFRAMEElement} iframe
- */
-Util.fixIframeLinks = function(iframe) {
-  var doc = Util.getIframeDocument(iframe);
-  var links = doc.getElementsByTagName('a');
-  for (var i = 0, link; link = links[i]; i++) {
-    link.onclick = function(e) {
-      this.target = '_blank';
-    }
-  }
-};
-
-/**
- * @type {Object} doc A document object.
- */
-Util.getDocumentHeight = function(doc) {
-  return Math.max(
-    Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight),
-    Math.max(doc.body.offsetHeight, doc.documentElement.offsetHeight),
-    Math.max(doc.body.clientHeight, doc.documentElement.clientHeight)
-  );
-}
-/*
- * Copyright 2009 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * @fileoverview Shared javascript for sending beacons and blocking so
- * that we know the beacon has completed.
- * @author elsigh@google.com (Lindsey Simon)
- */
-
-/**
- * Adds a SCRIPT element to the DOM and monitors for existence of a completion
- * variable named BEACON_COMPLETE.
- * @param {string} uriParams URI params for the script element.
- * @param {Object} opt_doc Document object.
- * @param {string} opt_id DOM id for the script element.
- * @constructor
- */
-var Beacon = function(uriParams, opt_doc, opt_id) {
-
-  var id = opt_id || Beacon.DEFAULT_ID;
-
-  /**
-   * @type {Object}
-   */
-  this.doc_ = opt_doc || document;
-
-  /**
-   * @type {HTMLHeadElement}
-   * @private
-   */
-  this.head_ = this.doc_.getElementsByTagName('head')[0];
-
-  /**
-   * @type {HTMLScriptElement}
-   * @private
-   */
-  this.script_ = this.doc_.createElement('script');
-  this.script_.type = 'text/javascript';
-  this.script_.id = id;
-
-  var src = Beacon.SERVER + '/beacon?' + uriParams + '&callback=1' +
-      Beacon.ADDTL_PARAMS;
-  this.script_.src = src;
-
-  /**
-   * @type {Function}
-   */
-  this.checkCompleteCurry_ = Util.curry(this, this.checkComplete_);
-};
-
-
-/**
- * @type {number}
- * @private
- */
-Beacon.completeInt_ = null;
-
-
-/**
- * @type {number}
- * @private
- */
-Beacon.COMPLETE_CHECK_SPEED = 50;
-
-
-/**
- * @type {string}
- * @private
- */
-Beacon.DEFAULT_ID = 'beacon';
-
-
-/**
- * Can be used by implementations done to make requests to a
- * server on another domain.
- * @type {string}
- */
-Beacon.SERVER = '';
-
-
-/**
- * Can be used by implementations.
- * @type {string}
- */
-Beacon.ADDTL_PARAMS = '';
-
-
-/**
- * Sends a JSONP request and begins a timer to check that it has
- * completed.
- */
-Beacon.prototype.send = function() {
-  //console.log('sending with src: ', this.script_.src);
-  this.head_.appendChild(this.script_);
-  this.checkComplete_();
-};
-
-
-/**
- * Checks to see if the JSONP request has finished by looking for
- * a magic variable BEACON_COMPLETE.
- * @private
- */
-Beacon.prototype.checkComplete_ = function() {
-  if (typeof BEACON_COMPLETE != 'undefined') {
-    window.clearTimeout(this.completeInt_);
-    this.onComplete();
-  } else {
-    this.completeInt_ = window.setTimeout(
-        this.checkCompleteCurry_, Beacon.COMPLETE_CHECK_SPEED);
-  }
-};
-
-
-/**
- * To be made use of as desired by implementations.
- */
-Beacon.prototype.onComplete = function() {};
-
-/*
- * Copyright 2009 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
 */
 /**
  * @fileoverview The reflow timer attempts to time the speed of re-flowing a web
  * page. This means selector matching + rendering tree construction +
  * reflow and position/geometry recalculations.
- * Requires util.js and beacon.js
  * @author elsigh@google.com (Lindsey Simon)
  */
 
 /**
  * The reflow timer class.
- * @param {boolean} opt_sendResultsToServer If true, send the results to our
- *     App Engine server for datastore-age.
  * @param {HTMLElement} opt_container The container element to manipulate.
  * @param {number} opt_passes The number of times to run the test for computing
  *     a median reflow time.
  * @constructor
  */
-var ReflowTimer = function(sendResultsToServer, opt_container, opt_passes) {
-
-  /**
-   * @type {boolean}
-   * @private
-   */
-  this.shouldSendResultsToServer_ = sendResultsToServer;
+var ReflowTimer = function(opt_container, opt_passes) {
 
   /**
    * @type {number}
@@ -400,11 +116,6 @@ var ReflowTimer = function(sendResultsToServer, opt_container, opt_passes) {
   this.resultsParams = [];
 };
 
-/**
- * Used for the bookmarklet's link back to the homepage.
- * @type {string}
- */
-ReflowTimer.SERVER = 'ua-profiler.appspot.com';
 
 /**
  * @type {number}
@@ -457,7 +168,7 @@ ReflowTimer.TEST_PADDING_LEFT_SHORTHAND_CSSTEXT = 'padding-left: 4px;';
  */
 ReflowTimer.prototype.tests = [
   'testDisplay',
-  'testVisibility',
+  /*'testVisibility',
   'testNonMatchingClass',
   'testFourClassReflows',
   'testFourScriptReflows',
@@ -468,7 +179,7 @@ ReflowTimer.prototype.tests = [
   'testWidthPercent',
   'testBackground',
   'testOverflowHidden',
-  'testGetOffsetHeight'
+  'testGetOffsetHeight'*/
 ];
 
 
@@ -613,7 +324,7 @@ ReflowTimer.prototype.run = function() {
 
   // Gets rid of prior test elements in the DOM.
   var previousElementIds = ['rt-content', 'rt-results',
-      'rt-feedback', 'rt-css', Beacon.DEFAULT_ID];
+      'rt-feedback', 'rt-css'];
   for (var i = 0, id; id = previousElementIds[i]; i++) {
     var el = document.getElementById(id);
     if (el) {
@@ -817,16 +528,7 @@ ReflowTimer.prototype.testsComplete_ = function() {
   this.body_.appendChild(el, this.body_.firstChild);
 
   if (this.testFeedbackEl_) {
-    this.testFeedbackEl_.innerHTML = 'All done with the reflow tests!';
-  }
-
-  // Send and or render on page.
-  if (this.shouldSendResultsToServer_) {
-    if (this.testFeedbackEl_) {
-      this.testFeedbackEl_.innerHTML +=
-          '<br>Sending your results to be saved...';
-    }
-    this.sendResultsToServer_();
+    this.testFeedbackEl_.innerHTML = 'Done with the reflow tests!';
   }
 
   this.onTestsComplete(this.results);
@@ -1135,60 +837,60 @@ ReflowTimer.prototype.logPaintEvents_ = function(e) {
 };
 
 
+/**** UTILITY FUNCTIONS ****/
+var Util = {};
 /**
- * Sends the reflow time to our server.
- * @private
+ * Adds CSS text to the DOM.
+ * @param {string} cssText The css text to add.
+ * @param {string} opt_id The id for the new stylesheet element.
+ * @return {Element} cssNode the added css DOM node.
  */
-ReflowTimer.prototype.sendResultsToServer_ = function() {
+Util.addCssText = function(cssText, opt_id) {
+  var cssNode = document.createElement('style');
+  cssNode.type = 'text/css';
+  cssNode.id = opt_id ? opt_id : 'cssh-sheet-' + document.styleSheets.length;
 
-  var uriParams = 'category=reflow' + '&results=' +
-      this.resultsParams.join(',');
+  var headEl = document.getElementsByTagName('head')[0];
+  headEl.appendChild(cssNode);
 
-  // Add on params to the beacon.
-  var paramsEl = document.getElementById('rt-params');
-  if (paramsEl) {
-    uriParams += '&params=' + paramsEl.value;
-
-  // store the entire window.location.href as a param
+  // IE
+  if (cssNode.styleSheet) {
+    cssNode.styleSheet.cssText = cssText;
+  // W3C
   } else {
-    uriParams += '&params=' + encodeURI(window.location.href);
+    cssText = document.createTextNode(cssText);
+    cssNode.appendChild(cssText);
   }
 
-  // Gets our csrf_token from the page.
-  var csrfTokenEl = document.getElementById('csrf_token');
-  if (csrfTokenEl) {
-    var csrfToken = csrfTokenEl.value;
-    uriParams += '&csrf_token=' + csrfToken;
-  }
-
-  /**
-   * @type {Beacon}
-   */
-  this.beacon_ = new Beacon(uriParams);
-  this.beacon_.onComplete = Util.curry(this, this.onBeaconComplete_);
-  this.beacon_.send();
+  return cssNode;
 };
 
 
 /**
- * Private beacon complete method, which fires the public onBeaconComplete
- * method.
- * @private
+ * Preserve scope in timeouts.
+ * @param {Object} scope
+ * @param {Function} fn
+ * @return {Function}
  */
-ReflowTimer.prototype.onBeaconComplete_ = function() {
-  if (this.testFeedbackEl_) {
-    this.testFeedbackEl_.innerHTML = 'Your results were saved.';
-  }
-  this.onBeaconComplete();
+Util.curry = function(scope, fn) {
+  scope = scope || window;
+  var args = [];
+  for (var i = 2, len = arguments.length; i < len; ++i) {
+    args.push(arguments[i]);
+  };
+  return function() {
+    fn.apply(scope, args);
+  };
 };
 
 
 /**
- * Provides a function for subclasses/functional uses to implement.
+ * @return {boolean} true if IE, false otherwise.
  */
-ReflowTimer.prototype.onBeaconComplete = function() {};
-
-var e=false,l=Object,m="push",n="length",o="propertyIsEnumerable",r="indexOf",s="imports",t="call",u=this,v=function(a){var c=typeof a;if(c=="object")if(a){if(a instanceof Array||!(a instanceof l)&&l.prototype.toString[t](a)=="[object Array]"||typeof a[n]=="number"&&typeof a.splice!="undefined"&&typeof a[o]!="undefined"&&!a[o]("splice"))return"array";if(!(a instanceof l)&&(l.prototype.toString[t](a)=="[object Function]"||typeof a[t]!="undefined"&&typeof a[o]!="undefined"&&!a[o]("call")))return"function"}else return"null";
+Util.isInternetExplorer = function() {
+   return /msie/i.test(navigator.userAgent) &&
+       !/opera/i.test(navigator.userAgent);
+};var e=false,l=Object,m="push",n="length",o="propertyIsEnumerable",r="indexOf",s="imports",t="call",u=this,v=function(a){var c=typeof a;if(c=="object")if(a){if(a instanceof Array||!(a instanceof l)&&l.prototype.toString[t](a)=="[object Array]"||typeof a[n]=="number"&&typeof a.splice!="undefined"&&typeof a[o]!="undefined"&&!a[o]("splice"))return"array";if(!(a instanceof l)&&(l.prototype.toString[t](a)=="[object Function]"||typeof a[t]!="undefined"&&typeof a[o]!="undefined"&&!a[o]("call")))return"function"}else return"null";
 else if(c=="function"&&typeof a[t]=="undefined")return"object";return c};Math.floor(Math.random()*2147483648).toString(36);var w=function(a){for(var c=1;c<arguments[n];c++){var b=arguments[c],d,i=v(b);if(d=i=="array"||i=="object"&&typeof b[n]=="number"){if(v(b)=="array")b=b.concat();else if(v(b)=="array")b=b.concat();else{for(var g=[],f=0,h=b[n];f<h;f++)g[f]=b[f];b=g}a[m].apply(a,b)}else a[m](b)}};var x=function(a){return a.replace(/^[\s\xa0]+|[\s\xa0]+$/g,"")},y=function(a,c){return a[r](c)!=-1},A=function(a,c){for(var b=0,d=x(String(a)).split("."),i=x(String(c)).split("."),g=Math.max(d[n],i[n]),f=0;b==0&&f<g;f++){var h=d[f]||"",j=i[f]||"",E=new RegExp("(\\d*)(\\D*)","g"),k=new RegExp("(\\d*)(\\D*)","g");do{var p=E.exec(h)||["","",""],q=k.exec(j)||["","",""];if(p[0][n]==0&&q[0][n]==0)break;var R=p[1][n]==0?0:parseInt(p[1],10),S=q[1][n]==0?0:parseInt(q[1],10);b=z(R,S)||z(p[2][n]==0,q[2][n]==
 0)||z(p[2],q[2])}while(b==0)}return b},z=function(a,c){if(a<c)return-1;else if(a>c)return 1;return 0};(Date.now||function(){return(new Date).getTime()})();var B,C,D,F,G,H,I,J,K,L,M=function(){return u.navigator?u.navigator.userAgent:null},N=function(){return u.navigator};(function(){H=G=F=D=C=B=e;var a;if(a=M()){var c=N();B=a[r]("Opera")==0;C=!B&&a[r]("MSIE")!=-1;F=(D=!B&&a[r]("WebKit")!=-1)&&a[r]("Mobile")!=-1;H=(G=!B&&!D&&c.product=="Gecko")&&c.vendor=="Camino"}})();var O=B,P=C,Q=G,T=D,U=function(){var a=N();return a&&a.platform||""}();(function(){I=y(U,"Mac");J=y(U,"Win");K=y(U,"Linux");L=!!N()&&y(N().appVersion||"","X11")})();
 var aa=function(){var a="",c;if(O&&u.opera){var b=u.opera.version;a=typeof b=="function"?b():b}else{if(Q)c=/rv\:([^\);]+)(\)|;)/;else if(P)c=/MSIE\s+([^\);]+)(\)|;)/;else if(T)c=/WebKit\/(\S+)/;if(c){var d=c.exec(M());a=d?d[1]:""}}return a}();T&&A(aa,"521");var V=function(a){var c=null;try{c=a.rules||a.cssRules}catch(b){if(b.code==15)throw b;}return c},W=function(a,c){var b=[],d=a||document.styleSheets,i=c!==undefined?c:e;if(d[s]&&d[s][n])for(var g=0,f=d[s][n];g<f;g++)w(b,W(d[s][g]));else if(d[n]){g=0;for(f=d[n];g<f;g++)w(b,W(d[g]))}else{var h=V(d);if(h&&h[n]){g=0;f=h[n];for(var j;g<f;g++){j=h[g];j.styleSheet&&w(b,W(j.styleSheet))}}}if((d.type||d.rules)&&(!d.disabled||i))b[m](d);return b};{var X=function(a){for(var c,b=a||document.styleSheets,d=[],i=W(b),g=0;b=i[g];g++){var f=V(b);if(f&&f[n])for(var h=0,j=0,E=f[n],k;j<E;j++){k=f[j];if(!k.href){k.parentStyleSheet||(k.style["-goog-parent-stylesheet"]=b);k.style["-goog-rule-index"]=h;d[m](k)}h++}}return c=d},Y="goog.cssom.getAllCssStyleRules".split("."),Z=u;!(Y[0]in Z)&&Z.execScript&&Z.execScript("var "+Y[0]);for(var $;Y[n]&&($=Y.shift());)if(!Y[n]&&X!==undefined)Z[$]=X;else Z=Z[$]?Z[$]:(Z[$]={})};

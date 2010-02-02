@@ -32,7 +32,7 @@ from categories import all_test_sets
 from categories import test_set_params
 
 # Data structures for reflow testing.
-from bin.reflow.run_reflow_timer import TEST_PAGES
+#from bin.reflow.run_reflow_timer import TEST_PAGES
 
 from settings import *
 
@@ -67,6 +67,9 @@ def ConstructTestPageParamCombinations(params, url_type):
   return param_combos
 
 
+def OldHome(request):
+  return http.HttpResponseRedirect('/reflow/about')
+
 def About(request):
   """About page."""
   params = {
@@ -78,7 +81,7 @@ def About(request):
 
 
 @decorators.provide_csrf
-def Test(request):
+def TestAcid1(request):
   page_title = 'Reflow Tests'
   test_key = request.GET.get('t')
   test_set = all_test_sets.GetTestSet(CATEGORY)

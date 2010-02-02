@@ -17,26 +17,17 @@
  * @fileoverview The reflow timer attempts to time the speed of re-flowing a web
  * page. This means selector matching + rendering tree construction +
  * reflow and position/geometry recalculations.
- * Requires util.js and beacon.js
  * @author elsigh@google.com (Lindsey Simon)
  */
 
 /**
  * The reflow timer class.
- * @param {boolean} opt_sendResultsToServer If true, send the results to our
- *     App Engine server for datastore-age.
  * @param {HTMLElement} opt_container The container element to manipulate.
  * @param {number} opt_passes The number of times to run the test for computing
  *     a median reflow time.
  * @constructor
  */
-var ReflowTimer = function(sendResultsToServer, opt_container, opt_passes) {
-
-  /**
-   * @type {boolean}
-   * @private
-   */
-  this.shouldSendResultsToServer_ = sendResultsToServer;
+var ReflowTimer = function(opt_container, opt_passes) {
 
   /**
    * @type {number}
@@ -125,11 +116,6 @@ var ReflowTimer = function(sendResultsToServer, opt_container, opt_passes) {
   this.resultsParams = [];
 };
 
-/**
- * Used for the bookmarklet's link back to the homepage.
- * @type {string}
- */
-ReflowTimer.SERVER = 'ua-profiler.appspot.com';
 
 /**
  * @type {number}
@@ -338,7 +324,7 @@ ReflowTimer.prototype.run = function() {
 
   // Gets rid of prior test elements in the DOM.
   var previousElementIds = ['rt-content', 'rt-results',
-      'rt-feedback', 'rt-css', Beacon.DEFAULT_ID];
+      'rt-feedback', 'rt-css'];
   for (var i = 0, id; id = previousElementIds[i]; i++) {
     var el = document.getElementById(id);
     if (el) {
@@ -542,16 +528,7 @@ ReflowTimer.prototype.testsComplete_ = function() {
   this.body_.appendChild(el, this.body_.firstChild);
 
   if (this.testFeedbackEl_) {
-    this.testFeedbackEl_.innerHTML = 'All done with the reflow tests!';
-  }
-
-  // Send and or render on page.
-  if (this.shouldSendResultsToServer_) {
-    if (this.testFeedbackEl_) {
-      this.testFeedbackEl_.innerHTML +=
-          '<br>Sending your results to be saved...';
-    }
-    this.sendResultsToServer_();
+    this.testFeedbackEl_.innerHTML = 'Done with the reflow tests!';
   }
 
   this.onTestsComplete(this.results);
@@ -860,56 +837,57 @@ ReflowTimer.prototype.logPaintEvents_ = function(e) {
 };
 
 
+/**** UTILITY FUNCTIONS ****/
+var Util = {};
 /**
- * Sends the reflow time to our server.
- * @private
+ * Adds CSS text to the DOM.
+ * @param {string} cssText The css text to add.
+ * @param {string} opt_id The id for the new stylesheet element.
+ * @return {Element} cssNode the added css DOM node.
  */
-ReflowTimer.prototype.sendResultsToServer_ = function() {
+Util.addCssText = function(cssText, opt_id) {
+  var cssNode = document.createElement('style');
+  cssNode.type = 'text/css';
+  cssNode.id = opt_id ? opt_id : 'cssh-sheet-' + document.styleSheets.length;
 
-  var uriParams = 'category=reflow' + '&results=' +
-      this.resultsParams.join(',');
+  var headEl = document.getElementsByTagName('head')[0];
+  headEl.appendChild(cssNode);
 
-  // Add on params to the beacon.
-  var paramsEl = document.getElementById('rt-params');
-  if (paramsEl) {
-    uriParams += '&params=' + paramsEl.value;
-
-  // store the entire window.location.href as a param
+  // IE
+  if (cssNode.styleSheet) {
+    cssNode.styleSheet.cssText = cssText;
+  // W3C
   } else {
-    uriParams += '&params=' + encodeURI(window.location.href);
+    cssText = document.createTextNode(cssText);
+    cssNode.appendChild(cssText);
   }
 
-  // Gets our csrf_token from the page.
-  var csrfTokenEl = document.getElementById('csrf_token');
-  if (csrfTokenEl) {
-    var csrfToken = csrfTokenEl.value;
-    uriParams += '&csrf_token=' + csrfToken;
-  }
-
-  /**
-   * @type {Beacon}
-   */
-  this.beacon_ = new Beacon(uriParams);
-  this.beacon_.onComplete = Util.curry(this, this.onBeaconComplete_);
-  this.beacon_.send();
+  return cssNode;
 };
 
 
 /**
- * Private beacon complete method, which fires the public onBeaconComplete
- * method.
- * @private
+ * Preserve scope in timeouts.
+ * @param {Object} scope
+ * @param {Function} fn
+ * @return {Function}
  */
-ReflowTimer.prototype.onBeaconComplete_ = function() {
-  if (this.testFeedbackEl_) {
-    this.testFeedbackEl_.innerHTML = 'Your results were saved.';
-  }
-  this.onBeaconComplete();
+Util.curry = function(scope, fn) {
+  scope = scope || window;
+  var args = [];
+  for (var i = 2, len = arguments.length; i < len; ++i) {
+    args.push(arguments[i]);
+  };
+  return function() {
+    fn.apply(scope, args);
+  };
 };
 
 
 /**
- * Provides a function for subclasses/functional uses to implement.
+ * @return {boolean} true if IE, false otherwise.
  */
-ReflowTimer.prototype.onBeaconComplete = function() {};
-
+Util.isInternetExplorer = function() {
+   return /msie/i.test(navigator.userAgent) &&
+       !/opera/i.test(navigator.userAgent);
+};
