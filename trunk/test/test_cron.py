@@ -36,12 +36,6 @@ class TestUpdateRecentTests(unittest.TestCase):
   def setUp(self):
     self.client = Client()
 
-  def tearDown(self):
-    db.delete(ResultParent.all(keys_only=True).fetch(1000))
-    db.delete(ResultTime.all(keys_only=True).fetch(1000))
-    db.delete(UserAgent.all(keys_only=True).fetch(1000))
-    memcache.flush_all()
-
   def testRecentTestsBasic(self):
     test_set = mock_data.MockTestSet()
     result_parents = []

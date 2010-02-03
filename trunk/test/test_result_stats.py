@@ -34,12 +34,6 @@ class CategoryBrowserManagerTest(unittest.TestCase):
 
   def setUp(self):
     self.cls = result_stats.CategoryBrowserManager
-    db.delete(self.cls.all(keys_only=True).fetch(1000))
-    memcache.flush_all()
-
-  def tearDown(self):
-    db.delete(self.cls.all(keys_only=True).fetch(1000))
-    memcache.flush_all()
 
   def testEmpty(self):
     category = 'network'
@@ -160,7 +154,6 @@ class CategoryBrowserManagerFilterTest(unittest.TestCase):
   def setUp(self):
     self.cls = result_stats.CategoryBrowserManager
     self.category = 'network'
-    db.delete(self.cls.all(keys_only=True).fetch(1000))
     result_stats.CategoryBrowserManager.AddUserAgent(
         self.category, mock_data.GetUserAgent('Firefox 2.5.1'))
     result_stats.CategoryBrowserManager.AddUserAgent(
@@ -175,11 +168,6 @@ class CategoryBrowserManagerFilterTest(unittest.TestCase):
         self.category, mock_data.GetUserAgent('Opera 9.70'))
     result_stats.CategoryBrowserManager.AddUserAgent(
         self.category, mock_data.GetUserAgent('Opera Mini 4.0.10031'))
-    memcache.flush_all()
-
-  def tearDown(self):
-    db.delete(self.cls.all(keys_only=True).fetch(1000))
-    memcache.flush_all()
 
   def testGetFilteredBrowsersFamily(self):
     expected_browsers = [
@@ -206,12 +194,6 @@ class CategoryBrowserManagerFilterTest(unittest.TestCase):
 class CategoryStatsManagerTest(unittest.TestCase):
 
   MANAGER_QUERY = result_stats.CategoryBrowserManager.all(keys_only=True)
-
-  def setUp(self):
-    db.delete(self.MANAGER_QUERY.fetch(1000))
-
-  def tearDown(self):
-    db.delete(self.MANAGER_QUERY.fetch(1000))
 
   def testGetStats(self):
     test_set = mock_data.MockTestSet()
@@ -279,10 +261,8 @@ class UpdateStatsCacheTest(unittest.TestCase):
   def setUp(self):
     self.mox = mox.Mox()
     self.test_set = mock_data.MockTestSet()
-    db.delete(self.MANAGER_QUERY.fetch(1000))
 
   def tearDown(self):
-    db.delete(self.MANAGER_QUERY.fetch(1000))
     self.mox.UnsetStubs()
 
   def testBasic(self):

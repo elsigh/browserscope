@@ -101,9 +101,6 @@ class CountRankerTest(unittest.TestCase):
     self.ranker_params = (self.test_set.tests[1], 'Android 0.5')
     self.ranker = result_ranker.GetOrCreateRanker(*self.ranker_params)
 
-  def tearDown(self):
-    self.ranker.delete()
-
   def testAddScore(self):
     ranker = result_ranker.GetRanker(*self.ranker_params)
     ranker.Add(2)
@@ -152,7 +149,6 @@ class LastNRankerTest(unittest.TestCase):
     self.old_max_num_scores = result_ranker.LastNRanker.MAX_NUM_SAMPLED_SCORES
 
   def tearDown(self):
-    self.ranker.delete()
     result_ranker.LastNRanker.MAX_NUM_SAMPLED_SCORES = self.old_max_num_scores
 
   def testAddScore(self):
