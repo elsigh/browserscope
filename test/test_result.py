@@ -130,13 +130,6 @@ class ResultTest(unittest.TestCase):
 
 
 class IncrementAllCountsTest(unittest.TestCase):
-  def setUp(self):
-    db.delete(ResultTime.all(keys_only=True).fetch(1000))
-    db.delete(ResultParent.all(keys_only=True).fetch(1000))
-
-  def tearDown(self):
-    db.delete(ResultTime.all(keys_only=True).fetch(1000))
-    db.delete(ResultParent.all(keys_only=True).fetch(1000))
 
   def testIncrementAllCountsBogusTest(self):
     test_set = mock_data.MockTestSet('foo')

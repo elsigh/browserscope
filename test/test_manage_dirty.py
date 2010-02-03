@@ -45,13 +45,6 @@ class TestManageDirty(unittest.TestCase):
     """Need to clean up it seems."""
     manage_dirty.ScheduleDirtyUpdate = self.old_schedule_dirty_update
     manage_dirty.DirtyResultTimesQuery.RESULT_TIME_LIMIT = self.old_limit
-    query = db.GqlQuery("SELECT __key__ FROM ResultParent WHERE category = :1",
-                        self.CATEGORY)
-    for parent_key in query.fetch(1000):
-      query = db.GqlQuery("SELECT __key__ FROM ResultTime WHERE ANCESTOR IS :1",
-                          parent_key)
-      result_time_keys = query.fetch(1000)
-      db.delete(result_time_keys + [parent_key])
 
   def testUpdateDirtyLocked(self):
     manage_dirty.UpdateDirtyController.AcquireLock()

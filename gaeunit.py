@@ -392,42 +392,32 @@ def _load_default_test_modules(test_dir):
     return [reload(__import__(name)) for name in module_names]
 
 
-def _get_tests_from_suite(suite, tests):
+def _get_tests_from_suite(suite):
     for test in suite:
         if isinstance(test, unittest.TestSuite):
-            _get_tests_from_suite(test, tests)
+            for t in _get_tests_from_suite(test):
+                yield t
         else:
-            tests.append(test)
+            yield test
 
 
 def _test_suite_to_json(suite):
-    tests = []
-    _get_tests_from_suite(suite, tests)
-    test_tuples = [(type(test).__module__, type(test).__name__, test._testMethodName) \
-                   for test in tests]
-    test_dict = {}
-    for test_tuple in test_tuples:
-        module_name, class_name, method_name = test_tuple
-        if module_name not in test_dict:
-            mod_dict = {}
-            method_list = []
-            method_list.append(method_name)
-            mod_dict[class_name] = method_list
-            test_dict[module_name] = mod_dict
-        else:
-            mod_dict = test_dict[module_name]
-            if class_name not in mod_dict:
-                method_list = []
-                method_list.append(method_name)
-                mod_dict[class_name] = method_list
-            else:
-                method_list = mod_dict[class_name]
-                method_list.append(method_name)
+    """Convert a test suite to a json string.
 
+    Returns:
+        A json string of the following python structure:
+        {module_name: {class_name: [method_name, ...], ...}, ...}
+    """
+    test_dict = {}
+    for test in _get_tests_from_suite(suite):
+        test_dict.setdefault(
+            type(test).__module__, {}).setdefault(
+                type(test).__name__, []).append(
+                   test._testMethodName)
     return django.utils.simplejson.dumps(test_dict)
 
 
-class ExecuteImmediatelyTaskQueueService(taskqueue_stub.TaskQueueServiceStub):
+class TestingTaskQueueService(taskqueue_stub.TaskQueueServiceStub):
 
     def _Dynamic_Add(self, request, response):
         # TODO(slamm): Handle task errors
@@ -475,17 +465,20 @@ def _run_test_suite(runner, suite):
     original_apiproxy = apiproxy_stub_map.apiproxy
     try:
        apiproxy_stub_map.apiproxy = apiproxy_stub_map.APIProxyStubMap()
-       temp_stub = datastore_file_stub.DatastoreFileStub('GAEUnitDataStore', None, None, trusted=True)
-       apiproxy_stub_map.apiproxy.RegisterStub('datastore', temp_stub)
+       apiproxy_stub_map.apiproxy.RegisterStub(
+           'datastore',
+           datastore_file_stub.DatastoreFileStub(
+               'GAEUnitDataStore', datastore_file=None, trusted=True))
        apiproxy_stub_map.apiproxy.RegisterStub(
            'memcache',
-           memcache_stub.MemcacheServiceStub())# setup mock
+           memcache_stub.MemcacheServiceStub())
        apiproxy_stub_map.apiproxy.RegisterStub(
            'taskqueue',
-           ExecuteImmediatelyTaskQueueService(root_path='.'))
+           TestingTaskQueueService(root_path='.'))
        # Allow the other services to be used as-is for tests.
-       for name in ['user', 'urlfetch', 'mail', 'images']:
-           apiproxy_stub_map.apiproxy.RegisterStub(name, original_apiproxy.GetStub(name))
+       for name in ('user', 'urlfetch', 'mail', 'images'):
+           apiproxy_stub_map.apiproxy.RegisterStub(
+               name, original_apiproxy.GetStub(name))
        # TODO(slamm): add coverage tool here.
        runner.run(suite)
     finally:

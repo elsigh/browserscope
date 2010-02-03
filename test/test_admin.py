@@ -72,11 +72,6 @@ class TestDataDump(unittest.TestCase):
   def setUp(self):
     self.client = Client()
 
-  def tearDown(self):
-    db.delete(ResultParent.all(keys_only=True).fetch(1000))
-    db.delete(ResultTime.all(keys_only=True).fetch(1000))
-    db.delete(UserAgent.all(keys_only=True).fetch(1000))
-
   def testNoParamsGivesError(self):
     params = {}
     response = self.client.get('/admin/data_dump', params)
@@ -122,11 +117,6 @@ class TestDataDump(unittest.TestCase):
 class TestDataDumpKeys(unittest.TestCase):
   def setUp(self):
     self.client = Client()
-
-  def tearDown(self):
-    db.delete(ResultParent.all(keys_only=True).fetch(1000))
-    db.delete(ResultTime.all(keys_only=True).fetch(1000))
-    db.delete(UserAgent.all(keys_only=True).fetch(1000))
 
   def testCreated(self):
     test_set = mock_data.MockTestSet()
@@ -183,10 +173,6 @@ class TestUploadCategoryBrowsers(unittest.TestCase):
     self.client = Client()
     self.manager = result_stats.CategoryBrowserManager
 
-  def tearDown(self):
-    db.delete(self.manager.all(keys_only=True).fetch(1000))
-    memcache.flush_all()
-
   def testNoBrowsersGivesError(self):
     params = {}
     response = self.client.get('/admin/upload_category_browsers', params)
@@ -241,7 +227,6 @@ class TestUpdateStatsCache(unittest.TestCase):
 
   def tearDown(self):
     self.mox.UnsetStubs()
-    memcache.flush_all()
 
   def testNoCategoryGivesError(self):
     params = {

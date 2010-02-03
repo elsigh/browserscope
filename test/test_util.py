@@ -166,9 +166,6 @@ class TestBeacon(unittest.TestCase):
 
 class TestUtilFunctions(unittest.TestCase):
 
-  def setUp(self):
-    memcache.flush_all()
-
   def testCheckThrottleIpAddress(self):
     ip = mock_data.UNIT_TEST_UA['REMOTE_ADDR']
     ua_string = mock_data.UNIT_TEST_UA['HTTP_USER_AGENT']
@@ -181,9 +178,6 @@ class TestUtilFunctions(unittest.TestCase):
 class TestClearMemcache(unittest.TestCase):
   def setUp(self):
     self.client = Client()
-
-  def tearDown(self):
-    memcache.flush_all()
 
   def testClearMemcacheRecentTests(self):
     memcache.set(util.RECENT_TESTS_MEMCACHE_KEY, 'foo')
