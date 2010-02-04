@@ -158,7 +158,7 @@ class JskbTestSet(test_set_base.TestSet):
               abbrevs.add(abbrev)
           total_score += score
           n_scored += 1
-      avg_score = (n_scored and int(100 * (total_score / n_scored))) or 50
+      avg_score = (n_scored and int(total_score / n_scored)) or 60
       abbrevs = list(abbrevs)
       abbrevs.sort()
       return avg_score, ', '.join(abbrevs)
@@ -167,7 +167,7 @@ class JskbTestSet(test_set_base.TestSet):
     median = raw_scores[test_key]
     # TODO(mikesamuel): a confidence metric around the results.
     int_median = int(round(median))
-
+    
     display = '?'
     values = snippet[ecmascript_snippets.VALUES]
     if int_median >= 0 and int_median < len(values):
