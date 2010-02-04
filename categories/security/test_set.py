@@ -107,7 +107,12 @@ _TESTS = (
                'Origin header',
   '''Checks whether the browser supports the
   <a href="http://tools.ietf.org/html/draft-abarth-origin">Origin header</a>, which is a mitigation for
-  <a href="http://en.wikipedia.org/wiki/Cross-site_request_forgery">Cross-Site Request Forgery</a> (CSRF) attacks.'''),
+  <a href="http://en.wikipedia.org/wiki/Cross-site_request_forgery">cross-site request forgery</a> (CSRF) attacks.'''),
+  SecurityTest('Strict Transport Security',
+               'Strict Transport Security',
+  '''Checks whether the browser supports 
+  <a href="http://lists.w3.org/Archives/Public/www-archive/2009Sep/att-0051/draft-hodges-strict-transport-sec-05.plain.html">Strict Transport Security</a>,
+  which enables web sites to declare themselves accessible only via secure connections.'''),
 )
 
 

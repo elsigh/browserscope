@@ -20,6 +20,7 @@
 from categories import all_test_sets
 from base import util
 from django.http import HttpResponse
+from django.http import HttpResponsePermanentRedirect
 
 CATEGORY = 'security'
 
@@ -65,3 +66,15 @@ def OriginHeaderTest(request):
   else:
     response.write('<html>FAIL</html>')
   return response
+      
+def SetSts(request):
+  if request.is_secure():
+    response = HttpResponsePermanentRedirect('http://ua-profiler.appspot.com/security/test/test-sts')
+    response['Strict-Transport-Security'] = 'max-age=5'
+    return response
+
+def TestSts(request):
+  if request.is_secure():
+    return HttpResponsePermanentRedirect('http://www.browserscope.org/security/static/sts-pass.html')
+  else:
+    return HttpResponsePermanentRedirect('http://www.browserscope.org/security/static/sts-fail.html')
