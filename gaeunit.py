@@ -293,21 +293,19 @@ class JsonTestResult(unittest.TestResult):
         result = {
             'runs': self.testsRun,
             'total': self.testNumber,
-            'errors': self._list(self.errors),
-            'failures': self._list(self.failures),
+            'errors': self._error_tuples_to_dicts(self.errors),
+            'failures': self._error_tuples_to_dicts(self.failures),
+            # TODO(slamm): Add times.
+            # TODO(slamm): Add logs.
             }
-
         stream.write(django.utils.simplejson.dumps(result))
 
-    def _list(self, list):
-        dict = []
-        for test, err in list:
-            d = {
-              'desc': test.shortDescription() or str(test),
-              'detail': cgi.escape(err),
-            }
-            dict.append(d)
-        return dict
+    def _error_tuples_to_dicts(self, errors):
+        """Convert errors and failures into simple datastructures."""
+        return [{
+            'short_description': test.shortDescription() or '',
+            'traceback': cgi.escape(traceback_string),
+            } for test, traceback_string in errors]
 
 
 class JsonTestRunner:
@@ -557,21 +555,26 @@ _MAIN_PAGE_CONTENT = """
                     } else {
                         testFailed();
                     }
-                    var errors = result.errors;
-                    var failures = result.failures;
+                    var error_groups = [['ERROR', result.errors],
+                                        ['FAILURE', result.failures]];
                     var details = "";
-                    for(var i=0; i<errors.length; i++) {
-                        details += '<p><div class="error"><div class="errtitle">ERROR ' +
-                                   errors[i].desc +
-                                   '</div><div class="errdetail"><pre>'+errors[i].detail +
-                                   '</pre></div></div></p>';
-                    }
-                    for(var i=0; i<failures.length; i++) {
-                        details += '<p><div class="error"><div class="errtitle">FAILURE ' +
-                                    failures[i].desc +
-                                    '</div><div class="errdetail"><pre>' +
-                                    failures[i].detail +
-                                    '</pre></div></div></p>';
+                    for (var i=0; i < error_groups.length; i++) {
+                        var label = error_groups[i][0];
+                        var items = error_groups[i][1];
+                        var module_url = '?' + 'name=' + moduleName;
+                        var class_url = module_url + '.' + className;
+                        var method_url = class_url + '.' + methodName;
+                        for (var j=0; j < items.length; j++) {
+                            details +=
+                                '<p><div class="error"><div class="errtitle">' +
+                                label +
+                                '   <a href="' + module_url + '">' + moduleName + '</a>' +
+                                ' . <a href="' + class_url + '">' + className + '</a>' +
+                                ' . <a href="' + method_url + '">' + methodName + '</a>' +
+                                items[j].short_description +
+                                '</div><div class="errdetail"><pre>' +
+                                items[j].traceback + '</pre></div></div></p>';
+                        }
                     }
                     var errorArea = document.getElementById("errorarea");
                     errorArea.innerHTML += details;
