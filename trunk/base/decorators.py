@@ -113,7 +113,7 @@ def check_csrf(func):
 
     if request_csrf_token is None:
       return HttpResponseForbidden('CSRF Error - Need csrf_token in request.')
-    if request_csrf_token not in valid_csrf_tokens:
+    if valid_csrf_tokens is None or request_csrf_token not in valid_csrf_tokens:
       return HttpResponseForbidden('CSRF Error - Invalid csrf_token.')
 
     request.session['csrf_token'] = None
