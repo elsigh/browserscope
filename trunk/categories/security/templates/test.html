@@ -191,7 +191,10 @@
       return !frame.contentDocument.documentElement.innerHTML.match(/FAIL/);
     });
     runAjaxTest('Origin header', 'test/originheader', function(xmlhttp) {
-      return !xmlhttp.responseText.match(/FAIL/);
+      return xmlhttp.responseText.match(/PASS/);
+    });
+    runIframeTest('Strict Transport Security', "https://ua-profiler.appspot.com/security/test/set-sts", function (frame) {
+      return frame.contentDocument.documentElement.innerHTML.match(/PASS/);
     });
     commit();
     </script>
