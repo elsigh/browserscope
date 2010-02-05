@@ -125,6 +125,10 @@ before starting any other downloads. Although <i>parsing and executing</i> scrip
 it's possible to safely <i>download</i> scripts in parallel with other resources in the page (including other scripts).
 This test determines if the browser downloads scripts in parallel with other iframes in the page.'''),
   BooleanNetworkTest(
+    'scriptasync', 'Async Scripts', 'scripts-async',
+    '''HTML5 introduced the async attribute for script tags.  This allows page authors to specify that their scripts can safely load
+in the background, independent of the other scripts in the page.  This test determines if the browser supports the async attribute.'''),
+  BooleanNetworkTest(
     'parsheet', '|| CSS', 'stylesheets-block',
     '''Similar to scripts, some browsers block all downloads once they start downloading a stylesheet.
 This test determines if stylesheets can be downloaded in parallel with other resources in the page.'''),
