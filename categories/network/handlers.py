@@ -322,6 +322,18 @@ def ScriptsBlockIframes(request):
                      CATEGORY)
 
 
+def ScriptsAsync(request):
+  """Network Performance Scripts Support Async"""
+
+  params = {
+    'page_title': 'Performance Scripts Support Async Test',
+    'resource_cgi': RESOURCE_CGI,
+    'resource_cgi2': RESOURCE_CGI2,
+  }
+  return util.Render(request, 'templates/tests/scripts-async.html', params,
+                     CATEGORY)
+
+
 def StylesheetsBlock(request):
   """Network Performance Stylesheets Block Test"""
 
