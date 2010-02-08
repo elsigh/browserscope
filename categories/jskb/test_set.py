@@ -200,7 +200,6 @@ class JskbTestSet(test_set_base.TestSet):
     if score > 75: display = 'Good'
     elif score > 50: display = 'OK'
     else: display = 'Meh'
-    print >>sys.stderr, '%r' % ((score, display),)
     return score, display
 
 TEST_SET = JskbTestSet(
