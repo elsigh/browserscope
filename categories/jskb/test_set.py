@@ -21,6 +21,7 @@ __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 from categories.jskb import ecmascript_snippets
 from categories import test_set_base
+import cgi
 import re
 import sys
 
@@ -59,8 +60,7 @@ def rate_display(display, good):
     return 50
   return 75
 
-def html(text):
-  return re.sub('<', '&lt;', re.sub('>', '&gt;', re.sub('&', '&amp;', text)))
+def html(text): return cgi.escape(text, quote='"')
 
 def make_test_list():
   tests = []
@@ -189,23 +189,18 @@ class JskbTestSet(test_set_base.TestSet):
           # score is from 0 to 100.
           # display_value is the text for the cell.
     """
-    if (not results.has_key('passed') or results['passed']['median']
-        or results['failed']['median'] is None):
-      score = 0
-      display = ''
-    else:
-      score = str(int(100.0 * results['passed']['median'] /
-          (results['passed']['median'] + results['failed']['median'])))
-
-      num = round(100.0 * results['passed']['median'] /
-                  (results['passed']['median'] + results['failed']['median']),
-                  1)
-      score = int(num)
-      if score == 0:
-        score = 10
-        display = '0%'
-      else:
-        display = str(num) + '%'
+    total_score = 0
+    n_results = 0
+    display = ''
+    for _, v in results.iteritems():
+      total_score += float(v['score'])
+      n_results += 1
+    if not n_results: return 0, ''
+    score = total_score / n_results
+    if score > 75: display = 'Good'
+    elif score > 50: display = 'OK'
+    else: display = 'Meh'
+    print >>sys.stderr, '%r' % ((score, display),)
     return score, display
 
 TEST_SET = JskbTestSet(
