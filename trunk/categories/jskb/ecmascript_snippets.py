@@ -236,10 +236,10 @@ SNIPPET_GROUPS = (
 
     { CODE: 'typeof XMLHttpRequest', NAME: 'XHR',
       VALUES: TYPEOF_VALUES, SUMMARY: 'XMLHttpRequest',
-      GOOD: (T_FUN,), ABBREV: { T_FUN: 'XMLHttpRequest' } },
+      GOOD: (T_FUN,), ABBREV: { T_FUN: 'XHR' } },
     { CODE: 'typeof ActiveXObject', NAME: 'ActiveX',
       VALUES: TYPEOF_VALUES, SUMMARY: 'ActiveXObject',
-      ABBREV: { T_FUN: 'ActiveXObject', T_OBJ: 'ActiveXObject' } },
+      ABBREV: { T_FUN: 'ActiveX', T_OBJ: 'ActiveX' } },
     { CODE: 'typeof postMessage', NAME: 'postMsg',
       VALUES: TYPEOF_VALUES, SUMMARY: 'postMessage',
       GOOD: (T_FUN,), ABBREV: { T_FUN: 'postMessage', T_OBJ: 'postMessage' } },
