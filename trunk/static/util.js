@@ -906,7 +906,7 @@ Util.ResultTablesController.generateUrl = function(category, output,
     }
   }
   if (opt_results) {
-    url += '&' + opt_results.replace('&', '');
+    url += '&' + opt_results;
   }
 
 
