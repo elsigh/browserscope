@@ -165,6 +165,7 @@ class JskbTestSet(test_set_base.TestSet):
 
     snippet = ecmascript_snippets.with_name(test_key)
     median = raw_scores[test_key]
+    if median is None: return 0, None
     # TODO(mikesamuel): a confidence metric around the results.
     int_median = int(round(median))
     

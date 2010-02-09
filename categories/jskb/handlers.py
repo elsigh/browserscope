@@ -85,7 +85,7 @@ def Json(request):
       '  <dd>The user agents requested</dd>\n'
       '</dl>\n'
       'E.g.,\n'
-      '  <li><code>ua=Firefox%%2F3.0</code>\n'
+      '  <li><code>ua=Firefox+3.5</code>\n'
       '  <li><code>ua=MSIE+6.0</code>\n'
       '  <li><code>ot=application%%2Fjson</code>\n'
       '  <li><code>ot=text%%2Fplain</code>\n'
@@ -132,7 +132,7 @@ def Json(request):
                            and old_combined.get(k) == v.get('display'))])
   if combined is None: combined = {}
   result = [(ecmascript_snippets.with_name(k)[ecmascript_snippets.CODE], v)
-            for (k, v) in combined.iteritems()]
+            for (k, v) in combined.iteritems() if v is not None]
   result.append(('*userAgent*', json.to_json(stats_data.keys())))
 
   def check_json_value(v):
