@@ -2,52 +2,52 @@
 
 {% block head %}
 <script type="text/javascript">
-  var t_normal_script = null;
-  var t_async_script = null;
-  var t_onload = null;
+var t_normal_script = null;
+var t_async_script = null;
+var t_onload = null;
 
-  function scriptSleepOnload(url) {
+function scriptSleepOnload(url) {
     // The resource_cgi scripts call this function.
     if (url.indexOf('script=async') > 0) {
-      t_async_script = Number(new Date());
+		t_async_script = Number(new Date());
     }
     else if (url.indexOf('script=normal') > 0) {
-      t_normal_script = Number(new Date());
+		t_normal_script = Number(new Date());
     }
-  }
+}
 
-  function report(msg, opt_success) {
+function report(msg, opt_success) {
     document.getElementById('results').innerHTML = msg;
     parent.saveResult('scriptasync', opt_success ? 1 : 0);
-  }
+}
 
-  function doTest() {
+function doTest() {
     if (t_async_script == null) {
-      report('Test error. The async script did not run.');
+		report('Test error. The async script did not run.');
     }
     else if (t_normal_script == null) {
-      report('Test error. The normal script did not run.');
+		report('Test error. The normal script did not run.');
     }
     else if (t_onload < t_async_script) {
-      report('Failure. The onload handler fired before the async script.');
+		report('Failure. The onload handler fired before the async script.');
     }
     else if (t_onload < t_normal_script) {
-      report('Failure. The onload handler fired before the normal script.');
+		report('Failure. The onload handler fired before the normal script.');
     }
     else if (t_normal_script > t_async_script) {
-      report('Failure. Async script ran first. Was not loaded asynchronously.');
+		report('Failure. Async script ran first. Was not loaded asynchronously.');
     }
     else {
-      report('Success. Async script ran second. Was loaded asynchronously.', true);
+		report('Success. Async script ran second. Was loaded asynchronously.', true);
     }
-  }
+}
 
-  window.onload = function() {
+window.onload = function() {
     // Browsers might fire window.onload after async scripts download
     // but before they run, so wait one second.
     t_onload = Number(new Date());
     setTimeout(doTest, 1000);
-  };
+};
 </script>
 {% endblock %}
 
