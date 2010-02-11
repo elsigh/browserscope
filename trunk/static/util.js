@@ -745,9 +745,9 @@ Util.ResultTable.prototype.initCompareUas = function() {
   this.compareCbs = [];
 
   /**
-   * @type {Array.<string>}
+   * @type {number}
    */
-  this.uasToCompare = [];
+  this.numUasToCompare = 0;
 
   if (!this.table) {
     return;
@@ -802,13 +802,13 @@ Util.ResultTable.prototype.initCompareUas = function() {
 Util.ResultTable.prototype.cbClick = function(e) {
   var cb = e.currentTarget;
   if (cb.checked) {
-    goog.array.insert(this.uasToCompare, cb.value);
-  } else {
-    goog.array.remove(this.uasToCompare, cb.value);
+    this.numUasToCompare += 1
+  } else if (this.numUasToCompare > 0) {
+    this.numUasToCompare -= 1
   }
-  if (this.compareUasBtn.disabled && this.uasToCompare.length > 0) {
+  if (this.compareUasBtn.disabled && this.numUasToCompare > 0) {
     this.compareUasBtn.disabled = false;
-  } else if (this.uasToCompare.length == 0) {
+  } else if (this.numUasToCompare == 0) {
     this.compareUasBtn.disabled = true;
   }
 };
@@ -817,7 +817,15 @@ Util.ResultTable.prototype.cbClick = function(e) {
  * @param {goog.events.Event} e Browser click event.
  */
 Util.ResultTable.prototype.compareUas = function(e) {
-  this.controller.uaUriParams = this.uasToCompare.join(',');
+  var uasToCompare = new Array(this.numUasToCompare);
+  var uasToCompareLength = 0
+  var l = this.compareCbs.length;
+  goog.array.forEach(this.compareCbs, function(cb) {
+    if (cb.checked) {
+      uasToCompare[uasToCompareLength++] = cb.value;
+    }
+  });
+  this.controller.uaUriParams = uasToCompare.join(',');
   this.controller.updateExtraBrowserFamilyOpts();
   this.controller.resetUrl();
   this.controller.updateTableDisplay();

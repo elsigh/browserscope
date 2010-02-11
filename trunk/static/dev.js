@@ -132,7 +132,7 @@ if (!COMPILED) {
  * "a.b.c" -> a = {};a.b={};a.b.c={};
  * Used by goog.provide and goog.exportSymbol.
  * @param {string} name name of the object that this file defines.
- * @param {Object=} opt_object the object to expose at the end of the path.
+ * @param {*=} opt_object the object to expose at the end of the path.
  * @param {Object=} opt_objectToExportTo The object to add the path to; default
  *     is |goog.global|.
  * @private
@@ -953,18 +953,19 @@ goog.partial = function(fn, var_args) {
 
 
 /**
- * Copies all the members of a source object to a target object.
+ * Copies all the members of a source object to a target object. This method
+ * does not work on all browsers for all objects that contain keys such as
+ * toString or hasOwnProperty. Use goog.object.extend for this purpose.
  * @param {Object} target Target.
  * @param {Object} source Source.
- * @deprecated Use goog.object.extend instead.
  */
 goog.mixin = function(target, source) {
   for (var x in source) {
     target[x] = source[x];
   }
 
-  // For IE the for-in-loop does not contain any properties that are not
-  // enumerable on the prototype object (for example, isPrototypeOf from
+  // For IE7 or lower, the for-in-loop does not contain any properties that are
+  // not enumerable on the prototype object (for example, isPrototypeOf from
   // Object.prototype) but also it will not include 'replace' on objects that
   // extend String and change 'replace' (not that it is common for anyone to
   // extend anything except Object).
@@ -1149,7 +1150,7 @@ goog.getMsg = function(str, opt_values) {
  *     new public.path.Foo().myMethod();
  *
  * @param {string} publicPath Unobfuscated name to export.
- * @param {Object} object Object the name should point to.
+ * @param {*} object Object the name should point to.
  * @param {Object=} opt_objectToExportTo The object to add the path to; default
  *     is |goog.global|.
  */
@@ -1164,7 +1165,7 @@ goog.exportSymbol = function(publicPath, object, opt_objectToExportTo) {
  * ex. goog.exportProperty(Foo.prototype, 'myMethod', Foo.prototype.myMethod);
  * @param {Object} object Object whose static property is being exported.
  * @param {string} publicName Unobfuscated name to export.
- * @param {Object} symbol Object the name should point to.
+ * @param {*} symbol Object the name should point to.
  */
 goog.exportProperty = function(object, publicName, symbol) {
   object[publicName] = symbol;
@@ -1238,36 +1239,34 @@ goog.inherits = function(childCtor, parentCtor) {
  * @return {*} The return value of the superclass method.
  */
 goog.base = function(me, opt_methodName, var_args) {
-  if (!COMPILED) {
-    var caller = arguments.callee.caller;
-    if (caller.superClass_) {
-      // This is a constructor. Call the superclass constructor.
-      return caller.superClass_.constructor.apply(
-          me, Array.prototype.slice.call(arguments, 1));
-    }
+  var caller = arguments.callee.caller;
+  if (caller.superClass_) {
+    // This is a constructor. Call the superclass constructor.
+    return caller.superClass_.constructor.apply(
+        me, Array.prototype.slice.call(arguments, 1));
+  }
 
-    var args = Array.prototype.slice.call(arguments, 2);
-    var foundCaller = false;
-    for (var ctor = me.constructor;
-         ctor; ctor = ctor.superClass_ && ctor.superClass_.constructor) {
-      if (ctor.prototype[opt_methodName] === caller) {
-        foundCaller = true;
-      } else if (foundCaller) {
-        return ctor.prototype[opt_methodName].apply(me, args);
-      }
+  var args = Array.prototype.slice.call(arguments, 2);
+  var foundCaller = false;
+  for (var ctor = me.constructor;
+       ctor; ctor = ctor.superClass_ && ctor.superClass_.constructor) {
+    if (ctor.prototype[opt_methodName] === caller) {
+      foundCaller = true;
+    } else if (foundCaller) {
+      return ctor.prototype[opt_methodName].apply(me, args);
     }
+  }
 
-    // If we did not find the caller in the prototype chain,
-    // then one of two things happened:
-    // 1) The caller is an instance method.
-    // 2) This method was not called by the right caller.
-    if (me[opt_methodName] === caller) {
-      return me.constructor.prototype[opt_methodName].apply(me, args);
-    } else {
-      throw Error(
-          'goog.base called from a method of one name ' +
-          'to a method of a different name');
-    }
+  // If we did not find the caller in the prototype chain,
+  // then one of two things happened:
+  // 1) The caller is an instance method.
+  // 2) This method was not called by the right caller.
+  if (me[opt_methodName] === caller) {
+    return me.constructor.prototype[opt_methodName].apply(me, args);
+  } else {
+    throw Error(
+        'goog.base called from a method of one name ' +
+        'to a method of a different name');
   }
 };
 
@@ -1333,7 +1332,7 @@ goog.array.ARRAY_PROTOTYPE_ = Array.prototype;
  *
  * @param {goog.array.ArrayLike} arr The array to be searched.
  * @param {*} obj The object for which we are searching.
- * @param {number} opt_fromIndex The index at which to start the search. If
+ * @param {number=} opt_fromIndex The index at which to start the search. If
  *     omitted the search starts at index 0.
  * @return {number} The index of the first matching array element.
  */
@@ -1370,7 +1369,7 @@ goog.array.indexOf = goog.array.ARRAY_PROTOTYPE_.indexOf ?
  *
  * @param {goog.array.ArrayLike} arr The array to be searched.
  * @param {*} obj The object for which we are searching.
- * @param {?number} opt_fromIndex The index at which to start the search. If
+ * @param {?number=} opt_fromIndex The index at which to start the search. If
  *     omitted the search starts at the end of the array.
  * @return {number} The index of the last matching array element.
  */
@@ -1417,7 +1416,7 @@ goog.array.lastIndexOf = goog.array.ARRAY_PROTOTYPE_.lastIndexOf ?
  *     which have assigned values; it is not called for indexes which have
  *     been deleted or which have never been assigned values.
  *
- * @param {Object} opt_obj The object to be used as the value of 'this'
+ * @param {Object=} opt_obj The object to be used as the value of 'this'
  *     within f.
  */
 goog.array.forEach = goog.array.ARRAY_PROTOTYPE_.forEach ?
@@ -1443,7 +1442,7 @@ goog.array.forEach = goog.array.ARRAY_PROTOTYPE_.forEach ?
  * @param {Function} f The function to call for every element. This function
  *     takes 3 arguments (the element, the index and the array). The return
  *     value is ignored.
- * @param {Object} opt_obj The object to be used as the value of 'this'
+ * @param {Object=} opt_obj The object to be used as the value of 'this'
  *     within f.
  */
 goog.array.forEachRight = function(arr, f, opt_obj) {
@@ -1468,7 +1467,7 @@ goog.array.forEachRight = function(arr, f, opt_obj) {
  *     takes 3 arguments (the element, the index and the array) and must
  *     return a Boolean. If the return value is true the element is added to the
  *     result array. If it is false the element is not included.
- * @param {Object} opt_obj The object to be used as the value of 'this'
+ * @param {Object=} opt_obj The object to be used as the value of 'this'
  *     within f.
  * @return {!Array} a new array in which only elements that passed the test are
  *     present.
@@ -1504,7 +1503,7 @@ goog.array.filter = goog.array.ARRAY_PROTOTYPE_.filter ?
  * @param {Function} f The function to call for every element. This function
  *     takes 3 arguments (the element, the index and the array) and should
  *     return something. The result will be inserted into a new array.
- * @param {Object} opt_obj The object to be used as the value of 'this'
+ * @param {Object=} opt_obj The object to be used as the value of 'this'
  *     within f.
  * @return {!Array} a new array with the results from f.
  */
@@ -1514,12 +1513,11 @@ goog.array.map = goog.array.ARRAY_PROTOTYPE_.map ?
     } :
     function(arr, f, opt_obj) {
       var l = arr.length;  // must be fixed during loop... see docs
-      var res = [];
-      var resLength = 0;
+      var res = new Array(l);
       var arr2 = goog.isString(arr) ? arr.split('') : arr;
       for (var i = 0; i < l; i++) {
         if (i in arr2) {
-          res[resLength++] = f.call(opt_obj, arr2[i], i, arr);
+          res[i] = f.call(opt_obj, arr2[i], i, arr);
         }
       }
       return res;
@@ -1543,7 +1541,7 @@ goog.array.map = goog.array.ARRAY_PROTOTYPE_.map ?
  *     array itself)
  *     function(previousValue, currentValue, index, array).
  * @param {*} val The initial value to pass into the function on the first call.
- * @param {Object} opt_obj  The object to be used as the value of 'this'
+ * @param {Object=} opt_obj  The object to be used as the value of 'this'
  *     within f.
  * @return {*} Result of evaluating f repeatedly across the values of the array.
  */
@@ -1581,7 +1579,7 @@ goog.array.reduce = function(arr, f, val, opt_obj) {
  *     array itself)
  *     function(previousValue, currentValue, index, array).
  * @param {*} val The initial value to pass into the function on the first call.
- * @param {Object} opt_obj The object to be used as the value of 'this'
+ * @param {Object=} opt_obj The object to be used as the value of 'this'
  *     within f.
  * @return {*} Object returned as a result of evaluating f repeatedly across the
  *     values of the array.
@@ -1613,7 +1611,7 @@ goog.array.reduceRight = function(arr, f, val, opt_obj) {
  * @param {Function} f The function to call for every element. This function
  *     takes 3 arguments (the element, the index and the array) and must
  *     return a Boolean.
- * @param {Object} opt_obj  The object to be used as the value of 'this'
+ * @param {Object=} opt_obj  The object to be used as the value of 'this'
  *     within f.
  * @return {boolean} true if any element passes the test.
  */
@@ -1644,7 +1642,7 @@ goog.array.some = goog.array.ARRAY_PROTOTYPE_.some ?
  * @param {Function} f The function to call for every element. This function
  *     takes 3 arguments (the element, the index and the array) and must
  *     return a Boolean.
- * @param {Object} opt_obj The object to be used as the value of 'this'
+ * @param {Object=} opt_obj The object to be used as the value of 'this'
  *     within f.
  * @return {boolean} false if any element fails the test.
  */
@@ -1671,7 +1669,7 @@ goog.array.every = goog.array.ARRAY_PROTOTYPE_.every ?
  * @param {Function} f The function to call for every element. This function
  *     takes 3 arguments (the element, the index and the array) and should
  *     return a boolean.
- * @param {Object} opt_obj An optional "this" context for the function.
+ * @param {Object=} opt_obj An optional "this" context for the function.
  * @return {*} The first array element that passes the test, or null if no
  *     element is found.
  */
@@ -1688,7 +1686,7 @@ goog.array.find = function(arr, f, opt_obj) {
  * @param {Function} f The function to call for every element. This function
  *     takes 3 arguments (the element, the index and the array) and should
  *     return a boolean.
- * @param {Object} opt_obj An optional "this" context for the function.
+ * @param {Object=} opt_obj An optional "this" context for the function.
  * @return {number} The index of the first array element that passes the test,
  *     or -1 if no element is found.
  */
@@ -1711,7 +1709,7 @@ goog.array.findIndex = function(arr, f, opt_obj) {
  * @param {Function} f The function to call for every element. This function
  *     takes 3 arguments (the element, the index and the array) and should
  *     return a boolean.
- * @param {Object} opt_obj An optional "this" context for the function.
+ * @param {Object=} opt_obj An optional "this" context for the function.
  * @return {*} The last array element that passes the test, or null if no
  *     element is found.
  */
@@ -1728,7 +1726,7 @@ goog.array.findRight = function(arr, f, opt_obj) {
  * @param {Function} f The function to call for every element. This function
  *     takes 3 arguments (the element, the index and the array) and should
  *     return a boolean.
- * @param {Object} opt_obj An optional "this" context for the function.
+ * @param {Object=} opt_obj An optional "this" context for the function.
  * @return {number} The index of the last array element that passes the test,
  *     or -1 if no element is found.
  */
@@ -1798,7 +1796,7 @@ goog.array.insert = function(arr, obj) {
  * Inserts an object at the given index of the array.
  * @param {goog.array.ArrayLike} arr The array to modify.
  * @param {*} obj The object to insert.
- * @param {number} opt_i The index at which to insert the object. If omitted,
+ * @param {number=} opt_i The index at which to insert the object. If omitted,
  *      treated as 0. A negative index is counted from the end of the array.
  */
 goog.array.insertAt = function(arr, obj, opt_i) {
@@ -1810,7 +1808,7 @@ goog.array.insertAt = function(arr, obj, opt_i) {
  * Inserts at the given index of the array, all elements of another array.
  * @param {goog.array.ArrayLike} arr The array to modify.
  * @param {goog.array.ArrayLike} elementsToAdd The array of elements to add.
- * @param {number} opt_i The index at which to insert the object. If omitted,
+ * @param {number=} opt_i The index at which to insert the object. If omitted,
  *      treated as 0. A negative index is counted from the end of the array.
  */
 goog.array.insertArrayAt = function(arr, elementsToAdd, opt_i) {
@@ -1822,7 +1820,7 @@ goog.array.insertArrayAt = function(arr, elementsToAdd, opt_i) {
  * Inserts an object into an array before a specified object.
  * @param {Array} arr The array to modify.
  * @param {*} obj The object to insert.
- * @param {*} opt_obj2 The object before which obj should be inserted. If obj2
+ * @param {*=} opt_obj2 The object before which obj should be inserted. If obj2
  *     is omitted or not found, obj is inserted at the end of the array.
  */
 goog.array.insertBefore = function(arr, obj, opt_obj2) {
@@ -1872,7 +1870,7 @@ goog.array.removeAt = function(arr, i) {
  * @param {Function} f The function to call for every element. This function
  *     takes 3 arguments (the element, the index and the array) and should
  *     return a boolean.
- * @param {Object} opt_obj An optional "this" context for the function.
+ * @param {Object=} opt_obj An optional "this" context for the function.
  * @return {boolean} True if an element was removed.
  */
 goog.array.removeIf = function(arr, f, opt_obj) {
@@ -1886,17 +1884,48 @@ goog.array.removeIf = function(arr, f, opt_obj) {
 
 
 /**
+ * Returns a new array that is the result of joining the arguments.  If arrays
+ * are passed then their items are added, however, if non-arrays are passed they
+ * will be added to the return array as is.
+ *
+ * Note that ArrayLike objects will be added as is, rather than having their
+ * items added.
+ *
+ * goog.array.concat([1, 2], [3, 4]) -> [1, 2, 3, 4]
+ * goog.array.concat(0, [1, 2]) -> [0, 1, 2]
+ * goog.array.concat([1, 2], null) -> [1, 2, null]
+ *
+ * There is bug in all current versions of IE (6, 7 and 8) where arrays created
+ * in an iframe become corrupted soon (not immediately) after the iframe is
+ * destroyed. This is common if loading data via goog.net.IframeIo, for example.
+ * This corruption only affects the concat method which will start throwing
+ * Catastrophic Errors (#-2147418113).
+ *
+ * See http://endoflow.com/scratch/corrupted-arrays.html for a test case.
+ *
+ * Internally goog.array should use this, so that all methods will continue to
+ * work on these broken array objects.
+ *
+ * @param {...*} var_args Items to concatenate.  Arrays will have each item
+ *     added, while primitives and objects will be added as is.
+ * @return {!Array} The new resultant array.
+ */
+goog.array.concat = function(var_args) {
+  return goog.array.ARRAY_PROTOTYPE_.concat.apply(
+      goog.array.ARRAY_PROTOTYPE_, arguments);
+};
+
+
+/**
  * Does a shallow copy of an array.
  * @param {goog.array.ArrayLike} arr  Array or array-like object to clone.
  * @return {!Array} Clone of the input array.
  */
 goog.array.clone = function(arr) {
   if (goog.isArray(arr)) {
-    // Generic concat does not seem to work so lets just use the plain old
-    // instance method.
-    return arr.concat();
+    return goog.array.concat(/** @type {!Array} */ (arr));
   } else { // array like
-    // Concat does not work with non arrays
+    // Concat does not work with non arrays.
     var rv = [];
     for (var i = 0, len = arr.length; i < len; i++) {
       rv[i] = arr[i];
@@ -1917,7 +1946,7 @@ goog.array.clone = function(arr) {
 goog.array.toArray = function(object) {
   if (goog.isArray(object)) {
     // This fixes the JS compiler warning and forces the Object to an Array type
-    return object.concat();
+    return goog.array.concat(/** @type {!Array} */ (object));
   }
   // Clone what we hope to be an array-like object to an array.
   // We could check isArrayLike() first, but no check we perform would be as
@@ -1938,15 +1967,31 @@ goog.array.toArray = function(object) {
  * a; // [0, 1, 2]
  *
  * @param {Array} arr1  The array to modify.
- * @param {*} var_args The elements or arrays of elements to add to arr1.
+ * @param {...*} var_args The elements or arrays of elements to add to arr1.
  */
 goog.array.extend = function(arr1, var_args) {
   for (var i = 1; i < arguments.length; i++) {
     var arr2 = arguments[i];
-    if (goog.isArrayLike(arr2)) {
-      // Make sure arr2 is a real array, and not just "array like."
-      arr2 = goog.array.toArray(arr2);
+    // If we have an Array or an Arguments object we can just call push
+    // directly.
+    var isArrayLike;
+    if (goog.isArray(arr2) ||
+        // Detect Arguments. ES5 says that the [[Class]] of an Arguments object
+        // is "Arguments" but only V8 and JSC/Safari gets this right. We instead
+        // detect Arguments by checking for array like and presence of "callee".
+        (isArrayLike = goog.isArrayLike(arr2)) &&
+            // The getter for callee throws an exception in strict mode
+            // according to section 10.6 in ES5 so check for presence instead.
+            arr2.hasOwnProperty('callee')) {
       arr1.push.apply(arr1, arr2);
+
+    // Otherwise loop over arr2 to prevent copying the object.
+    } else if (isArrayLike) {
+      var len1 = arr1.length;
+      var len2 = arr2.length;
+      for (var j = 0; j < len2; j++) {
+        arr1[len1 + j] = arr2[j];
+      }
     } else {
       arr1.push(arr2);
     }
@@ -1965,7 +2010,7 @@ goog.array.extend = function(arr1, var_args) {
  * @param {number} howMany How many elements to remove (0 means no removal. A
  *     value below 0 is treated as zero and so is any other non number. Numbers
  *     are floored).
- * @param {*} var_args Optional, additional elements to insert into the
+ * @param {...*} var_args Optional, additional elements to insert into the
  *     array.
  * @return {!Array} the removed elements.
  */
@@ -1982,7 +2027,7 @@ goog.array.splice = function(arr, index, howMany, var_args) {
  *
  * @param {goog.array.ArrayLike} arr The array from which to copy a segment.
  * @param {number} start The index of the first element to copy.
- * @param {number} opt_end The index after the last element to copy.
+ * @param {number=} opt_end The index after the last element to copy.
  * @return {!Array} A new array containing the specified segment of the original
  *     array.
  */
@@ -2011,7 +2056,7 @@ goog.array.slice = function(arr, start, opt_end) {
  * Worstcase space: 2N (no dupes)
  *
  * @param {goog.array.ArrayLike} arr The array from which to remove duplicates.
- * @param {Array} opt_rv An optional array in which to return the results,
+ * @param {Array=} opt_rv An optional array in which to return the results,
  *     instead of performing the removal inplace.  If specified, the original
  *     array will remain unchanged.
  */
@@ -2045,7 +2090,7 @@ goog.array.removeDuplicates = function(arr, opt_rv) {
  *
  * @param {goog.array.ArrayLike} arr The array to be searched.
  * @param {*} target The sought value.
- * @param {Function} opt_compareFn Optional comparison function by which the
+ * @param {Function=} opt_compareFn Optional comparison function by which the
  *     array is ordered. Should take 2 arguments to compare, and return a
  *     negative integer, zero, or a positive integer depending on whether the
  *     first argument is less than, equal to, or greater than the second.
@@ -2086,7 +2131,7 @@ goog.array.binarySearch = function(arr, target, opt_compareFn) {
  * Runtime: Same as <code>Array.prototype.sort</code>
  *
  * @param {Array} arr The array to be sorted.
- * @param {Function} opt_compareFn Optional comparison function by which the
+ * @param {Function=} opt_compareFn Optional comparison function by which the
  *     array is to be ordered. Should take 2 arguments to compare, and return a
  *     negative integer, zero, or a positive integer depending on whether the
  *     first argument is less than, equal to, or greater than the second.
@@ -2108,9 +2153,9 @@ goog.array.sort = function(arr, opt_compareFn) {
  * O(n) overhead of copying the array twice.
  *
  * @param {Array} arr The array to be sorted.
- * @param {function(*, *): number} opt_compareFn Optional comparison function by
- *     which the array is to be ordered. Should take 2 arguments to compare, and
- *     return a negative integer, zero, or a positive integer depending on
+ * @param {function(*, *): number=} opt_compareFn Optional comparison function
+ *     by which the array is to be ordered. Should take 2 arguments to compare,
+ *     and return a negative integer, zero, or a positive integer depending on
  *     whether the first argument is less than, equal to, or greater than the
  *     second.
  */
@@ -2137,7 +2182,7 @@ goog.array.stableSort = function(arr, opt_compareFn) {
  * {'foo': 1, 'bar': 2} rather than {foo: 1, bar: 2}.
  * @param {Array.<Object>} arr An array of objects to sort.
  * @param {string} key The object key to sort by.
- * @param {Function} opt_compareFn The function to use to compare key
+ * @param {Function=} opt_compareFn The function to use to compare key
  *     values.
  */
 goog.array.sortObjectsByKey = function(arr, key, opt_compareFn) {
@@ -2155,7 +2200,7 @@ goog.array.sortObjectsByKey = function(arr, key, opt_compareFn) {
  *
  * @param {goog.array.ArrayLike} arr1 The first array to compare.
  * @param {goog.array.ArrayLike} arr2 The second array to compare.
- * @param {Function} opt_equalsFn Optional comparison function.
+ * @param {Function=} opt_equalsFn Optional comparison function.
  *     Should take 2 arguments to compare, and return true if the arguments
  *     are equal. Defaults to {@link goog.array.defaultCompareEquality} which
  *     compares the elements using the built-in '===' operator.
@@ -2181,7 +2226,7 @@ goog.array.equals = function(arr1, arr2, opt_equalsFn) {
  * @deprecated Use {@link goog.array.equals}.
  * @param {goog.array.ArrayLike} arr1 See {@link goog.array.equals}.
  * @param {goog.array.ArrayLike} arr2 See {@link goog.array.equals}.
- * @param {Function} opt_equalsFn See {@link goog.array.equals}.
+ * @param {Function=} opt_equalsFn See {@link goog.array.equals}.
  * @return {boolean} See {@link goog.array.equals}.
  */
 goog.array.compare = function(arr1, arr2, opt_equalsFn) {
@@ -2219,7 +2264,7 @@ goog.array.defaultCompareEquality = function(a, b) {
  * value is already present.
  * @param {Array} array The array to modify.
  * @param {*} value The object to insert.
- * @param {Function} opt_compareFn Optional comparison function by which the
+ * @param {Function=} opt_compareFn Optional comparison function by which the
  *     array is ordered. Should take 2 arguments to compare, and
  *     return a negative integer, zero, or a positive integer depending on
  *     whether the first argument is less than, equal to, or greater than the
@@ -2240,7 +2285,7 @@ goog.array.binaryInsert = function(array, value, opt_compareFn) {
  * Removes a value from a sorted array.
  * @param {Array} array The array to modify.
  * @param {*} value The object to remove.
- * @param {Function} opt_compareFn Optional comparison function by which the
+ * @param {Function=} opt_compareFn Optional comparison function by which the
  *     array is ordered. Should take 2 arguments to compare, and
  *     return a negative integer, zero, or a positive integer depending on
  *     whether the first argument is less than, equal to, or greater than the
@@ -2301,7 +2346,7 @@ goog.array.repeat = function(value, n) {
  * Returns an array consisting of every argument with all arrays
  * expanded in-place recursively.
  *
- * @param {*} var_args The values to flatten.
+ * @param {...*} var_args The values to flatten.
  * @return {!Array.<*>} An array containing the flattened values.
  */
 goog.array.flatten = function(var_args) {
@@ -2507,14 +2552,14 @@ goog.dom.classes.get = function(element) {
   // Furthermore, in Firefox, className is not a string when the element is
   // an SVG element.
   return className && typeof className.split == 'function' ?
-      className.split(' ') : [];
+      className.split(/\s+/) : [];
 };
 
 
 /**
  * Adds a class or classes to an element. Does not add multiples of class names.
  * @param {Node} element DOM node to add class to.
- * @param {string} var_args Class names to add.
+ * @param {...string} var_args Class names to add.
  * @return {boolean} Whether class was added (or all classes were added).
  */
 goog.dom.classes.add = function(element, var_args) {
@@ -2531,7 +2576,7 @@ goog.dom.classes.add = function(element, var_args) {
 /**
  * Removes a class or classes from an element.
  * @param {Node} element DOM node to remove class from.
- * @param {string} var_args Class name(s) to remove.
+ * @param {...string} var_args Class name(s) to remove.
  * @return {boolean} Whether all classes in {@code var_args} were found and
  *     removed.
  */
@@ -2713,8 +2758,8 @@ goog.provide('goog.math.Coordinate');
 
 /**
  * Class for representing coordinates and positions.
- * @param {number} opt_x Left, defaults to 0.
- * @param {number} opt_y Top, defaults to 0.
+ * @param {number=} opt_x Left, defaults to 0.
+ * @param {number=} opt_y Top, defaults to 0.
  * @constructor
  */
 goog.math.Coordinate = function(opt_x, opt_y) {
@@ -2734,7 +2779,7 @@ goog.math.Coordinate = function(opt_x, opt_y) {
 
 /**
  * Returns a new copy of the coordinate.
- * @return {goog.math.Coordinate} A clone of this coordinate.
+ * @return {!goog.math.Coordinate} A clone of this coordinate.
  */
 goog.math.Coordinate.prototype.clone = function() {
   return new goog.math.Coordinate(this.x, this.y);
@@ -3045,7 +3090,7 @@ goog.provide('goog.object');
  * @param {Function} f The function to call for every element. This function
  *     takes 3 arguments (the element, the index and the object)
  *     and the return value is irrelevant.
- * @param {Object} opt_obj This is used as the 'this' object within f.
+ * @param {Object=} opt_obj This is used as the 'this' object within f.
  */
 goog.object.forEach = function(obj, f, opt_obj) {
   for (var key in obj) {
@@ -3064,7 +3109,7 @@ goog.object.forEach = function(obj, f, opt_obj) {
  *     and should return a boolean. If the return value is true the
  *     element is added to the result object. If it is false the
  *     element is not included.
- * @param {Object} opt_obj This is used as the 'this' object within f.
+ * @param {Object=} opt_obj This is used as the 'this' object within f.
  * @return {!Object} a new object in which only elements that passed the test
  *     are present.
  */
@@ -3088,7 +3133,7 @@ goog.object.filter = function(obj, f, opt_obj) {
  *     takes 3 arguments (the element, the index and the object)
  *     and should return something. The result will be inserted
  *     into a new object.
- * @param {Object} opt_obj This is used as the 'this' object within f.
+ * @param {Object=} opt_obj This is used as the 'this' object within f.
  * @return {!Object} a new object with the results from f.
  */
 goog.object.map = function(obj, f, opt_obj) {
@@ -3109,7 +3154,7 @@ goog.object.map = function(obj, f, opt_obj) {
  * @param {Function} f The function to call for every element. This function
  *     takes 3 arguments (the element, the index and the object) and should
  *     return a boolean.
- * @param {Object} opt_obj This is used as the 'this' object within f.
+ * @param {Object=} opt_obj This is used as the 'this' object within f.
  * @return {boolean} true if any element passes the test.
  */
 goog.object.some = function(obj, f, opt_obj) {
@@ -3131,7 +3176,7 @@ goog.object.some = function(obj, f, opt_obj) {
  * @param {Function} f The function to call for every element. This function
  *     takes 3 arguments (the element, the index and the object) and should
  *     return a boolean.
- * @param {Object} opt_obj This is used as the 'this' object within f.
+ * @param {Object=} opt_obj This is used as the 'this' object within f.
  * @return {boolean} false if any element fails the test.
  */
 goog.object.every = function(obj, f, opt_obj) {
@@ -3274,7 +3319,7 @@ goog.object.containsValue = function(obj, val) {
  * @param {function(*, string, Object): boolean} f The function to call for
  *     every element. Takes 3 arguments (the value, the key and the object) and
  *     should return a boolean.
- * @param {Object} opt_this An optional "this" context for the function.
+ * @param {Object=} opt_this An optional "this" context for the function.
  * @return {string|undefined} The key of an element for which the function
  *     returns true or undefined if no such element is found.
  */
@@ -3295,7 +3340,7 @@ goog.object.findKey = function(obj, f, opt_this) {
  * @param {function(*, string, Object): boolean} f The function to call for
  *     every element. Takes 3 arguments (the value, the key and the object) and
  *     should return a boolean.
- * @param {Object} opt_this An optional "this" context for the function.
+ * @param {Object=} opt_this An optional "this" context for the function.
  * @return {*} The value of an element for which the function returns true or
  *     undefined if no such element is found.
  */
@@ -3370,7 +3415,7 @@ goog.object.add = function(obj, key, val) {
  *
  * @param {Object} obj The object from which to get the value.
  * @param {string} key The key for which to get the value.
- * @param {*} opt_val The value to return if no item is found for the given
+ * @param {*=} opt_val The value to return if no item is found for the given
  *     key (default is undefined).
  * @return {*} The value for the given key.
  */
@@ -3471,7 +3516,7 @@ goog.object.PROTOTYPE_FIELDS_ = [
  * o; // {a: 0, b: 1, c: 2}
  *
  * @param {Object} target  The object to modify.
- * @param {Object} var_args The objects from which values will be copied.
+ * @param {...Object} var_args The objects from which values will be copied.
  */
 goog.object.extend = function(target, var_args) {
   var key, source;
@@ -3499,9 +3544,9 @@ goog.object.extend = function(target, var_args) {
 
 /**
  * Creates a new object built from the key-value pairs provided as arguments.
- * @param {*} var_args If only one argument is provided and it is an array then
- *     this is used as the arguments,  otherwise even arguments are used as the
- *     property names and odd arguments are used as the property values.
+ * @param {...*} var_args If only one argument is provided and it is an array
+ *     then this is used as the arguments,  otherwise even arguments are used as
+ *     the property names and odd arguments are used as the property values.
  * @return {!Object} The new object.
  * @throws {Error} If there are uneven number of arguments or there is only one
  *     non array argument.
@@ -3527,9 +3572,9 @@ goog.object.create = function(var_args) {
 /**
  * Creates a new object where the property names come from the arguments but
  * the value is always set to true
- * @param {*} var_args If only one argument is provided and it is an array then
- *     this is used as the arguments,  otherwise the arguments are used as the
- *     property names.
+ * @param {...*} var_args If only one argument is provided and it is an array
+ *     then this is used as the arguments,  otherwise the arguments are used
+ *     as the property names.
  * @return {!Object} The new object.
  */
 goog.object.createSet = function(var_args) {
@@ -3632,7 +3677,7 @@ goog.string.caseInsensitiveEndsWith = function(str, suffix) {
  * Does simple python-style string substitution.
  * subs("foo%s hot%s", "bar", "dog") becomes "foobar hotdog".
  * @param {string} str The string containing the pattern.
- * @param {*} var_args The items to substitute into the pattern.
+ * @param {...*} var_args The items to substitute into the pattern.
  * @return {string} A copy of {@code str} in which each occurrence of
  *     {@code %s} has been replaced an argument from {@code var_args}.
  */
@@ -3976,7 +4021,7 @@ goog.string.urlDecode = function(str) {
 /**
  * Converts \n to <br>s or <br />s.
  * @param {string} str The string in which to convert newlines.
- * @param {boolean} opt_xml Whether to use XML compatible tags.
+ * @param {boolean=} opt_xml Whether to use XML compatible tags.
  * @return {string} A copy of {@code str} with converted newlines.
  */
 goog.string.newLineToBr = function(str, opt_xml) {
@@ -4018,7 +4063,7 @@ goog.string.newLineToBr = function(str, opt_xml) {
  * application grows the difference between the various methods would increase.
  *
  * @param {string} str string to be escaped.
- * @param {boolean} opt_isLikelyToContainHtmlChars Don't perform a check to see
+ * @param {boolean=} opt_isLikelyToContainHtmlChars Don't perform a check to see
  *     if the character needs replacing - use this option if you expect each of
  *     the characters to appear often. Leave false if you expect few html
  *     characters to occur in your strings, such as if you are escaping HTML.
@@ -4182,7 +4227,7 @@ goog.string.NORMALIZE_FN_ = 'normalize';
  * Do escaping of whitespace to preserve spatial formatting. We use character
  * entity #160 to make it safer for xml.
  * @param {string} str The string in which to escape whitespace.
- * @param {boolean} opt_xml Whether to use XML compatible tags.
+ * @param {boolean=} opt_xml Whether to use XML compatible tags.
  * @return {string} An escaped copy of {@code str}.
  */
 goog.string.whitespaceEscape = function(str, opt_xml) {
@@ -4224,7 +4269,7 @@ goog.string.stripQuotes = function(str, quoteChars) {
  * 'Hello World!' produces 'Hello W...'.
  * @param {string} str The string to truncate.
  * @param {number} chars Max number of characters.
- * @param {boolean} opt_protectEscapedCharacters Whether to protect escaped
+ * @param {boolean=} opt_protectEscapedCharacters Whether to protect escaped
  *     characters from being cut off in the middle.
  * @return {string} The truncated {@code str} string.
  */
@@ -4250,7 +4295,7 @@ goog.string.truncate = function(str, chars, opt_protectEscapedCharacters) {
  * and favoring the beginning of the string.
  * @param {string} str The string to truncate the middle of.
  * @param {number} chars Max number of characters.
- * @param {boolean} opt_protectEscapedCharacters Whether to protect escaped
+ * @param {boolean=} opt_protectEscapedCharacters Whether to protect escaped
  *     characters from being cutoff in the middle.
  * @return {string} A truncated copy of {@code str}.
  */
@@ -4458,7 +4503,7 @@ goog.string.repeat = function(string, length) {
  *
  * @param {number} num The number to pad.
  * @param {number} length The desired length.
- * @param {number} opt_precision The desired precision.
+ * @param {number=} opt_precision The desired precision.
  * @return {string} {@code num} as a string with the given options.
  */
 goog.string.padNumber = function(num, length, opt_precision) {
@@ -4493,7 +4538,7 @@ goog.string.makeSafe = function(obj) {
  * <pre>buildString('a', 'b', 'c', 'd') -> 'abcd'
  * buildString(null, undefined) -> ''
  * </pre>
- * @param {*} var_args A list of strings to concatenate. If not a string,
+ * @param {...*} var_args A list of strings to concatenate. If not a string,
  *     it will be casted to one.
  * @return {string} The concatenation of {@code var_args}.
  */
@@ -4513,8 +4558,7 @@ goog.string.buildString = function(var_args) {
  */
 goog.string.getRandomString = function() {
   return Math.floor(Math.random() * 2147483648).toString(36) +
-         (Math.floor(Math.random() * 2147483648) ^
-          (new Date).getTime()).toString(36);
+         (Math.floor(Math.random() * 2147483648) ^ goog.now()).toString(36);
 };
 
 
@@ -5123,12 +5167,6 @@ goog.userAgent.isVersion = function(version) {
  * @fileoverview Utilities for manipulating the browser's Document Object Model
  * Inspiration taken *heavily* from mochikit (http://mochikit.com/).
  *
- * If you want to do extensive DOM building you can create local aliases,
- * such as:<br>
- * var $DIV = goog.bind(goog.dom.createDom, goog.dom, 'div');<br>
- * var $A = goog.bind(goog.dom.createDom, goog.dom, 'a');<br>
- * var $TABLE = goog.bind(goog.dom.createDom, goog.dom, 'table');<br>
- *
  * You can use {@link goog.dom.DomHelper} to create new dom helpers that refer
  * to a different document object.  This is useful if you are working with
  * frames or multiple windows.
@@ -5200,7 +5238,7 @@ goog.dom.NodeType = {
 
 /**
  * Gets the DomHelper object for the document where the element resides.
- * @param {Node|Window} opt_element If present, gets the DomHelper for this
+ * @param {Node|Window=} opt_element If present, gets the DomHelper for this
  *     element.
  * @return {!goog.dom.DomHelper} The DomHelper.
  */
@@ -5245,6 +5283,7 @@ goog.dom.getElement = function(element) {
  * Alias for getElement.
  * @param {string|Element} element Element ID or a DOM node.
  * @return {Element} The element with the given ID, or the node passed in.
+ * @deprecated Use {@link goog.dom.getElement} instead.
  */
 goog.dom.$ = goog.dom.getElement;
 
@@ -5262,9 +5301,9 @@ goog.dom.$ = goog.dom.getElement;
  *
  * @see goog.dom.query
  *
- * @param {?string} opt_tag Element tag name.
- * @param {?string} opt_class Optional class name.
- * @param {Element} opt_el Optional element to look in.
+ * @param {?string=} opt_tag Element tag name.
+ * @param {?string=} opt_class Optional class name.
+ * @param {Element=} opt_el Optional element to look in.
  * @return { {length: number} } Array-like list of elements (only a length
  *     property and numerical indices are guaranteed to exist).
  */
@@ -5277,9 +5316,9 @@ goog.dom.getElementsByTagNameAndClass = function(opt_tag, opt_class, opt_el) {
 /**
  * Helper for {@code getElementsByTagNameAndClass}.
  * @param {!Document} doc The document to get the elements in.
- * @param {?string} opt_tag Element tag name.
- * @param {?string} opt_class Optional class name.
- * @param {Element} opt_el Optional element to look in.
+ * @param {?string=} opt_tag Element tag name.
+ * @param {?string=} opt_class Optional class name.
+ * @param {Element=} opt_el Optional element to look in.
  * @return { {length: number} } Array-like list of elements (only a length
  *     property and numerical indices are guaranteed to exist).
  * @private
@@ -5287,7 +5326,7 @@ goog.dom.getElementsByTagNameAndClass = function(opt_tag, opt_class, opt_el) {
 goog.dom.getElementsByTagNameAndClass_ = function(doc, opt_tag, opt_class,
                                                   opt_el) {
   var parent = opt_el || doc;
-  var tagName = (opt_tag && opt_tag != '*') ? opt_tag.toLowerCase() : '';
+  var tagName = (opt_tag && opt_tag != '*') ? opt_tag.toUpperCase() : '';
 
   // Prefer the standardized (http://www.w3.org/TR/selectors-api/), native and
   // fast W3C Selectors API. However, the version of WebKit that shipped with
@@ -5313,7 +5352,7 @@ goog.dom.getElementsByTagNameAndClass_ = function(doc, opt_tag, opt_class,
 
       // Filter for specific tags if requested.
       for (var i = 0, el; el = els[i]; i++) {
-        if (tagName == el.nodeName.toLowerCase()) {
+        if (tagName == el.nodeName) {
           arrayLike[len++] = el;
         }
       }
@@ -5334,7 +5373,7 @@ goog.dom.getElementsByTagNameAndClass_ = function(doc, opt_tag, opt_class,
       var className = el.className;
       // Check if className has a split function since SVG className does not.
       if (typeof className.split == 'function' &&
-          goog.array.contains(className.split(' '), opt_class)) {
+          goog.array.contains(className.split(/\s+/), opt_class)) {
         arrayLike[len++] = el;
       }
     }
@@ -5348,11 +5387,12 @@ goog.dom.getElementsByTagNameAndClass_ = function(doc, opt_tag, opt_class,
 
 /**
  * Alias for {@code getElementsByTagNameAndClass}.
- * @param {?string} opt_tag Element tag name.
- * @param {?string} opt_class Optional class name.
- * @param {Element} opt_el Optional element to look in.
+ * @param {?string=} opt_tag Element tag name.
+ * @param {?string=} opt_class Optional class name.
+ * @param {Element=} opt_el Optional element to look in.
  * @return { {length: number} } Array-like list of elements (only a length
  *     property and numerical indices are guaranteed to exist).
+ * @deprecated Use {@link goog.dom.getElementsByTagNameAndClass} instead.
  */
 goog.dom.$$ = goog.dom.getElementsByTagNameAndClass;
 
@@ -5463,7 +5503,7 @@ goog.dom.DIRECT_ATTRIBUTE_MAP_ = {
  * docEl.clientHeight Height of viewport excluding scrollbar in strict mode.
  * body.clientHeight  Height of viewport excluding scrollbar in quirks mode.
  *
- * @param {Window} opt_window Optional window element to test.
+ * @param {Window=} opt_window Optional window element to test.
  * @return {!goog.math.Size} Object with values 'width' and 'height'.
  */
 goog.dom.getViewportSize = function(opt_window) {
@@ -5597,7 +5637,7 @@ goog.dom.getDocumentHeight_ = function(win) {
 /**
  * Gets the page scroll distance as a coordinate object.
  *
- * @param {Window} opt_window Optional window element to test.
+ * @param {Window=} opt_window Optional window element to test.
  * @return {!goog.math.Coordinate} Object with values 'x' and 'y'.
  * @deprecated Use {@link goog.dom.getDocumentScroll} instead.
  */
@@ -5655,7 +5695,7 @@ goog.dom.getDocumentScrollElement_ = function(doc) {
 /**
  * Gets the window object associated with the given document.
  *
- * @param {Document} opt_doc  Document object to get window for.
+ * @param {Document=} opt_doc  Document object to get window for.
  * @return {Window} The window associated with the given document.
  */
 goog.dom.getWindow = function(opt_doc) {
@@ -5672,24 +5712,7 @@ goog.dom.getWindow = function(opt_doc) {
  * @private
  */
 goog.dom.getWindow_ = function(doc) {
-  if (doc.parentWindow) {
-    return doc.parentWindow;
-  }
-
-  if (goog.userAgent.WEBKIT && !goog.userAgent.isVersion('500') &&
-      !goog.userAgent.MOBILE) {
-    // NOTE: document.defaultView is a valid object under Safari 2, but
-    // it's not a window object, it's an AbstractView object.  You can use it to
-    // get computed CSS style, but it doesn't have the full functionality of a
-    // DOM window.  So for Safari 2 we use the following hack:
-    var scriptElement = doc.createElement('script');
-    scriptElement.innerHTML = 'document.parentWindow=window';
-    var parentElement = doc.documentElement;
-    parentElement.appendChild(scriptElement);
-    parentElement.removeChild(scriptElement);
-    return doc.parentWindow;
-  }
-  return doc.defaultView;
+  return doc.parentWindow || doc.defaultView;
 };
 
 
@@ -5703,12 +5726,12 @@ goog.dom.getWindow_ = function(doc) {
  * would return a div with two child paragraphs
  *
  * @param {string} tagName Tag to create.
- * @param {Object|string} opt_attributes If object, then a map of name-value
+ * @param {Object|string=} opt_attributes If object, then a map of name-value
  *     pairs for attributes. If a string, then this is the className of the new
  *     element.
- * @param {Object|string|Array|NodeList} var_args Further DOM nodes or strings
- *     for text nodes. If one of the var_args is an array or NodeList, its
- *     elements will be added as childNodes instead.
+ * @param {...Object|string|Array|NodeList} var_args Further DOM nodes or
+ *     strings for text nodes. If one of the var_args is an array or NodeList,i
+ *     its elements will be added as childNodes instead.
  * @return {!Element} Reference to a DOM node.
  */
 goog.dom.createDom = function(tagName, opt_attributes, var_args) {
@@ -5787,13 +5810,14 @@ goog.dom.createDom_ = function(doc, args) {
 /**
  * Alias for {@code createDom}.
  * @param {string} tagName Tag to create.
- * @param {string|Object} opt_attributes If object, then a map of name-value
+ * @param {string|Object=} opt_attributes If object, then a map of name-value
  *     pairs for attributes. If a string, then this is the className of the new
  *     element.
- * @param {Object|Array} var_args Further DOM nodes or strings for text nodes.
- *     If one of the var_args is an array, its children will be added as
- *     childNodes instead.
+ * @param {...Object|string|Array|NodeList} var_args Further DOM nodes or
+ *     strings for text nodes. If one of the var_args is an array, its
+ *     children will be added as childNodes instead.
  * @return {!Element} Reference to a DOM node.
+ * @deprecated Use {@link goog.dom.createDom} instead.
  */
 goog.dom.$dom = goog.dom.createDom;
 
@@ -6089,21 +6113,12 @@ goog.dom.getNextElementNode_ = function(node, forward) {
 
 /**
  * Whether the object looks like a DOM node.
- * @param {Object} obj The object being tested for node likeness.
+ * @param {*} obj The object being tested for node likeness.
  * @return {boolean} Whether the object looks like a DOM node.
  */
 goog.dom.isNodeLike = function(obj) {
   return goog.isObject(obj) && obj.nodeType > 0;
 };
-
-
-/**
- * Safari contains is broken, but appears to be fixed in WebKit 522+
- * @type {boolean}
- * @private
- */
-goog.dom.BAD_CONTAINS_WEBKIT_ = goog.userAgent.WEBKIT &&
-    goog.userAgent.isVersion('522');
 
 
 /**
@@ -6116,9 +6131,8 @@ goog.dom.contains = function(parent, descendant) {
   // We use browser specific methods for this if available since it is faster
   // that way.
 
-  // IE / Safari(some) DOM
-  if (typeof parent.contains != 'undefined' && !goog.dom.BAD_CONTAINS_WEBKIT_ &&
-      descendant.nodeType == goog.dom.NodeType.ELEMENT) {
+  // IE DOM
+  if (parent.contains && descendant.nodeType == goog.dom.NodeType.ELEMENT) {
     return parent == descendant || parent.contains(descendant);
   }
 
@@ -6161,7 +6175,7 @@ goog.dom.compareNodeOrder = function(node1, node2) {
   }
 
   // Process in IE using sourceIndex - we check to see if the first node has
-  // a source index or if it's parent has one.
+  // a source index or if its parent has one.
   if ('sourceIndex' in node1 ||
       (node1.parentNode && 'sourceIndex' in node1.parentNode)) {
     var isElement1 = node1.nodeType == goog.dom.NodeType.ELEMENT;
@@ -6255,7 +6269,7 @@ goog.dom.compareSiblingOrder_ = function(node1, node2) {
 
 /**
  * Find the deepest common ancestor of the given nodes.
- * @param {Node} var_args The nodes to find a common ancestor of.
+ * @param {...Node} var_args The nodes to find a common ancestor of.
  * @return {Node} The common ancestor of the nodes, or null if there is none.
  *     null will only be returned if two or more of the nodes are from different
  *     documents.
@@ -6614,7 +6628,7 @@ goog.dom.getNodeTextLength = function(node) {
  * length is the same as the length calculated by goog.dom.getNodeTextLength.
  *
  * @param {Node} node The node whose offset is being calculated.
- * @param {Node} opt_offsetParent The node relative to which the offset will
+ * @param {Node=} opt_offsetParent The node relative to which the offset will
  *     be calculated. Defaults to the node's owner document's body.
  * @return {number} The text offset.
  */
@@ -6640,7 +6654,7 @@ goog.dom.getNodeTextOffset = function(node, opt_offsetParent) {
  * offset will stored as properties of this object.
  * @param {Node} parent The parent node.
  * @param {number} offset The offset into the parent node.
- * @param {Object} opt_result Object to be used to store the return value. The
+ * @param {Object=} opt_result Object to be used to store the return value. The
  *     return value will be stored in the form {node: Node, remainder: number}
  *     if this object is provided.
  * @return {Node} The node at the given offset.
@@ -6705,17 +6719,18 @@ goog.dom.isNodeList = function(val) {
  * tag name and/or class name. If the passed element matches the specified
  * criteria, the element itself is returned.
  * @param {Node} element The DOM node to start with.
- * @param {?string} opt_tag The tag name to match (or null/undefined to match
+ * @param {?string=} opt_tag The tag name to match (or null/undefined to match
  *     any node regardless of tag name). Must be uppercase (goog.dom.TagName).
- * @param {?string} opt_class The class name to match (or null/undefined to
+ * @param {?string=} opt_class The class name to match (or null/undefined to
  *     match any node regardless of class name).
  * @return {Node} The first ancestor that matches the passed criteria, or
  *     null if none match.
  */
 goog.dom.getAncestorByTagNameAndClass = function(element, opt_tag, opt_class) {
+  var tagName = opt_tag ? opt_tag.toUpperCase() : null;
   return goog.dom.getAncestor(element,
       function(node) {
-        return (!opt_tag || node.nodeName == opt_tag) &&
+        return (!tagName || node.nodeName == tagName) &&
                (!opt_class || goog.dom.classes.has(node, opt_class));
       }, true);
 };
@@ -6727,10 +6742,10 @@ goog.dom.getAncestorByTagNameAndClass = function(element, opt_tag, opt_class) {
  * @param {Node} element The DOM node to start with.
  * @param {function(Node) : boolean} matcher A function that returns true if the
  *     passed node matches the desired criteria.
- * @param {boolean} opt_includeNode If true, the node itself is included in
+ * @param {boolean=} opt_includeNode If true, the node itself is included in
  *     the search (the first call to the matcher will pass startElement as
  *     the node to test).
- * @param {number} opt_maxSearchSteps Maximum number of levels to search up the
+ * @param {number=} opt_maxSearchSteps Maximum number of levels to search up the
  *     dom.
  * @return {Node} DOM node that matched the matcher, or null if there was
  *     no match.
@@ -6756,7 +6771,7 @@ goog.dom.getAncestor = function(
 
 /**
  * Create an instance of a DOM helper with a new document object.
- * @param {Document} opt_document Document object to associate with this
+ * @param {Document=} opt_document Document object to associate with this
  *     DOM helper.
  * @constructor
  */
@@ -6772,7 +6787,7 @@ goog.dom.DomHelper = function(opt_document) {
 
 /**
  * Gets the dom helper object for the document where the element resides.
- * @param {Node} opt_node If present, gets the DomHelper for this node.
+ * @param {Node=} opt_node If present, gets the DomHelper for this node.
  * @return {!goog.dom.DomHelper} The DomHelper.
  */
 goog.dom.DomHelper.prototype.getDomHelper = goog.dom.getDomHelper;
@@ -6815,6 +6830,7 @@ goog.dom.DomHelper.prototype.getElement = function(element) {
  * Alias for {@code getElement}.
  * @param {string|Element} element Element ID or a DOM node.
  * @return {Element} The element with the given ID, or the node passed in.
+ * @deprecated Use {@link goog.dom.DomHelper.prototype.getElement} instead.
  */
 goog.dom.DomHelper.prototype.$ = goog.dom.DomHelper.prototype.getElement;
 
@@ -6827,9 +6843,9 @@ goog.dom.DomHelper.prototype.$ = goog.dom.DomHelper.prototype.getElement;
  *
  * @see goog.dom.query
  *
- * @param {?string} opt_tag Element tag name or * for all tags.
- * @param {?string} opt_class Optional class name.
- * @param {Element} opt_el Optional element to look in.
+ * @param {?string=} opt_tag Element tag name or * for all tags.
+ * @param {?string=} opt_class Optional class name.
+ * @param {Element=} opt_el Optional element to look in.
  * @return { {length: number} } Array-like list of elements (only a length
  *     property and numerical indices are guaranteed to exist).
  */
@@ -6846,9 +6862,9 @@ goog.dom.DomHelper.prototype.getElementsByTagNameAndClass = function(opt_tag,
  * @deprecated Use DomHelper getElementsByTagNameAndClass.
  * @see goog.dom.query
  *
- * @param {?string} opt_tag Element tag name.
- * @param {?string} opt_class Optional class name.
- * @param {Element} opt_el Optional element to look in.
+ * @param {?string=} opt_tag Element tag name.
+ * @param {?string=} opt_class Optional class name.
+ * @param {Element=} opt_el Optional element to look in.
  * @return { {length: number} } Array-like list of elements (only a length
  *     property and numerical indices are guaranteed to exist).
  */
@@ -6866,7 +6882,7 @@ goog.dom.DomHelper.prototype.setProperties = goog.dom.setProperties;
 
 /**
  * Gets the dimensions of the viewport.
- * @param {Window} opt_window Optional window element to test. Defaults to
+ * @param {Window=} opt_window Optional window element to test. Defaults to
  *     the window of the Dom Helper.
  * @return {!goog.math.Size} Object with values 'width' and 'height'.
  */
@@ -6903,12 +6919,12 @@ goog.dom.DomHelper.prototype.getDocumentHeight = function() {
  * child nodes of the new DIV.
  *
  * @param {string} tagName Tag to create.
- * @param {Object|string} opt_attributes If object, then a map of name-value
+ * @param {Object|string=} opt_attributes If object, then a map of name-value
  *     pairs for attributes. If a string, then this is the className of the new
  *     element.
- * @param {Object|string|Array|NodeList} var_args Further DOM nodes or strings
- *     for text nodes. If one of the var_args is an array or NodeList, its
- *     elements will be added as childNodes instead.
+ * @param {...Object|string|Array|NodeList} var_args Further DOM nodes or
+ *     strings for text nodes. If one of the var_args is an array or
+ *     NodeList, its elements will be added as childNodes instead.
  * @return {!Element} Reference to a DOM node.
  */
 goog.dom.DomHelper.prototype.createDom = function(tagName,
@@ -6921,13 +6937,14 @@ goog.dom.DomHelper.prototype.createDom = function(tagName,
 /**
  * Alias for {@code createDom}.
  * @param {string} tagName Tag to create.
- * @param {Object|string} opt_attributes If object, then a map of name-value
+ * @param {Object|string=} opt_attributes If object, then a map of name-value
  *     pairs for attributes. If a string, then this is the className of the new
  *     element.
- * @param {Object|Array} var_args Further DOM nodes or strings for text nodes.
- *     If one of the var_args is an array, its children will be added as
- *     childNodes instead.
+ * @param {...Object|string|Array|NodeList} var_args Further DOM nodes
+ *     or strings for text nodes.  If one of the var_args is an array, its
+ *     children will be added as childNodes instead.
  * @return {!Element} Reference to a DOM node.
+ * @deprecated Use {@link goog.dom.DomHelper.prototype.createDom} instead.
  */
 goog.dom.DomHelper.prototype.$dom = goog.dom.DomHelper.prototype.createDom;
 
@@ -7111,7 +7128,7 @@ goog.dom.DomHelper.prototype.getPreviousElementSibling =
 
 /**
  * Whether the object looks like a DOM node.
- * @param {Object} obj The object being tested for node likeness.
+ * @param {*} obj The object being tested for node likeness.
  * @return {boolean} Whether the object looks like a DOM node.
  */
 goog.dom.DomHelper.prototype.isNodeLike = goog.dom.isNodeLike;
@@ -7213,7 +7230,7 @@ goog.dom.DomHelper.prototype.getNodeTextLength = goog.dom.getNodeTextLength;
  * {@code goog.dom.getNodeTextLength}.
  *
  * @param {Node} node The node whose offset is being calculated.
- * @param {Node} opt_offsetParent Defaults to the node's owner document's body.
+ * @param {Node=} opt_offsetParent Defaults to the node's owner document's body.
  * @return {number} The text offset.
  */
 goog.dom.DomHelper.prototype.getNodeTextOffset = goog.dom.getNodeTextOffset;
@@ -7224,9 +7241,9 @@ goog.dom.DomHelper.prototype.getNodeTextOffset = goog.dom.getNodeTextOffset;
  * tag name and/or class name. If the passed element matches the specified
  * criteria, the element itself is returned.
  * @param {Node} element The DOM node to start with.
- * @param {?string} opt_tag The tag name to match (or null/undefined to match
+ * @param {?string=} opt_tag The tag name to match (or null/undefined to match
  *     any node regardless of tag name). Must be uppercase (goog.dom.TagName).
- * @param {?string} opt_class The class name to match (or null/undefined to
+ * @param {?string=} opt_class The class name to match (or null/undefined to
  *     match any node regardless of class name).
  * @return {Node} The first ancestor that matches the passed criteria, or
  *     null if none match.
@@ -7241,10 +7258,10 @@ goog.dom.DomHelper.prototype.getAncestorByTagNameAndClass =
  * @param {Node} element The DOM node to start with.
  * @param {function(Node) : boolean} matcher A function that returns true if the
  *     passed node matches the desired criteria.
- * @param {boolean} opt_includeNode If true, the node itself is included in
+ * @param {boolean=} opt_includeNode If true, the node itself is included in
  *     the search (the first call to the matcher will pass startElement as
  *     the node to test).
- * @param {number} opt_maxSearchSteps Maximum number of levels to search up the
+ * @param {number=} opt_maxSearchSteps Maximum number of levels to search up the
  *     dom.
  * @return {Node} DOM node that matched the matcher, or null if there was
  *     no match.
@@ -7280,7 +7297,7 @@ goog.provide('goog.debug.errorHandlerWeakDep');
 goog.debug.errorHandlerWeakDep = {
   /**
    * @param {Function} fn An entry point function to be protected.
-   * @param {boolean} opt_tracers Whether to install tracers around the
+   * @param {boolean=} opt_tracers Whether to install tracers around the
    *     fn.
    * @return {Function} A protected wrapper function that calls the
    *     entry point function.
@@ -7425,8 +7442,8 @@ goog.require('goog.Disposable');
  * stopPropagation.
  *
  * @param {string} type Event Type.
- * @param {Object} opt_target Reference to the object that is the target of this
- *     event.
+ * @param {Object=} opt_target Reference to the object that is the target of
+ *     this event.
  * @constructor
  * @extends {goog.Disposable}
  */
@@ -7548,8 +7565,8 @@ goog.require('goog.userAgent');
  * object.
  * The content of this object will not be initialized if no event object is
  * provided. If this is the case, init() needs to be invoked separately.
- * @param {Event} opt_e Browser event object.
- * @param {Node} opt_currentTarget Current target for event.
+ * @param {Event=} opt_e Browser event object.
+ * @param {Node=} opt_currentTarget Current target for event.
  * @constructor
  * @extends {goog.events.Event}
  */
@@ -7710,7 +7727,7 @@ goog.events.BrowserEvent.prototype.event_ = null;
  * Accepts a browser event object and creates a patched, cross browser event
  * object.
  * @param {Event} e Browser event object.
- * @param {Node} opt_currentTarget Current target for event.
+ * @param {Node=} opt_currentTarget Current target for event.
  */
 goog.events.BrowserEvent.prototype.init = function(e, opt_currentTarget) {
   var type = this.type = e.type;
@@ -7727,7 +7744,9 @@ goog.events.BrowserEvent.prototype.init = function(e, opt_currentTarget) {
       /** @preserveTry */
       try {
         relatedTarget = relatedTarget.nodeName && relatedTarget;
-      } catch (err) {}
+      } catch (err) {
+        relatedTarget = null;
+      }
     }
     // TODO: Use goog.events.EventType when it has been refactored into its
     // own file.
@@ -7905,10 +7924,10 @@ goog.events.EventWrapper = function() {
  *     events on.
  * @param {Function|Object} listener Callback method, or an object with a
  *     handleEvent function.
- * @param {boolean} opt_capt Whether to fire in capture phase (defaults to
+ * @param {boolean=} opt_capt Whether to fire in capture phase (defaults to
  *     false).
- * @param {Object} opt_scope Element in whose scope to call the listener.
- * @param {goog.events.EventHandler} opt_eventHandler Event handler to add
+ * @param {Object=} opt_scope Element in whose scope to call the listener.
+ * @param {goog.events.EventHandler=} opt_eventHandler Event handler to add
  *     listener to.
  */
 goog.events.EventWrapper.prototype.listen = function(src, listener, opt_capt,
@@ -7923,10 +7942,10 @@ goog.events.EventWrapper.prototype.listen = function(src, listener, opt_capt,
  *    from.
  * @param {Function|Object} listener Callback method, or an object with a
  *     handleEvent function.
- * @param {boolean} opt_capt Whether to fire in capture phase (defaults to
+ * @param {boolean=} opt_capt Whether to fire in capture phase (defaults to
  *     false).
- * @param {Object} opt_scope Element in whose scope to call the listener.
- * @param {goog.events.EventHandler} opt_eventHandler Event handler to remove
+ * @param {Object=} opt_scope Element in whose scope to call the listener.
+ * @param {goog.events.EventHandler=} opt_eventHandler Event handler to remove
  *     listener from.
  */
 goog.events.EventWrapper.prototype.unlisten = function(src, listener, opt_capt,
@@ -8051,7 +8070,7 @@ goog.events.Listener.prototype.callOnce = false;
  * @param {Object} src Source object for the event.
  * @param {string} type Event type.
  * @param {boolean} capture Whether in capture or bubble phase.
- * @param {Object} opt_handler Object in whose context to execute the callback.
+ * @param {Object=} opt_handler Object in whose context to execute the callback.
  */
 goog.events.Listener.prototype.init = function(listener, proxy, src, type,
                                                capture, opt_handler) {
@@ -8857,9 +8876,9 @@ goog.events.keySeparator_ = '_';
  * @param {string|Array.<string>} type Event type or array of event types.
  * @param {Function|Object} listener Callback method, or an object with a
  *     handleEvent function.
- * @param {boolean} opt_capt Whether to fire in capture phase (defaults to
+ * @param {boolean=} opt_capt Whether to fire in capture phase (defaults to
  *     false).
- * @param {Object} opt_handler Element in whose scope to call the listener.
+ * @param {Object=} opt_handler Element in whose scope to call the listener.
  * @return {?number} Unique key for the listener.
  */
 goog.events.listen = function(src, type, listener, opt_capt, opt_handler) {
@@ -8967,8 +8986,8 @@ goog.events.listen = function(src, type, listener, opt_capt, opt_handler) {
  *     events on.
  * @param {string|Array.<string>} type Event type or array of event types.
  * @param {Function|Object} listener Callback method.
- * @param {boolean} opt_capt Fire in capture phase?.
- * @param {Object} opt_handler Element in whose scope to call the listener.
+ * @param {boolean=} opt_capt Fire in capture phase?.
+ * @param {Object=} opt_handler Element in whose scope to call the listener.
  * @return {?number} Unique key for the listener.
  */
 goog.events.listenOnce = function(src, type, listener, opt_capt, opt_handler) {
@@ -8996,9 +9015,9 @@ goog.events.listenOnce = function(src, type, listener, opt_capt, opt_handler) {
  * @param {goog.events.EventWrapper} wrapper Event wrapper to use.
  * @param {Function|Object} listener Callback method, or an object with a
  *     handleEvent function.
- * @param {boolean} opt_capt Whether to fire in capture phase (defaults to
+ * @param {boolean=} opt_capt Whether to fire in capture phase (defaults to
  *     false).
- * @param {Object} opt_handler Element in whose scope to call the listener.
+ * @param {Object=} opt_handler Element in whose scope to call the listener.
  */
 goog.events.listenWithWrapper = function(src, wrapper, listener, opt_capt,
     opt_handler) {
@@ -9014,10 +9033,10 @@ goog.events.listenWithWrapper = function(src, wrapper, listener, opt_capt,
  * @param {string|Array.<string>} type The name of the event without the 'on'
  *     prefix.
  * @param {Function|Object} listener The listener function to remove.
- * @param {boolean} opt_capt In DOM-compliant browsers, this determines
+ * @param {boolean=} opt_capt In DOM-compliant browsers, this determines
  *     whether the listener is fired during the capture or bubble phase of the
  *     event.
- * @param {Object} opt_handler Element in whose scope to call the listener.
+ * @param {Object=} opt_handler Element in whose scope to call the listener.
  * @return {?boolean} indicating whether the listener was there to remove.
  */
 goog.events.unlisten = function(src, type, listener, opt_capt, opt_handler) {
@@ -9118,10 +9137,10 @@ goog.events.unlistenByKey = function(key) {
  *     listening to events on.
  * @param {goog.events.EventWrapper} wrapper Event wrapper to use.
  * @param {Function|Object} listener The listener function to remove.
- * @param {boolean} opt_capt In DOM-compliant browsers, this determines
+ * @param {boolean=} opt_capt In DOM-compliant browsers, this determines
  *     whether the listener is fired during the capture or bubble phase of the
  *     event.
- * @param {Object} opt_handler Element in whose scope to call the listener.
+ * @param {Object=} opt_handler Element in whose scope to call the listener.
  */
 goog.events.unlistenWithWrapper = function(src, wrapper, listener, opt_capt,
     opt_handler) {
@@ -9199,10 +9218,10 @@ goog.events.cleanUp_ = function(type, capture, srcHashCode, listenerArray) {
  * remove all listeners that have been registered.  You can also optionally
  * remove listeners of a particular type or capture phase.
  *
- * @param {Object} opt_obj Object to remove listeners from.
- * @param {string} opt_type Type of event to, default is all types.
- * @param {boolean} opt_capt Whether to remove the listeners from the capture or
- * bubble phase.  If unspecified, will remove both.
+ * @param {Object=} opt_obj Object to remove listeners from.
+ * @param {string=} opt_type Type of event to, default is all types.
+ * @param {boolean=} opt_capt Whether to remove the listeners from the capture
+ *     or bubble phase.  If unspecified, will remove both.
  * @return {number} Number of listeners removed.
  */
 goog.events.removeAll = function(opt_obj, opt_type, opt_capt) {
@@ -9293,10 +9312,10 @@ goog.events.getListeners_ = function(obj, type, capture) {
  *     listening to events on.
  * @param {?string} type The name of the event without the 'on' prefix.
  * @param {Function|Object} listener The listener function to remove.
- * @param {boolean} opt_capt In DOM-compliant browsers, this determines
+ * @param {boolean=} opt_capt In DOM-compliant browsers, this determines
  *                            whether the listener is fired during the
  *                            capture or bubble phase of the event.
- * @param {Object} opt_handler Element in whose scope to call the listener.
+ * @param {Object=} opt_handler Element in whose scope to call the listener.
  * @return {goog.events.Listener?} the found listener or null if not found.
  */
 goog.events.getListener = function(src, type, listener, opt_capt, opt_handler) {
@@ -9322,8 +9341,8 @@ goog.events.getListener = function(src, type, listener, opt_capt, opt_handler) {
  * unspecified, the function will match on the remaining criteria.
  *
  * @param {EventTarget|goog.events.EventTarget} obj Target to get listeners for.
- * @param {string} opt_type Event type.
- * @param {boolean} opt_capture Whether to check for capture or bubble-phase
+ * @param {string=} opt_type Event type.
+ * @param {boolean=} opt_capture Whether to check for capture or bubble-phase
  *     listeners.
  * @return {boolean} Whether an event target has one or more listeners matching
  *     the requested type and/or capture phase.
@@ -9642,7 +9661,7 @@ goog.events.dispatchEvent = function(src, e) {
  *
  * @param {goog.debug.ErrorHandler} errorHandler Error handler with which to
  *     protect the entry point.
- * @param {boolean} opt_tracers Whether to install tracers around the browser
+ * @param {boolean=} opt_tracers Whether to install tracers around the browser
  *     event entry point.
  */
 goog.events.protectBrowserEventEntryPoint = function(
@@ -9658,7 +9677,7 @@ goog.events.protectBrowserEventEntryPoint = function(
  * function is a proxy for the real listener the user specified.
  *
  * @param {string} key Unique key for the listener.
- * @param {Event} opt_evt Optional event object that gets passed in via the
+ * @param {Event=} opt_evt Optional event object that gets passed in via the
  *     native event handlers.
  * @return {boolean} Result of the event handler.
  * @this {goog.events.EventTarget|Object} The object or Element that
@@ -9969,10 +9988,10 @@ goog.events.EventTarget.prototype.setParentEventTarget = function(parent) {
  * @param {Function|Object} handler The function to handle the event. The
  *     handler can also be an object that implements the handleEvent method
  *     which takes the event object as argument.
- * @param {boolean} opt_capture In DOM-compliant browsers, this determines
+ * @param {boolean=} opt_capture In DOM-compliant browsers, this determines
  *     whether the listener is fired during the capture or bubble phase
  *     of the event.
- * @param {Object} opt_handlerScope Object in whose scope to call the listener.
+ * @param {Object=} opt_handlerScope Object in whose scope to call the listener.
  */
 goog.events.EventTarget.prototype.addEventListener = function(
     type, handler, opt_capture, opt_handlerScope) {
@@ -9988,10 +10007,10 @@ goog.events.EventTarget.prototype.addEventListener = function(
  * @param {Function|Object} handler The function to handle the event. The
  *     handler can also be an object that implements the handleEvent method
  *     which takes the event object as argument.
- * @param {boolean} opt_capture In DOM-compliant browsers, this determines
+ * @param {boolean=} opt_capture In DOM-compliant browsers, this determines
  *     whether the listener is fired during the capture or bubble phase
  *     of the event.
- * @param {Object} opt_handlerScope Object in whose scope to call the listener.
+ * @param {Object=} opt_handlerScope Object in whose scope to call the listener.
  */
 goog.events.EventTarget.prototype.removeEventListener = function(
     type, handler, opt_capture, opt_handlerScope) {
@@ -10064,8 +10083,8 @@ goog.require('goog.events.EventTarget');
 /**
  * Class for handling timing events.
  *
- * @param {number} opt_interval Number of ms between ticks (Default: 1ms).
- * @param {Object} opt_timerObject  An object that has setTimeout, setInterval,
+ * @param {number=} opt_interval Number of ms between ticks (Default: 1ms).
+ * @param {Object=} opt_timerObject  An object that has setTimeout, setInterval,
  *     clearTimeout and clearInterval (eg Window).
  * @constructor
  * @extends {goog.events.EventTarget}
@@ -10279,8 +10298,8 @@ goog.Timer.TICK = 'tick';
 /**
  * Calls the given function once, after the optional pause
  * @param {Function} listener Function or object that has a handleEvent method.
- * @param {number} opt_interval Number of ms between ticks (Default: 1ms).
- * @param {Object} opt_handler Object in whose scope to call the listener.
+ * @param {number=} opt_interval Number of ms between ticks (Default: 1ms).
+ * @param {Object=} opt_handler Object in whose scope to call the listener.
  * @return {number} A handle to the timer ID.
  */
 goog.Timer.callOnce = function(listener, opt_interval, opt_handler) {
@@ -10481,7 +10500,7 @@ goog.structs.clear = function(col) {
  * @param {Function} f The function to call for every value. This function takes
  *     3 arguments (the value, the key or undefined if the collection has no
  *     notion of keys, and the collection) and the return value is irrelevant.
- * @param {Object} opt_obj The object to be used as the value of 'this'
+ * @param {Object=} opt_obj The object to be used as the value of 'this'
  *     within {@code f}.
  */
 goog.structs.forEach = function(col, f, opt_obj) {
@@ -10510,7 +10529,7 @@ goog.structs.forEach = function(col, f, opt_obj) {
  *     notion of keys, and the collection) and should return a Boolean. If the
  *     return value is true the value is added to the result collection. If it
  *     is false the value is not included.
- * @param {Object} opt_obj The object to be used as the value of 'this'
+ * @param {Object=} opt_obj The object to be used as the value of 'this'
  *     within {@code f}.
  * @return {!Object|!Array} A new collection where the passed values are
  *     present. If col is a key-less collection an array is returned.  If col
@@ -10559,7 +10578,7 @@ goog.structs.filter = function(col, f, opt_obj) {
  *     takes 3 arguments (the value, the key or undefined if the collection has
  *     no notion of keys, and the collection) and should return something. The
  *     result will be used as the value in the new collection.
- * @param {Object} opt_obj  The object to be used as the value of 'this'
+ * @param {Object=} opt_obj  The object to be used as the value of 'this'
  *     within {@code f}.
  * @return {!Object|!Array} A new collection with the new values.  If col is a
  *     key-less collection an array is returned.  If col has keys and values a
@@ -10603,7 +10622,7 @@ goog.structs.map = function(col, f, opt_obj) {
  * @param {Function} f The function to call for every value. This function takes
  *     3 arguments (the value, the key or undefined if the collection has no
  *     notion of keys, and the collection) and should return a Boolean.
- * @param {Object} opt_obj  The object to be used as the value of 'this'
+ * @param {Object=} opt_obj  The object to be used as the value of 'this'
  *     within {@code f}.
  * @return {boolean} True if any value passes the test.
  */
@@ -10635,7 +10654,7 @@ goog.structs.some = function(col, f, opt_obj) {
  * @param {Function} f The function to call for every value. This function takes
  *     3 arguments (the value, the key or undefined if the collection has no
  *     notion of keys, and the collection) and should return a Boolean.
- * @param {Object} opt_obj  The object to be used as the value of 'this'
+ * @param {Object=} opt_obj  The object to be used as the value of 'this'
  *     within {@code f}.
  * @return {boolean} True if all key-value pairs pass the test.
  */
@@ -10730,7 +10749,7 @@ goog.iter.Iterator.prototype.next = function() {
 /**
  * Returns the {@code Iterator} object itself.  This is used to implement
  * the iterator protocol in JavaScript 1.7
- * @param {boolean} opt_keys  Whether to return the keys or values. Default is
+ * @param {boolean=} opt_keys  Whether to return the keys or values. Default is
  *     to only return the values.  This is being used by the for-in loop (true)
  *     and the for-each-in loop (false).  Even though the param gives a hint
  *     about what the iterator will return there is no guarantee that it will
@@ -10796,7 +10815,7 @@ goog.iter.toIterator = function(iterable) {
  *     return value is irrelevant.  The reason for passing undefined as the
  *     second argument is so that the same function can be used in
  *     {@see goog.array#forEach} as well as others.
- * @param {Object} opt_obj  The object to be used as the value of 'this' within
+ * @param {Object=} opt_obj  The object to be used as the value of 'this' within
  *     {@code f}.
  */
 goog.iter.forEach = function(iterable, f, opt_obj) {
@@ -10836,7 +10855,7 @@ goog.iter.forEach = function(iterable, f, opt_obj) {
  *     return a boolean.  If the return value is true the element will be
  *     included  in the returned iteror.  If it is false the element is not
  *     included.
- * @param {Object} opt_obj The object to be used as the value of 'this' within
+ * @param {Object=} opt_obj The object to be used as the value of 'this' within
  *     {@code f}.
  * @return {!goog.iter.Iterator} A new iterator in which only elements that
  *     passed the test are present.
@@ -10867,9 +10886,9 @@ goog.iter.filter = function(iterable, f, opt_obj) {
  * @param {number} startOrStop  The stop value if only one argument is provided.
  *     The start value if 2 or more arguments are provided.  If only one
  *     argument is used the start value is 0.
- * @param {number} opt_stop  The stop value.  If left out then the first
+ * @param {number=} opt_stop  The stop value.  If left out then the first
  *     argument is used as the stop value.
- * @param {number} opt_step  The number to increment with between each call to
+ * @param {number=} opt_step  The number to increment with between each call to
  *     next.  This can be negative.
  * @return {!goog.iter.Iterator} A new iterator that returns the values in the
  *     range.
@@ -10918,7 +10937,7 @@ goog.iter.join = function(iterable, deliminator) {
  * @param {Function} f The function to call for every element.  This function
  *     takes 3 arguments (the element, undefined, and the iterator) and should
  *     return a new value.
- * @param {Object} opt_obj The object to be used as the value of 'this' within
+ * @param {Object=} opt_obj The object to be used as the value of 'this' within
  *     {@code f}.
  * @return {!goog.iter.Iterator} A new iterator that returns the results of
  *     applying the function to each element in the original iterator.
@@ -10946,7 +10965,7 @@ goog.iter.map = function(iterable, f, opt_obj) {
  *     and the value of the current element).
  *     function(previousValue, currentElement) : newValue.
  * @param {*} val The initial value to pass into the function on the first call.
- * @param {Object} opt_obj  The object to be used as the value of 'this'
+ * @param {Object=} opt_obj  The object to be used as the value of 'this'
  *     within f.
  * @return {*} Result of evaluating f repeatedly across the values of
  *     the iterator.
@@ -10969,7 +10988,7 @@ goog.iter.reduce = function(iterable, f, val, opt_obj) {
  * @param {Function} f  The function to call for every value. This function
  *     takes 3 arguments (the value, undefined, and the iterator) and should
  *     return a boolean.
- * @param {Object} opt_obj The object to be used as the value of 'this' within
+ * @param {Object=} opt_obj The object to be used as the value of 'this' within
  *     {@code f}.
  * @return {boolean} true if any value passes the test.
  */
@@ -11000,7 +11019,7 @@ goog.iter.some = function(iterable, f, opt_obj) {
  * @param {Function} f  The function to call for every value. This function
  *     takes 3 arguments (the value, undefined, and the iterator) and should
  *     return a boolean.
- * @param {Object} opt_obj The object to be used as the value of 'this' within
+ * @param {Object=} opt_obj The object to be used as the value of 'this' within
  *     {@code f}.
  * @return {boolean} true if every value passes the test.
  */
@@ -11025,7 +11044,7 @@ goog.iter.every = function(iterable, f, opt_obj) {
 /**
  * Takes zero or more iterators and returns one iterator that will iterate over
  * them in the order chained.
- * @param {goog.iter.Iterator} var_args  Any number of iterator objects.
+ * @param {...goog.iter.Iterator} var_args  Any number of iterator objects.
  * @return {!goog.iter.Iterator} Returns a new iterator that will iterate over
  *     all the given iterators' contents.
  */
@@ -11063,7 +11082,7 @@ goog.iter.chain = function(var_args) {
  * @param {Function} f  The function to call for every value. This function
  *     takes 3 arguments (the value, undefined, and the iterator) and should
  *     return a boolean.
- * @param {Object} opt_obj The object to be used as the value of 'this' within
+ * @param {Object=} opt_obj The object to be used as the value of 'this' within
  *     {@code f}.
  * @return {!goog.iter.Iterator} A new iterator that drops elements from the
  *     original iterator as long as {@code f} is true.
@@ -11094,7 +11113,7 @@ goog.iter.dropWhile = function(iterable, f, opt_obj) {
  * @param {Function} f  The function to call for every value. This function
  *     takes 3 arguments (the value, undefined, and the iterator) and should
  *     return a boolean.
- * @param {Object} opt_obj This is used as the 'this' object in f when called.
+ * @param {Object=} opt_obj This is used as the 'this' object in f when called.
  * @return {!goog.iter.Iterator} A new iterator that keeps elements in the
  *     original iterator as long as the function is true.
  */
@@ -11245,9 +11264,9 @@ goog.require('goog.structs');
 
 /**
  * Class for Hash Map datastructure.
- * @param {Object} opt_map Map or Object to initialize the map with.
- * @param {Object} var_args If 2 or more arguments are present then they will be
- *     used as key-value pairs.
+ * @param {*=} opt_map Map or Object to initialize the map with.
+ * @param {...*} var_args If 2 or more arguments are present then they
+ *     will be used as key-value pairs.
  * @constructor
  */
 goog.structs.Map = function(opt_map, var_args) {
@@ -11285,7 +11304,7 @@ goog.structs.Map = function(opt_map, var_args) {
       this.set(arguments[i], arguments[i + 1]);
     }
   } else if (opt_map) {
-    this.addAll(opt_map);
+    this.addAll(/** @type {Object} */ (opt_map));
   }
 };
 
@@ -11368,7 +11387,7 @@ goog.structs.Map.prototype.containsValue = function(val) {
 /**
  * Whether this map is equal to the argument map.
  * @param {goog.structs.Map} otherMap The map against which to test equality.
- * @param {function(*, *) : boolean} opt_equalityFn Optional equality function
+ * @param {function(*, *) : boolean=} opt_equalityFn Optional equality function
  *     to test equality of values. If not specified, this will test whether
  *     the values contained in each map are identical objects.
  * @return {boolean} Whether the maps are equal.
@@ -11494,8 +11513,8 @@ goog.structs.Map.prototype.cleanupKeysArray_ = function() {
  * Returns the value for the given key.  If the key is not found and the default
  * value is not given this will return {@code undefined}.
  * @param {*} key The key to get the value for.
- * @param {*} opt_val The value to return if no item is found for the given key,
- *     defaults to undefined.
+ * @param {*=} opt_val The value to return if no item is found for the given
+ *     key, defaults to undefined.
  * @return {*} The value for the given key.
  */
 goog.structs.Map.prototype.get = function(key, opt_val) {
@@ -11597,7 +11616,7 @@ goog.structs.Map.prototype.getValueIterator = function() {
  * Returns an iterator that iterates over the values or the keys in the map.
  * This throws an exception if the map was mutated since the iterator was
  * created.
- * @param {boolean} opt_keys True to iterate over the keys. False to iterate
+ * @param {boolean=} opt_keys True to iterate over the keys. False to iterate
  *     over the values.  The default value is false.
  * @return {!goog.iter.Iterator} An iterator over the values or keys in the map.
  */
@@ -11639,212 +11658,6 @@ goog.structs.Map.prototype.__iterator__ = function(opt_keys) {
 goog.structs.Map.hasKey_ = function(obj, key) {
   return Object.prototype.hasOwnProperty.call(obj, key);
 };
-
-
-/**
- * Returns the number of key-value pairs in a map.
- * @param {Object} map The map-like object.
- * @return {number} The number of values in the map.
- *
- * @deprecated Use the instance {@code getCount} method on your object instead.
- *     If your object is a plain JavaScript Object used as a map you can also
- *     use {@code goog.object.getCount}.
- */
-goog.structs.Map.getCount = function(map) {
-  return goog.structs.getCount(map);
-};
-
-
-/**
- * Returns the values of the map.
- * @param {Object} map The map-like object.
- * @return {!Array} The values in the map.
- *
- * @deprecated Use the instance {@code getValues} method on your object instead.
- *     If your object is a plain JavaScript Object used as a map you can also
- *     use {@code goog.object.getValues}.
- */
-goog.structs.Map.getValues = function(map) {
-  return goog.structs.getValues(map);
-};
-
-
-/**
- * Returns the keys of the map.
- * @param {Object} map The map-like object.
- * @return {!Array.<string>} Array of string values.
- *
- * @deprecated Use the instance {@code getKeys} method on your object instead.
- *     If your object is a plain JavaScript Object used as a map you can also
- *     use {@code goog.object.getKeys}.
- */
-goog.structs.Map.getKeys = function(map) {
-  if (typeof map.getKeys == 'function') {
-    return map.getKeys();
-  }
-  var rv = [];
-  if (goog.isArrayLike(map)) {
-    for (var i = 0; i < map.length; i++) {
-      rv.push(i);
-    }
-  } else { // Object
-    return goog.object.getKeys(map);
-  }
-  return rv;
-};
-
-
-/**
- * Whether the map contains the given key.
- * @param {Object} map The map-like object.
- * @param {*} key The key to check for.
- * @return {boolean} Whether the map contains the key.
- *
- * @deprecated Use the instance {@code containsKey} method on your object
- *     instead.  If your object is a plain JavaScript object you can use the
- *     {@code in} operator.
- */
-goog.structs.Map.containsKey = function(map, key) {
-  if (typeof map.containsKey == 'function') {
-    return map.containsKey(key);
-  }
-  if (goog.isArrayLike(map)) {
-    return Number(key) < map.length;
-  }
-  // Object
-  return goog.object.containsKey(map, key);
-};
-
-
-/**
- * Whether the map contains the given value.  This is O(n) and uses equals (==)
- * to test.
- * @param {Object} map The map-like object.
- * @param {*} val The value to check for.
- * @return {boolean} Whether the map contains the value.
- *
- * @deprecated Use the instance {@code containsValue} method on your object
- *     instead. If your object is a plain JavaScript Object used as a map you
- *     can also use {@code goog.object.containsValue}.
- */
-goog.structs.Map.containsValue = function(map, val) {
-  return goog.structs.contains(map, val);
-};
-
-
-/**
- * Whether the map is empty.
- * @param {Object} map The map-like object.
- * @return {boolean} Whether the map is empty.
- *
- * @deprecated Use the instance {@code isEmpty} method on your object instead.
- *     If your object is a plain JavaScript Object used as a map you can also
- *     use {@code goog.object.isEmpty}.
- */
-goog.structs.Map.isEmpty = function(map) {
-  return goog.structs.isEmpty(map);
-};
-
-
-/**
- * Removes all key-value pairs from the map.
- * @param {Object} map The map-like object.
- *
- * @deprecated Use the instance {@code clear} method on your object instead.
- *     If your object is a plain JavaScript Object used as a map you can also
- *     use {@code goog.object.clear}.
- */
-goog.structs.Map.clear = function(map) {
-  goog.structs.clear(map);
-};
-
-
-/**
- * Removes a key-value pair based on the key.
- * @param {Object} map The map-like object.
- * @param {*} key The key to remove.
- * @return {boolean} Whether the map contained the key.
- *
- * @deprecated Use the instance {@code remove} method on your object instead.
- *     If your object is a plain JavaScript Object used as a map you can use
- *     the {@code delete} operator.
- */
-goog.structs.Map.remove = function(map, key) {
-  if (typeof map.remove == 'function') {
-    return map.remove(key);
-  }
-  if (goog.isArrayLike(map)) {
-    return goog.array.removeAt(
-        (/** @type {goog.array.ArrayLike} */ map), Number(key));
-  }
-  // Object
-  return goog.object.remove(map, key);
-};
-
-
-/**
- * Adds a key-value pair to the map. This throws an exception if the key is
- * already in use. Use set if you want to change an existing pair.
- * @param {Object} map The map-like object.
- * @param {*} key The key to add.
- * @param {*} val The value to add.
- *
- * @deprecated Use the instance {@code add} method on your object instead. If
- *     your object is a plain JavaScript Object used as a map you can use
- *     {@code map[key] = val}.
- */
-goog.structs.Map.add = function(map, key, val) {
-  if (typeof map.add == 'function') {
-    map.add(key, val);
-  } else if (goog.structs.Map.containsKey(map, key)) {
-    throw Error('The collection already contains the key "' + key + '"');
-  } else {
-    goog.structs.Map.set(map, key, val);
-  }
-};
-
-
-/**
- * Returns the value for the given key.
- * @param {Object} map The map-like object.
- * @param {*} key The key to get the value for.
- * @param {*} opt_val The value to return if no item is found for the
- *     given key. Defaults to undefined.
- * @return {*} The value for the given key.
- *
- * @deprecated Use the instance {@code get} method on your object instead. If
- *     your object is a plain JavaScript Object used as a map you can use
- *     {@code map[key]} or {@code key in map ? map[key] : opt_val}.
- *
- */
-goog.structs.Map.get = function(map, key, opt_val) {
-  if (typeof map.get == 'function') {
-    return map.get(key, opt_val);
-  }
-  if (goog.structs.Map.containsKey(map, key)) {
-    return map[key];
-  }
-  return opt_val;
-};
-
-
-/**
- * Sets the value for the given key.
- * @param {Object} map The map-like object.
- * @param {*} key The key to set the value for.
- * @param {*} val The value to add.
- *
- * @deprecated Use the instance {@code set} method on your object instead. If
- *     your object is a plain JavaScript Object used as a map you can use
- *     {@code map[key] = val}.
- */
-goog.structs.Map.set = function(map, key, val) {
-  if (typeof map.set == 'function') {
-    map.set(key, val);
-  } else {
-    map[key] = val;
-  }
-};
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -11865,7 +11678,7 @@ goog.structs.Map.set = function(map, key, val) {
  *
  * This class implements a set data structure. Adding and removing is O(1). It
  * supports both object and primitive values. Be careful because you can add
- * both 1 and new Number(1), beacuse these are not the same. You can even add
+ * both 1 and new Number(1), because these are not the same. You can even add
  * multiple new Number(1) because these are not equal.
  */
 
@@ -11877,9 +11690,17 @@ goog.require('goog.structs.Map');
 
 
 /**
- * Class for Set datastructure.
- *
- * @param {Array|Object} opt_values Initial values to start with.
+ * A set that can contain both primitives and objects.  Adding and removing
+ * elements is O(1).  Primitives are treated as identical if they have the same
+ * type and convert to the same string.  Objects are treated as identical only
+ * if they are references to the same object.  WARNING: A goog.structs.Set can
+ * contain both 1 and (new Number(1)), because they are not the same.  WARNING:
+ * Adding (new Number(1)) twice will yield two distinct elements, because they
+ * are two different objects.  WARNING: Any object that is added to a
+ * goog.structs.Set will be modified!  Because goog.getHashCode() is used to
+ * identify objects, every object in the set will gain a property whose name
+ * begins with 'closure_hashCode_'.
+ * @param {Array|Object=} opt_values Initial values to start with.
  * @constructor
  */
 goog.structs.Set = function(opt_values) {
@@ -11891,8 +11712,9 @@ goog.structs.Set = function(opt_values) {
 
 
 /**
- * This is used to get the key or the hash. We are not using getHashCode
- * because it only works with objects.
+ * Obtains a unique key for an element of the set.  Primitives will yield the
+ * same key if they have the same type and convert to the same string.  Object
+ * references will yield the same key only if they refer to the same object.
  * @param {*} val Object or primitive value to get a key for.
  * @return {string} A unique key for this value/object.
  * @private
@@ -11908,7 +11730,7 @@ goog.structs.Set.getKey_ = function(val) {
 
 
 /**
- * @return {number} The number of objects in the Set.
+ * @return {number} The number of elements in the set.
  */
 goog.structs.Set.prototype.getCount = function() {
   return this.map_.getCount();
@@ -11916,21 +11738,20 @@ goog.structs.Set.prototype.getCount = function() {
 
 
 /**
- * Add an object to the set.
- * @param {*} obj The object to add.
+ * Add a primitive or an object to the set.
+ * @param {*} element The primitive or object to add.
  */
-goog.structs.Set.prototype.add = function(obj) {
-  this.map_.set(goog.structs.Set.getKey_(obj), obj);
+goog.structs.Set.prototype.add = function(element) {
+  this.map_.set(goog.structs.Set.getKey_(element), element);
 };
 
 
 /**
- * Adds all objects from one goog.structs.Set to the current one. This can
- * take an array as well.
- * @param {Array|Object} set The set or array to add objects from.
+ * Adds all the values in the given collection to this set.
+ * @param {Array|Object} col A collection containing the elements to add.
  */
-goog.structs.Set.prototype.addAll = function(set) {
-  var values = goog.structs.getValues(set);
+goog.structs.Set.prototype.addAll = function(col) {
+  var values = goog.structs.getValues(col);
   var l = values.length;
   for (var i = 0; i < l; i++) {
     this.add(values[i]);
@@ -11939,12 +11760,11 @@ goog.structs.Set.prototype.addAll = function(set) {
 
 
 /**
- * Removes all objects in one goog.structs.Set from the current one. This can
- * take an array as well.
- * @param {Array|Object} set The set or array to remove objects from.
+ * Removes all values in the given collection from this set.
+ * @param {Array|Object} col A collection containing the elements to remove.
  */
-goog.structs.Set.prototype.removeAll = function(set) {
-  var values = goog.structs.getValues(set);
+goog.structs.Set.prototype.removeAll = function(col) {
+  var values = goog.structs.getValues(col);
   var l = values.length;
   for (var i = 0; i < l; i++) {
     this.remove(values[i]);
@@ -11953,17 +11773,17 @@ goog.structs.Set.prototype.removeAll = function(set) {
 
 
 /**
- * Removes an object from the set.
- * @param {*} obj The object to remove.
- * @return {boolean} Whether object was removed.
+ * Removes the given element from this set.
+ * @param {*} element The primitive or object to remove.
+ * @return {boolean} Whether the element was found and removed.
  */
-goog.structs.Set.prototype.remove = function(obj) {
-  return this.map_.remove(goog.structs.Set.getKey_(obj));
+goog.structs.Set.prototype.remove = function(element) {
+  return this.map_.remove(goog.structs.Set.getKey_(element));
 };
 
 
 /**
- * Removes all objects from the set.
+ * Removes all elements from this set.
  */
 goog.structs.Set.prototype.clear = function() {
   this.map_.clear();
@@ -11971,8 +11791,8 @@ goog.structs.Set.prototype.clear = function() {
 
 
 /**
- * Whether the set contains no objects.
- * @return {boolean} True if there are no objects in the goog.structs.Set.
+ * Tests whether this set is empty.
+ * @return {boolean} True if there are no elements in this set.
  */
 goog.structs.Set.prototype.isEmpty = function() {
   return this.map_.isEmpty();
@@ -11980,18 +11800,19 @@ goog.structs.Set.prototype.isEmpty = function() {
 
 
 /**
- * Whether the goog.structs.Set contains an object or not.
- * @param {*} obj The object to test for.
- * @return {boolean} True if the set contains the object.
+ * Tests whether this set contains the given element.
+ * @param {*} element The primitive or object to test for.
+ * @return {boolean} True if this set contains the given element.
  */
-goog.structs.Set.prototype.contains = function(obj) {
-  return this.map_.containsKey(goog.structs.Set.getKey_(obj));
+goog.structs.Set.prototype.contains = function(element) {
+  return this.map_.containsKey(goog.structs.Set.getKey_(element));
 };
 
 
 /**
- * Whether the goog.structs.Set contains all elements of the collection.
- * Ignores identical elements, e.g. set([1, 2]) contains [1, 1].
+ * Tests whether this set contains all the values in a given collection.
+ * Repeated elements in the collection are ignored, e.g.  (new
+ * goog.structs.Set([1, 2])).containsAll([1, 1]) is True.
  * @param {Object} col A collection-like object.
  * @return {boolean} True if the set contains all elements.
  */
@@ -12001,15 +11822,15 @@ goog.structs.Set.prototype.containsAll = function(col) {
 
 
 /**
- * Find all elements present in both this and the given set.
- * @param {Array|Object} set The set or array to test against.
- * @return {goog.structs.Set} A new set containing all elements present in both
- *     this object and specified set.
+ * Finds all values that are present in both this set and the given collection.
+ * @param {Array|Object} col A collection.
+ * @return {goog.structs.Set} A new set containing all the values (primitives
+ *     or objects) present in both this set and the given collection.
  */
-goog.structs.Set.prototype.intersection = function(set) {
+goog.structs.Set.prototype.intersection = function(col) {
   var result = new goog.structs.Set();
 
-  var values = goog.structs.getValues(set);
+  var values = goog.structs.getValues(col);
   for (var i = 0; i < values.length; i++) {
     var value = values[i];
     if (this.contains(value)) {
@@ -12022,8 +11843,8 @@ goog.structs.Set.prototype.intersection = function(set) {
 
 
 /**
- * Inserts the objects in the set into a new Array.
- * @return {Array} An array of all the values in the Set.
+ * Returns an array containing all the elements in this set.
+ * @return {Array} An array containing all the elements in this set.
  */
 goog.structs.Set.prototype.getValues = function() {
   return this.map_.getValues();
@@ -12031,8 +11852,9 @@ goog.structs.Set.prototype.getValues = function() {
 
 
 /**
- * Does a shallow clone of the goog.structs.Set.
- * @return {goog.structs.Set} The cloned Set.
+ * Creates a shallow clone of this set.
+ * @return {goog.structs.Set} A new set containing all the same elements as
+ *     this set.
  */
 goog.structs.Set.prototype.clone = function() {
   return new goog.structs.Set(this);
@@ -12040,12 +11862,13 @@ goog.structs.Set.prototype.clone = function() {
 
 
 /**
- * Compares this set with the input collection for equality.
- * Its time complexity is O(|col|) and uses equals (==) to test the existence
- * of the elements.
- * @param {Object} col A collection-like object.
- * @return {boolean} True if the collection consists of the same elements as
- *     the set in arbitrary order.
+ * Tests whether the given collection consists of the same elements as this set,
+ * regardless of order, without repetition.  Primitives are treated as equal if
+ * they have the same type and convert to the same string; objects are treated
+ * as equal if they are references to the same object.  This operation is O(n).
+ * @param {Object} col A collection.
+ * @return {boolean} True if the given collection consists of the same elements
+ *     as this set, regardless of order, without repetition.
  */
 goog.structs.Set.prototype.equals = function(col) {
   return this.getCount() == goog.structs.getCount(col) && this.isSubsetOf(col);
@@ -12053,11 +11876,12 @@ goog.structs.Set.prototype.equals = function(col) {
 
 
 /**
- * Decides if the input collection contains all elements of this set.
- * Its time complexity is O(|col|) and uses equals (==) to test the existence
- * of the elements.
- * @param {Object} col A collection-like object.
- * @return {boolean} True if the set is a subset of the collection.
+ * Tests whether the given collection contains all the elements in this set.
+ * Primitives are treated as equal if they have the same type and convert to the
+ * same string; objects are treated as equal if they are references to the same
+ * object.  This operation is O(n).
+ * @param {Object} col A collection.
+ * @return {boolean} True if this set is a subset of the given collection.
  */
 goog.structs.Set.prototype.isSubsetOf = function(col) {
   var colCount = goog.structs.getCount(col);
@@ -12067,7 +11891,8 @@ goog.structs.Set.prototype.isSubsetOf = function(col) {
   // TODO Find the minimal collection size where the conversion makes
   // the contains() method faster.
   if (!(col instanceof goog.structs.Set) && colCount > 5) {
-    // Make the goog.structs.contains(col, value) faster if necessary.
+    // Convert to a goog.structs.Set so that goog.structs.contains runs in
+    // O(1) time instead of O(n) time.
     col = new goog.structs.Set(col);
   }
   return goog.structs.every(this, function(value) {
@@ -12077,9 +11902,9 @@ goog.structs.Set.prototype.isSubsetOf = function(col) {
 
 
 /**
- * Returns an iterator that iterates over the elements in the set.
- * @param {boolean} opt_keys Ignored for sets.
- * @return {goog.iter.Iterator} An iterator over the elements in the set.
+ * Returns an iterator that iterates over the elements in this set.
+ * @param {boolean=} opt_keys This argument is ignored.
+ * @return {goog.iter.Iterator} An iterator over the elements in this set.
  */
 goog.structs.Set.prototype.__iterator__ = function(opt_keys) {
   return this.map_.__iterator__(false);
@@ -12114,15 +11939,13 @@ goog.require('goog.structs.Set');
 
 /**
  * Catches onerror events fired by windows and similar objects.
- * @param {goog.debug.Logger|function(Object)} opt_logger The logger to use to
- *    catch errors or a function to call instead. The function takes a single
- *    parameter that contains information about the error.
- * @param {boolean} opt_cancel Whether to stop the error from reaching the
+ * @param {function(Object)} logFunc The function to call with the error
+ *    information.
+ * @param {boolean=} opt_cancel Whether to stop the error from reaching the
  *    browser.
- * @param {Object} opt_target Object that fires onerror events.
+ * @param {Object=} opt_target Object that fires onerror events.
  */
-goog.debug.catchErrors = function(opt_logger, opt_cancel, opt_target) {
-  var logger = opt_logger || goog.debug.LogManager.getRoot();
+goog.debug.catchErrors = function(logFunc, opt_cancel, opt_target) {
   var target = opt_target || goog.global;
   var oldErrorHandler = target.onerror;
   target.onerror = function(message, url, line) {
@@ -12130,16 +11953,11 @@ goog.debug.catchErrors = function(opt_logger, opt_cancel, opt_target) {
       oldErrorHandler(message, url, line);
     }
     var file = String(url).split(/[\/\\]/).pop();
-    if (goog.isFunction(logger)) {
-      logger({
-        message: message,
-        fileName: file,
-        line: line
-        });
-    } else {
-      logger.severe('Error: ' + message + ' (' + file + ' @ Line: ' +
-                    line + ')');
-    }
+    logFunc({
+      message: message,
+      fileName: file,
+      line: line
+    });
     return Boolean(opt_cancel);
   };
 };
@@ -12148,7 +11966,7 @@ goog.debug.catchErrors = function(opt_logger, opt_cancel, opt_target) {
 /**
  * Creates a string representing an object and all its properties.
  * @param {Object|null|undefined} obj Object to expose.
- * @param {boolean} opt_showFn Show the functions as well as the properties,
+ * @param {boolean=} opt_showFn Show the functions as well as the properties,
  *     default is false.
  * @return {string} The string representation of {@code obj}.
  */
@@ -12179,12 +11997,16 @@ goog.debug.expose = function(obj, opt_showFn) {
 
 
 /**
- * Creates a string representing an object and all its properties and nested
- * objects.
- * @param {Object|null|undefined} obj Object to expose.
- * @param {boolean} opt_showFn Show the functions as well as the properties,
- *     default is false.
- * @return {string} The string representation of {@code obj}.
+ * Creates a string representing a given primitive or object, and for an
+ * object, all its properties and nested objects.  WARNING: If an object is
+ * given, it and all its nested objects will be modified.  To detect reference
+ * cycles, this method identifies objects using goog.getHashCode(), so every
+ * object it touches will gain a property whose name begins with
+ * 'closure_hashCode_'.
+ * @param {*} obj Object to expose.
+ * @param {boolean=} opt_showFn Also show properties that are functions (by
+ *     default, functions are omitted).
+ * @return {string} A string representation of {@code obj}.
  */
 goog.debug.deepExpose = function(obj, opt_showFn) {
   var previous = new goog.structs.Set();
@@ -12209,6 +12031,8 @@ goog.debug.deepExpose = function(obj, opt_showFn) {
         str.push(indentMultiline(String(obj)));
       } else if (goog.isObject(obj)) {
         if (previous.contains(obj)) {
+          // TODO: This is a bug; it falsely detects non-loops as loops
+          // when the reference tree contains two references to the same object.
           str.push('*** reference loop detected ***');
         } else {
           previous.add(obj);
@@ -12259,7 +12083,7 @@ goog.debug.exposeArray = function(arr) {
  * Exposes an exception that has been caught by a try...catch and outputs the
  * error with a stack trace.
  * @param {Object} err Error object or string.
- * @param {Function} opt_fn Optional function to start stack trace from.
+ * @param {Function=} opt_fn Optional function to start stack trace from.
  * @return {string} Details of exception.
  */
 goog.debug.exposeException = function(err, opt_fn) {
@@ -12318,7 +12142,8 @@ goog.debug.normalizeErrorObject = function(err) {
  * adds a stacktrace if there isn't one,
  * and optionally adds an extra message.
  * @param {Error|string} err  the original thrown object or string.
- * @param {string} opt_message  optional additional message to add to the error.
+ * @param {string=} opt_message  optional additional message to add to the
+ *     error.
  * @return {Error} If err is a string, it is used to create a new Error,
  *     which is enhanced and returned.  Otherwise err itself is enhanced
  *     and returned.
@@ -12343,7 +12168,7 @@ goog.debug.enhanceError = function(err, opt_message) {
 /**
  * Gets the current stack trace. Simple and iterative - doesn't worry about
  * catching circular references or getting the args.
- * @param {number} opt_depth Optional maximum depth to trace back to.
+ * @param {number=} opt_depth Optional maximum depth to trace back to.
  * @return {string} A string with the function names of all functions in the
  *     stack, separated by \n.
  */
@@ -12388,7 +12213,7 @@ goog.debug.MAX_STACK_DEPTH = 50;
 /**
  * Gets the current stack trace, either starting from the caller or starting
  * from a specified function that's currently on the call stack.
- * @param {Function} opt_fn Optional function to start getting the trace from.
+ * @param {Function=} opt_fn Optional function to start getting the trace from.
  *     If not provided, defaults to the function that called this.
  * @return {string} Stack trace.
  */
@@ -12546,9 +12371,9 @@ goog.provide('goog.debug.LogRecord');
  * @param {goog.debug.Logger.Level} level One of the level identifiers.
  * @param {string} msg The string message.
  * @param {string} loggerName The name of the source logger.
- * @param {number} opt_time Time this log record was created if other than now.
+ * @param {number=} opt_time Time this log record was created if other than now.
  *     If 0, we use #goog.now.
- * @param {number} opt_sequenceNumber Sequence number of this log record. This
+ * @param {number=} opt_sequenceNumber Sequence number of this log record. This
  *     should only be passed in when restoring a log record from persistence.
  */
 goog.debug.LogRecord = function(level, msg, loggerName,
@@ -13171,7 +12996,8 @@ goog.debug.Logger.prototype.isLoggable = function(level) {
  * registered output Handler objects.
  * @param {goog.debug.Logger.Level} level One of the level identifiers.
  * @param {string} msg The string message.
- * @param {Error|Object} opt_exception An exception associated with the message.
+ * @param {Error|Object=} opt_exception An exception associated with the
+ *     message.
  */
 goog.debug.Logger.prototype.log = function(level, msg, opt_exception) {
   // java caches the effective level, not sure it's necessary here
@@ -13185,7 +13011,8 @@ goog.debug.Logger.prototype.log = function(level, msg, opt_exception) {
  * Creates a new log record and adds the exception (if present) to it.
  * @param {goog.debug.Logger.Level} level One of the level identifiers.
  * @param {string} msg The string message.
- * @param {Error|Object} opt_exception An exception associated with the message.
+ * @param {Error|Object=} opt_exception An exception associated with the
+ *     message.
  * @return {!goog.debug.LogRecord} A log record.
  */
 goog.debug.Logger.prototype.getLogRecord = function(level, msg, opt_exception) {
@@ -13204,7 +13031,7 @@ goog.debug.Logger.prototype.getLogRecord = function(level, msg, opt_exception) {
  * If the logger is currently enabled for the given message level then the
  * given message is forwarded to all the registered output Handler objects.
  * @param {string} msg The string message.
- * @param {Error} opt_exception An exception associated with the message.
+ * @param {Error=} opt_exception An exception associated with the message.
  */
 goog.debug.Logger.prototype.shout = function(msg, opt_exception) {
   this.log(goog.debug.Logger.Level.SHOUT, msg, opt_exception);
@@ -13216,7 +13043,7 @@ goog.debug.Logger.prototype.shout = function(msg, opt_exception) {
  * If the logger is currently enabled for the given message level then the
  * given message is forwarded to all the registered output Handler objects.
  * @param {string} msg The string message.
- * @param {Error} opt_exception An exception associated with the message.
+ * @param {Error=} opt_exception An exception associated with the message.
  */
 goog.debug.Logger.prototype.severe = function(msg, opt_exception) {
   this.log(goog.debug.Logger.Level.SEVERE, msg, opt_exception);
@@ -13228,7 +13055,7 @@ goog.debug.Logger.prototype.severe = function(msg, opt_exception) {
  * If the logger is currently enabled for the given message level then the
  * given message is forwarded to all the registered output Handler objects.
  * @param {string} msg The string message.
- * @param {Error} opt_exception An exception associated with the message.
+ * @param {Error=} opt_exception An exception associated with the message.
  */
 goog.debug.Logger.prototype.warning = function(msg, opt_exception) {
   this.log(goog.debug.Logger.Level.WARNING, msg, opt_exception);
@@ -13240,7 +13067,7 @@ goog.debug.Logger.prototype.warning = function(msg, opt_exception) {
  * If the logger is currently enabled for the given message level then the
  * given message is forwarded to all the registered output Handler objects.
  * @param {string} msg The string message.
- * @param {Error} opt_exception An exception associated with the message.
+ * @param {Error=} opt_exception An exception associated with the message.
  */
 goog.debug.Logger.prototype.info = function(msg, opt_exception) {
   this.log(goog.debug.Logger.Level.INFO, msg, opt_exception);
@@ -13252,7 +13079,7 @@ goog.debug.Logger.prototype.info = function(msg, opt_exception) {
  * If the logger is currently enabled for the given message level then the
  * given message is forwarded to all the registered output Handler objects.
  * @param {string} msg The string message.
- * @param {Error} opt_exception An exception associated with the message.
+ * @param {Error=} opt_exception An exception associated with the message.
  */
 goog.debug.Logger.prototype.config = function(msg, opt_exception) {
   this.log(goog.debug.Logger.Level.CONFIG, msg, opt_exception);
@@ -13264,7 +13091,7 @@ goog.debug.Logger.prototype.config = function(msg, opt_exception) {
  * If the logger is currently enabled for the given message level then the
  * given message is forwarded to all the registered output Handler objects.
  * @param {string} msg The string message.
- * @param {Error} opt_exception An exception associated with the message.
+ * @param {Error=} opt_exception An exception associated with the message.
  */
 goog.debug.Logger.prototype.fine = function(msg, opt_exception) {
   this.log(goog.debug.Logger.Level.FINE, msg, opt_exception);
@@ -13276,7 +13103,7 @@ goog.debug.Logger.prototype.fine = function(msg, opt_exception) {
  * If the logger is currently enabled for the given message level then the
  * given message is forwarded to all the registered output Handler objects.
  * @param {string} msg The string message.
- * @param {Error} opt_exception An exception associated with the message.
+ * @param {Error=} opt_exception An exception associated with the message.
  */
 goog.debug.Logger.prototype.finer = function(msg, opt_exception) {
   this.log(goog.debug.Logger.Level.FINER, msg, opt_exception);
@@ -13288,7 +13115,7 @@ goog.debug.Logger.prototype.finer = function(msg, opt_exception) {
  * If the logger is currently enabled for the given message level then the
  * given message is forwarded to all the registered output Handler objects.
  * @param {string} msg The string message.
- * @param {Error} opt_exception An exception associated with the message.
+ * @param {Error=} opt_exception An exception associated with the message.
  */
 goog.debug.Logger.prototype.finest = function(msg, opt_exception) {
   this.log(goog.debug.Logger.Level.FINEST, msg, opt_exception);
@@ -13415,6 +13242,22 @@ goog.debug.LogManager.getLogger = function(name) {
   } else {
     return goog.debug.LogManager.createLogger_(name);
   }
+};
+
+
+/**
+ * Creates a function that can be passed to goog.debug.catchErrors. The function
+ * will log all reported errors using the given logger.
+ * @param {goog.debug.Logger=} opt_logger The logger to log the errors to.
+ *     Defaults to the root logger.
+ * @return {function(Object)} The created function.
+ */
+goog.debug.LogManager.createFunctionForCatchErrors = function(opt_logger) {
+  return function(info) {
+    var logger = opt_logger || goog.debug.LogManager.getRoot();
+    logger.severe('Error: ' + info.message + ' (' + info.fileName +
+                  ' @ Line: ' + info.line + ')');
+  };
 };
 
 
@@ -13551,7 +13394,7 @@ goog.json.unsafeParse = function(s) {
 /**
  * Serializes an object or a value to a JSON string.
  *
- * @param {Object} object The object to serialize.
+ * @param {*} object The object to serialize.
  * @throws Error if there are loops in the object graph.
  * @return {string} A JSON string representation of the input.
  */
@@ -13572,7 +13415,7 @@ goog.json.Serializer = function() {
 /**
  * Serializes an object or a value to a JSON string.
  *
- * @param {Object} object The object to serialize.
+ * @param {*} object The object to serialize.
  * @throws Error if there are loops in the object graph.
  * @return {string} A JSON string representation of the input.
  */
@@ -13586,8 +13429,7 @@ goog.json.Serializer.prototype.serialize = function(object) {
 /**
  * Serializes a generic value to a JSON string
  * @private
- * @param {string|number|boolean|undefined|Object|Array} object The object to
- *     serialize.
+ * @param {*} object The object to serialize.
  * @param {Array} sb Array used as a string builder.
  * @throws Error if there are loops in the object graph.
  */
@@ -13611,13 +13453,13 @@ goog.json.Serializer.prototype.serialize_ = function(object, sb) {
         break;
       }
       if (goog.isArray(object)) {
-        this.serializeArray_(object, sb);
+        this.serializeArray_((/** @type {Array} */ object), sb);
         break;
       }
       // should we allow new String, new Number and new Boolean to be treated
       // as string, number and boolean? Most implementations do not and the
       // need is not very big
-      this.serializeObject_(object, sb);
+      this.serializeObject_((/** @type {Object} */ object), sb);
       break;
     case 'function':
       // Skip functions.
@@ -14396,14 +14238,14 @@ goog.net.xhrMonitor = new goog.net.XhrMonitor_();
  * @fileoverview Wrapper class for handling XmlHttpRequests.
  *
  * One off requests can be sent through goog.net.XhrIo.send() or an
- * instance can be created to send multiple requests.  Each request uses it's
+ * instance can be created to send multiple requests.  Each request uses its
  * own XmlHttpRequest object and handles clearing of the event callback to
  * ensure no leaks.
  *
- * XhrIo is event based, it dispatches events for when a request has finished,
- * when it is errorred or has succeeded, or when the ready-state changes.
- * The Ready-state event fires first first, followed by a generic completed
- * event, and lastly the error or success event is fired as appropriate.
+ * XhrIo is event based, it dispatches events when a request finishes, fails or
+ * succeeds or when the ready-state changes. The ready-state event fires first,
+ * followed by a generic completed event, and lastly the error or success event
+ * is fired as appropriate.
  *
  * The error event may also be called before completed and
  * ready-state-change if the XmlHttpRequest.open() or .send() methods throw.
@@ -14488,14 +14330,14 @@ goog.net.XhrIo.sendInstances_ = [];
  * request.
  * @see goog.net.XhrIo.cleanupAllPendingStaticSends
  * @param {string|goog.Uri} url Uri to make request too.
- * @param {Function} opt_callback Callback function for when request is
+ * @param {Function=} opt_callback Callback function for when request is
  *     complete.
- * @param {string} opt_method Send method, default: GET.
- * @param {string|GearsBlob} opt_content Post data. This can be a Gears blob
+ * @param {string=} opt_method Send method, default: GET.
+ * @param {string|GearsBlob=} opt_content Post data. This can be a Gears blob
  *     if the underlying HTTP request object is a Gears HTTP request.
- * @param {Object|goog.structs.Map} opt_headers Map of headers to add to the
+ * @param {Object|goog.structs.Map=} opt_headers Map of headers to add to the
  *     request.
- * @param {number} opt_timeoutInterval Number of milliseconds after which an
+ * @param {number=} opt_timeoutInterval Number of milliseconds after which an
  *     incomplete request will be aborted; 0 means no timeout is set.
  */
 goog.net.XhrIo.send = function(url, opt_callback, opt_method, opt_content,
@@ -14525,8 +14367,8 @@ goog.net.XhrIo.send = function(url, opt_callback, opt_method, opt_content,
  * We could have {@link goog.net.XhrIo.send} return the goog.net.XhrIo
  * it creates and make the client of {@link goog.net.XhrIo.send} be
  * responsible for disposing it in this case.  However, this makes things
- * significanly more complicated for the client, and the whole point
- * of {@link goog.net.XhrIo.send} is that its simple and easy to use.
+ * significantly more complicated for the client, and the whole point
+ * of {@link goog.net.XhrIo.send} is that it's simple and easy to use.
  * Clients of {@link goog.net.XhrIo.send} should call
  * {@link goog.net.XhrIo.cleanupAllPendingStaticSends} when doing final
  * cleanup on window unload.
@@ -14548,7 +14390,7 @@ goog.net.XhrIo.cleanup = function() {
  *
  * @param {goog.debug.ErrorHandler} errorHandler Error handler with which to
  *     protect the entry point(s).
- * @param {boolean} opt_tracers Whether to install tracers around the entry
+ * @param {boolean=} opt_tracers Whether to install tracers around the entry
  *     point.
  */
 goog.net.XhrIo.protectEntryPoints = function(
@@ -14711,10 +14553,10 @@ goog.net.XhrIo.prototype.setTimeoutInterval = function(ms) {
 /**
  * Instance send that actually uses XMLHttpRequest to make a server call.
  * @param {string|goog.Uri} url Uri to make request too.
- * @param {string} opt_method Send method, default: GET.
- * @param {string|GearsBlob} opt_content Post data. This can be a Gears blob
+ * @param {string=} opt_method Send method, default: GET.
+ * @param {string|GearsBlob=} opt_content Post data. This can be a Gears blob
  *     if the underlying HTTP request object is a Gears HTTP request.
- * @param {Object|goog.structs.Map} opt_headers Map of headers to add to the
+ * @param {Object|goog.structs.Map=} opt_headers Map of headers to add to the
  *     request.
  */
 goog.net.XhrIo.prototype.send = function(url, opt_method, opt_content,
@@ -14733,7 +14575,7 @@ goog.net.XhrIo.prototype.send = function(url, opt_method, opt_content,
   this.active_ = true;
 
   // Use the factory to create the XHR object and options
-  this.xhr_ = new goog.net.XmlHttp();
+  this.xhr_ = this.createXhr();
   this.xhrOptions_ = goog.net.XmlHttp.getOptions();
 
   // We tell the Xhr Monitor that we are opening an XMLHttpRequest.  This stops
@@ -14816,6 +14658,16 @@ goog.net.XhrIo.prototype.send = function(url, opt_method, opt_content,
 
 
 /**
+ * Creates a new XHR object.
+ * @return {XMLHttpRequest|GearsHttpRequest} The newly created XHR object.
+ * @protected
+ */
+goog.net.XhrIo.prototype.createXhr = function() {
+  return new goog.net.XmlHttp();
+};
+
+
+/**
  * Override of dispatchEvent.  We need to keep track if an XMLHttpRequest is
  * being sent from the context of another requests' repsonse.  If it is then, we
  * make the XHR send async.
@@ -14894,7 +14746,7 @@ goog.net.XhrIo.prototype.dispatchErrors_ = function() {
 
 /**
  * Abort the current XMLHttpRequest
- * @param {goog.net.ErrorCode} opt_failureCode Optional error code to use -
+ * @param {goog.net.ErrorCode=} opt_failureCode Optional error code to use -
  *     defaults to ABORT.
  */
 goog.net.XhrIo.prototype.abort = function(opt_failureCode) {
@@ -15033,7 +14885,7 @@ goog.net.XhrIo.prototype.onReadyStateChangeHelper_ = function() {
 /**
  * Remove the listener to protect against leaks, and nullify the XMLHttpRequest
  * object.
- * @param {boolean} opt_fromDispose If this is from the dispose (don't want to
+ * @param {boolean=} opt_fromDispose If this is from the dispose (don't want to
  *     fire any events).
  * @private
  */
@@ -15201,10 +15053,22 @@ goog.net.XhrIo.prototype.getResponseXml = function() {
 /**
  * Get the response and evaluates it as JSON from the Xhr object
  * Will only return correct result when called from the context of a callback
+ * @param {string=} opt_xssiPrefix Optional XSSI prefix string to use for
+ *     stripping of the response before parsing. This needs to be set only if
+ *     your backend server prepends the same prefix string to the JSON response.
  * @return {Object|undefined} JavaScript object.
  */
-goog.net.XhrIo.prototype.getResponseJson = function() {
-  return this.xhr_ ? goog.json.parse(this.xhr_.responseText) : undefined;
+goog.net.XhrIo.prototype.getResponseJson = function(opt_xssiPrefix) {
+  if (!this.xhr_) {
+    return undefined;
+  }
+
+  var responseText = this.xhr_.responseText;
+  if (opt_xssiPrefix && responseText.indexOf(opt_xssiPrefix) == 0) {
+    responseText = responseText.substring(opt_xssiPrefix.length);
+  }
+
+  return goog.json.parse(responseText);
 };
 
 
@@ -15332,12 +15196,12 @@ goog.net.cookies.isEnabled = function() {
  *
  * @param {string} name  The cookie name.
  * @param {string} value  The cookie value.
- * @param {number} opt_maxAge  The max age in seconds (from now). Use -1 to set
+ * @param {number=} opt_maxAge  The max age in seconds (from now). Use -1 to set
  *     a session cookie. If not provided, the default is -1 (i.e. set a session
  *     cookie).
- * @param {string} opt_path  The path of the cookie. If not present then this
+ * @param {string=} opt_path  The path of the cookie. If not present then this
  *     uses the full request path.
- * @param {string} opt_domain  The domain of the cookie, or null to not specify
+ * @param {string=} opt_domain  The domain of the cookie, or null to not specify
  *     a domain attribute (browser will use the full request host name). If not
  *     provided, the default is null (i.e. let browser use full request host
  *     name).
@@ -15388,7 +15252,7 @@ goog.net.cookies.set = function(name, value, opt_maxAge, opt_path, opt_domain) {
 /**
  * Returns the value for the first cookie with the given name.
  * @param {string} name  The name of the cookie to get.
- * @param {string} opt_default  If not found this is returned instead.
+ * @param {string=} opt_default  If not found this is returned instead.
  * @return {string|undefined}  The value of the cookie. If no cookie is set this
  *     returns opt_default or undefined if opt_default is not provided.
  */
@@ -15407,10 +15271,10 @@ goog.net.cookies.get = function(name, opt_default) {
 /**
  * Removes and expires a cookie.
  * @param {string} name  The cookie name.
- * @param {string} opt_path  The path of the cookie, or null to expire a cookie
+ * @param {string=} opt_path  The path of the cookie, or null to expire a cookie
  *     set at the full request path. If not provided, the default is '/'
  *     (i.e. path=/).
- * @param {string} opt_domain  The domain of the cookie, or null to expire a
+ * @param {string=} opt_domain  The domain of the cookie, or null to expire a
  *     cookie set at the full request host name. If not provided, the default is
  *     null (i.e. cookie at full request host name).
  * @return {boolean} Whether the cookie existed before it was removed.
@@ -15606,7 +15470,7 @@ goog.require('goog.structs.SimplePool');
  * to remove all events listeners belonging to this object. It is optimized to
  * use less objects if only one event is being listened to, but if that's the
  * case, it may not be worth using the EventHandler anyway.
- * @param {Object} opt_handler Object in whose scope to call the listeners.
+ * @param {Object=} opt_handler Object in whose scope to call the listeners.
  * @constructor
  * @extends {goog.Disposable}
  */
@@ -15668,10 +15532,10 @@ goog.events.EventHandler.key_ = null;
  * @param {goog.events.EventTarget|EventTarget} src Event source.
  * @param {string|Array.<string>} type Event type to listen for or array of
  *     event types.
- * @param {Function|Object} opt_fn Optional callback function to be used as the
+ * @param {Function|Object=} opt_fn Optional callback function to be used as the
  *    listener or an object with handleEvent function.
- * @param {boolean} opt_capture Optional whether to use capture phase.
- * @param {Object} opt_handler Object in whose scope to call the listener.
+ * @param {boolean=} opt_capture Optional whether to use capture phase.
+ * @param {Object=} opt_handler Object in whose scope to call the listener.
  * @return {goog.events.EventHandler} This object, allowing for chaining of
  *     calls.
  */
@@ -15702,10 +15566,10 @@ goog.events.EventHandler.prototype.listen = function(src, type, opt_fn,
  * @param {goog.events.EventTarget|EventTarget} src Event source.
  * @param {string|Array.<string>} type Event type to listen for or array of
  *     event types.
- * @param {Function|Object} opt_fn Optional callback function to be used as the
+ * @param {Function|Object=} opt_fn Optional callback function to be used as the
  *    listener or an object with handleEvent function.
- * @param {boolean} opt_capture Optional whether to use capture phase.
- * @param {Object} opt_handler Object in whose scope to call the listener.
+ * @param {boolean=} opt_capture Optional whether to use capture phase.
+ * @param {Object=} opt_handler Object in whose scope to call the listener.
  * @return {goog.events.EventHandler} This object, allowing for chaining of
  *     calls.
  */
@@ -15738,9 +15602,9 @@ goog.events.EventHandler.prototype.listenOnce = function(src, type, opt_fn,
  * @param {goog.events.EventWrapper} wrapper Event wrapper to use.
  * @param {Function|Object} listener Callback method, or an object with a
  *     handleEvent function.
- * @param {boolean} opt_capt Whether to fire in capture phase (defaults to
+ * @param {boolean=} opt_capt Whether to fire in capture phase (defaults to
  *     false).
- * @param {Object} opt_handler Element in whose scope to call the listener.
+ * @param {Object=} opt_handler Element in whose scope to call the listener.
  * @return {goog.events.EventHandler} This object, allowing for chaining of
  *     calls.
  */
@@ -15778,10 +15642,10 @@ goog.events.EventHandler.prototype.recordListenerKey_ = function(key) {
  * Unlistens on an event.
  * @param {goog.events.EventTarget|EventTarget} src Event source.
  * @param {string|Array.<string>} type Event type to listen for.
- * @param {Function|Object} opt_fn Optional callback function to be used as the
+ * @param {Function|Object=} opt_fn Optional callback function to be used as the
  *    listener or an object with handleEvent function.
- * @param {boolean} opt_capture Optional whether to use capture phase.
- * @param {Object} opt_handler Object in whose scope to call the listener.
+ * @param {boolean=} opt_capture Optional whether to use capture phase.
+ * @param {Object=} opt_handler Object in whose scope to call the listener.
  * @return {goog.events.EventHandler} This object, allowing for chaining of
  *     calls.
  */
@@ -15821,10 +15685,10 @@ goog.events.EventHandler.prototype.unlisten = function(src, type, opt_fn,
  *     listening to events on.
  * @param {goog.events.EventWrapper} wrapper Event wrapper to use.
  * @param {Function|Object} listener The listener function to remove.
- * @param {boolean} opt_capt In DOM-compliant browsers, this determines
+ * @param {boolean=} opt_capt In DOM-compliant browsers, this determines
  *     whether the listener is fired during the capture or bubble phase of the
  *     event.
- * @param {Object} opt_handler Element in whose scope to call the listener.
+ * @param {Object=} opt_handler Element in whose scope to call the listener.
  * @return {goog.events.EventHandler} This object, allowing for chaining of
  *     calls.
  */
@@ -15934,8 +15798,8 @@ goog.math.Box = function(top, right, bottom, left) {
 
 /**
  * Creates a Box by bounding a collection of goog.math.Coordinate objects
- * @param {goog.math.Coordinate} var_args Coordinates to be included inside the
- *     box.
+ * @param {...goog.math.Coordinate} var_args Coordinates to be included inside
+ *     the box.
  * @return {goog.math.Box} A Box containing all the specified Coordinates.
  */
 goog.math.Box.boundingBox = function(var_args) {
@@ -15988,9 +15852,9 @@ goog.math.Box.prototype.contains = function(other) {
  * Expands box with the given margins.
  *
  * @param {number|goog.math.Box} top Top margin or box with all margins.
- * @param {number} opt_right Right margin.
- * @param {number} opt_bottom Bottom margin.
- * @param {number} opt_left Left margin.
+ * @param {number=} opt_right Right margin.
+ * @param {number=} opt_bottom Bottom margin.
+ * @param {number=} opt_left Left margin.
  * @return {goog.math.Box} A reference to this Box.
  */
 goog.math.Box.prototype.expand = function(top, opt_right, opt_bottom,
@@ -16077,6 +15941,19 @@ goog.math.Box.distance = function(box, coord) {
   return goog.math.Coordinate.distance(coord,
       new goog.math.Coordinate(coord.x < box.left ? box.left : box.right,
                                coord.y < box.top ? box.top : box.bottom));
+};
+
+
+/**
+ * Returns whether two boxes intersect.
+ *
+ * @param {goog.math.Box} a A Box.
+ * @param {goog.math.Box} b A second Box.
+ * @return {boolean} Whether the boxes intersect.
+ */
+goog.math.Box.intersects = function(a, b) {
+  return (a.left <= b.right && b.left <= a.right &&
+          a.top <= b.bottom && b.top <= a.bottom);
 };
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16270,18 +16147,8 @@ goog.math.Rect.intersection = function(a, b) {
  * @return {boolean} Whether a and b intersect.
  */
 goog.math.Rect.intersects = function(a, b) {
-  var x0 = Math.max(a.left, b.left);
-  var x1 = Math.min(a.left + a.width, b.left + b.width);
-
-  if (x0 <= x1) {
-    var y0 = Math.max(a.top, b.top);
-    var y1 = Math.min(a.top + a.height, b.top + b.height);
-
-    if (y0 <= y1) {
-      return true;
-    }
-  }
-  return false;
+  return (a.left <= b.left + b.width && b.left <= a.left + a.width &&
+      a.top <= b.top + b.height && b.top <= a.top + a.height);
 };
 
 
@@ -16437,233 +16304,6 @@ goog.math.Rect.prototype.getSize = function() {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2008 Google Inc. All Rights Reserved.
-
-/**
- * @fileoverview Detects the specific browser and not just the rendering engine.
- *
- */
-
-goog.provide('goog.userAgent.product');
-
-goog.require('goog.userAgent');
-
-
-/**
- * @define {boolean} Whether the code is running on the Firefox web browser.
- */
-goog.userAgent.product.ASSUME_FIREFOX = false;
-
-
-/**
- * @define {boolean} Whether the code is running on the Camino web browser.
- */
-goog.userAgent.product.ASSUME_CAMINO = false;
-
-
-/**
- * @define {boolean} Whether we know at compile-time that the product is an
- *     iPhone.
- */
-goog.userAgent.product.ASSUME_IPHONE = false;
-
-
-/**
- * @define {boolean} Whether we know at compile-time that the product is an
- *     Android phone.
- */
-goog.userAgent.product.ASSUME_ANDROID = false;
-
-
-/**
- * @define {boolean} Whether the code is running on the Chrome web browser.
- */
-goog.userAgent.product.ASSUME_CHROME = false;
-
-
-/**
- * @define {boolean} Whether the code is running on the Safari web browser.
- */
-goog.userAgent.product.ASSUME_SAFARI = false;
-
-
-/**
- * Whether we know the product type at compile-time.
- * @type {boolean}
- * @private
- */
-goog.userAgent.product.PRODUCT_KNOWN_ =
-    goog.userAgent.ASSUME_IE ||
-    goog.userAgent.ASSUME_OPERA ||
-    goog.userAgent.product.ASSUME_FIREFOX ||
-    goog.userAgent.product.ASSUME_CAMINO ||
-    goog.userAgent.product.ASSUME_IPHONE ||
-    goog.userAgent.product.ASSUME_ANDROID ||
-    goog.userAgent.product.ASSUME_CHROME ||
-    goog.userAgent.product.ASSUME_SAFARI;
-
-
-/**
- * Right now we just focus on Tier 1-3 browsers at:
- * http://wiki/Nonconf/ProductPlatformGuidelines
- * As well as the YUI grade A browsers at:
- * http://developer.yahoo.com/yui/articles/gbs/
- *
- * @private
- */
-goog.userAgent.product.init_ = function() {
-
-  /**
-   * Whether the code is running on the Firefox web browser.
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.product.detectedFirefox_ = false;
-
-  /**
-   * Whether the code is running on the Camino web browser.
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.product.detectedCamino_ = false;
-
-  /**
-   * Whether the code is running on an iPhone or iPod touch.
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.product.detectedIphone_ = false;
-
-  /**
-   * Whether the code is running on the default browser on an Android phone.
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.product.detectedAndroid_ = false;
-
-  /**
-   * Whether the code is running on the Chrome web browser.
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.product.detectedChrome_ = false;
-
-  /**
-   * Whether the code is running on the Safari web browser.
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.product.detectedSafari_ = false;
-
-  var ua = goog.userAgent.getUserAgentString();
-  if (!ua) {
-    return;
-  }
-
-  // The order of the if-statements in the following code is important.
-  // For example, in the WebKit section, we put Chrome in front of Safari
-  // because the string 'Safari' is present on both of those browsers'
-  // userAgent strings as well as the string we are looking for.
-  // The idea is to prevent accidental detection of more than one client.
-
-  if (ua.indexOf('Firefox') != -1) {
-    goog.userAgent.product.detectedFirefox_ = true;
-  } else if (ua.indexOf('Camino') != -1) {
-    goog.userAgent.product.detectedCamino_ = true;
-  } else if (ua.indexOf('iPhone') != -1 || ua.indexOf('iPod') != -1) {
-    goog.userAgent.product.detectedIphone_ = true;
-  } else if (ua.indexOf('Android') != -1) {
-    goog.userAgent.product.detectedAndroid_ = true;
-  } else if (ua.indexOf('Chrome') != -1) {
-    goog.userAgent.product.detectedChrome_ = true;
-  } else if (ua.indexOf('Safari') != -1) {
-    goog.userAgent.product.detectedSafari_ = true;
-  }
-};
-
-if (!goog.userAgent.product.PRODUCT_KNOWN_) {
-  goog.userAgent.product.init_();
-}
-
-
-/**
- * Whether the code is running on the Opera web browser.
- * @type {boolean}
- */
-goog.userAgent.product.OPERA = goog.userAgent.OPERA;
-
-
-/**
- * Whether the code is running on an IE web browser.
- * @type {boolean}
- */
-goog.userAgent.product.IE = goog.userAgent.IE;
-
-
-/**
- * Whether the code is running on the Firefox web browser.
- * @type {boolean}
- */
-goog.userAgent.product.FIREFOX = goog.userAgent.product.PRODUCT_KNOWN_ ?
-    goog.userAgent.product.ASSUME_FIREFOX :
-    goog.userAgent.product.detectedFirefox_;
-
-
-/**
- * Whether the code is running on the Camino web browser.
- * @type {boolean}
- */
-goog.userAgent.product.CAMINO = goog.userAgent.product.PRODUCT_KNOWN_ ?
-    goog.userAgent.product.ASSUME_CAMINO :
-    goog.userAgent.product.detectedCamino_;
-
-
-/**
- * Whether the code is running on an iPhone or iPod touch.
- * @type {boolean}
- */
-goog.userAgent.product.IPHONE = goog.userAgent.product.PRODUCT_KNOWN_ ?
-    goog.userAgent.product.ASSUME_IPHONE :
-    goog.userAgent.product.detectedIphone_;
-
-
-/**
- * Whether the code is running on the default browser on an Android phone.
- * @type {boolean}
- */
-goog.userAgent.product.ANDROID = goog.userAgent.product.PRODUCT_KNOWN_ ?
-    goog.userAgent.product.ASSUME_ANDROID :
-    goog.userAgent.product.detectedAndroid_;
-
-
-/**
- * Whether the code is running on the Chrome web browser.
- * @type {boolean}
- */
-goog.userAgent.product.CHROME = goog.userAgent.product.PRODUCT_KNOWN_ ?
-    goog.userAgent.product.ASSUME_CHROME :
-    goog.userAgent.product.detectedChrome_;
-
-
-/**
- * Whether the code is running on the Safari web browser.
- * @type {boolean}
- */
-goog.userAgent.product.SAFARI = goog.userAgent.product.PRODUCT_KNOWN_ ?
-    goog.userAgent.product.ASSUME_SAFARI :
-    goog.userAgent.product.detectedSafari_;
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 // Copyright 2006 Google Inc. All Rights Reserved.
 
 /**
@@ -16685,15 +16325,22 @@ goog.require('goog.math.Rect');
 goog.require('goog.math.Size');
 goog.require('goog.object');
 goog.require('goog.userAgent');
-goog.require('goog.userAgent.product');
 
 
 /**
  * Sets a style value on an element.
+ *
+ * This function is not indended to patch issues in the browser's style
+ * handling, but to allow easy programmatic access to setting dash-separated
+ * style properties.  An example is setting a batch of properties from a data
+ * object without overwriting old styles.  When possible, use native APIs:
+ * elem.style.propertyKey = 'value' or (if obliterating old styles is fine)
+ * elem.style.cssText = 'property1: value1; property2: value2'.
+ *
  * @param {Element} element The element to change.
  * @param {string|Object} style If a string, a style name. If an object, a hash
  *     of style names to style values.
- * @param {string|number|boolean} opt_value If style was a string, then this
+ * @param {string|number|boolean=} opt_value If style was a string, then this
  *     should be the value.
  */
 goog.style.setStyle = function(element, style, opt_value) {
@@ -16874,7 +16521,7 @@ goog.style.getComputedCursor = function(element) {
  * argument then it will add px.
  * @param {Element} el Element to move.
  * @param {string|number|goog.math.Coordinate} arg1 Left position or coordinate.
- * @param {string|number} opt_arg2 Top position.
+ * @param {string|number=} opt_arg2 Top position.
  */
 goog.style.setPosition = function(el, arg1, opt_arg2) {
   var x, y;
@@ -16903,7 +16550,7 @@ goog.style.setPosition = function(el, arg1, opt_arg2) {
  * Gets the offsetLeft and offsetTop properties of an element and returns them
  * in a Coordinate object
  * @param {Element} element Element.
- * @return {goog.math.Coordinate} The position.
+ * @return {!goog.math.Coordinate} The position.
  */
 goog.style.getPosition = function(element) {
   return new goog.math.Coordinate(element.offsetLeft, element.offsetTop);
@@ -16912,7 +16559,7 @@ goog.style.getPosition = function(element) {
 
 /**
  * Returns the viewport element for a particular document
- * @param {Node} opt_node DOM node (Document is OK) to get the viewport element
+ * @param {Node=} opt_node DOM node (Document is OK) to get the viewport element
  *     of.
  * @return {Element} document.documentElement or document.body.
  */
@@ -17026,6 +16673,7 @@ goog.style.getOffsetParent = function(element) {
 goog.style.getVisibleRectForElement = function(element) {
   var visibleRect = new goog.math.Box(0, Infinity, Infinity, 0);
   var dom = goog.dom.getDomHelper(element);
+  var body = dom.getDocument().body;
   var scrollEl = dom.getDocumentScrollElement();
   var inContainer;
 
@@ -17033,7 +16681,9 @@ goog.style.getVisibleRectForElement = function(element) {
   // all scrollable containers.
   for (var el = element; el = goog.style.getOffsetParent(el); ) {
     // clientWidth is zero for inline block elements in IE.
+    // on WEBKIT, body element can have clientHeight = 0 and scrollHeight > 0
     if ((!goog.userAgent.IE || el.clientWidth != 0) &&
+        (!goog.userAgent.WEBKIT || el.clientHeight != 0 || el != body) &&
         (el.scrollWidth != el.clientWidth ||
          el.scrollHeight != el.clientHeight) &&
         goog.style.getStyle_(el, 'overflow') != 'visible') {
@@ -17086,7 +16736,7 @@ goog.style.getVisibleRectForElement = function(element) {
  *
  * @param {Element} element The element to make visible.
  * @param {Element} container The container to scroll.
- * @param {boolean} opt_center Whether to center the element in the container.
+ * @param {boolean=} opt_center Whether to center the element in the container.
  *     Defaults to false.
  */
 goog.style.scrollIntoContainerView = function(element, container, opt_center) {
@@ -17127,7 +16777,7 @@ goog.style.scrollIntoContainerView = function(element, container, opt_center) {
  * right to left, the vertical scrollbar) and clientTop as a coordinate object.
  *
  * @param {Element} el Element to get clientLeft for.
- * @return {goog.math.Coordinate} Client left and top.
+ * @return {!goog.math.Coordinate} Client left and top.
  */
 goog.style.getClientLeftTop = function(el) {
   // NOTE: Gecko prior to 1.9 doesn't support clientTop/Left, see
@@ -17155,7 +16805,7 @@ goog.style.getClientLeftTop = function(el) {
  * note if you call both those methods the tree will be analysed twice.
  *
  * @param {Element} el Element to get the page offset for.
- * @return {goog.math.Coordinate} The page offset.
+ * @return {!goog.math.Coordinate} The page offset.
  */
 goog.style.getPageOffset = function(el) {
   var box, doc = goog.dom.getOwnerDocument(el);
@@ -17283,7 +16933,7 @@ goog.style.getPageOffsetTop = function(el) {
  * @param {Window} relativeWin The window to measure relative to. If relativeWin
  *     is not in the ancestor frame chain of the element, we measure relative to
  *     the top-most window.
- * @return {goog.math.Coordinate} The page offset.
+ * @return {!goog.math.Coordinate} The page offset.
  */
 goog.style.getFramedPageOffset = function(el, relativeWin) {
   var position = new goog.math.Coordinate(0, 0);
@@ -17317,8 +16967,8 @@ goog.style.getFramedPageOffset = function(el, relativeWin) {
  *
  * @param {goog.math.Rect} rect The source rectangle relative to origBase page,
  *     and it will have the translated result.
- * @param {!goog.dom.DomHelper} origBase The DomHelper for the input rectangle.
- * @param {!goog.dom.DomHelper} newBase The DomHelper for the resultant
+ * @param {goog.dom.DomHelper} origBase The DomHelper for the input rectangle.
+ * @param {goog.dom.DomHelper} newBase The DomHelper for the resultant
  *     coordinate.  This must be a DOM for an ancestor frame of origBase
  *     or the same as origBase.
  */
@@ -17347,7 +16997,7 @@ goog.style.translateRectForAnotherFrame = function(rect, origBase, newBase) {
  *     position we're calculating.
  * @param {Element|Event|goog.events.Event} b Element or mouse event position
  *     is relative to.
- * @return {goog.math.Coordinate} The relative position.
+ * @return {!goog.math.Coordinate} The relative position.
  */
 goog.style.getRelativePosition = function(a, b) {
   var ap = goog.style.getClientPosition(a);
@@ -17389,7 +17039,7 @@ goog.style.getClientPosition = function(el) {
  *
  * @param {Element} el The element to set page offset for.
  * @param {number|goog.math.Coordinate} x Left position or coordinate obj.
- * @param {number} opt_y Top position.
+ * @param {number=} opt_y Top position.
  */
 goog.style.setPageOffset = function(el, x, opt_y) {
   // Get current pageoffset
@@ -17422,7 +17072,7 @@ goog.style.setPageOffset = function(el, x, opt_y) {
  * @param {Element} element Element to move.
  * @param {string|number|goog.math.Size} w Width of the element, or a
  *     size object.
- * @param {string|number} opt_h Height of the element. Required if w is not a
+ * @param {string|number=} opt_h Height of the element. Required if w is not a
  *     size object.
  */
 goog.style.setSize = function(element, w, opt_h) {
@@ -17449,7 +17099,7 @@ goog.style.setSize = function(element, w, opt_h) {
  * Specifically, this returns the height and width of the border box,
  * irrespective of the box model in effect.
  * @param {Element} element Element to get width of.
- * @return {goog.math.Size} Object with width/height properties.
+ * @return {!goog.math.Size} Object with width/height properties.
  */
 goog.style.getSize = function(element) {
   var hasOperaBug = goog.userAgent.OPERA && !goog.userAgent.isVersion('10');
@@ -17491,7 +17141,7 @@ goog.style.getSize = function(element) {
 /**
  * Returns a bounding rectangle for a given element in page space.
  * @param {Element} element Element to get bounds of.
- * @return {goog.math.Rect} Bounding rectangle for the element.
+ * @return {!goog.math.Rect} Bounding rectangle for the element.
  */
 goog.style.getBounds = function(element) {
   var o = goog.style.getPageOffset(element);
@@ -17674,7 +17324,7 @@ goog.style.isElementShown = function(el) {
  * Installs the styles string into the window that contains opt_element.  If
  * opt_element is null, the main window is used.
  * @param {string} stylesString The style string to install.
- * @param {Node} opt_node Node whose parent document should have the
+ * @param {Node=} opt_node Node whose parent document should have the
  *     styles installed.
  * @return {Element|StyleSheet} The style element created.
  */
@@ -17846,7 +17496,7 @@ goog.style.isUnselectable = function(el) {
  * @param {Element} el  The element to alter.
  * @param {boolean} unselectable  Whether the element and its descendants
  *     should be made unselectable.
- * @param {boolean} opt_noRecurse  Whether to only alter the element's own
+ * @param {boolean=} opt_noRecurse  Whether to only alter the element's own
  *     selectable state, and leave its descendants alone; defaults to false.
  */
 goog.style.setUnselectable = function(el, unselectable, opt_noRecurse) {
@@ -17879,7 +17529,7 @@ goog.style.setUnselectable = function(el, unselectable, opt_noRecurse) {
 /**
  * Gets the border box size for an element.
  * @param {Element} element  The element to get the size for.
- * @return {goog.math.Size} The border box size.
+ * @return {!goog.math.Size} The border box size.
  */
 goog.style.getBorderBoxSize = function(element) {
   return new goog.math.Size(element.offsetWidth, element.offsetHeight);
@@ -17920,7 +17570,7 @@ goog.style.setBorderBoxSize = function(element, size) {
  * Gets the content box size for an element.  This is potentially expensive in
  * all browsers.
  * @param {Element} element  The element to get the size for.
- * @return {goog.math.Size} The content box size.
+ * @return {!goog.math.Size} The content box size.
  */
 goog.style.getContentBoxSize = function(element) {
   var doc = goog.dom.getOwnerDocument(element);
@@ -18060,7 +17710,7 @@ goog.style.getIePixelDistance_ = function(element, propName) {
  * @param {Element} element  The element to get the padding for.
  * @param {string} stylePrefix  Pass 'padding' to retrieve the padding box,
  *     or 'margin' to retrieve the margin box.
- * @return {goog.math.Box} The computed paddings or margins.
+ * @return {!goog.math.Box} The computed paddings or margins.
  * @private
  */
 goog.style.getBox_ = function(element, stylePrefix) {
@@ -18095,7 +17745,7 @@ goog.style.getBox_ = function(element, stylePrefix) {
 /**
  * Gets the computed paddings (on all sides) in pixels.
  * @param {Element} element  The element to get the padding for.
- * @return {goog.math.Box} The computed paddings.
+ * @return {!goog.math.Box} The computed paddings.
  */
 goog.style.getPaddingBox = function(element) {
   return goog.style.getBox_(element, 'padding');
@@ -18105,7 +17755,7 @@ goog.style.getPaddingBox = function(element) {
 /**
  * Gets the computed margins (on all sides) in pixels.
  * @param {Element} element  The element to get the margins for.
- * @return {goog.math.Box} The computed margins.
+ * @return {!goog.math.Box} The computed margins.
  */
 goog.style.getMarginBox = function(element) {
   return goog.style.getBox_(element, 'margin');
@@ -18146,7 +17796,7 @@ goog.style.getIePixelBorder_ = function(element, prop) {
 /**
  * Gets the computed border widths (on all sides) in pixels
  * @param {Element} element  The element to get the border widths for.
- * @return {goog.math.Box} The computed border widths.
+ * @return {!goog.math.Box} The computed border widths.
  */
 goog.style.getBorderBox = function(element) {
   if (goog.userAgent.IE) {
@@ -18371,6 +18021,24 @@ goog.style.setFloat = function(el, value) {
 goog.style.getFloat = function(el) {
   return el.style[goog.userAgent.IE ? 'styleFloat' : 'cssFloat'] || '';
 };
+
+
+/**
+ * Returns the scroll bar width (represents the width of both horizontal
+ * and vertical scroll).
+ *
+ * @return {number} The scroll bar width in px.
+ */
+goog.style.getScrollbarWidth = function() {
+  // Add a div outside of the viewport.
+  var mockElement = goog.dom.createElement('div');
+  mockElement.style.cssText = 'visibility:hidden;overflow:scroll;' +
+      'position:absolute;top:0;width:100px;height:100px';
+  goog.dom.appendChild(goog.dom.getDocument().body, mockElement);
+  var width = mockElement.offsetWidth - mockElement.clientWidth;
+  goog.dom.removeNode(mockElement);
+  return width;
+};
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -18466,7 +18134,7 @@ goog.require('goog.ui.IdGenerator');
 /**
  * Default implementation of UI component.
  *
- * @param {goog.dom.DomHelper} opt_domHelper Optional DOM helper.
+ * @param {goog.dom.DomHelper=} opt_domHelper Optional DOM helper.
  * @constructor
  * @extends {goog.events.EventTarget}
  */
@@ -19004,7 +18672,7 @@ goog.ui.Component.prototype.createDom = function() {
  *
  * Throws an Error if the component is already rendered.
  *
- * @param {Element} opt_parentElement Optional parent element to render the
+ * @param {Element=} opt_parentElement Optional parent element to render the
  *    component into.
  */
 goog.ui.Component.prototype.render = function(opt_parentElement) {
@@ -19034,9 +18702,9 @@ goog.ui.Component.prototype.renderBefore = function(siblingElement) {
  *
  * Throws an Error if the component is already rendered.
  *
- * @param {Element} opt_parentElement Optional parent element to render the
+ * @param {Element=} opt_parentElement Optional parent element to render the
  *    component into.
- * @param {Element} opt_beforeElement Element before which the component is to
+ * @param {Element=} opt_beforeElement Element before which the component is to
  *    be rendered.  If left out the node is appended to the parent element.
  * @private
  */
@@ -19269,7 +18937,7 @@ goog.ui.Component.prototype.getElementByFragment = function(idFragment) {
  *
  * @see goog.ui.Component#addChildAt
  * @param {goog.ui.Component} child The new child component.
- * @param {boolean} opt_render If true, the child component will be rendered
+ * @param {boolean=} opt_render If true, the child component will be rendered
  *    into the parent.
  */
 goog.ui.Component.prototype.addChild = function(child, opt_render) {
@@ -19312,7 +18980,7 @@ goog.ui.Component.prototype.addChild = function(child, opt_render) {
  * @param {goog.ui.Component} child The new child component.
  * @param {number} index 0-based index at which the new child component is to be
  *    added; must be between 0 and the current child count (inclusive).
- * @param {boolean} opt_render If true, the child component will be rendered
+ * @param {boolean=} opt_render If true, the child component will be rendered
  *    into the parent.
  */
 goog.ui.Component.prototype.addChildAt = function(child, index, opt_render) {
@@ -19489,7 +19157,7 @@ goog.ui.Component.prototype.getChildAt = function(index) {
  * component and its 0-based index.  The return value is ignored.
  * @param {Function} f The function to call for every child component; should
  *    take 2 arguments (the child and its index).
- * @param {Object} opt_obj Used as the 'this' object in f when called.
+ * @param {Object=} opt_obj Used as the 'this' object in f when called.
  */
 goog.ui.Component.prototype.forEachChild = function(f, opt_obj) {
   if (this.children_) {
@@ -19524,7 +19192,7 @@ goog.ui.Component.prototype.indexOfChild = function(child) {
  * @see goog.ui.Component#removeChildAt
  * @param {string|goog.ui.Component|null} child The ID of the child to remove,
  *    or the child component itself.
- * @param {boolean} opt_unrender If true, calls {@code exitDocument} on the
+ * @param {boolean=} opt_unrender If true, calls {@code exitDocument} on the
  *    removed child component, and detaches its DOM from the document.
  * @return {goog.ui.Component} The removed component, if any.
  */
@@ -19570,7 +19238,7 @@ goog.ui.Component.prototype.removeChild = function(child, opt_unrender) {
  *
  * @see goog.ui.Component#removeChild
  * @param {number} index 0-based index of the child to remove.
- * @param {boolean} opt_unrender If true, calls {@code exitDocument} on the
+ * @param {boolean=} opt_unrender If true, calls {@code exitDocument} on the
  *    removed child component, and detaches its DOM from the document.
  * @return {goog.ui.Component} The removed component, if any.
  */
@@ -19584,7 +19252,7 @@ goog.ui.Component.prototype.removeChildAt = function(index, opt_unrender) {
  * Removes every child component attached to this one.
  *
  * @see goog.ui.Component#removeChild
- * @param {boolean} opt_unrender If true, calls {@link #exitDocument} on the
+ * @param {boolean=} opt_unrender If true, calls {@link #exitDocument} on the
  *    removed child components, and detaches their DOM from the document.
  */
 goog.ui.Component.prototype.removeChildren = function(opt_unrender) {
@@ -19632,7 +19300,7 @@ goog.require('goog.ui.Component');
  * The TABLE should use a THEAD containing TH elements for the table column
  * headers.
  *
- * @param {goog.dom.DomHelper} opt_domHelper Optional DOM helper, used for
+ * @param {goog.dom.DomHelper=} opt_domHelper Optional DOM helper, used for
  *     document interaction.
  * @constructor
  * @extends {goog.ui.Component}
@@ -19766,7 +19434,7 @@ goog.ui.TableSorter.prototype.sort_ = function(e) {
 /**
  * Sort the table contents by the values in the given column.
  * @param {number} column The column to sort by.
- * @param {boolean} opt_reverse Whether to sort in reverse.
+ * @param {boolean=} opt_reverse Whether to sort in reverse.
  */
 goog.ui.TableSorter.prototype.sort = function(column, opt_reverse) {
   // Get some useful DOM nodes.
@@ -19884,14 +19552,10 @@ goog.provide('goog.positioning.OverflowStatus');
 
 goog.require('goog.dom');
 goog.require('goog.dom.TagName');
-goog.require('goog.events');
-goog.require('goog.events.Event');
-goog.require('goog.events.EventTarget');
 goog.require('goog.math.Box');
 goog.require('goog.math.Coordinate');
 goog.require('goog.math.Size');
 goog.require('goog.style');
-goog.require('goog.userAgent');
 
 
 
@@ -19977,6 +19641,24 @@ goog.positioning.OverflowStatus.FAILED =
 
 
 /**
+ * Shorthand to check if horizontal positioning failed.
+ * @type {number}
+ */
+goog.positioning.OverflowStatus.FAILED_HORIZONTAL =
+    goog.positioning.OverflowStatus.FAILED_LEFT |
+    goog.positioning.OverflowStatus.FAILED_RIGHT;
+
+
+/**
+ * Shorthand to check if vertical positioning failed.
+ * @type {number}
+ */
+goog.positioning.OverflowStatus.FAILED_VERTICAL =
+    goog.positioning.OverflowStatus.FAILED_TOP |
+    goog.positioning.OverflowStatus.FAILED_BOTTOM;
+
+
+/**
  * Positions a movable element relative to an anchor element. The caller
  * specifies the corners that should touch. This functions then moves the
  * movable element accordingly.
@@ -19989,19 +19671,19 @@ goog.positioning.OverflowStatus.FAILED =
  * @param {goog.positioning.Corner} movableElementCorner The corner of the
  *     movableElement that that should be positioned adjacent to the anchor
  *     element.
- * @param {goog.math.Coordinate} opt_offset An offset specified in pixels.
+ * @param {goog.math.Coordinate=} opt_offset An offset specified in pixels.
  *    After the normal positioning algorithm is applied, the offset is then
  *    applied. Positive coordinates move the popup closer to the center of the
  *    anchor element. Negative coordinates move the popup away from the center
  *    of the anchor element.
- * @param {goog.math.Box} opt_margin A margin specified in pixels.
+ * @param {goog.math.Box=} opt_margin A margin specified in pixels.
  *    After the normal positioning algorithm is applied and any offset, the
  *    margin is then applied. Positive coordinates move the popup away from the
- *    spot it was positioned towards its center. Negative coordiates move it
+ *    spot it was positioned towards its center. Negative coordinates move it
  *    towards the spot it was positioned away from its center.
- * @param {?number} opt_overflow Overflow handling mode. Defaults to IGNORE if
+ * @param {?number=} opt_overflow Overflow handling mode. Defaults to IGNORE if
  *     not specified. Bitmap, {@see goog.positioning.Overflow}.
- * @param {goog.math.Size} opt_preferredSize The preferred size of the
+ * @param {goog.math.Size=} opt_preferredSize The preferred size of the
  *     movableElement.
  * @return {goog.positioning.OverflowStatus} Status bitmap,
  *     {@see goog.positioning.OverflowStatus}.
@@ -20014,7 +19696,7 @@ goog.positioning.positionAtAnchor = function(anchorElement,
                                              opt_margin,
                                              opt_overflow,
                                              opt_preferredSize) {
-  // Ignore offset for the BODY element unless it's position is non-static.
+  // Ignore offset for the BODY element unless its position is non-static.
   // For cases where the offset parent is HTML rather than the BODY (such as in
   // IE strict mode) there's no need to get the position of the BODY as it
   // doesn't affect the page offset.
@@ -20122,16 +19804,16 @@ goog.positioning.getVisiblePart_ = function(el) {
  * @param {Element} movableElement The element to be positioned.
  * @param {goog.positioning.Corner} movableElementCorner The corner of the
  *     movableElement that that should be positioned.
- * @param {goog.math.Box} opt_margin A margin specified in pixels.
+ * @param {goog.math.Box=} opt_margin A margin specified in pixels.
  *    After the normal positioning algorithm is applied and any offset, the
  *    margin is then applied. Positive coordinates move the popup away from the
- *    spot it was positioned towards its center. Negative coordiates move it
+ *    spot it was positioned towards its center. Negative coordinates move it
  *    towards the spot it was positioned away from its center.
- * @param {goog.math.Box} opt_viewport Box object describing the dimensions of
+ * @param {goog.math.Box=} opt_viewport Box object describing the dimensions of
  *     the viewport. Required if opt_overflow is specified.
- * @param {?number} opt_overflow Overflow handling mode. Defaults to IGNORE if
+ * @param {?number=} opt_overflow Overflow handling mode. Defaults to IGNORE if
  *     not specified, {@see goog.positioning.Overflow}.
- * @param {goog.math.Size} opt_preferredSize The preferred size of the
+ * @param {goog.math.Size=} opt_preferredSize The preferred size of the
  *     movableElement. Defaults to the current size.
  * @return {goog.positioning.OverflowStatus} Status bitmap.
  */
@@ -20187,7 +19869,7 @@ goog.positioning.positionAtCoordinate = function(absolutePos,
 
 
 /**
- * Adjusts the position and/or size of an element, identified by it's position
+ * Adjusts the position and/or size of an element, identified by its position
  * and size, to fit inside the viewport. If the position or size of the element
  * is adjusted the pos or size objects, respectively, are modified.
  *
@@ -20361,8 +20043,8 @@ goog.positioning.AbstractPosition = function() {};
  * @param {Element} movableElement Element to position.
  * @param {goog.positioning.Corner} corner Corner of the movable element that
  *     should be positioned adjacent to the anchored element.
- * @param {goog.math.Box} opt_margin A margin specified in pixels.
- * @param {goog.math.Size} opt_preferredSize PreferredSize of the
+ * @param {goog.math.Box=} opt_margin A margin specified in pixels.
+ * @param {goog.math.Size=} opt_preferredSize PreferredSize of the
  *     movableElement.
  */
 goog.positioning.AbstractPosition.prototype.reposition =
@@ -20389,7 +20071,6 @@ goog.positioning.AbstractPosition.prototype.reposition =
 goog.provide('goog.positioning.AnchoredPosition');
 
 goog.require('goog.math.Box');
-goog.require('goog.math.Coordinate');
 goog.require('goog.positioning');
 goog.require('goog.positioning.AbstractPosition');
 
@@ -20432,7 +20113,7 @@ goog.inherits(goog.positioning.AnchoredPosition,
  * @param {Element} movableElement Element to position.
  * @param {goog.positioning.Corner} movableCorner Corner of the movable element
  *     that should be positioned adjacent to the anchored element.
- * @param {goog.math.Box} opt_margin A margin specifin pixels.
+ * @param {goog.math.Box=} opt_margin A margin specifin pixels.
  */
 goog.positioning.AnchoredPosition.prototype.reposition = function(
     movableElement, movableCorner, opt_margin) {
@@ -20478,7 +20159,7 @@ goog.require('goog.positioning.AbstractPosition');
  * other element.
  *
  * @param {number|goog.math.Coordinate} arg1 Left position or coordinate.
- * @param {number} opt_arg2 Top position.
+ * @param {number=} opt_arg2 Top position.
  * @constructor
  * @extends {goog.positioning.AbstractPosition}
  */
@@ -20496,8 +20177,8 @@ goog.inherits(goog.positioning.ViewportPosition,
  * @param {Element} element The DOM element of the popup.
  * @param {goog.positioning.Corner} popupCorner The corner of the popup
  *     element that that should be positioned adjacent to the anchorElement.
- * @param {goog.math.Box} opt_margin A margin specified in pixels.
- * @param {goog.math.Size} opt_preferredSize Preferred size of the element.
+ * @param {goog.math.Box=} opt_margin A margin specified in pixels.
+ * @param {goog.math.Size=} opt_preferredSize Preferred size of the element.
  */
 goog.positioning.ViewportPosition.prototype.reposition = function(
     element, popupCorner, opt_margin, opt_preferredSize) {
@@ -20543,7 +20224,7 @@ goog.require('goog.positioning.AbstractPosition');
  * is scoped by an element with relative position.
  *
  * @param {number|!goog.math.Coordinate} arg1 Left position or coordinate.
- * @param {number} opt_arg2 Top position.
+ * @param {number=} opt_arg2 Top position.
  * @constructor
  * @extends {goog.positioning.AbstractPosition}
  */
@@ -20565,8 +20246,8 @@ goog.inherits(goog.positioning.AbsolutePosition,
  * @param {Element} movableElement The DOM element to position.
  * @param {goog.positioning.Corner} movableCorner The corner of the movable
  *     element that should be positioned at the specified position.
- * @param {goog.math.Box} opt_margin A margin specified in pixels.
- * @param {goog.math.Size} opt_preferredSize Prefered size of the
+ * @param {goog.math.Box=} opt_margin A margin specified in pixels.
+ * @param {goog.math.Size=} opt_preferredSize Prefered size of the
  *     movableElement.
  */
 goog.positioning.AbsolutePosition.prototype.reposition = function(
@@ -20601,11 +20282,9 @@ goog.positioning.AbsolutePosition.prototype.reposition = function(
 goog.provide('goog.positioning.AnchoredViewportPosition');
 
 goog.require('goog.math.Box');
-goog.require('goog.math.Coordinate');
 goog.require('goog.positioning');
 goog.require('goog.positioning.AnchoredPosition');
 goog.require('goog.positioning.Corner');
-goog.require('goog.positioning.CornerBit');
 goog.require('goog.positioning.Overflow');
 goog.require('goog.positioning.OverflowStatus');
 
@@ -20624,7 +20303,7 @@ goog.require('goog.positioning.OverflowStatus');
  *     anchored against.
  * @param {goog.positioning.Corner} corner Corner of anchored element the
  *     movable element should be positioned at.
- * @param {boolean} opt_adjust Whether the positioning should be adjusted until
+ * @param {boolean=} opt_adjust Whether the positioning should be adjusted until
  *    the element fits inside the viewport even if that means that the anchored
  *    corners are ignored.
  * @constructor
@@ -20653,28 +20332,41 @@ goog.inherits(goog.positioning.AnchoredViewportPosition,
  * @param {Element} movableElement Element to position.
  * @param {goog.positioning.Corner} movableCorner Corner of the movable element
  *     that should be positioned adjacent to the anchored element.
- * @param {goog.math.Box} opt_margin A margin specified in pixels.
- * @param {goog.math.Size} opt_preferredSize The preferred size of the
+ * @param {goog.math.Box=} opt_margin A margin specified in pixels.
+ * @param {goog.math.Size=} opt_preferredSize The preferred size of the
  *     movableElement.
  */
 goog.positioning.AnchoredViewportPosition.prototype.reposition = function(
     movableElement, movableCorner, opt_margin, opt_preferredSize) {
-  // TODO: Rewrite retry logic to use the positioning status code.
   var status = goog.positioning.positionAtAnchor(this.element, this.corner,
       movableElement, movableCorner, null, opt_margin,
       goog.positioning.Overflow.FAIL_X | goog.positioning.Overflow.FAIL_Y,
-      opt_preferredSize) & goog.positioning.OverflowStatus.FAILED;
+      opt_preferredSize);
 
-  // If the desired position is outside the viewport swap the specified corners
-  // to display it on the other side (above rather than below, to the left
-  // rather then to the right and so on) of the anchor element.
-  if (status) {
-    status = goog.positioning.positionAtAnchor(this.element, movableCorner,
-        movableElement, this.corner, null, opt_margin,
+  // If the desired position is outside the viewport try mirroring the corners
+  // horizontally or vertically.
+  if (status & goog.positioning.OverflowStatus.FAILED) {
+    var cornerFallback = this.corner;
+    var movableCornerFallback = movableCorner;
+
+    if (status & goog.positioning.OverflowStatus.FAILED_HORIZONTAL) {
+      cornerFallback = goog.positioning.flipCornerHorizontal(cornerFallback);
+      movableCornerFallback = goog.positioning.flipCornerHorizontal(
+          movableCornerFallback);
+    }
+
+    if (status & goog.positioning.OverflowStatus.FAILED_VERTICAL) {
+      cornerFallback = goog.positioning.flipCornerVertical(cornerFallback);
+      movableCornerFallback = goog.positioning.flipCornerVertical(
+          movableCornerFallback);
+    }
+
+    status = goog.positioning.positionAtAnchor(this.element, cornerFallback,
+        movableElement, movableCornerFallback, null, opt_margin,
         goog.positioning.Overflow.FAIL_X | goog.positioning.Overflow.FAIL_Y,
-        opt_preferredSize) & goog.positioning.OverflowStatus.FAILED;
+        opt_preferredSize);
 
-    if (status) {
+    if (status & goog.positioning.OverflowStatus.FAILED) {
       // If that also fails adjust the position until it fits.
       if (this.adjust_) {
         goog.positioning.positionAtAnchor(this.element, this.corner,
@@ -20682,8 +20374,8 @@ goog.positioning.AnchoredViewportPosition.prototype.reposition = function(
             goog.positioning.Overflow.ADJUST_X |
             goog.positioning.Overflow.ADJUST_Y, opt_preferredSize);
 
-      // Or display it anyway at the prefered position, if the adjust option was
-      // not enabled.
+      // Or display it anyway at the preferred position, if the adjust option
+      // was not enabled.
       } else {
         goog.positioning.positionAtAnchor(this.element, this.corner,
             movableElement, movableCorner, null, opt_margin,
@@ -20731,7 +20423,7 @@ goog.require('goog.positioning.AbstractPosition');
  * parameters.
  *
  * @param {number|goog.math.Coordinate} arg1 Left position or coordinate.
- * @param {number} opt_arg2 Top position.
+ * @param {number=} opt_arg2 Top position.
  * @constructor
  * @extends {goog.positioning.AbstractPosition}
  */
@@ -20754,8 +20446,8 @@ goog.inherits(goog.positioning.ClientPosition,
  * @param {goog.positioning.Corner} popupCorner The corner of the popup
  *     element that that should be positioned adjacent to the anchorElement.
  *     One of the goog.positioning.Corner constants.
- * @param {goog.math.Box} opt_margin A margin specified in pixels.
- * @param {goog.math.Size} opt_preferredSize Preferred size of the element.
+ * @param {goog.math.Box=} opt_margin A margin specified in pixels.
+ * @param {goog.math.Size=} opt_preferredSize Preferred size of the element.
  */
 goog.positioning.ClientPosition.prototype.reposition = function(
     element, popupCorner, opt_margin, opt_preferredSize) {
@@ -20801,7 +20493,7 @@ goog.require('goog.positioning.ClientPosition');
  * window (client) coordinates, and made to stay within the viewport.
  *
  * @param {number|goog.math.Coordinate} arg1 Left position or coordinate.
- * @param {number} opt_arg2 Top position if arg1 is a number representing the
+ * @param {number=} opt_arg2 Top position if arg1 is a number representing the
  *     left position, ignored otherwise.
  * @constructor
  * @extends {goog.positioning.ClientPosition}
@@ -20820,8 +20512,8 @@ goog.inherits(goog.positioning.ViewportClientPosition,
  * @param {goog.positioning.Corner} popupCorner The corner of the popup
  *     element that that should be positioned adjacent to the anchorElement.
  *     One of the goog.positioning.Corner constants.
- * @param {goog.math.Box} opt_margin A margin specified in pixels.
- * @param {goog.math.Size} opt_preferredSize Preferred size fo the element.
+ * @param {goog.math.Box=} opt_margin A margin specified in pixels.
+ * @param {goog.math.Size=} opt_preferredSize Preferred size fo the element.
  */
 goog.positioning.ViewportClientPosition.prototype.reposition = function(
     element, popupCorner, opt_margin, opt_preferredSize) {
@@ -21072,10 +20764,10 @@ goog.events.KeyCodes.isTextModifyingKeyEvent = function(e) {
  * fire keydown in these cases, though, but not keypress.
  *
  * @param {number} keyCode A key code.
- * @param {number} opt_heldKeyCode Key code of a currently-held key.
- * @param {boolean} opt_shiftKey Whether the shift key is held down.
- * @param {boolean} opt_ctrlKey Whether the control key is held down.
- * @param {boolean} opt_altKey Whether the alt key is held down.
+ * @param {number=} opt_heldKeyCode Key code of a currently-held key.
+ * @param {boolean=} opt_shiftKey Whether the shift key is held down.
+ * @param {boolean=} opt_ctrlKey Whether the control key is held down.
+ * @param {boolean=} opt_altKey Whether the alt key is held down.
  * @return {boolean} Whether it's a key that fires a keypress event.
  */
 goog.events.KeyCodes.firesKeyPressEvent = function(keyCode, opt_heldKeyCode,
@@ -21204,8 +20896,8 @@ goog.require('goog.userAgent');
  *
  * @constructor
  * @extends {goog.events.EventTarget}
- * @param {Element} opt_element A DOM element for the popup.
- * @param {goog.ui.PopupBase.Type} opt_type Type of popup.
+ * @param {Element=} opt_element A DOM element for the popup.
+ * @param {goog.ui.PopupBase.Type=} opt_type Type of popup.
  */
 goog.ui.PopupBase = function(opt_element, opt_type) {
   /**
@@ -21620,7 +21312,7 @@ goog.ui.PopupBase.prototype.show_ = function() {
         try {
           var tempDoc = goog.dom.getFrameContentDocument(activeElement);
         } catch (e) {
-          // The frame is on a different domain that it's parent document
+          // The frame is on a different domain that its parent document
           // This way, we grab the lowest-level document object we can get
           // a handle on given cross-domain security.
           break;
@@ -21661,7 +21353,7 @@ goog.ui.PopupBase.prototype.show_ = function() {
 /**
  * Hides the popup. This call is idempotent.
  *
- * @param {Object} opt_target Target of the event causing the hide.
+ * @param {Object=} opt_target Target of the event causing the hide.
  * @return {boolean} Whether the popup was hidden and not cancelled.
  * @private
  */
@@ -21756,7 +21448,7 @@ goog.ui.PopupBase.prototype.onShow_ = function() {
  * Called before the popup is hidden. Derived classes can override to hook this
  * event but should make sure to call the parent class method.
  *
- * @param {Object} opt_target Target of the event causing the hide.
+ * @param {Object=} opt_target Target of the event causing the hide.
  * @return {boolean} If anyone called preventDefault on the event object (or
  *     if any of the handlers returns false this will also return false.
  * @private
@@ -21770,7 +21462,7 @@ goog.ui.PopupBase.prototype.onBeforeHide_ = function(opt_target) {
 /**
  * Called after the popup is hidden. Derived classes can override to hook this
  * event but should make sure to call the parent class method.
- * @param {Object} opt_target Target of the event causing the hide.
+ * @param {Object=} opt_target Target of the event causing the hide.
  * @private
  */
 goog.ui.PopupBase.prototype.onHide_ = function(opt_target) {
@@ -21925,8 +21617,8 @@ goog.require('goog.ui.PopupBase');
  * This works cross browser and thus does not use IE's createPopup feature
  * which supports extending outside the edge of the brower window.
  *
- * @param {Element} opt_element A DOM element for the popup.
- * @param {goog.positioning.AbstractPosition} opt_position A positioning helper
+ * @param {Element=} opt_element A DOM element for the popup.
+ * @param {goog.positioning.AbstractPosition=} opt_position A positioning helper
  *     object.
  * @constructor
  * @extends {goog.ui.PopupBase}
@@ -22045,9 +21737,9 @@ goog.ui.Popup.prototype.getMargin = function() {
  * Sets the margin to place around the popup.
  *
  * @param {goog.math.Box|number|null} arg1 Top value or Box.
- * @param {number} opt_arg2 Right value.
- * @param {number} opt_arg3 Bottom value.
- * @param {number} opt_arg4 Left value.
+ * @param {number=} opt_arg2 Right value.
+ * @param {number=} opt_arg3 Bottom value.
+ * @param {number=} opt_arg4 Left value.
  */
 goog.ui.Popup.prototype.setMargin = function(arg1, opt_arg2, opt_arg3,
                                              opt_arg4) {
@@ -22106,17 +21798,17 @@ goog.ui.Popup.prototype.reposition = function() {
  * @param {goog.positioning.Corner} movableElementCorner The corner of the
  *     movableElement that that should be positioned adjacent to the
  *     anchorElement.
- * @param {goog.math.Coordinate?} opt_offset An offset specified in pixels.
+ * @param {goog.math.Coordinate?=} opt_offset An offset specified in pixels.
  *    After the normal positioning algorithm is applied, the offset is then
  *    applied. Positive coordinates move the popup closer to the center of the
  *    anchor element. Negative coordinates move the popup away from the center
  *    of the anchor element.
- * @param {goog.math.Box?} opt_margin A margin specified in pixels.
+ * @param {goog.math.Box?=} opt_margin A margin specified in pixels.
  *    After the normal positioning algorithm is applied and any offset, the
  *    margin is then applied. Positive coordinates move the popup away from the
  *    spot it was positioned towards its center. Negative coordiates move it
  *    towards the spot it was positioned away from its center.
- * @param {number} opt_overflow Overflow handling mode. Defaults
+ * @param {number=} opt_overflow Overflow handling mode. Defaults
  *    to goog.ui.Popup.Overflow.IGNORE if not specified. Bitmap.
  * @return {boolean} Returns true if the element was positioned or false if
  *     opt_overflow was set to FAIL and the element wouldn't fit inside the
@@ -22144,7 +21836,7 @@ goog.ui.Popup.positionPopup = function(anchorElement, anchorElementCorner,
  * @param {Element} movableElement The element to be positioned.
  * @param {goog.positioning.Corner} movableElementCorner The corner of the
  *     movableElement that that should be positioned.
- * @param {goog.math.Box} opt_margin A margin specified in pixels.
+ * @param {goog.math.Box=} opt_margin A margin specified in pixels.
  * @return {boolean} Always returns true.
  *
  * @deprecated Use {@link goog.positioning.positionAtCoordinate} instead, this
@@ -22183,7 +21875,7 @@ goog.ui.Popup.AnchoredPosition = goog.positioning.AnchoredPosition;
 /**
  * Encapsulates a popup position where the popup is anchored at a corner of
  * an element. The corners are swapped if dictated by the viewport. For instance
- * if a popup is anchored with it's top left corner to the bottom left corner of
+ * if a popup is anchored with its top left corner to the bottom left corner of
  * the anchor the popup is either displayed below the anchor (as specified) or
  * above it if there's not enough room to display it below.
  *
@@ -22194,7 +21886,7 @@ goog.ui.Popup.AnchoredPosition = goog.positioning.AnchoredPosition;
  * @param {Element} element The element to anchor the popup at.
  * @param {goog.positioning.Corner} corner The corner of the element to anchor
  *    the popup at.
- * @param {boolean} opt_adjust Whether the positioning should be adjusted until
+ * @param {boolean=} opt_adjust Whether the positioning should be adjusted until
  *    the element fits inside the viewport even if that means that the anchored
  *    corners are ignored.
  * @constructor
@@ -22215,7 +21907,7 @@ goog.ui.Popup.AnchoredViewPortPosition =
  * is scoped by an element with relative position.
  *
  * @param {number|!goog.math.Coordinate} arg1 Left position or coordinate.
- * @param {number} opt_arg2 Top position.
+ * @param {number=} opt_arg2 Top position.
  * @constructor
  * @extends {goog.positioning.AbstractPosition}
  *
@@ -22232,7 +21924,7 @@ goog.ui.Popup.AbsolutePosition = goog.positioning.AbsolutePosition;
  * other element.
  *
  * @param {number|!goog.math.Coordinate} arg1 Left position or coordinate.
- * @param {number} opt_arg2 Top position.
+ * @param {number=} opt_arg2 Top position.
  * @constructor
  * @extends {goog.ui.Popup.AbsolutePosition}
  *
@@ -22251,7 +21943,7 @@ goog.ui.Popup.ViewPortPosition = goog.positioning.ViewportPosition;
  * parameters.
  *
  * @param {number|!goog.math.Coordinate} arg1 Left position or coordinate.
- * @param {number} opt_arg2 Top position.
+ * @param {number=} opt_arg2 Top position.
  * @constructor
  * @extends {goog.ui.Popup.AbsolutePosition}
  *
@@ -22266,7 +21958,7 @@ goog.ui.Popup.ClientPosition = goog.positioning.ClientPosition;
  * window (client) coordinates, and made to stay within the viewport.
  *
  * @param {number|!goog.math.Coordinate} arg1 Left position or coordinate.
- * @param {number} opt_arg2 Top position if arg1 is a number representing the
+ * @param {number=} opt_arg2 Top position if arg1 is a number representing the
  *     left position, ignored otherwise.
  * @constructor
  * @extends {goog.ui.Popup.ClientPosition}
@@ -22324,10 +22016,10 @@ goog.require('goog.ui.PopupBase');
  * slight delay, when the the cursor is over the element or the element gains
  * focus.
  *
- * @param {Element|string} opt_el Element to display tooltip for, either element
- *                                reference or string id.
- * @param {?string} opt_str Text message to display in tooltip.
- * @param {goog.dom.DomHelper} opt_domHelper Optional DOM helper.
+ * @param {Element|string=} opt_el Element to display tooltip for, either
+ *     element reference or string id.
+ * @param {?string=} opt_str Text message to display in tooltip.
+ * @param {goog.dom.DomHelper=} opt_domHelper Optional DOM helper.
  * @constructor
  * @extends {goog.ui.Popup}
  */
@@ -22345,8 +22037,8 @@ goog.ui.Tooltip = function(opt_el, opt_str, opt_domHelper) {
       'div', {'style': 'position:absolute;display:none;'}));
 
   /**
-   * Object for representing cursor position.
-   * @type {goog.math.Coordinate}
+   * Cursor position relative to the page.
+   * @type {!goog.math.Coordinate}
    * @protected
    */
   this.cursorPosition = new goog.math.Coordinate(1, 1);
@@ -22520,7 +22212,7 @@ goog.ui.Tooltip.prototype.attach = function(el) {
 /**
  * Detach from element(s).
  *
- * @param {Element|string} opt_el Element to detach from, either element
+ * @param {Element|string=} opt_el Element to detach from, either element
  *                                reference or string id. If no element is
  *                                specified all are detached.
  */
@@ -22776,7 +22468,7 @@ goog.ui.Tooltip.prototype.onHide_ = function() {
  * over the same element.
  *
  * @param {Element} el Element to show tooltip for.
- * @param {goog.positioning.AbstractPosition} opt_pos Position to display popup
+ * @param {goog.positioning.AbstractPosition=} opt_pos Position to display popup
  *     at.
  */
 goog.ui.Tooltip.prototype.maybeShow = function(el, opt_pos) {
@@ -22799,7 +22491,7 @@ goog.ui.Tooltip.prototype.maybeShow = function(el, opt_pos) {
  * Shows tooltip for a specific element.
  *
  * @param {Element} el Element to show tooltip for.
- * @param {goog.positioning.AbstractPosition} opt_pos Position to display popup
+ * @param {goog.positioning.AbstractPosition=} opt_pos Position to display popup
  *     at.
  */
 goog.ui.Tooltip.prototype.showForElement = function(el, opt_pos) {
@@ -22814,7 +22506,7 @@ goog.ui.Tooltip.prototype.showForElement = function(el, opt_pos) {
  * Sets tooltip position and shows it.
  *
  * @param {Element} el Element to show tooltip for.
- * @param {goog.positioning.AbstractPosition} opt_pos Position to display popup
+ * @param {goog.positioning.AbstractPosition=} opt_pos Position to display popup
  *     at.
  * @private
  */
@@ -22823,9 +22515,7 @@ goog.ui.Tooltip.prototype.positionAndShow_ = function(el, opt_pos) {
   if (opt_pos) {
     pos = opt_pos;
   } else {
-    var coord = new goog.math.Coordinate(
-       this.cursorPosition.x,
-       this.cursorPosition.y);
+    var coord = this.cursorPosition.clone();
     pos = new goog.ui.Tooltip.CursorTooltipPosition(coord);
   }
 
@@ -22911,7 +22601,7 @@ goog.ui.Tooltip.prototype.getAnchorFromElement = function(el) {
 /**
  * Handler for mouse move events.
  *
- * @param {goog.events.BrowserEvent} event Event object.
+ * @param {goog.events.BrowserEvent} event MOUSEMOVE event.
  * @protected
  */
 goog.ui.Tooltip.prototype.handleMouseMove = function(event) {
@@ -23029,7 +22719,7 @@ goog.ui.Tooltip.prototype.handleTooltipMouseOut = function(event) {
  * the maybeShow method.
  *
  * @param {Element} el Element to show tooltip for.
- * @param {goog.positioning.AbstractPosition} opt_pos Position to display popup
+ * @param {goog.positioning.AbstractPosition=} opt_pos Position to display popup
  *     at.
  * @protected
  */
@@ -23105,7 +22795,7 @@ goog.ui.Tooltip.prototype.disposeInternal = function() {
  * Used to position tooltips triggered by the cursor.
  *
  * @param {number|!goog.math.Coordinate} arg1 Left position or coordinate.
- * @param {number} opt_arg2 Top position.
+ * @param {number=} opt_arg2 Top position.
  * @constructor
  * @extends {goog.positioning.ViewportPosition}
  */
@@ -23122,7 +22812,7 @@ goog.inherits(goog.ui.Tooltip.CursorTooltipPosition,
  * @param {Element} element The DOM element of the popup.
  * @param {goog.positioning.Corner} popupCorner The corner of the popup element
  *     that that should be positioned adjacent to the anchorElement.
- * @param {goog.math.Box} opt_margin A margin specified in pixels.
+ * @param {goog.math.Box=} opt_margin A margin specified in pixels.
  */
 goog.ui.Tooltip.CursorTooltipPosition.prototype.reposition = function(
     element, popupCorner, opt_margin) {
@@ -23171,7 +22861,7 @@ goog.inherits(goog.ui.Tooltip.ElementTooltipPosition,
  * @param {Element} element The DOM element of the popup.
  * @param {goog.positioning.Corner} popupCorner The corner of the popup element
  *     that should be positioned adjacent to the anchorElement.
- * @param {goog.math.Box} opt_margin A margin specified in pixels.
+ * @param {goog.math.Box=} opt_margin A margin specified in pixels.
  */
 goog.ui.Tooltip.ElementTooltipPosition.prototype.reposition = function(
     element, popupCorner, opt_margin) {
@@ -23200,6 +22890,52 @@ goog.ui.Tooltip.ElementTooltipPosition.prototype.reposition = function(
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Copyright 2009 Google Inc. All Rights Reserved.
+
+/**
+ * @fileoverview Provides a base class for custom Error objects such that the
+ * stack is corectly maintained.
+ *
+ */
+
+goog.provide('goog.debug.Error');
+
+goog.require('goog.debug');
+
+
+/**
+ * Base class for custom error objects.
+ * @param {*=} opt_msg The message associated with the error.
+ * @constructor
+ * @extends {Error}
+ */
+goog.debug.Error = function(opt_msg) {
+
+  // Ensure there is a stack trace.
+  this.stack = new Error().stack || '';
+  goog.debug.enhanceError(this);
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+};
+goog.inherits(goog.debug.Error, Error);
+
+
+/** @inheritDoc */
+goog.debug.Error.prototype.name = 'CustomError';
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // Copyright 2008 Google Inc. All Rights Reserved.
 
 /**
@@ -23213,6 +22949,10 @@ goog.ui.Tooltip.ElementTooltipPosition.prototype.reposition = function(
  */
 
 goog.provide('goog.asserts');
+goog.provide('goog.asserts.AssertionError');
+
+goog.require('goog.debug.Error');
+goog.require('goog.string');
 
 // TODO: Add return values for all these functions, so that they
 // can be chained like:
@@ -23220,21 +22960,87 @@ goog.provide('goog.asserts');
 // for more lisp-y asserts.
 
 /**
- * Checks if the condition evaluates to true if goog.DEBUG is true.
- * @param {*} condition The condition to check.
- * @param {string} opt_message Error message in case of failure.
- * @throws {Error} Assertion failed, the condition evaluates to false.
+ * @define {boolean} Whether to strip out asserts or to leave them in.
  */
-goog.asserts.assert = function(condition, opt_message) {
-  if (goog.DEBUG && !condition) {
-    throw Error('Assertion failed' + (opt_message ? ': ' + opt_message : ''));
+goog.asserts.ENABLE_ASSERTS = goog.DEBUG;
+
+
+/**
+ * Error object for failed assertions.
+ * @param {string} messagePattern The pattern that was used to form message.
+ * @param {!Array.<*>} messageArgs The items to substitute into the pattern.
+ * @constructor
+ * @extends {goog.debug.Error}
+ */
+goog.asserts.AssertionError = function(messagePattern, messageArgs) {
+  messageArgs.unshift(messagePattern);
+  goog.debug.Error.call(this, goog.string.subs.apply(null, messageArgs));
+  // Remove the messagePattern afterwards to avoid permenantly modifying the
+  // passed in array.
+  messageArgs.shift();
+
+  /**
+   * The message pattern used to format the error message. Error handlers can
+   * use this to uniquely identify the assertion.
+   * @type {string}
+   */
+  this.messagePattern = messagePattern;
+};
+goog.inherits(goog.asserts.AssertionError, goog.debug.Error);
+
+
+/** @inheritDoc */
+goog.asserts.AssertionError.prototype.name = 'AssertionError';
+
+
+/**
+ * Throws an exception with the given message and "Assertion failed" prefixed
+ * onto it.
+ * @param {string} defaultMessage The message to use if givenMessage is empty.
+ * @param {Array.<*>} defaultArgs The substitution arguments for defaultMessage.
+ * @param {string|undefined} givenMessage Message supplied by the caller.
+ * @param {Array.<*>} givenArgs The substitution arguments for givenMessage.
+ * @throws {goog.asserts.AssertionError} When the value is not a number.
+ * @private
+ */
+goog.asserts.doAssertFailure_ =
+    function(defaultMessage, defaultArgs, givenMessage, givenArgs) {
+  var message = 'Assertion failed';
+  if (givenMessage) {
+    message += ': ' + givenMessage;
+    var args = givenArgs;
+  } else if (defaultMessage) {
+    message += ': ' + defaultMessage;
+    args = defaultArgs;
+  }
+  // The '' + works around an Opera 10 bug in the unit tests. Without it,
+  // a stack trace is added to var message above. With this, a stack trace is
+  // not added until this line (it causes the extra garbage to be added after
+  // the assertion message instead of in the middle of it).
+  throw new goog.asserts.AssertionError('' + message, args || []);
+};
+
+
+/**
+ * Checks if the condition evaluates to true if goog.asserts.ENABLE_ASSERTS is
+ * true.
+ * @param {*} condition The condition to check.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @throws {goog.asserts.AssertionError} When the condition evaluates to false.
+ */
+goog.asserts.assert = function(condition, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !condition) {
+    goog.asserts.doAssertFailure_('', null, opt_message,
+        Array.prototype.slice.call(arguments, 2));
   }
 };
 
 
 /**
- * Fails if goog.DEBUG is true. This function is useful in case when we want
- * to add a check in the unreachable area like switch-case statement:
+ * Fails if goog.asserts.ENABLE_ASSERTS is true. This function is useful in case
+ * when we want to add a check in the unreachable area like switch-case
+ * statement:
  *
  * <pre>
  *  switch(type) {
@@ -23245,71 +23051,96 @@ goog.asserts.assert = function(condition, opt_message) {
  *  }
  * </pre>
  *
- * @param {string} opt_message Error message for failure.
- * @throws {Error} Failure.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @throws {goog.asserts.AssertionError} Failure.
  */
-goog.asserts.fail = function(opt_message) {
-  if (goog.DEBUG) {
-    throw Error('Failure' + (opt_message ? ': ' + opt_message : ''));
+goog.asserts.fail = function(opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS) {
+    throw new goog.asserts.AssertionError(
+        'Failure' + (opt_message ? ': ' + opt_message : ''),
+        Array.prototype.slice.call(arguments, 1));
   }
 };
 
 
 /**
- * Checks if the value is a number if goog.DEBUG is true.
+ * Checks if the value is a number if goog.asserts.ENABLE_ASSERTS is true.
  * @param {*} value The value to check.
- * @param {string} opt_message Error message in case of failure.
- * @throws {Error} Assertion failed, the condition evaluates to false.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @throws {goog.asserts.AssertionError} When the value is not a number.
  */
-goog.asserts.assertNumber = function(value, opt_message) {
-  goog.asserts.assert(goog.isNumber(value), opt_message);
+goog.asserts.assertNumber = function(value, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !goog.isNumber(value)) {
+    goog.asserts.doAssertFailure_('Expected number but got %s.', [value],
+         opt_message, Array.prototype.slice.call(arguments, 2));
+  }
 };
 
 
 /**
- * Checks if the value is a string if goog.DEBUG is true.
+ * Checks if the value is a string if goog.asserts.ENABLE_ASSERTS is true.
  * @param {*} value The value to check.
- * @param {string} opt_message Error message in case of failure.
- * @throws {Error} Assertion failed, the condition evaluates to false.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @throws {goog.asserts.AssertionError} When the value is not a string.
  */
-goog.asserts.assertString = function(value, opt_message) {
-  goog.asserts.assert(goog.isString(value), opt_message);
+goog.asserts.assertString = function(value, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !goog.isString(value)) {
+    goog.asserts.doAssertFailure_('Expected string but got %s.', [value],
+         opt_message, Array.prototype.slice.call(arguments, 2));
+  }
 };
 
 
 /**
- * Checks if the value is a function if goog.DEBUG is true.
+ * Checks if the value is a function if goog.asserts.ENABLE_ASSERTS is true.
  * @param {*} value The value to check.
- * @param {string} opt_message Error message in case of failure.
- * @throws {Error} Assertion failed, the condition evaluates to false.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @throws {goog.asserts.AssertionError} When the value is not a function.
  */
-goog.asserts.assertFunction = function(value, opt_message) {
-  goog.asserts.assert(goog.isFunction(value), opt_message);
+goog.asserts.assertFunction = function(value, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !goog.isFunction(value)) {
+    goog.asserts.doAssertFailure_('Expected function but got %s.', [value],
+         opt_message, Array.prototype.slice.call(arguments, 2));
+  }
 };
 
 
 /**
- * Checks if the value is an Object if goog.DEBUG is true.
+ * Checks if the value is an Object if goog.asserts.ENABLE_ASSERTS is true.
  * @param {*} value The value to check.
- * @param {string} opt_message Error message in case of failure.
- * @throws {Error} Assertion failed, the condition evaluates to false.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @throws {goog.asserts.AssertionError} When the value is not an object.
  */
-goog.asserts.assertObject = function(value, opt_message) {
-  goog.asserts.assert(goog.isObject(value), opt_message);
+goog.asserts.assertObject = function(value, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !goog.isObject(value)) {
+    goog.asserts.doAssertFailure_('Expected object but got %s.', [value],
+         opt_message, Array.prototype.slice.call(arguments, 2));
+  }
 };
 
 
 /**
  * Checks if the value is an instance of the user-defined type if
- * goog.DEBUG is true.
+ * goog.asserts.ENABLE_ASSERTS is true.
  * @param {*} value The value to check.
  * @param {!Function} type A user-defined constructor.
- * @param {string} opt_message Error message in case of failure.
- * @throws {Error} Assertion failed, the condition evaluates to false.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @throws {goog.asserts.AssertionError} When the value is not an instance of
+ *     type.
  */
-goog.asserts.assertInstanceof = function(value, type, opt_message) {
-  goog.asserts.assert(value instanceof type, opt_message);
+goog.asserts.assertInstanceof = function(value, type, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !(value instanceof type)) {
+    goog.asserts.doAssertFailure_('instanceof check failed.', null,
+         opt_message, Array.prototype.slice.call(arguments, 3));
+  }
 };
+
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -23381,15 +23212,15 @@ goog.uri.utils.CharCode_ = {
  * No encoding is performed.  Any component may be omitted as either null or
  * undefined.
  *
- * @param {?string} opt_scheme The scheme such as 'http'.
- * @param {?string} opt_userInfo The user name before the '@'.
- * @param {?string} opt_domain The domain such as 'www.google.com', already
+ * @param {?string=} opt_scheme The scheme such as 'http'.
+ * @param {?string=} opt_userInfo The user name before the '@'.
+ * @param {?string=} opt_domain The domain such as 'www.google.com', already
  *     URI-encoded.
- * @param {string|number|null} opt_port The port number.
- * @param {?string} opt_path The path, already URI-encoded.  If it is not
+ * @param {(string|number|null)=} opt_port The port number.
+ * @param {?string=} opt_path The path, already URI-encoded.  If it is not
  *     empty, it must begin with a slash.
- * @param {?string} opt_queryData The URI-encoded query data.
- * @param {?string} opt_fragment The URI-encoded fragment identifier.
+ * @param {?string=} opt_queryData The URI-encoded query data.
+ * @param {?string=} opt_fragment The URI-encoded fragment identifier.
  * @return {string} The fully combined URI.
  */
 goog.uri.utils.buildFromEncodedParts = function(opt_scheme, opt_userInfo,
@@ -23879,7 +23710,7 @@ goog.uri.utils.appendKeyValuePairs_ = function(key, value, pairs) {
  *     first element appended will be an '&', and may be replaced by the caller.
  * @param {goog.uri.utils.QueryArray|Arguments} keysAndValues An array with
  *     alternating keys and values -- see the typedef.
- * @param {number} opt_startIndex A start offset into the arary, defaults to 0.
+ * @param {number=} opt_startIndex A start offset into the arary, defaults to 0.
  * @return {!Array.<string|undefined>} The buffer argument.
  * @private
  */
@@ -23905,7 +23736,7 @@ goog.uri.utils.buildQueryDataBuffer_ = function(
  *
  * @param {goog.uri.utils.QueryArray} keysAndValues Alternating keys and
  *     values.  See the typedef.
- * @param {number} opt_startIndex A start offset into the arary, defaults to 0.
+ * @param {number=} opt_startIndex A start offset into the arary, defaults to 0.
  * @return {string} The encoded query string, in the for 'a=1&b=2'.
  */
 goog.uri.utils.buildQueryData = function(keysAndValues, opt_startIndex) {
