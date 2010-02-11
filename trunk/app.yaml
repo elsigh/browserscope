@@ -15,7 +15,7 @@
 # Author elsigh@google.com (Lindsey Simon)
 
 application: ua-profiler
-version: 2
+version: 3
 runtime: python
 api_version: 1
 

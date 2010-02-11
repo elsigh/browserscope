@@ -1,4 +1,4 @@
 cron:
-- description: Warm stats memcahce.
+- description: Warm stats memcache.
   url: /admin/update_all_stats_cache
   schedule: every 20 minutes
