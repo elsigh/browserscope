@@ -36,11 +36,11 @@ BROWSER_NAV = (
 )
 
 TOP_BROWSERS = (
-  'Chrome 3', 'Chrome 4',
-  'Firefox 3.0', 'Firefox 3.5',
+  'Chrome 4', 'Chrome 5',
+  'Firefox 3.0', 'Firefox 3.5', 'Firefox 3.6',
   'IE 6', 'IE 7', 'IE 8',
   'iPhone 2.2', 'iPhone 3.1',
-  'Opera 9.64', 'Opera 10',
+  'Opera 9.64', 'Opera 10', 'Opera 10.5',
   'Safari 3.2', 'Safari 4.0'
 )
 
