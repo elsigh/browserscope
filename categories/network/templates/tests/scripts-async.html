@@ -35,7 +35,7 @@ function doTest() {
 	else {
 		var sResults = "";
 		var bResult = false;
-		if ( 
+		if (
 			// even though async2 appears after async1, it should eval sooner since it has a shorter download time
 			( t_async_script2 < t_async_script1 ) &&
 			// the inline script should execute while the async scripts are fetched
@@ -45,7 +45,7 @@ function doTest() {
 			// make sure async runs before onload
 			( t_onload > t_async_script1 && t_onload > t_async_script2 )
 			 ) {
-			sResults += 'Success. Async scripts ran correctly<br>.';
+			sResults += 'Success. Async scripts ran correctly.<br>';
 			bResult = true;
 		}
 
