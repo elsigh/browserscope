@@ -129,8 +129,8 @@
     runIframeTest('X-Frame-Options API', SAME_ORIGIN_BASE_URL + 'xframe-outer.html', function (frame) {
       return !realTop.xframe_options_test_fail;
     });
-    runIframeTest('X-Content-Type-Options API', 'test/xcontenttype', function (frame) {
-      return !realTop.xcontenttype_options_test_fail;
+    runIframeTest('X-Content-Type-Options API', NON_APP_ENGINE_BASE_URL + 'x-content-type-options.html', function (frame) {
+      return !realTop.x_content_type_options_test_fail;
     });
     var attack = "<script>script_ran = true<\/script>";
     runIframeTest('Block reflected XSS',

@@ -52,13 +52,6 @@ def XFrameOptionsTest(request):
   response.write("<script>top.xframe_options_test_fail=true;</script></body></html>")
   return response
 
-def XContentTypeOptionsTest(request):
-  response = HttpResponse()
-  response.write('<html>LOADED <script>top.xcontenttype_options_test_fail=true;</script></html>')
-  response['X-CONTENT-TYPE-OPTIONS'] = 'nosniff'
-  response['Content-type'] = 'text'
-  return response
-
 def OriginHeaderTest(request):
   response = HttpResponse()
   if 'HTTP_ORIGIN' in request.META:

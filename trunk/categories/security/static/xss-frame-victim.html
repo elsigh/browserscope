@@ -1,3 +1,5 @@
+<html>
+<body>
 <script src="config.js"></script>
 <!-- XSS filter should stop the following line from running -->
 <script>script_ran = true</script>
@@ -6,3 +8,4 @@
   document.write("<iframe src='" + SAME_ORIGIN_BASE_URL + "xss-filter-test-done.html?" + success + "'></iframe>");
 </script>
 </body>
+</html>
