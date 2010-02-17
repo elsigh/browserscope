@@ -187,7 +187,7 @@
     observe(window, 'load', function () {
       cssExpressionCallback(function () { return window.script_in_css_pass; });
     });
-    runIframeTest('Sandbox attribute', SAME_ORIGIN_BASE_URL + "sandbox-frame.html", function (frame) {
+    runIframeTest('Sandbox attribute',  "static/sandbox-frame.html", function (frame) {
       return !frame.contentDocument.documentElement.innerHTML.match(/FAIL/);
     });
     runAjaxTest('Origin header', 'test/originheader', function(xmlhttp) {
