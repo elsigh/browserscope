@@ -18,6 +18,7 @@ urlpatterns = patterns('',
   # General URL handlers in shared/util.py
   (r'^$', 'base.util.Home'),
   (r'^faq', 'base.util.Faq'),
+  (r'^news', 'base.util.News'),
   (r'^alltests', 'base.util.AllTests'),
   (r'^beacon.*', 'base.util.Beacon'),
   (r'^get_csrf',  'base.util.GetCsrf'),
@@ -149,7 +150,7 @@ urlpatterns = patterns('',
   (r'^security/test/originheader$', 'categories.security.handlers.OriginHeaderTest'),
   (r'^security/test/set-sts$', 'categories.security.handlers.SetSts'),
   (r'^security/test/test-sts$', 'categories.security.handlers.TestSts'),
-                       
+
   # HTML5 urls
   (r'^html5/about$', 'categories.html5.handlers.About'),
 

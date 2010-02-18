@@ -319,6 +319,16 @@ def Faq(request):
   return Render(request, 'faq.html', params)
 
 
+def News(request):
+  """News"""
+
+  params = {
+    'page_title': 'News',
+    'section_urls': ''
+  }
+  return Render(request, 'news.html', params)
+
+
 def AllTests(request):
   """All Tests"""
   params = {
