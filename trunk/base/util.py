@@ -378,7 +378,7 @@ def CheckThrottleIpAddress(ip, user_agent_string):
   runs = memcache.get(key, IP_THROTTLE_NS)
   #logging.info('CheckThrottleIpAddress runs: %s' % runs)
   if runs is None:
-    memcache.set(key=key, value=1, time=60, namespace=IP_THROTTLE_NS)
+    memcache.set(key=key, value=1, time=timeout, namespace=IP_THROTTLE_NS)
   elif runs <= runs_per_timeout:
     memcache.incr(key=key, delta=1,namespace=IP_THROTTLE_NS)
   else:
