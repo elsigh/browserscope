@@ -34,7 +34,8 @@ def About(request):
     The initial set of tests were contributed by
     <a href="http://www.adambarth.com/">Adam Barth</a>,
     <a href="http://www.collinjackson.com/">Collin Jackson</a>,
-    and <a href="http://www.google.com/profiles/meacer">Mustafa Acer</a>."""
+    <a href="http://www.google.com/profiles/meacer">Mustafa Acer</a>,
+    and <a href="http://linshunghuang.googlepages.com/">David Lin-Shung Huang</a>."""
   return util.About(request, CATEGORY, overview=overview)
 
 
@@ -59,7 +60,7 @@ def OriginHeaderTest(request):
   else:
     response.write('<html>FAIL</html>')
   return response
-      
+
 def SetSts(request):
   if request.is_secure():
     response = HttpResponsePermanentRedirect('http://ua-profiler.appspot.com/security/test/test-sts')
