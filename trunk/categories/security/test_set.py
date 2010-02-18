@@ -49,18 +49,18 @@ class SecurityTest(test_set_base.TestBase):
 
 _TESTS = (
   # key, name, doc
-  SecurityTest('postMessage', 'postMessage',
+  SecurityTest('postMessage API', 'postMessage',
   '''Checks whether the browser supports the
   <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages">HTML 5
   cross-document messaging</a> API that enables secure communication between origins.'''),
-  SecurityTest('JSON.parse', 'JSON.parse',
+  SecurityTest('JSON.parse API', 'JSON.parse',
   '''Checks whether the browser natively supports the <a href="http://json.org/js.html">JSON.parse</a> API.
   Native JSON parsing is safer than using eval.'''),
-  SecurityTest('toStaticHTML', 'toStaticHTML',
+  SecurityTest('toStaticHTML API', 'toStaticHTML',
   '''Checks whether the browser supports the
   <a href="http://msdn.microsoft.com/en-us/library/cc848922%28VS.85%29.aspx">toStaticHTML API</a>
   for sanitizing untrusted inputs.'''),
-  SecurityTest('httpOnly cookies', 'httpOnly cookies',
+  SecurityTest('httpOnly cookie API', 'httpOnly cookies',
   '''Checks whether the browser supports the
   <a href="http://tools.ietf.org/html/draft-abarth-cookie-02#section-5.1.6">httpOnly cookie attribute</a>,
   which is a mitigation for cross-site scripting attacks.'''),
