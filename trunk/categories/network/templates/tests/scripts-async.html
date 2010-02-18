@@ -3,11 +3,11 @@
 {% block head %}
 <script type="text/javascript">
 var script_labels = new Array(5);
-script_labels["async1"] = "async external script (4s download)";
-script_labels["async2"] = "async external script (2s download)";
+script_labels["async1"] = "async external script (4 seconds download)";
+script_labels["async2"] = "async external script (2 seconds download)";
 script_labels["inline"] = "inline script";
 script_labels["normal"] = "normal external script";
-script_labels["onload"] = "onload handler";
+script_labels["onload"] = "onload event";
 var is_async_executed = false;
 var is_normal_executed = false;
 
@@ -46,7 +46,7 @@ function doTest() {
 		actual_result = script_order.join(', ');
 		expected_result = expected_order.join(', ');
 		if (expected_result == actual_result) {
-			report("<br>async attribute <i>does</i> work<br><br><br><br><br>", true);
+			report("<br>async attribute <i>does</i> work<br><br><br><br><br><br>", true);
 		} else {
 			msg = "async attribute <i>doesn't</i> work. <b>Actual execution order</b>:<ol>"
 			for (var i = 0; i < script_order.length; i++) {
@@ -71,31 +71,28 @@ window.onload = function() {
 {% block body %}
 <h1>Async Attribute for Scripts</h1>
 
-<div id=results><br><br><br><br><br><br></div>
+<div id=results><br><br><br><br><br><br><br></div>
 
 <p style="margin-bottom: 0;">
 This test determines if your browser supports the HTML5 async attribute for scripts.  
 This page uses four scripts with the following <b>source order</b>:
 </p>
 <ol>
-  <li> async external script (takes 4 seconds to download)
-  <li> async external script (takes 2 seconds to download)
+  <li> async external script 1 (takes 4 seconds to download)
+  <li> async external script 2 (takes 2 seconds to download)
   <li> inline script
-  <li> normal external script (downloads immediately)
+  <li> normal external script (takes 0 seconds to download)
 </ol>
-
-<p style="margin-bottom: 0;">
-There is also an onload handler script that executes when the page and all its resources have finished downloading.
 
 <p style="margin-bottom: 0;">
 If the async attribute works, the scripts will have the following <b>expected execution order</b>:
 
 <ol>
-  <li> inline script
-  <li> normal external script
-  <li> async script (2 second download)
-  <li> async script (4 second download)
-  <li> onload handler
+  <li> inline script - While the browser downloads the async scripts it proceeds to execute the inline script.
+  <li> normal external script (0 seconds download) - Even though this script occurs last, it's executed before the async scripts because it downloads first.
+  <li> async script (2 seconds download) - Even though this script occurs after the other async script, it's executed first because it downloads earlier. Async scripts should be executed in the order they arrive.
+  <li> async script (4 seconds download) - Even though this script occurs first, it's executed last because it's async and has the longest download time.
+  <li> onload event - Async scripts should block the onload event.
 </ol>
 
 <!-- async external script (takes 4 seconds to download) -->
