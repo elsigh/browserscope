@@ -103,7 +103,7 @@
       if(window.XMLHttpRequest) {
         return new XMLHttpRequest();
       } else {
-        return new ActiveXObject("Microsoft.XMLHTTP"); 
+        return new ActiveXObject("Microsoft.XMLHTTP");
       }
     }
     </script>
@@ -113,23 +113,23 @@
     <div id="iframes"></div>
     <script>
     window.test_instance = Math.random();
-    runTest('postMessage API', function () {
+    runTest('postMessage', function () {
       return window.postMessage;
     });
-    runTest('JSON.parse API', function () {
+    runTest('JSON.parse', function () {
       return window.JSON && window.JSON.parse;
     });
-    runTest('toStaticHTML API', function () {
+    runTest('toStaticHTML', function () {
       return window.toStaticHTML;
     });
-    runTest('httpOnly cookie API', function () {
+    runTest('httpOnly cookies', function () {
       return document.cookie.indexOf('regularTestCookie') != -1 &&
              document.cookie.indexOf('httpOnlyTestCookie') == -1;
     });
-    runIframeTest('X-Frame-Options API', SAME_ORIGIN_BASE_URL + 'xframe-outer.html', function (frame) {
+    runIframeTest('X-Frame-Options', SAME_ORIGIN_BASE_URL + 'xframe-outer.html', function (frame) {
       return !realTop.xframe_options_test_fail;
     });
-    runIframeTest('X-Content-Type-Options API', NON_APP_ENGINE_BASE_URL + 'x-content-type-options.html', function (frame) {
+    runIframeTest('X-Content-Type-Options', NON_APP_ENGINE_BASE_URL + 'x-content-type-options.html', function (frame) {
       return !realTop.x_content_type_options_test_fail;
     });
     var attack = "<script>script_ran = true<\/script>";

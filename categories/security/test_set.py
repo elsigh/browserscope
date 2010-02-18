@@ -49,29 +49,29 @@ class SecurityTest(test_set_base.TestBase):
 
 _TESTS = (
   # key, name, doc
-  SecurityTest('postMessage API', 'postMessage API',
+  SecurityTest('postMessage', 'postMessage',
   '''Checks whether the browser supports the
   <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages">HTML 5
   cross-document messaging</a> API that enables secure communication between origins.'''),
-  SecurityTest('JSON.parse API', 'JSON.parse API',
+  SecurityTest('JSON.parse', 'JSON.parse',
   '''Checks whether the browser natively supports the <a href="http://json.org/js.html">JSON.parse</a> API.
   Native JSON parsing is safer than using eval.'''),
-  SecurityTest('toStaticHTML API', 'toStaticHTML API',
+  SecurityTest('toStaticHTML', 'toStaticHTML',
   '''Checks whether the browser supports the
   <a href="http://msdn.microsoft.com/en-us/library/cc848922%28VS.85%29.aspx">toStaticHTML API</a>
   for sanitizing untrusted inputs.'''),
-  SecurityTest('httpOnly cookie API', 'httpOnly cookie API',
+  SecurityTest('httpOnly cookies', 'httpOnly cookies',
   '''Checks whether the browser supports the
   <a href="http://tools.ietf.org/html/draft-abarth-cookie-02#section-5.1.6">httpOnly cookie attribute</a>,
   which is a mitigation for cross-site scripting attacks.'''),
-  SecurityTest('X-Frame-Options API',
-               'X-Frame-Options API',
-  '''Checks whether the browser supports the 
+  SecurityTest('X-Frame-Options',
+               'X-Frame-Options',
+  '''Checks whether the browser supports the
   <a href="http://blogs.msdn.com/ie/archive/2009/01/27/ie8-security-part-vii-clickjacking-defenses.aspx">X-Frame-Options API</a>,
   which prevents clickjacking attacks by restricting how pages may be framed.'''),
-  SecurityTest('X-Content-Type-Options API',
-               'X-Content-Type-Options API',
-  '''Checks whether the browser supports the <a href="http://ajaxian.com/archives/ie-8-security">X-Content-Type-Options API</a>, 
+  SecurityTest('X-Content-Type-Options',
+               'X-Content-Type-Options',
+  '''Checks whether the browser supports the <a href="http://ajaxian.com/archives/ie-8-security">X-Content-Type-Options API</a>,
   which <a href="http://www.adambarth.com/papers/2009/barth-caballero-song.pdf">prevents MIME sniffing</a>.'''),
   SecurityTest('Block reflected XSS', 'Block reflected XSS',
   '''Checks whether the browser blocks execution of JavaScript code that appears in the request
@@ -110,7 +110,7 @@ _TESTS = (
   <a href="http://en.wikipedia.org/wiki/Cross-site_request_forgery">cross-site request forgery</a> (CSRF) attacks.'''),
   SecurityTest('Strict Transport Security',
                'Strict Transport Security',
-  '''Checks whether the browser supports 
+  '''Checks whether the browser supports
   <a href="http://lists.w3.org/Archives/Public/www-archive/2009Sep/att-0051/draft-hodges-strict-transport-sec-05.plain.html">Strict Transport Security</a>,
   which enables web sites to declare themselves accessible only via secure connections.'''),
 )
