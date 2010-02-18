@@ -2,21 +2,31 @@
 
 {% block head %}
 <script type="text/javascript">
-var t_normal_script = null;
-var t_async_script1 = null;
-var t_async_script2 = null;
-var t_onload = null;
+var script_labels = new Array(5);
+script_labels["async1"] = "async external script (4s download)";
+script_labels["async2"] = "async external script (2s download)";
+script_labels["inline"] = "inline script";
+script_labels["normal"] = "normal external script";
+script_labels["onload"] = "onload handler";
+var is_async_executed = false;
+var is_normal_executed = false;
+
+var script_order = [];
+var expected_order = ["inline", "normal", "async2", "async1", "onload"];
 
 function scriptSleepOnload(url) {
 	// The resource_cgi scripts call this function.
 	if (url.indexOf('script=async1') > 0) {
-		t_async_script1 = Number(new Date());
+		script_order.push('async1');
+		is_async_executed = true;
     }
 	else if (url.indexOf('script=async2') > 0) {
-		t_async_script2 = Number(new Date());
+		script_order.push('async2');
+		is_async_executed = true;
     }
-    else if (url.indexOf('script=normal') > 0) {
-		t_normal_script = Number(new Date());
+	else if (url.indexOf('script=normal') > 0) {
+		script_order.push('normal');
+		is_normal_executed = true;
     }
 }
 
@@ -26,89 +36,81 @@ function report(msg, opt_success) {
 }
 
 function doTest() {
-    if (t_async_script1 === null || t_async_script2 === null) {
+    if (!is_async_executed) {
 		report('Test error. The async scripts did not run.');
     }
-    else if (t_normal_script == null) {
+    else if (!is_normal_executed) {
 		report('Test error. The normal script did not run.');
     }
 	else {
-		var sResults = "";
-		var bResult = false;
-		if (
-			// even though async2 appears after async1, it should eval sooner since it has a shorter download time
-			( t_async_script2 < t_async_script1 ) &&
-			// the inline script should execute while the async scripts are fetched
-			( t_inline_script < t_async_script1 && t_inline_script < t_async_script2 ) &&
-			// make sure the normal script isn't blocked by the async scripts
-			( t_normal_script < t_async_script1 && t_normal_script < t_async_script2 ) &&
-			// make sure async runs before onload
-			( t_onload > t_async_script1 && t_onload > t_async_script2 )
-			 ) {
-			sResults += 'Success. Async scripts ran correctly.<br>';
-			bResult = true;
+		actual_result = script_order.join(', ');
+		expected_result = expected_order.join(', ');
+		if (expected_result == actual_result) {
+			report("<br>async attribute <i>does</i> work<br><br><br><br><br>", true);
+		} else {
+			msg = "async attribute <i>doesn't</i> work. <b>Actual execution order</b>:<ol>"
+			for (var i = 0; i < script_order.length; i++) {
+				msg += "<li>" + script_labels[script_order[i]];
+			}
+			msg += '</ol>';
+			report(msg);
 		}
-
-		if ( !( t_async_script2 < t_async_script1 ) ) {
-			sResults += 'Failure. The async scripts were forced to execute in order, rather than immediately upon arrival.<br>';
-			bResult = false;
-		}
-		if ( !( t_inline_script < t_async_script1 && t_inline_script < t_async_script2 ) ) {
-			sResults += 'Failure. The async scripts caused an inline script to be blocked from executing.<br>';
-			bResult = false;
-		}
-		if ( !( t_normal_script < t_async_script1 && t_normal_script < t_async_script2 ) ) {
-			sResults += 'Failure. The async scripts blocked a normal script from downloading and executing.<br>';
-			bResult = false;
-		}
-		if ( !( t_onload > t_async_script1 && t_onload > t_async_script2 ) ) {
-			sResults += 'Failure. The onload handler fired before the async scripts.<br>';
-			bResult = false;
-		}
-
-		report(sResults, bResult);
     }
 }
 
+<!-- onload handler -->
 window.onload = function() {
     // Browsers might fire window.onload after async scripts download
     // but before they run, so wait one second.
-    t_onload = Number(new Date());
+    script_order.push('onload');
     setTimeout(doTest, 1000);
 };
 </script>
 {% endblock %}
 
 {% block body %}
-<script src="http://{{ resource_cgi }}?type=js&script=async1&sleep=4&jsdelay=1&t={{ epoch }}" type="text/javascript" async></script>
-<script src="http://{{ resource_cgi }}?type=js&script=async2&sleep=2&jsdelay=1&t={{ epoch }}" type="text/javascript" async></script>
-<script type="text/javascript">
-var t_inline_script = Number(new Date());
-</script>
-<script src="http://{{ resource_cgi2 }}?type=js&script=normal&jsdelay=1&t={{ epoch }}" type="text/javascript"></script>
-
 <h1>Async Attribute for Scripts</h1>
 
-<div id=results>&nbsp;</div>
+<div id=results><br><br><br><br><br><br></div>
 
 <p style="margin-bottom: 0;">
 This test determines if your browser supports the HTML5 async attribute for scripts.  
-This page includes the following scripts in this order:
+This page uses four scripts with the following <b>source order</b>:
 </p>
-<ul>
-  <li> async script 1 - This script uses the async attribute. It takes <em>4</em> seconds to download.
-  <li> async script 2 - This script uses the async attribute. It takes <em>2</em> seconds to download.
-  <li> inline script - A simple inline script that records the current time.
-  <li> normal script - This script downloads immediately (no delay).
-</ul>
+<ol>
+  <li> async external script (takes 4 seconds to download)
+  <li> async external script (takes 2 seconds to download)
+  <li> inline script
+  <li> normal external script (downloads immediately)
+</ol>
 
 <p style="margin-bottom: 0;">
-If the browser supports the async attribute, the following conditions should be met:
-</p>
-<ul>
-  <li> The inline script should be executed first, even though its tag is the last one in the page. All the scripts should be downloaded in parallel, and the normal script has the shortest download time.
-  <li> Async script 2 should be executed before async script 1, even though its tag appears after async 1's tag. All the scripts should be downloaded in parallel, and async 2's download time is less than async 1's download time.
-  <li> The inline script should be executed before the async scripts, even though its tag appears after them. The async attribute should cause the browser to launch the requests for the two async scripts, and then continue parsing the page.
-  <li> The async scripts should be executed before the page's onload event. 
-</ul>
+There is also an onload handler script that executes when the page and all its resources have finished downloading.
+
+<p style="margin-bottom: 0;">
+If the async attribute works, the scripts will have the following <b>expected execution order</b>:
+
+<ol>
+  <li> inline script
+  <li> normal external script
+  <li> async script (2 second download)
+  <li> async script (4 second download)
+  <li> onload handler
+</ol>
+
+<!-- async external script (takes 4 seconds to download) -->
+<script src="http://{{ resource_cgi }}?type=js&script=async1&sleep=4&jsdelay=1&t={{ epoch }}" type="text/javascript" async></script>
+
+<!-- async external script (takes 2 seconds to download) -->
+<script src="http://{{ resource_cgi }}?type=js&script=async2&sleep=2&jsdelay=1&t={{ epoch }}" type="text/javascript" async></script>
+
+<!-- inline script -->
+<script type="text/javascript">
+script_order.push('inline');
+</script>
+
+<!-- normal external script -->
+<script src="http://{{ resource_cgi2 }}?type=js&script=normal&jsdelay=1&t={{ epoch }}" type="text/javascript"></script>
+
 {% endblock %}
+
