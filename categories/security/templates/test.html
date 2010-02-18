@@ -28,7 +28,7 @@
     }
     function recordResult(key, result) {
       window.results.push({"test": key, "result": result});
-      var li = document.getElementById(key);
+      var li = document.getElementById("li_" + key);
       li.className = (result ? "pass" : "fail");
       var span = document.createElement("span");
       li.innerHTML = '';
@@ -41,7 +41,7 @@
     function newTest(key) {
       tests.push(key);
       var li = document.createElement("li");
-      li.id = key;
+      li.id = "li_" + key;
       li.className = "running";
       var span = document.createElement("span");
       span.className = 'status';
