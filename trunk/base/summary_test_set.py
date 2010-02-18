@@ -41,6 +41,21 @@ for test_set in all_test_sets.GetTestSets():
 
 class SummaryTestSet(test_set_base.TestSet):
 
+  def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
+    """Get a normalized score (0 to 100) and a value to output to the display.
+
+    Args:
+      test_key: a key for a test_set test.
+      raw_scores: a dict of raw_scores indexed by test keys.
+    Returns:
+      score, display_value
+          # score is from 0 to 100.
+          # display_value is the text for the cell.
+    """
+    score = raw_scores[test_key]
+    return score, score
+
+
   def GetRowScoreAndDisplayValue(self, results):
     """Get the overall score for this row of results data.
     Args:
@@ -61,7 +76,7 @@ class SummaryTestSet(test_set_base.TestSet):
       score = 0
     else:
       score = results['score']['median']
-    return score, 'yo'
+    return score, score
 
 
 TEST_SET = SummaryTestSet(
