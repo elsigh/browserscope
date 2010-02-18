@@ -5,23 +5,6 @@ indexes:
   - name: backup
   - name: created_at
 
-
-# Used to rebuild rankers.
-- kind: ResultParent
-  properties:
-  - name: category
-  - name: user_agent
-
-# Used to rebuild rankers.
-- kind: ResultParent
-  properties:
-  - name: category
-  - name: user_agent
-  - name: __key__
-
-- kind: ResultRankerParent
-  ancestor: yes
-
 # Used to dump data.
 - kind: ResultParent
   properties:
@@ -43,22 +26,3 @@ indexes:
 # manually, move them above the marker line.  The index.yaml file is
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
-
-- kind: ResultTime
-  ancestor: yes
-
-- kind: UserAgent
-  properties:
-  - name: __key__
-    direction: desc
-
-- kind: UserAgentGroup
-  properties:
-  - name: v
-  - name: string
-
-- kind: UserAgentGroup
-  properties:
-  - name: v
-  - name: string
-    direction: desc
