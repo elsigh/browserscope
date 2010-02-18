@@ -113,16 +113,16 @@
     <div id="iframes"></div>
     <script>
     window.test_instance = Math.random();
-    runTest('postMessage', function () {
+    runTest('postMessage API', function () {
       return window.postMessage;
     });
-    runTest('JSON.parse', function () {
+    runTest('JSON.parse API', function () {
       return window.JSON && window.JSON.parse;
     });
-    runTest('toStaticHTML', function () {
+    runTest('toStaticHTML API', function () {
       return window.toStaticHTML;
     });
-    runTest('httpOnly cookies', function () {
+    runTest('httpOnly cookie API', function () {
       return document.cookie.indexOf('regularTestCookie') != -1 &&
              document.cookie.indexOf('httpOnlyTestCookie') == -1;
     });
