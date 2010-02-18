@@ -39,7 +39,7 @@ TOP_BROWSERS = (
   'Chrome 4', 'Chrome 5',
   'Firefox 3.5', 'Firefox 3.6',
   'IE 7', 'IE 8',
-  'iPhone 2.2', 'iPhone 3.1',
+  'iPhone 3.1',
   'Opera 10', 'Opera 10.50',
   'Safari 3.2', 'Safari 4.0'
 )
