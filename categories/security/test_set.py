@@ -71,7 +71,7 @@ _TESTS = (
   which prevents clickjacking attacks by restricting how pages may be framed.'''),
   SecurityTest('X-Content-Type-Options',
                'X-Content-Type-Options',
-  '''Checks whether the browser supports the <a href="http://ajaxian.com/archives/ie-8-security">X-Content-Type-Options API</a>,
+  '''Checks whether the browser supports the <a href="http://blogs.msdn.com/ie/archive/2008/07/02/ie8-security-part-v-comprehensive-protection.aspx">X-Content-Type-Options API</a>,
   which <a href="http://www.adambarth.com/papers/2009/barth-caballero-song.pdf">prevents MIME sniffing</a>.'''),
   SecurityTest('Block reflected XSS', 'Block reflected XSS',
   '''Checks whether the browser blocks execution of JavaScript code that appears in the request
