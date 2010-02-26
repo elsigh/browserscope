@@ -129,9 +129,28 @@
     runIframeTest('X-Frame-Options', SAME_ORIGIN_BASE_URL + 'xframe-outer.html', function (frame) {
       return !realTop.xframe_options_test_fail;
     });
-    runIframeTest('X-Content-Type-Options', NON_APP_ENGINE_BASE_URL + 'x-content-type-options.html', function (frame) {
-      return !realTop.x_content_type_options_test_fail;
-    });
+    function runContentTypeTest(key) {
+      var runTestCallback = newTest(key);
+      var sniff_iframe = document.createElement('iframe');
+      sniff_iframe.src = 'test/xcontenttype'; // text/plain MIME
+      observe(sniff_iframe, 'load', function () {
+        var nosniff_iframe = document.createElement('iframe');
+        if (realTop.x_content_type_options_test_fail) {
+          nosniff_iframe.src = 'test/xcontenttype?nosniff'; // text/plain MIME
+          realTop.x_content_type_options_test_fail = false;
+        } else {
+          nosniff_iframe.src = NON_APP_ENGINE_BASE_URL + 'x-content-type-options.html'; // missing MIME
+        }
+        observe(nosniff_iframe, 'load', function () {
+          runTestCallback(function() {
+            return !realTop.x_content_type_options_test_fail;
+          });
+        });
+        document.getElementById('iframes').appendChild(nosniff_iframe);
+      });
+      document.getElementById('iframes').appendChild(sniff_iframe);
+    }
+    runContentTypeTest('X-Content-Type-Options');
     var attack = "<script>script_ran = true<\/script>";
     runIframeTest('Block reflected XSS',
                   NON_APP_ENGINE_BASE_URL + "xss-frame-victim.html?" + attack,
