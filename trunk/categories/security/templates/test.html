@@ -215,23 +215,6 @@
     runIframeTest('Strict Transport Security', "https://ua-profiler.appspot.com/security/test/set-sts", function (frame) {
       return frame.contentDocument.documentElement.innerHTML.match(/PASS/);
     });
-    function runCrossOrignCssTest(key) {
-      var runTestCallback = newTest(key);
-      var attacker_iframe = document.createElement('iframe');
-      attacker_iframe.src = 'static/cross-origin-css-attacker.html';
-      observe(attacker_iframe, 'load', function () {
-        var result_iframe = document.createElement('iframe');
-        result_iframe.src = 'test/crossorigincss';
-        observe(result_iframe, 'load', function () {
-          runTestCallback(function() {
-            return result_iframe.contentDocument.documentElement.innerHTML.match(/PASS/);
-          });
-        });
-        document.getElementById('iframes').appendChild(result_iframe);
-      });
-      document.getElementById('iframes').appendChild(attacker_iframe);
-    }
-    runCrossOrignCssTest('Cross-origin CSS loading');
     commit();
     </script>
   </body>

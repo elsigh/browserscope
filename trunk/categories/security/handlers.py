@@ -80,14 +80,3 @@ def TestSts(request):
     return HttpResponsePermanentRedirect('http://www.browserscope.org/security/static/sts-pass.html')
   else:
     return HttpResponsePermanentRedirect('http://www.browserscope.org/security/static/sts-fail.html')
-
-def CrossOriginCssTest(request):
-  response = HttpResponse()
-  if 'SECRET' in request.GET:
-    response.set_cookie('CrossOriginCssTestCookie', '1', expires=None, path='/')
-  else:
-    if 'CrossOriginCssTestCookie' in request.COOKIES:
-      response.write('<html>FAIL</html>')
-    else:
-      response.write('<html>PASS</html>')
-  return response
