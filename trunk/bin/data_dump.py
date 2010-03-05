@@ -239,13 +239,19 @@ class DataDumpRpcServer(object):
         next_keys.append(key)
         if i == MAX_ENTITIES_REQUESTED:
           break
-      key_prefix = os.path.commonprefix(next_keys)
-      prefix_len = len(key_prefix)
-      params = {
-          'model': model,
-          'key_prefix': key_prefix,
-          'keys': ','.join([key[prefix_len:] for key in next_keys]),
-          }
+      if len(next_keys) == 1:
+        params = {
+            'model': model,
+            'keys': next_keys[0],
+            }
+      else:
+        key_prefix = os.path.commonprefix(next_keys)
+        prefix_len = len(key_prefix)
+        params = {
+            'model': model,
+            'key_prefix': key_prefix,
+            'keys': ','.join([key[prefix_len:] for key in next_keys]),
+            }
       start = datetime.datetime.now()
       params = self.Send('/admin/data_dump', params)
       logging.info('request_time=%s', str(datetime.datetime.now() - start)[:-7])
