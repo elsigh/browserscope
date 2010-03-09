@@ -117,7 +117,7 @@ class SelectorsTestSet(test_set_base.TestSet):
       if percent_passed:
         return percent_passed, '%.1f%%' % percent_passed
       else:
-        return 100, '0%'
+        return 1, '0%'
     else:
       return 0, ''
 
