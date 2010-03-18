@@ -135,19 +135,24 @@ class CategoryBrowserManager(db.Model):
     return list(all_browsers)
 
   @classmethod
-  def GetFilteredBrowsers(cls, category, filter):
+  def GetFilteredBrowsers(cls, category, filters):
     """Get browsers based on a filter (prefixes for now).
 
     Args:
       category: a category string like 'network' or 'reflow'.
-      filter: a string such as 'Firefox', 'Opera 9'
+      filters: a list of filters like 'Firefox*' (prefix) or 'Firefox 3' (exact)
     Returns:
       ('Firefox 3.1', 'Safari 4.0', 'Safari 4.5', ...)
     """
-    filtered_browsers = [
-        browser for browser in cls.GetBrowsers(category, version_level=3)
-        if (browser.startswith(filter) and
-            (filter != 'Opera' or not browser.startswith('Opera Mini')))]
+    filtered_browsers = []
+    for browser in cls.GetBrowsers(category, version_level=3):
+      for filtr in filters:
+        if filtr[-1:] == '*':
+          if (browser.startswith(filtr[:-1]) and
+              (filtr != 'Opera*' or not browser.startswith('Opera Mini'))):
+            filtered_browsers.append(browser)
+        elif browser == filtr:
+          filtered_browsers.append(browser)
     return filtered_browsers
 
   @classmethod

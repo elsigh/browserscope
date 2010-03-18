@@ -139,13 +139,6 @@ class ChromeFrameTest(unittest.TestCase):
                         'AppleWebKit/530.1 (KHTML, like Gecko) '
                         'Chrome/2.0.169.1 Safari/530.1')
 
-  CHROME_FRAME_STRINGS = (
-      # (family, v1, v2, v3, actual_user_agent_string)
-      ('Chrome Frame (IE 6)', '2', '0', '169',
-       'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; Trident/4.0; '
-       'chromeframe; 3.5.30729),gzip(gfe),gzip(gfe)'),
-      )
-
   def testChromeFrameParseSleipnir(self):
     parts = UserAgent.parse(
         'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; '

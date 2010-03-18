@@ -23,6 +23,7 @@ urlpatterns = patterns('',
   (r'^beacon.*', 'base.util.Beacon'),
   (r'^get_csrf',  'base.util.GetCsrf'),
   (r'^resource',  'third_party.resource-cgi.resource.Handler'),
+  (r'^timeline$', 'base.util.BrowserTimeLine'),  # beta
 
   # Admin functionality
   (r'^update_datastore', 'base.util.UpdateDatastore'),

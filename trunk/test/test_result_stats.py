@@ -172,22 +172,29 @@ class CategoryBrowserManagerFilterTest(unittest.TestCase):
   def testGetFilteredBrowsersFamily(self):
     expected_browsers = [
         'Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8']
-    browsers = self.cls.GetFilteredBrowsers(self.category, 'Firefox')
+    browsers = self.cls.GetFilteredBrowsers(self.category, ['Firefox*'])
     self.assertEqual(expected_browsers, browsers)
 
   def testGetFilteredBrowsersMajorVersion(self):
     expected_browsers = ['Firefox 3.0.7', 'Firefox 3.1.7', 'Firefox 3.1.8']
-    browsers = self.cls.GetFilteredBrowsers(self.category, 'Firefox 3')
+    browsers = self.cls.GetFilteredBrowsers(self.category, ['Firefox 3*'])
     self.assertEqual(expected_browsers, browsers)
 
   def testGetFilteredBrowsersMinorVersion(self):
     expected_browsers = ['Firefox 3.1.7', 'Firefox 3.1.8']
-    browsers = self.cls.GetFilteredBrowsers(self.category, 'Firefox 3.1')
+    browsers = self.cls.GetFilteredBrowsers(self.category, ['Firefox 3.1*'])
     self.assertEqual(expected_browsers, browsers)
 
   def testGetFilteredBrowsersOperaSkipsOperaMini(self):
     expected_browsers = ['Opera 9.70']  # Opera Mini 4.0.10031 is excluded
-    browsers = self.cls.GetFilteredBrowsers(self.category, 'Opera')
+    browsers = self.cls.GetFilteredBrowsers(self.category, ['Opera*'])
+    self.assertEqual(expected_browsers, browsers)
+
+  def testGetFilteredBrowsersMinorVersion(self):
+    expected_browsers = [
+        'Firefox 2.5.1', 'Firefox 3.1.7', 'Firefox 3.1.8', 'Opera 9.70']
+    browsers = self.cls.GetFilteredBrowsers(
+        self.category, ['Firefox 2.5.1', 'Firefox 3.1*', 'Opera*'])
     self.assertEqual(expected_browsers, browsers)
 
 
