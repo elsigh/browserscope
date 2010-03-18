@@ -47,6 +47,7 @@ import settings
 from models import result_stats
 from models.result import *
 from models.user_agent import *
+from models import user_agent_release_dates
 from categories import all_test_sets
 from categories import test_set_params
 from base import decorators
@@ -262,7 +263,8 @@ def Home(request):
 
   # Tell GetStats what to output.
   output = request.GET.get('o', 'html')
-  if output not in ['html', 'pickle', 'xhr', 'csv', 'gviz', 'gviz_data']:
+  if output not in ['html', 'pickle', 'xhr', 'csv',
+                    'gviz', 'gviz_data', 'gviz_timeline_data']:
     return http.HttpResponse('Invalid output specified')
   stats_table = GetStats(request, test_set, output)
 
@@ -270,7 +272,7 @@ def Home(request):
   if category in settings.STATIC_CATEGORIES and output in ['xhr', 'html']:
     stats_table = '%s%s' % (STATIC_MESSAGE, stats_table)
 
-  if output in ['xhr', 'pickle', 'csv', 'gviz', 'gviz_data']:
+  if output in ['xhr', 'pickle', 'csv', 'gviz', 'gviz_data', 'gviz_timeline_data']:
     return http.HttpResponse(stats_table)
   else:
     params = {
@@ -285,6 +287,16 @@ def Home(request):
       'message': request.GET.get('message'),
     }
     return Render(request, 'home.html', params)
+
+
+def BrowserTimeLine(request):
+  category = request.GET.get('category') or settings.CATEGORIES[0]
+  params = {
+      'category': category,
+      'ua_params': request.GET.get('ua', 'Chrome*,IE*,Firefox*,Opera*,Safari*'),
+      'page_title': 'Browser Time Line',
+    }
+  return Render(request, 'timeline.html', params)
 
 
 def BrowseResults(request):
@@ -547,9 +559,9 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
   visible_test_keys = [t.key for t in test_set.VisibleTests()]
 
   browsers = browser_param and browser_param.split(',') or None
-  if browsers and len(browsers) == 1 and browsers[0][-1] == '*':
+  if browsers and '*' in browser_param:
     browsers = result_stats.CategoryBrowserManager.GetFilteredBrowsers(
-        category, browsers[0][:-1])
+        category, browsers)
   if (not is_skip_static and category in settings.STATIC_CATEGORIES
       and output in ('html', 'xhr')):
     # Use pickle'd data to which we can integrate a user's results.
@@ -626,18 +638,21 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
   elif output in ['csv', 'gviz']:
     return GetStatsDataTemplatized(params, output)
   elif output == 'gviz_data':
-    return FormatStatsDataAsGviz(params, request)
+    return FormatStatsDataAsGviz(params, request.GET.get('tqx', ''))
+  elif output == 'gviz_timeline_data':
+    return FormatStatsDataAsGvizTimeLine(params, request.GET.get('tqx', ''))
   else:
     return params
 
 
-def FormatStatsDataAsGviz(params, request):
+def FormatStatsDataAsGviz(params, tqx):
   """Takes the output of GetStats and returns a GViz appropriate response.
   This makes use of the Python GViz API on Google Code.
   Copied roughly from:
     http://code.google.com/p/google-visualization-python/source/browse/trunk/examples/dynamic_example.py
   Args:
     params: The dict output from GetStats.
+    tqx: The value of 'tqx' request parameter.
   Returns:
     A JSON string as content in a text/plain HttpResponse.
   """
@@ -651,7 +666,59 @@ def FormatStatsDataAsGviz(params, request):
   data_table = gviz_api.DataTable(description)
   data_table.LoadData(data)
 
-  return data_table.ToResponse(tqx=request.GET.get('tqx', ''))
+  return data_table.ToResponse(tqx=tqx)
+
+
+def FormatStatsDataAsGvizTimeLine(params, tqx):
+  """Takes the output of GetStats and returns a GViz appropriate response.
+  This makes use of the Python GViz API on Google Code.
+  Copied roughly from:
+    http://code.google.com/p/google-visualization-python/source/browse/trunk/examples/dynamic_example.py
+  Args:
+    params: The dict output from GetStats.
+    tqx: The value of 'tqx' request parameter.
+  Returns:
+    A JSON string as content in a text/plain HttpResponse.
+  """
+  data = []
+  families = [x.split('*', 1)[0] for x in params['ua_by_param'].split(',')]
+  description = [('date', 'date')]
+  for family_index, family in enumerate(families):
+    description.extend([
+        ('score%d' % family_index, 'number', family),
+        ('version%d' % family_index, 'string'),
+        ('comment%d' % family_index, 'string'),
+        ])
+  date_data = {}
+  family_indexes = {}
+  for user_agent in params['user_agents']:
+    ua_stats = params['stats'].get(user_agent, {})
+    score = ua_stats.get('summary_score', None)
+    total_runs = ua_stats.get('total_runs', 0)
+    min_total_runs = settings.BUILD == 'production' and 5 or 0
+    if score is not None and total_runs and total_runs > min_total_runs:
+      browser, version_string = user_agent.rsplit(' ', 1)
+      date = user_agent_release_dates.ReleaseDate(browser, version_string)
+      if date:
+        if browser in family_indexes:
+          family_index = family_indexes[browser]
+        else:
+          family_index = None
+          for family_index, family in enumerate(families):
+            if browser.startswith(family):
+              family_indexes.setdefault(browser, family_index)
+              break
+        if family_index is not None:
+          summary_display = ua_stats.get('summary_display', '--')
+          row = date_data.setdefault(date, [None] * (3 * len(families)))
+          row[family_index * 3] = score
+          row[family_index * 3 + 1] = "%s %s" % (
+              families[family_index], version_string)
+          row[family_index * 3 + 2] = "%s score; %s tests" % (
+              summary_display, total_runs)
+  data = [[date] + row for date, row in sorted(date_data.items())]
+  data_table = gviz_api.DataTable(description, data)
+  return data_table.ToResponse(tqx=tqx)
 
 
 def GetStatsDataTemplatized(params, template='table'):

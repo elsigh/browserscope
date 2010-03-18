@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+
+{% ifequal build "production" %}
+  <script src="{{ "browserscope.js"|resource_path }}"></script>
+{% else %}
+  <script src="{{ "dev.js"|resource_path }}"></script>
+  <script src="{{ "util.js"|resource_path }}"></script>
+{% endifequal %}
+
+  <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+  <script type="text/javascript">
+    google.load('visualization', '1', {packages: ['annotatedtimeline']});
+    google.setOnLoadCallback(initialize);
+
+    function initialize() {
+      var query = new google.visualization.Query(
+        "/?category={{ category }}&ua={{ ua_params }}&v=3&o=gviz_timeline_data&tqx=reqId:0");
+      query.send(draw);
+    }
+
+    function draw(response) {
+      if (response.isError()) {
+        alert('Error in query');
+      }
+      var data = response.getDataTable()
+     
+      var annotatedtimeline = new google.visualization.AnnotatedTimeLine(
+          document.getElementById('visualization'));
+      annotatedtimeline.draw(data, {
+                                    //'colors': ['blue', 'red', '#0000bb'], // The colors to be used
+                                    'displayAnnotations': true,
+                                    'annotationsWidth': 35,
+                                    //'displayExactValues': true, // Do not truncate values (i.e. using K suffix)
+                                    //'displayRangeSelector' : false, // Do not sow the range selector
+                                    //'displayZoomButtons': false, // DO not display the zoom buttons
+                                    //'fill': 30, // Fill the area below the lines with 20% opacity
+                                    'legendPosition': 'newRow', // Can be sameRow
+                                    //'max': 100000, // Override the automatic default
+                                    //'min':  100000, // Override the automatic default
+                                    //'scaleColumns': [0, 1], // Have two scales, by the first and second lines
+                                    //'scaleType': 'allfixed', // See docs...
+                                    'thickness': 2, // Make the lines thicker
+    //'zoomStartTime': new Date(2009, 1 ,2), //NOTE: month 1 = Feb (javascript to blame)
+      //                              'zoomEndTime': new Date(2009, 1 ,5) //NOTE: month 1 = Feb (javascript to blame)
+                                   });
+    }
+  </script>
+
+<p>Alpha</p>
+
+<div id="visualization" style="width: 850px; height: 400px;"></div>
+
+
+{% endblock %}
+
