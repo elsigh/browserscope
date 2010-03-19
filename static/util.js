@@ -1058,6 +1058,10 @@ Util.TestDriver.prototype.sendScore = function(testResults,
   var data = 'category=' + this.category + '&results=' +
       testResults.join(',') + '&csrf_token=' + this.csrfToken +
       '&js_ua=' + escape(uaString);
+  if (document.documentMode != undefined) {
+    // Needed to detect IE 9 preview
+    data += '&doc_mode=' + document.documentMode;
+  }
 
   // Autorun always shares your score.
   if (this.autorun) {
