@@ -45,23 +45,6 @@ class UserAgentTest(unittest.TestCase):
     results = query.fetch(2)
     self.assertEqual(1, len(results))
 
-
-  def test_parse(self):
-
-    ua_string = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.1pre) '
-                 'Gecko/20090717 Ubuntu/9.04 (jaunty) Shiretoko/3.5.1pre')
-    self.assertEqual(('Firefox (Shiretoko)', '3', '5', '1pre'),
-                     UserAgent.parse(ua_string))
-
-    ua_string = ('Mozilla/5.0 (X11; U; Linux; de-DE) AppleWebKit/527  '
-                 '(KHTML, like Gecko, Safari/419.3) '
-                 'konqueror/4.3.1,gzip(gfe),gzip(gfe)')
-    self.assertEqual(('Konqueror', '4', '3', '1'), UserAgent.parse(ua_string))
-
-
-    ua_string = 'SomethingWeNeverKnewExisted'
-    self.assertEqual(('Other', None, None, None), UserAgent.parse(ua_string))
-
   def test_parse_pretty(self):
     browsers = (
         ('Chrome Frame (IE 6) 4.0.223', ('Chrome Frame (IE 6)', '4', '0', '223')),
@@ -133,39 +116,11 @@ class UserAgentTest(unittest.TestCase):
         UserAgent.parse_to_string_list('Safari 100.33preA4'))
 
 
-class ChromeFrameTest(unittest.TestCase):
+class ChromeFrameFactoryTest(unittest.TestCase):
 
-  CHROME_UA_STRING = ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '
-                        'AppleWebKit/530.1 (KHTML, like Gecko) '
-                        'Chrome/2.0.169.1 Safari/530.1')
-
-  def testChromeFrameParseSleipnir(self):
-    parts = UserAgent.parse(
-        'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; '
-        'chromeframe; .NET CLR 2.0.50727; .NET CLR 3.0.4506.2152; .NET CLR '
-        '3.5.30729; Sleipnir 2.8.5),gzip(gfe),gzip(gfe)',
-        js_user_agent_string=self.CHROME_UA_STRING)
-    self.assertEqual(('Chrome Frame (Sleipnir 2)', '2', '0', '169'), parts)
-
-  def testChromeFrameParseIE(self):
-    parts = UserAgent.parse(
-        'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; '
-        'chromeframe; SLCC1; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR '
-        '3.0.30729),gzip(gfe),gzip(gfe)',
-        js_user_agent_string=self.CHROME_UA_STRING)
-    self.assertEqual(('Chrome Frame (IE 8)', '2', '0', '169'), parts)
-
-    # Make sure regular IE doesn't get parsed incorrectly if Chrome Frame is
-    # installed but not enabled.
-    ie8_js_ua_string = ('Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; '
-        'Trident/4.0; GTB6; chromeframe; .NET CLR 2.0.50727; '
-        '.NET CLR 1.1.4322; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022; '
-        '.NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)')
-    parts = UserAgent.parse(
-        'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; GTB6; '
-        'chromeframe; .NET CLR 2.0.50727; .NET CLR 1.1.4322; .NET CLR ' '3.0.04506.648; .NET CLR 3.5.21022; .NET CLR 3.0.4506.2152; .NET CLR ' '3.5.30729),gzip(gfe),gzip(gfe)',
-        js_user_agent_string=ie8_js_ua_string)
-    self.assertEqual(('IE', '8', '0', None), parts)
+  CHROME_UA_STRING = (
+      'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/530.1 '
+      '(KHTML, like Gecko) Chrome/2.0.169.1 Safari/530.1')
 
   def testChromeFrameFactoryExpandoProperty(self):
     ua_string = (
@@ -196,6 +151,20 @@ class ChromeFrameTest(unittest.TestCase):
     ua.put()
     ua2 = UserAgent.factory(ua_string, js_user_agent_string=None)
     self.assertEqual(99, ua2.remember_me)
+
+  def testChromeFrameGivenEvenWhenRegularIEComesFirst(self):
+    ua_string = (
+        'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 6.0; Trident/4.0; '
+        'chromeframe; SLCC1; .NET CLR 2.0.5077; 3.0.30729),gzip(gfe),gzip(gfe)')
+    ua = UserAgent.factory(
+        ua_string, js_user_agent_string=None)
+    ua2 = UserAgent.factory(
+        ua_string, js_user_agent_string=self.CHROME_UA_STRING)
+    ua3 = UserAgent.factory(
+        ua_string, js_user_agent_string=None)
+    self.assertEqual('IE', ua.family)
+    self.assertEqual('Chrome Frame (IE 6)', ua2.family)
+    self.assertEqual('IE', ua3.family)
 
 
 class CrazyRigorousUserAgentTest_SKIP_ME(object):

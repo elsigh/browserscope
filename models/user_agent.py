@@ -92,41 +92,28 @@ class UserAgent(db.Expando):
     """
     normal_string = string.replace(',gzip(gfe)', '')
     query = db.Query(cls)
+    filters = user_agent_parser.GetFilters(string, **kwds)
     query.filter('string =', string)
-    for key, value in kwds.items():
-      if value is not None:
-        query.filter('%s =' % key, value)
+    for key, value in filters.items():
+      query.filter('%s =' % key, value)
     user_agent = query.get()
     if user_agent is None:
       query = db.Query(cls)
       query.filter('string =', normal_string)
-      for key, value in kwds.items():
-        if value is not None:
-          query.filter('%s =' % key, value)
+      for key, value in filters.items():
+        query.filter('%s =' % key, value)
       user_agent = query.get()
 
     if user_agent is None:
-      family, v1, v2, v3 = cls.parse(string, **kwds)
+      family, v1, v2, v3 = user_agent_parser.Parse(string, **filters)
       user_agent = cls(string=string,
                        family=family,
                        v1=v1,
                        v2=v2,
                        v3=v3,
-                       **kwds)
+                       **filters)  # save using expando properties
       user_agent.put()
     return user_agent
-
-  @classmethod
-  def parse(cls, user_agent_string, js_user_agent_string=None):
-    """Parses the user-agent string and returns the bits.
-
-    Args:
-      user_agent_string: The full user-agent string.
-    Returns:
-      [family, v1, v2, v3]
-      e.g. ['Chrome', '4', '0', '203']
-    """
-    return user_agent_parser.Parse(user_agent_string, js_user_agent_string)
 
   @staticmethod
   def parse_pretty(pretty_string):

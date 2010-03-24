@@ -163,11 +163,42 @@ USER_AGENT_PARSERS = (
 # select family, v1, v2, v3 from user_agent where v3 regexp '[a-zA-Z]' group by family, v1, v2, v3;
 
 
-def Parse(user_agent_string, js_user_agent_string=None):
+def GetFilters(user_agent_string, js_user_agent_string=None,
+          js_document_mode=None):
+  """Return the optional arguments that should be saved and used to query.
+
+  js_user_agent_string is always returned if it is present. We really only need
+  it for Chrome Frame. However, I added it in the generally case to find other
+  cases when it is different. When the recording of js_user_agent_string was
+  added, we created new records for all new user agents.
+
+  Since we only added js_document_mode for the IE 9 preview case, it did not
+  cause new user agent records the way js_user_agent_string did.
+
+  Args:
+    user_agent_string: The full user-agent string.
+    js_user_agent_string: JavaScript ua string from client-side
+    js_document_mode: JavaScript document.documentMode ('9' for IE 9 preview)
+  Returns:
+    {js_user_agent_string: '[...]', js_document_mode: '[...]'}
+  """
+  filters = {}
+  if js_user_agent_string is not None:
+    filters['js_user_agent_string'] = js_user_agent_string
+  if js_document_mode == '9':
+    # Detect the IE 9 case
+    filters['js_document_mode'] = '9'
+  return filters
+
+
+def Parse(user_agent_string, js_user_agent_string=None,
+          js_document_mode=None):
   """Parses the user-agent string and returns the bits.
 
   Args:
     user_agent_string: The full user-agent string.
+    js_user_agent_string: JavaScript ua string from client-side
+    js_document_mode: JavaScript document.documentMode ('9' for IE 9 preview)
   Returns:
     [family, v1, v2, v3]
     e.g. ['Chrome', '4', '0', '203']
@@ -181,4 +212,6 @@ def Parse(user_agent_string, js_user_agent_string=None):
       user_agent_string.find('chromeframe') > -1):
     family = 'Chrome Frame (%s %s)' % (family, v1)
     cf_family, v1, v2, v3 = Parse(js_user_agent_string)
+  if (js_document_mode == '9' and family == 'IE' and v1 == '8'):
+    family, v1 = 'IE Platform Preview', '9'
   return family or 'Other', v1, v2, v3
