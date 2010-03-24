@@ -188,6 +188,8 @@ Util.reconcileClientServerUaPretty = function(httpUserAgent, userAgentPretty) {
   if (httpUserAgent.indexOf('chromeframe') != -1 &&
       ua.indexOf('chromeframe') == -1) {
     reconciledUa = 'Chrome Frame (' + userAgentPretty + ')';
+  } else if (userAgentPretty == 'IE 8.0' && document.documentMode == 9) {
+    reconciledUa = 'IE Platform Preview 9.0';
   }
   return reconciledUa;
 };
