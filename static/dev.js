@@ -3631,7 +3631,7 @@ goog.string.Unicode = {
  * @return {boolean} True if {@code str} begins with {@code prefix}.
  */
 goog.string.startsWith = function(str, prefix) {
-  return str.indexOf(prefix) == 0;
+  return str.lastIndexOf(prefix, 0) == 0;
 };
 
 
@@ -3643,7 +3643,7 @@ goog.string.startsWith = function(str, prefix) {
  */
 goog.string.endsWith = function(str, suffix) {
   var l = str.length - suffix.length;
-  return l >= 0 && str.lastIndexOf(suffix, l) == l;
+  return l >= 0 && str.indexOf(suffix, l) == l;
 };
 
 
@@ -5843,6 +5843,46 @@ goog.dom.createTextNode = function(content) {
 
 
 /**
+ * Create a table.
+ * @param {number} rows The number of rows in the table.  Must be >= 1.
+ * @param {number} columns The number of columns in the table.  Must be >= 1.
+ * @param {boolean=} opt_fillWithNbsp If true, fills table entries with nsbps.
+ * @return {!Element} The created table.
+ */
+goog.dom.createTable = function(rows, columns, opt_fillWithNbsp) {
+  return goog.dom.createTable_(document, rows, columns, !!opt_fillWithNbsp);
+};
+
+
+/**
+ * Create a table.
+ * @param {!Document} doc Document object to use to create the table.
+ * @param {number} rows The number of rows in the table.  Must be >= 1.
+ * @param {number} columns The number of columns in the table.  Must be >= 1.
+ * @param {boolean} fillWithNbsp If true, fills table entries with nsbps.
+ * @return {!Element} The created table.
+ * @private
+ */
+goog.dom.createTable_ = function(doc, rows, columns, fillWithNbsp) {
+  var rowHtml = ['<tr>'];
+  for (var i = 0; i < columns; i++) {
+    rowHtml.push(fillWithNbsp ? '<td>&nbsp;</td>' : '<td></td>');
+  }
+  rowHtml.push('</tr>');
+  rowHtml = rowHtml.join('');
+  var totalHtml = ['<table>'];
+  for (i = 0; i < rows; i++) {
+    totalHtml.push(rowHtml);
+  }
+  totalHtml.push('</table>');
+
+  var elem = doc.createElement(goog.dom.TagName.DIV);
+  elem.innerHTML = totalHtml.join('');
+  return /** @type {!Element} */ (elem.removeChild(elem.firstChild));
+};
+
+
+/**
  * Converts an HTML string into a document fragment.
  *
  * @param {string} htmlString The HTML string to convert.
@@ -5865,7 +5905,7 @@ goog.dom.htmlToDocumentFragment_ = function(doc, htmlString) {
   var tempDiv = doc.createElement('div');
   tempDiv.innerHTML = htmlString;
   if (tempDiv.childNodes.length == 1) {
-    return /** @type {!Node} */ (tempDiv.firstChild);
+    return /** @type {!Node} */ (tempDiv.removeChild(tempDiv.firstChild));
   } else {
     var fragment = doc.createDocumentFragment();
     while (tempDiv.firstChild) {
@@ -6108,6 +6148,53 @@ goog.dom.getNextElementNode_ = function(node, forward) {
   }
 
   return /** @type {Element} */ (node);
+};
+
+
+/**
+ * Returns the next node in source order from the given node.
+ * @param {Node} node The node.
+ * @return {Node} The next node in the DOM tree, or null if this was the last
+ *     node.
+ */
+goog.dom.getNextNode = function(node) {
+  if (!node) {
+    return null;
+  }
+
+  if (node.firstChild) {
+    return node.firstChild;
+  }
+
+  while (node && !node.nextSibling) {
+    node = node.parentNode;
+  }
+
+  return node ? node.nextSibling : null;
+};
+
+
+/**
+ * Returns the previous node in source order from the given node.
+ * @param {Node} node The node.
+ * @return {Node} The previous node in the DOM tree, or null if this was the
+ *     first node.
+ */
+goog.dom.getPreviousNode = function(node) {
+  if (!node) {
+    return null;
+  }
+
+  if (!node.previousSibling) {
+    return node.parentNode;
+  }
+
+  node = node.previousSibling;
+  while (node && node.lastChild) {
+    node = node.lastChild;
+  }
+
+  return node;
 };
 
 
@@ -6970,6 +7057,20 @@ goog.dom.DomHelper.prototype.createTextNode = function(content) {
 
 
 /**
+ * Create a table.
+ * @param {number} rows The number of rows in the table.  Must be >= 1.
+ * @param {number} columns The number of columns in the table.  Must be >= 1.
+ * @param {boolean=} opt_fillWithNbsp If true, fills table entries with nsbps.
+ * @return {!Element} The created table.
+ */
+goog.dom.DomHelper.prototype.createTable = function(rows, columns,
+    opt_fillWithNbsp) {
+  return goog.dom.createTable_(this.document_, rows, columns,
+      !!opt_fillWithNbsp);
+};
+
+
+/**
  * Converts an HTML string into a node or a document fragment.  A single Node
  * is used if the {@code htmlString} only generates a single node.  If the
  * {@code htmlString} generates multiple nodes then these are put inside a
@@ -7124,6 +7225,26 @@ goog.dom.DomHelper.prototype.getNextElementSibling =
  */
 goog.dom.DomHelper.prototype.getPreviousElementSibling =
     goog.dom.getPreviousElementSibling;
+
+
+/**
+ * Returns the next node in source order from the given node.
+ * @param {Node} node The node.
+ * @return {Node} The next node in the DOM tree, or null if this was the last
+ *     node.
+ */
+goog.dom.DomHelper.prototype.getNextNode =
+    goog.dom.getNextNode;
+
+
+/**
+ * Returns the previous node in source order from the given node.
+ * @param {Node} node The node.
+ * @return {Node} The previous node in the DOM tree, or null if this was the
+ *     first node.
+ */
+goog.dom.DomHelper.prototype.getPreviousNode =
+    goog.dom.getPreviousNode;
 
 
 /**
@@ -7509,6 +7630,28 @@ goog.events.Event.prototype.stopPropagation = function() {
 goog.events.Event.prototype.preventDefault = function() {
   this.returnValue_ = false;
 };
+
+
+/**
+ * Stops the propagation of the event. It is equivalent to
+ * {@code e.stopPropagation()}, but can be used as the callback argument of
+ * {@link goog.events.listen} without declaring another function.
+ * @param {!goog.events.Event} e An event.
+ */
+goog.events.Event.stopPropagation = function(e) {
+  e.stopPropagation();
+};
+
+
+/**
+ * Prevents the default action. It is equivalent to
+ * {@code e.preventDefault()}, but can be used as the callback argument of
+ * {@link goog.events.listen} without declaring another function.
+ * @param {!goog.events.Event} e An event.
+ */
+goog.events.Event.preventDefault = function(e) {
+  e.preventDefault();
+};
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -7716,6 +7859,14 @@ goog.events.BrowserEvent.prototype.metaKey = false;
 
 
 /**
+ * Whether the deafault platform modifier key was pressed at time of event.
+ * (This is control for all platformes except Mac, where it's Meta.
+ * @type {boolean}
+ */
+goog.events.BrowserEvent.prototype.platformModifierKey = false;
+
+
+/**
  * The browser event object.
  * @type {Event}
  * @private
@@ -7773,6 +7924,7 @@ goog.events.BrowserEvent.prototype.init = function(e, opt_currentTarget) {
   this.altKey = e.altKey;
   this.shiftKey = e.shiftKey;
   this.metaKey = e.metaKey;
+  this.platformModifierKey = goog.userAgent.MAC ? e.metaKey : e.ctrlKey;
   this.event_ = e;
   delete this.returnValue_;
   delete this.propagationStopped_;
@@ -13750,7 +13902,8 @@ goog.net.EventType = {
   READY: 'ready',
   READY_STATE_CHANGE: 'readystatechange',
   TIMEOUT: 'timeout',
-  INCREMENTAL_DATA: 'incrementaldata'
+  INCREMENTAL_DATA: 'incrementaldata',
+  PROGRESS: 'progress'
 };
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14329,7 +14482,7 @@ goog.net.XhrIo.sendInstances_ = [];
  * Static send that creates a short lived instance of XhrIo to send the
  * request.
  * @see goog.net.XhrIo.cleanupAllPendingStaticSends
- * @param {string|goog.Uri} url Uri to make request too.
+ * @param {string|goog.Uri} url Uri to make request to.
  * @param {Function=} opt_callback Callback function for when request is
  *     complete.
  * @param {string=} opt_method Send method, default: GET.
@@ -15894,7 +16047,7 @@ goog.math.Box.equals = function(a, b) {
 
 
 /**
- * Returns whether a box contains a coordinate.
+ * Returns whether a box contains a coordinate or another box.
  *
  * @param {goog.math.Box} box A Box.
  * @param {goog.math.Coordinate|goog.math.Box} other A Coordinate or a Box.
@@ -22900,7 +23053,6 @@ goog.ui.Tooltip.ElementTooltipPosition.prototype.reposition = function(
 
 goog.provide('goog.debug.Error');
 
-goog.require('goog.debug');
 
 
 /**
@@ -22913,7 +23065,6 @@ goog.debug.Error = function(opt_msg) {
 
   // Ensure there is a stack trace.
   this.stack = new Error().stack || '';
-  goog.debug.enhanceError(this);
 
   if (opt_msg) {
     this.message = String(opt_msg);
@@ -23069,6 +23220,7 @@ goog.asserts.fail = function(opt_message, var_args) {
  * @param {*} value The value to check.
  * @param {string=} opt_message Error message in case of failure.
  * @param {...*} var_args The items to substitute into the failure message.
+ * @return {number} The value, guaranteed to be a number when asserts enabled.
  * @throws {goog.asserts.AssertionError} When the value is not a number.
  */
 goog.asserts.assertNumber = function(value, opt_message, var_args) {
@@ -23076,6 +23228,7 @@ goog.asserts.assertNumber = function(value, opt_message, var_args) {
     goog.asserts.doAssertFailure_('Expected number but got %s.', [value],
          opt_message, Array.prototype.slice.call(arguments, 2));
   }
+  return /** @type {number} */ (value);
 };
 
 
@@ -23084,6 +23237,7 @@ goog.asserts.assertNumber = function(value, opt_message, var_args) {
  * @param {*} value The value to check.
  * @param {string=} opt_message Error message in case of failure.
  * @param {...*} var_args The items to substitute into the failure message.
+ * @return {string} The value, guaranteed to be a string when asserts enabled.
  * @throws {goog.asserts.AssertionError} When the value is not a string.
  */
 goog.asserts.assertString = function(value, opt_message, var_args) {
@@ -23091,6 +23245,7 @@ goog.asserts.assertString = function(value, opt_message, var_args) {
     goog.asserts.doAssertFailure_('Expected string but got %s.', [value],
          opt_message, Array.prototype.slice.call(arguments, 2));
   }
+  return /** @type {string} */ (value);
 };
 
 
@@ -23099,6 +23254,8 @@ goog.asserts.assertString = function(value, opt_message, var_args) {
  * @param {*} value The value to check.
  * @param {string=} opt_message Error message in case of failure.
  * @param {...*} var_args The items to substitute into the failure message.
+ * @return {!Function} The value, guaranteed to be a function when asserts
+ *     enabled.
  * @throws {goog.asserts.AssertionError} When the value is not a function.
  */
 goog.asserts.assertFunction = function(value, opt_message, var_args) {
@@ -23106,6 +23263,7 @@ goog.asserts.assertFunction = function(value, opt_message, var_args) {
     goog.asserts.doAssertFailure_('Expected function but got %s.', [value],
          opt_message, Array.prototype.slice.call(arguments, 2));
   }
+  return /** @type {!Function} */ (value);
 };
 
 
@@ -23114,6 +23272,7 @@ goog.asserts.assertFunction = function(value, opt_message, var_args) {
  * @param {*} value The value to check.
  * @param {string=} opt_message Error message in case of failure.
  * @param {...*} var_args The items to substitute into the failure message.
+ * @return {!Object} The value, guaranteed to be a non-null object.
  * @throws {goog.asserts.AssertionError} When the value is not an object.
  */
 goog.asserts.assertObject = function(value, opt_message, var_args) {
@@ -23121,6 +23280,24 @@ goog.asserts.assertObject = function(value, opt_message, var_args) {
     goog.asserts.doAssertFailure_('Expected object but got %s.', [value],
          opt_message, Array.prototype.slice.call(arguments, 2));
   }
+  return /** @type {!Object} */ (value);
+};
+
+
+/**
+ * Checks if the value is an Array if goog.asserts.ENABLE_ASSERTS is true.
+ * @param {*} value The value to check.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @return {!Array} The value, guaranteed to be a non-null array.
+ * @throws {goog.asserts.AssertionError} When the value is not an array.
+ */
+goog.asserts.assertArray = function(value, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !goog.isArray(value)) {
+    goog.asserts.doAssertFailure_('Expected array but got %s.', [value],
+         opt_message, Array.prototype.slice.call(arguments, 2));
+  }
+  return /** @type {!Array} */ (value);
 };
 
 
@@ -23326,16 +23503,20 @@ goog.uri.utils.buildFromEncodedParts = function(opt_scheme, opt_userInfo,
 goog.uri.utils.splitRe_ = new RegExp(
     '^' +
     '(?:' +
-      '([^:/?#]+)' +         // scheme
+      '([^:/?#.]+)' +                     // scheme - ignore special characters
+                                          // used by other URL parts such as :,
+                                          // ?, /, #, and .
     ':)?' +
     '(?://' +
-      '(?:([^/?#]*)@)?' +    // userInfo
-      '([^/?#:@]*)' +        // domain
-      '(?::([0-9]+))?' +     // port
+      '(?:([^/?#]*)@)?' +                 // userInfo
+      '([\\w\\d\\-\\u0100-\\uffff.%]*)' + // domain - restrict to letters,
+                                          // digits, dashes, dots, percent
+                                          // escapes, and unicode characters.
+      '(?::([0-9]+))?' +                  // port
     ')?' +
-    '([^?#]+)?' +            // path
-    '(?:\\?([^#]*))?' +      // query
-    '(?:#(.*))?' +           // fragment
+    '([^?#]+)?' +                         // path
+    '(?:\\?([^#]*))?' +                   // query
+    '(?:#(.*))?' +                        // fragment
     '$');
 
 
