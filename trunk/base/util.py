@@ -485,6 +485,7 @@ def Beacon(request):
     return http.HttpResponseServerError(BAD_BEACON_MSG + 'IP')
 
   js_user_agent_string = request.REQUEST.get('js_ua')
+  js_document_mode = request.REQUEST.get('doc_mode')
 
   callback = request.REQUEST.get('callback')
   category = request.REQUEST.get('category')
@@ -509,8 +510,10 @@ def Beacon(request):
   if params_str:
     params_str = urllib.unquote(params_str)
   result_parent = ResultParent.AddResult(
-      test_set, ip_hash, user_agent_string, results_str, params_str=params_str,
-      js_user_agent_string=js_user_agent_string)
+      test_set, ip_hash, user_agent_string, results_str,
+      params_str=params_str,
+      js_user_agent_string=js_user_agent_string,
+      js_document_mode=js_document_mode)
   if not result_parent:
     return http.HttpResponse(BAD_BEACON_MSG + 'ResultParent')
   ScheduleRecentTestsUpdate()

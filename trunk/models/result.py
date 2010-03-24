@@ -68,7 +68,9 @@ class ResultParent(db.Expando):
   @classmethod
   def AddResult(cls, test_set, ip, user_agent_string, results_str,
                 is_import=False, params_str=None,
-                js_user_agent_string=None, **kwds):
+                js_user_agent_string=None,
+                js_document_mode=None,
+                **kwds):
     """Create result models and stores them as one transaction.
 
     Args:
@@ -79,6 +81,7 @@ class ResultParent(db.Expando):
       is_import: if True, skip checking test_keys and do not mark dirty.
       params_str: a string representation of test_set_params.Params.
       js_user_agent_string: chrome frame ua string from client-side JavaScript.
+      js_document_mode: js document.documentMode (e.g. '9' for IE 9 preview)
       kwds: optional fields including 'loader_id'.
     Returns:
       A ResultParent instance.
@@ -89,7 +92,8 @@ class ResultParent(db.Expando):
       raise ValueError
 
     user_agent = UserAgent.factory(user_agent_string,
-                                   js_user_agent_string=js_user_agent_string)
+                                   js_user_agent_string=js_user_agent_string,
+                                   js_document_mode=js_document_mode)
     parent = cls(category=test_set.category,
                  ip=ip,
                  user_agent=user_agent,

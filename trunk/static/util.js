@@ -1058,7 +1058,7 @@ Util.TestDriver.prototype.sendScore = function(testResults,
   var data = 'category=' + this.category + '&results=' +
       testResults.join(',') + '&csrf_token=' + this.csrfToken +
       '&js_ua=' + escape(uaString);
-  if (document.documentMode != undefined) {
+  if (document.documentMode) {
     // Needed to detect IE 9 preview
     data += '&doc_mode=' + document.documentMode;
   }
