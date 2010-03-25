@@ -114,11 +114,12 @@ class ResultParent(db.Expando):
 
     def _AddResultInTransaction():
       parent.put()
-      for test_key, values in results.items():
-        db.put(ResultTime(parent=parent,
-                          test=test_key,
-                          score=values['raw_score'],
-                          dirty=not is_import))
+      result_times = [ResultTime(parent=parent,
+                                 test=test_key,
+                                 score=values['raw_score'],
+                                 dirty=not is_import)
+                      for test_key, values in results.items()]
+      db.put(result_times)
     db.run_in_transaction(_AddResultInTransaction)
     parent.ScheduleDirtyUpdate(parent.key())
     return parent
