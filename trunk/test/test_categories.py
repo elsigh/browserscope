@@ -36,11 +36,11 @@ import mock_data
 class TestCategories(unittest.TestCase):
 
   def testCategoriesMatch(self):
-    self.assertEqual(settings.CATEGORIES,
-                     [x.category for x in all_test_sets.GetTestSets()])
+    self.assertEqual(settings.CATEGORIES + settings.CATEGORIES_BETA,
+                     [x.category for x in all_test_sets.GetAllTestSets()])
 
   def testCategoryNamesCapitalized(self):
-    for test_set in all_test_sets.GetTestSets():
+    for test_set in all_test_sets.GetAllTestSets():
       # Make sure category name is a string and that it is capitalized.
       self.assertEqual(
           ' '.join(['%s%s' % (x[0].capitalize(), x[1:])
@@ -48,7 +48,7 @@ class TestCategories(unittest.TestCase):
           test_set.category_name)
 
   def testTestsDefinedWithRequireAttributes(self):
-    for test_set in all_test_sets.GetTestSets():
+    for test_set in all_test_sets.GetAllTestSets():
       # Make sure category name is a string and that it is capitalized.
       self.assert_(len(test_set.tests))
       for test in test_set.tests:
@@ -63,14 +63,15 @@ class TestCategoriesHandlers(unittest.TestCase):
     self.client = Client()
 
   def testTestPageWorks(self):
-    for category in settings.CATEGORIES:
-      response = self.client.get('/%s/test' % category, {},
+    for test_set in all_test_sets.GetAllTestSets():
+      response = self.client.get('/%s/test' % test_set.category, {},
         **mock_data.UNIT_TEST_UA)
       self.assertEqual(200, response.status_code)
 
   def testAboutPageWorks(self):
     client = Client()
-    for category in settings.CATEGORIES:
+    for test_set in all_test_sets.GetAllTestSets():
+      category = test_set.category
       response = self.client.get('/%s/about' % category, {},
           **mock_data.UNIT_TEST_UA)
       self.assertEqual(200, response.status_code, 'No about for %s' % category)
@@ -82,7 +83,7 @@ class TestCanBeacon(unittest.TestCase):
     self.client = Client()
 
   def testBeacon(self):
-    for test_set in all_test_sets.GetTestSets():
+    for test_set in all_test_sets.GetAllTestSets():
       category = test_set.category
       csrf_token = self.client.get('/get_csrf').content
       # Constructs a reasonably random result set

@@ -61,11 +61,10 @@ INSTALLED_APPS = (
 
 
 # BROWSERSCOPE SPECIFIC GLOBALS
-CATEGORIES = ['security', 'richtext', 'selectors', 'network', 'acid3', 'jskb']
+CATEGORIES = ['security', 'richtext', 'selectors', 'network', 'acid3']
 # If a category is in this list it will not be visible in the nav, but
 # data for the category will save in prod to the main rankers.
-CATEGORIES_INVISIBLE = ['jskb']
-CATEGORIES_BETA = ['html5', 'reflow', 'cookies']
+CATEGORIES_BETA = ['jskb', 'html5', 'reflow', 'cookies']
 
 STATIC_CATEGORIES = []
 # Where we'll read the static files from (can be a local path or a url).

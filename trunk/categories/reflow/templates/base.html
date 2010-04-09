@@ -2,8 +2,8 @@
 <html>
 <head>
   <title>
-    {% if app_category %}
-      {{ app_categories|by_key:app_category_index|by_key:1}} -
+    {% if app_category_name %}
+      {{ app_category_name }} -
     {% endif %}
     {% if page_title %}
       {{ page_title }} -

@@ -52,7 +52,6 @@ from categories import all_test_sets
 from categories import test_set_params
 from base import decorators
 from base import manage_dirty
-from base import summary_test_set
 from base import custom_filters
 
 from third_party.gviz import gviz_api
@@ -98,26 +97,17 @@ def Render(request, template, params={}, category=None):
   params['sign_in'] = users.create_login_url(request.get_full_path())
   params['sign_out'] = users.create_logout_url('/')
 
-  # Creates a list of tuples categories and their ui names.
-  for i, test_set in enumerate(all_test_sets.GetTestSetsIncludingBetas()):
-    # This way we can show beta categories in local dev.
-    if (settings.BUILD == 'development' or
-        category == test_set.category or
-        (test_set.category in settings.CATEGORIES and
-         test_set.category not in settings.CATEGORIES_INVISIBLE) or
-        (params.has_key('stats_table_category') and
-         test_set.category == params['stats_table_category'])):
-      params['app_categories'].append([test_set.category,
-                                       test_set.category_name])
-    # Select the current page's category.
-    if category and category == test_set.category:
+  forced_categories = [
+      c for c in (category, params.get('stats_table_category', None)) if c]
+  for test_set in all_test_sets.GetVisibleTestSets(forced_categories):
+    params['app_categories'].append((test_set.category, test_set.category_name))
+    if category == test_set.category:
+      # Select the category of the current page.
       params['app_category'] = test_set.category
       params['app_category_name'] = test_set.category_name
-      params['app_category_index'] = i
 
-  if (category != None
-      and template not in (TEST_DRIVER_TPL, MULTI_TEST_DRIVER_TPL,
-                           MULTI_TEST_FRAMESET_TPL, ABOUT_TPL)):
+  if (category and template not in (TEST_DRIVER_TPL, MULTI_TEST_DRIVER_TPL,
+                                    MULTI_TEST_FRAMESET_TPL, ABOUT_TPL)):
     template = '%s/%s' % (category, template)
 
   return shortcuts.render_to_response(template, params)
@@ -234,45 +224,43 @@ def Home(request):
     ScheduleRecentTestsUpdate()
 
   results_params = []
-  for category in (settings.CATEGORIES + settings.CATEGORIES_INVISIBLE +
-                   settings.CATEGORIES_BETA):
-    results_uri_string = request.GET.get('%s_results' % category)
+  results_test_set = None
+  for test_set in all_test_sets.GetAllTestSets():
+    results_key = '%s_results' % test_set.category
+    results_uri_string = request.GET.get(results_key)
     if results_uri_string:
-      results_params.append('%s_results=%s' % (category, results_uri_string))
+      results_params.append('='.join((results_key, results_uri_string)))
+      if not results_test_set:
+        results_test_set = test_set  # pick the first test_set with results
 
-  stats_tables = {}
   test_set = None
   category = request.GET.get('category')
-
   if category == 'summary':
-    test_set = summary_test_set.TEST_SET
+    # test_set = summary_test_set.TEST_SET
+    # TODO(slamm): add test_set for summary
+    pass
   elif category:
     test_set = all_test_sets.GetTestSet(category)
-  else:
-    if len(results_params) > 0:
-      for category in (settings.CATEGORIES + settings.CATEGORIES_INVISIBLE +
-                       settings.CATEGORIES_BETA):
-        if request.GET.get('%s_results' % category):
-          test_set = all_test_sets.GetTestSet(category)
-          break
-
-  # If we still got no test_set, take the first one in settings.CATEGORIES
+  elif results_test_set:
+    test_set = results_test_set
   if not test_set:
-    category = settings.CATEGORIES[0]
-    test_set = all_test_sets.GetTestSet(category)
+    # Take the first test_set.
+    test_set = list(all_test_sets.GetAllTestSets())[0]
+  category = test_set.category
 
   # Tell GetStats what to output.
   output = request.GET.get('o', 'html')
-  if output not in ['html', 'pickle', 'xhr', 'csv',
-                    'gviz', 'gviz_data', 'gviz_timeline_data']:
+  if output not in ('html', 'pickle', 'xhr', 'csv',
+                    'gviz', 'gviz_data', 'gviz_timeline_data'):
     return http.HttpResponse('Invalid output specified')
   stats_table = GetStats(request, test_set, output)
 
   # Show a static message above the table.
-  if category in settings.STATIC_CATEGORIES and output in ['xhr', 'html']:
+  if category in settings.STATIC_CATEGORIES and output in ('xhr', 'html'):
     stats_table = '%s%s' % (STATIC_MESSAGE, stats_table)
 
-  if output in ['xhr', 'pickle', 'csv', 'gviz', 'gviz_data', 'gviz_timeline_data']:
+  if output in ('xhr', 'pickle', 'csv',
+                'gviz', 'gviz_data', 'gviz_timeline_data'):
     return http.HttpResponse(stats_table)
   else:
     params = {
@@ -495,16 +483,11 @@ def Beacon(request):
   if not category or not results_str:
     logging.info('Got no category or results.')
     return http.HttpResponse(BAD_BEACON_MSG + 'Category/Results')
-  if (settings.BUILD == 'production'
-      and category not in settings.CATEGORIES + settings.CATEGORIES_BETA):
-    # Allows local developers to try out category beaconing.
-    logging.info('Got a bogus category (%s).' % category)
-    return http.HttpResponse(BAD_BEACON_MSG + 'Category in Production')
-  if not all_test_sets.HasTestSet(category):
+  test_set = all_test_sets.GetTestSet(category)
+  if not test_set:
     logging.info('Could not get a test_set for category: %s' % category)
     return http.HttpResponse(BAD_BEACON_MSG + 'TestSet')
 
-  test_set = all_test_sets.GetTestSet(category)
   logging.info('Beacon category: %s\nresults_str: %s' % (category, results_str))
 
   if params_str:
@@ -758,9 +741,9 @@ def SeedDatastore(request):
   NUM_RECORDS = 1
   category = request.GET.get('category')
   if category:
-    categories = [category]
+    test_sets = all_test_sets.GetTestSet(category)
   else:
-    categories = settings.CATEGORIES
+    test_sets = all_test_sets.GetVisibleTestSets()
   increment_counts = request.GET.get('increment_counts', True)
   if increment_counts == '0':
     increment_counts = False
@@ -771,9 +754,8 @@ def SeedDatastore(request):
   for user_agent_string in TOP_USER_AGENT_STRINGS:
     user_agent = UserAgent.factory(user_agent_string)
     logging.info(' - user_agent: %s', user_agent.pretty())
-  for category in categories:
-    test_set = all_test_sets.GetTestSet(category)
-    logging.info(' -- category: %s', category)
+  for test_set in test_sets:
+    logging.info(' -- category: %s', test_set.category)
     for user_agent_string in TOP_USER_AGENT_STRINGS:
       logging.info(' ---- browser: %s',
                    UserAgent.factory(user_agent_string).pretty())

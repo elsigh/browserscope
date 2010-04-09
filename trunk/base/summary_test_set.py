@@ -36,7 +36,7 @@ class SummaryTest(test_set_base.TestBase):
 
 
 _TESTS = []
-for test_set in all_test_sets.GetTestSets():
+for test_set in all_test_sets.GetVisibleTestSets():
   _TESTS.append(SummaryTest(test_set.category, test_set.category_name))
 
 class SummaryTestSet(test_set_base.TestSet):
