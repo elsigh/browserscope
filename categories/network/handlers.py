@@ -36,7 +36,7 @@ CATEGORY = 'network'
 TEST_PAGE = '/%s/frameset' % CATEGORY
 
 RESOURCE_CGI_BASE = 'cuzillion.com/bin/resource.cgi'
-RESOURCE_CGI_BASE = 'resource-cgi.appspot.com/resource.py'
+#RESOURCE_CGI_BASE = 'resource-cgi.appspot.com/resource.py'
 
 RESOURCE_CGI = '1.%s' % RESOURCE_CGI_BASE
 RESOURCE_CGI2 = '2.%s' % RESOURCE_CGI_BASE
