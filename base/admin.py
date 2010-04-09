@@ -360,15 +360,16 @@ def UpdateAllStatsCache(request):
   tests_per_batch = int(request.REQUEST.get('tests_per_batch', 600))
   categories_str = request.REQUEST.get('categories')
   if categories_str:
-    categories = categories_str.split(',')
+    test_sets = [all_test_sets.GetTestSet(category)
+                 for category in categories_str.split(',')]
   else:
-    categories = settings.CATEGORIES
+    test_sets = all_test_sets.GetVisibleTestSets()
   num_tasks = 0
-  for category in categories:
+  for test_set in test_sets:
+    category = test_set.category
     logging.info('update all: %s', category)
     browsers = result_stats.CategoryBrowserManager.GetAllBrowsers(category)
     logging.info('browsers: %s', browsers)
-    test_set = all_test_sets.GetTestSet(category)
     batch_size = tests_per_batch / len(test_set.tests)
     logging.info('batch_size: %s', batch_size)
     for i in range(0, len(browsers), batch_size):

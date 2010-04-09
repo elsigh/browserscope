@@ -43,7 +43,7 @@ def UserAgentGroup(request):
   if not category:
     logging.info('cron.UserAgentGroup: No category')
     return http.HttpResponse('No category')
-  if not all_test_sets.HasTestSet(category):
+  if not all_test_sets.GetTestSet(category):
     logging.info('cron.UserAgentGroup: Bad category: %s', category)
     return http.HttpResponse('Bad category: %s' % category)
   if not user_agent_key:
@@ -64,7 +64,7 @@ def UserAgentGroup(request):
 
 def UpdateRecentTests(request):
   max_recent_tests = 10
-  skip_categories = settings.CATEGORIES_INVISIBLE + settings.CATEGORIES_BETA
+  visible_categories = all_test_sets.GetVisibleTestSets()
 
   prev_recent_tests = memcache.get(util.RECENT_TESTS_MEMCACHE_KEY)
   prev_result_parent_key = None
@@ -74,8 +74,7 @@ def UpdateRecentTests(request):
   recent_tests = []
   recent_query = db.Query(ResultParent).order('-created')
   for result_parent in recent_query.fetch(30):
-    if (settings.BUILD == 'production' and
-        result_parent.category in skip_categories):
+    if result_parent.category not in visible_categories:
       continue
     if str(result_parent.key()) == prev_result_parent_key:
       num_needed = max_recent_tests - len(recent_tests)

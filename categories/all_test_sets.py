@@ -23,31 +23,53 @@ import logging
 import settings
 
 
-def GetTestSets():
-  for category in settings.CATEGORIES:
-    yield GetTestSet(category)
-
-def GetTestSetsIncludingBetas():
-  for category in settings.CATEGORIES + settings.CATEGORIES_BETA:
-    yield GetTestSet(category)
-
+ALL_CATEGORIES = settings.CATEGORIES + settings.CATEGORIES_BETA
+ALL_TEST_SETS = []  # lazy loaded to avoid import loop
 CATEGORY_TEST_SETS = {}
-def GetTestSet(category):
-  if category not in CATEGORY_TEST_SETS:
-    AddTestSet(_ImportTestSet(category))
-  return CATEGORY_TEST_SETS[category]
 
-def HasTestSet(category):
-  try:
-    GetTestSet(category)
-  except ImportError:
-    return False
-  return True
+
+def GetAllTestSets():
+  if not ALL_TEST_SETS:
+    _InitializeLists()
+  return ALL_TEST_SETS
+
+
+def GetVisibleTestSets(forced_categories=None):
+  if not ALL_TEST_SETS:
+    _InitializeLists()
+  visible_categories = settings.CATEGORIES + (forced_categories or [])
+  visible_test_sets = [
+      ts for ts in ALL_TEST_SETS
+      if ts.category in visible_categories or settings.BUILD == 'development']
+  return visible_test_sets
+
+
+def GetTestSet(category):
+  if not CATEGORY_TEST_SETS:
+    _InitializeLists()
+  if settings.BUILD == 'development' and category not in CATEGORY_TEST_SETS:
+    try:
+      AddTestSet(_ImportTestSet(category))
+    except ImportError:
+      return None
+  return CATEGORY_TEST_SETS.get(category, None)
+
 
 def AddTestSet(test_set):
   """Add a test_set."""
+  global ALL_CATEGORIES
+  global ALL_TEST_SETS
   global CATEGORY_TEST_SETS
+  ALL_CATEGORIES.append(test_set.category)
+  ALL_TEST_SETS.append(test_set)
   CATEGORY_TEST_SETS[test_set.category] = test_set
+
+
+def _InitializeLists():
+  global ALL_TEST_SETS
+  global CATEGORY_TEST_SETS
+  ALL_TEST_SETS = [_ImportTestSet(c) for c in ALL_CATEGORIES]
+  CATEGORY_TEST_SETS = dict(zip(ALL_CATEGORIES, ALL_TEST_SETS))
 
 
 def _ImportTestSet(category):

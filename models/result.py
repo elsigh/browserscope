@@ -126,6 +126,14 @@ class ResultParent(db.Expando):
 
   @classmethod
   def ScheduleDirtyUpdate(cls, result_parent_key):
+    """Update the stats for dirty result times outside the current request.
+
+    This gets handled by base.manage_dirty.UpdateDirty. That function calls
+    UpdateStatsFromDirty below.
+
+    Args:
+      result_parent_key: a Key for the ResultParent with dirty ResultTimes
+    """
     task = taskqueue.Task(
         method='GET', params={'result_parent_key': result_parent_key})
     task.add(queue_name='update-dirty')
@@ -143,16 +151,11 @@ class ResultParent(db.Expando):
       result_parent = dirty_result_times[0].parent()
       logging.info('ResultParent category: %s, ua: %s' %
                    (result_parent.category, result_parent.user_agent.pretty()))
-      is_stats_update_needed = (result_parent.category in settings.CATEGORIES or
-                                settings.BUILD != 'production')
-      if not is_stats_update_needed:
-        logging.info('Skipping UpdateStats for result_times.')
       for result_time in dirty_result_times:
-        if is_stats_update_needed:
-          result_time.UpdateStats()
+        result_time.UpdateStats()
         result_time.dirty = False
       db.put(dirty_result_times)
-      if is_stats_update_needed and dirty_query.IsResultParentDone():
+      if dirty_query.IsResultParentDone():
         logging.info('Scheduling CategoryUpdate(%s, %s)',
                      result_parent.category, result_parent.user_agent.pretty())
         result_stats.ScheduleCategoryUpdate(

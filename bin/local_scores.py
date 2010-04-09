@@ -257,7 +257,7 @@ def GetCategoryBrowsers(db, category):
   return level_browsers
 
 def GetCategories():
-  return [test_set.category for test_set in all_test_sets.GetTestSets()]
+  return [test_set.category for test_set in all_test_sets.GetAllTestSets()]
 
 
 def CheckTests(db):
@@ -290,7 +290,7 @@ def DumpScores(db):
     logging.info("Num scores for category, %s: %s", category, count)
   cursor.execute(BROWSERS_SQL)
   browser_parts = cursor.fetchall()
-  for test_set in all_test_sets.GetTestSets():
+  for test_set in all_test_sets.GetAllTestSets():
     category = test_set.category
     logging.info("Dump scores for category: %s", category)
     for family, v1, v2, v3 in browser_parts:
