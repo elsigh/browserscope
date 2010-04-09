@@ -38,7 +38,8 @@ TEMPLATE_LOADERS = (
   'django.template.loaders.app_directories.load_template_source'
 )
 MIDDLEWARE_CLASSES = (
-  #'appstats.recording.AppStatsDjangoMiddleware',
+  # For AppEngine AppStats.
+  #'google.appengine.ext.appstats.recording.AppStatsDjangoMiddleware',
   'django.middleware.common.CommonMiddleware',
   'django.contrib.sessions.middleware.SessionMiddleware', # needed by CSRF
   'base.middleware.ExceptionMiddleware',

@@ -79,7 +79,7 @@ browser_slash_v12_names = (
     'Opera Mini|Opera|Vodafone|'
     'NetFront|Konqueror|SeaMonkey|Kazehakase|Vienna|Iceape|Iceweasel|IceWeasel|'
     'Iron|K-Meleon|Sleipnir|Galeon|GranParadiso|'
-    'iCab|NetNewsWire|Iron|Space Bison|Stainless|Orca')
+    'iCab|NetNewsWire|Iron|Space Bison|Stainless|Orca|MozillaDeveloperPreview')
 
 _P = UserAgentParser
 USER_AGENT_PARSERS = (
