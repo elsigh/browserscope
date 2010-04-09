@@ -67,9 +67,6 @@ class CategoryBrowserManager(db.Model):
             1  Safari 4
             2  Safari 4.3
             3  Safari 4.3
-
-    TODO(slamm): Add to 'summary' category too.
-
     Args:
       category: a category string like 'network' or 'reflow'.
       user_agent: a UserAgent instance.
@@ -237,53 +234,6 @@ class CategoryBrowserManager(db.Model):
     memcache.delete(key_name, namespace=cls.MEMCACHE_NAMESPACE)
 
 
-class SummaryStatsManager(db.Model):
-  MEMCACHE_NAMESPACE = 'summary_stats'
-
-  #category = db.StringProperty()
-  summary_score = db.IntegerProperty(indexed=False)
-  summary_display = db.StringProperty(indexed=False)
-  total_runs = db.IntegerProperty(indexed=False)
-
-  @classmethod
-  def UpdateStats(cls, category, stats):
-    """Update the summary stats in memory and the datastore.
-
-    Args:
-      category: a category string like 'network'
-      stats: a dict of browser stats (see CategoryStatsManager.GetStats)
-    """
-    stats = cls.GetStats(browsers, [category])
-
-    memcache.set_multi(stats, namespace=cls.MEMCACHE_NAMESPACE)
-
-  def GetStats(cls, browsers, categories=None):
-    """Return the summary stats for a set of browsers and categories.
-
-    Args:
-      browsers: a list of browsers to use instead of version level.
-      categories: a list of categories like ['security', 'richtext'].
-    Returns:
-      {
-          browser_x: {
-              category_y: {
-                 'score': score_xy,
-                 'display': display_xy,
-                 'total_runs': total_runs_xy,
-                 },
-              },
-      }
-    """
-    # Get stats from memcache
-    # Get missing stats from datastore
-    return []
-
-
-  @classmethod
-  def KeyName(cls, category):
-    return category
-
-
 class CategoryStatsManager(object):
   """Manage statistics for a category."""
 
@@ -335,16 +285,6 @@ class CategoryStatsManager(object):
 
   @classmethod
   def UpdateStatsCache(cls, category, browsers):
-    """Update the memcache of stats for all the tests for each browser.
-
-    This is also where the summary stats get updated.
-
-    Args:
-      category: a category string like 'network'
-      browsers: a list of browsers like ['Firefox 3.6', 'IE 8.0']
-    Returns:
-      a list of browsers that were not processed due to a timeout.
-    """
     test_set = all_test_sets.GetTestSet(category)
     test_keys = [t.key for t in test_set.VisibleTests()]
     ua_stats = {}
@@ -358,10 +298,8 @@ class CategoryStatsManager(object):
       if is_timed_out:
         unhandled_browsers.append(browser)
       else:
-        stats = test_set.GetStats(test_keys, medians, num_scores)
-        ua_stats[browser] = stats
+        ua_stats[browser] = test_set.GetStats(test_keys, medians, num_scores)
     memcache.set_multi(ua_stats, **cls.MemcacheParams(category))
-    SummaryStatsManager.UpdateStats(category, stats)  # too much on one request?
     return unhandled_browsers
 
   @classmethod
@@ -375,11 +313,17 @@ class CategoryStatsManager(object):
     memcache.delete_multi(browsers, **cls.MemcacheParams(category))
 
 
+def UpdateCategory(category, user_agent):
+  logging.info('result.stats.UpdateCategory')
+  CategoryBrowserManager.AddUserAgent(category, user_agent)
+  CategoryStatsManager.UpdateStatsCache(category, user_agent.get_string_list())
+
+
 def ScheduleCategoryUpdate(category, user_agent):
   """Add a task to update a category's statistic.
 
-  The task is handled by base.cron.UserAgentGroup which then
-  calls UpdateCategory below.
+  The task is handled by base.cron.UserAgentGroup().
+  That method calls UpdateCategory().
   """
   task = taskqueue.Task(method='GET', params={
       'category': category,
@@ -389,9 +333,3 @@ def ScheduleCategoryUpdate(category, user_agent):
     task.add(queue_name='user-agent-group')
   except:
     logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
-
-
-def UpdateCategory(category, user_agent):
-  logging.info('result.stats.UpdateCategory')
-  CategoryBrowserManager.AddUserAgent(category, user_agent)
-  CategoryStatsManager.UpdateStatsCache(category, user_agent.get_string_list())
