@@ -53,6 +53,7 @@ urlpatterns = patterns('',
   (r'^admin/data_dump', 'base.admin.DataDump'),
   (r'^admin/serialization_test', 'base.serialization_test.GraphIt'),
   (r'^admin/ua_test', 'base.ua.ParseTest'),
+  (r'^admin/test_task_queue', 'gaeunit_test.TaskHandler'),
 
   # Cron admin scripts
   (r'^cron/user_agent_group$', 'base.cron.UserAgentGroup'),
