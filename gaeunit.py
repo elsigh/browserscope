@@ -418,12 +418,24 @@ def _test_suite_to_json(suite):
 class TestingTaskQueueService(taskqueue_stub.TaskQueueServiceStub):
 
     def _Dynamic_Add(self, request, response):
-        # TODO(slamm): Handle task errors
-        taskqueue_stub.TaskQueueServiceStub._Dynamic_Add(self, request, response)
+        logging.info("gaeunit faking a taskqueue Add")
+        taskqueue_stub.TaskQueueServiceStub._Dynamic_Add(
+            self, request, response)
+        self._ExecuteTasksImmediately()
+
+    def _Dynamic_BulkAdd(self, request, response):
+        logging.info("gaeunit faking a taskqueue BulkAdd")
+        taskqueue_stub.TaskQueueServiceStub._Dynamic_BulkAdd(
+            self, request, response)
+        self._ExecuteTasksImmediately()
+
+    def _ExecuteTasksImmediately(self):
+        logging.info("gaeunit executing tasks immediately")
         for queue in self.GetQueues():
             queue_name = queue['name']
             for task in self.GetTasks(queue_name):
-                content_type = dict(task['headers'])['Content-Type']
+                headers = dict((k.lower(), v) for k, v in task['headers'])
+                content_type = headers['content-type']
                 c = client.Client()
                 if task['method'] == 'GET':
                     try:
@@ -450,6 +462,7 @@ class TestingTaskQueueService(taskqueue_stub.TaskQueueServiceStub):
                 else:
                     raise NotImplementedError
             self.FlushQueue(queue_name)
+
 
 def _run_test_suite(runner, suite):
     """Run the test suite.
