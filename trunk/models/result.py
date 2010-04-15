@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import logging
-import sys
 
 from google.appengine.ext import db
 from google.appengine.api import memcache
@@ -26,8 +25,6 @@ from categories import test_set_base
 from models import result_stats
 from models.user_agent import UserAgent
 
-import settings
-import base
 
 class ResultTime(db.Model):
   test = db.StringProperty()
