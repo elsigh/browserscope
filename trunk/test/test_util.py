@@ -42,17 +42,14 @@ class TestHome(unittest.TestCase):
     self.client = Client()
 
   def testHome(self):
-    response = self.client.get('/', {},
-        **mock_data.UNIT_TEST_UA)
+    response = self.client.get('/', {}, **mock_data.UNIT_TEST_UA)
     self.assertEqual(200, response.status_code)
 
-
-  def testHomeWithResults(self):
-    test_set = mock_data.MockTestSet('cat_home')
-    params = {'cat_home_results': 'testDisplay=1558,testVisibility=1227'}
-    response = self.client.get('/', params, **mock_data.UNIT_TEST_UA)
-    self.assertEqual(200, response.status_code)
-
+  #def testHomeWithResults(self):
+    #test_set = mock_data.MockTestSet('cat_home')
+    #params = {'cat_home_results': 'apple=0,banana=97,coconut=677'}
+    #response = self.client.get('/', params, **mock_data.UNIT_TEST_UA)
+    #self.assertEqual(200, response.status_code)
 
 class TestBeacon(unittest.TestCase):
 

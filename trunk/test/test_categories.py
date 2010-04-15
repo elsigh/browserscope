@@ -72,6 +72,7 @@ class TestCategoriesHandlers(unittest.TestCase):
     client = Client()
     for test_set in all_test_sets.GetAllTestSets():
       category = test_set.category
+      logging.info('category: %s' % category)
       response = self.client.get('/%s/about' % category, {},
           **mock_data.UNIT_TEST_UA)
       self.assertEqual(200, response.status_code, 'No about for %s' % category)
@@ -95,6 +96,7 @@ class TestCanBeacon(unittest.TestCase):
         'results': ','.join(results),
         'csrf_token': csrf_token,
       }
+      logging.info('params: %s' % params)
       response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
       self.assertEqual('', response.content)
       self.assertEqual(204, response.status_code)

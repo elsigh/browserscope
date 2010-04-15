@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<img src="/static/img/stethoscope.png" height="256" width="256" align="right" vspace="10" hspace="20" alt="">
+
+<h1>Test</h1>
+{% if error_msg %}
+  <h2 style="color:darkred">{{ error_msg }}</h2>
+{% endif %}
+<form id="bs-user-test-form" action="{{ request_path }}" method="post">
+  <p>
+    <label for="name">Test Name:</label>
+     <input type="text" id="name" name="name" size="30"
+       value="{{ test.name }}">
+  </p>
+
+  <p>
+    <label for="url">URL:</label>
+    <input type="text" id="url" name="url" size="50"
+      value="{% if test %}{{ test.url }}{% else %}http://{% endif %}">
+  </p>
+
+  <p>
+    Test is hosted:
+    <label for="hosted-url">
+      <input type="radio" name="hosted" id="hosted-url" value="0"
+        checked disabled>
+      on your URL
+    </label>
+    <label for="hosted-bs">
+      <input type="radio" name="hosted" id="hosted-bs" value="1"
+        disabled>
+      on Browserscope <sup>coming soon!</sup>
+    </label>
+  </p>
+
+  <label for="description">Description:</label>
+  <div>
+    <textarea id="description" name="description"
+      cols="40" rows="5"
+      >{{ test.description }}</textarea>
+  </div>
+
+  <p>
+    <input type="submit" value="Save" class="bs-btn">
+  </p>
+</form>
+
+{% endblock %}

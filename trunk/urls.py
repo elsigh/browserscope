@@ -24,6 +24,15 @@ urlpatterns = patterns('',
   (r'^get_csrf',  'base.util.GetCsrf'),
   (r'^resource',  'third_party.resource-cgi.resource.Handler'),
   (r'^timeline$', 'base.util.BrowserTimeLine'),  # beta
+  (r'^user/settings$', 'base.user_tests.Settings'),  # beta
+  (r'^user/tests/create$', 'base.user_tests.TestCreate'),  # beta
+  (r'^user/beacon/(.+)$', 'base.user_tests.BeaconJs'),  # beta
+  (r'^user/tests/edit/(.+)$', 'base.user_tests.TestEdit'),  # beta
+  (r'^user/tests/view/(.+)$', 'base.user_tests.TestView'),  # beta
+  (r'^user/tests/table/(.+)$', 'base.user_tests.TestStatsTable'),  # beta
+  (r'^user/tests/howto$', 'base.user_tests.TestHowto'),  # beta
+  (r'^user/tests/raw/(.+)$', 'base.user_tests.RawTestData'),  # beta
+  (r'^user/tests/(.+)$', 'base.user_tests.Test'),  # beta
 
   # Admin functionality
   (r'^update_datastore', 'base.util.UpdateDatastore'),

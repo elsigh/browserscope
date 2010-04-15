@@ -48,6 +48,8 @@ from django import http
 from django.utils import simplejson
 from third_party.gaefy.db import pager
 
+from django.template import add_to_builtins
+add_to_builtins('base.custom_filters')
 
 def Render(request, template_file, params):
   """Render network test pages."""

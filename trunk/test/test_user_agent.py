@@ -84,6 +84,14 @@ class UserAgentTest(unittest.TestCase):
     self.assertEqual(['Chrome', 'Chrome 2', 'Chrome 2.0', 'Chrome 2.0.169'],
                      ua.get_string_list())
 
+    # MozillaDeveloperPreview
+    ua_string = ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '
+                 'AppleWebKit/530.1 (KHTML, like Gecko) '
+                 'Chrome/2.0.169.1 Safari/530.1')
+    ua = UserAgent.factory(ua_string)
+    self.assertEqual(['Chrome', 'Chrome 2', 'Chrome 2.0', 'Chrome 2.0.169'],
+                     ua.get_string_list())
+
 
   def test_pretty_print(self):
     self.assertEqual('MicroB 3',

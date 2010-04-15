@@ -18,6 +18,7 @@
 
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
+import hashlib
 import logging
 import random
 
@@ -26,9 +27,8 @@ from google.appengine.api import users
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.http import HttpResponseForbidden
-from django.utils.hashcompat import md5_constructor
 
-from settings import *
+import settings
 
 
 def admin_required(func):
@@ -47,25 +47,10 @@ def admin_required(func):
   return _wrapper
 
 
-# TRUSTED_TESTERS = ['elsigh', 'stevesoudersorg', 'steve.lamm', 'annie.sullivan',
-#                    'jeresig', 'kellegous', 'mnotting', 'storey.david',
-#                    'test@example.com']
-# def trusted_tester_required(func):
-#   """Tests to make sure the current user is an admin."""
-#   def _wrapper(request, *args, **kw):
-#     user = users.get_current_user()
-#     logging.info('User: %s' % user.user_id())
-#     if user and user in TRUSTED_TESTERS:
-#       return func(request, *args, **kw)
-#     else:
-#       return HttpResponse('You need to be logged in. <a href="%s">login</a>.'
-#                           % users.create_login_url(request.get_full_path()))
-#   return _wrapper
-
 
 def dev_appserver_only(func):
   def _wrapper(request, *args, **kw):
-    if BUILD == 'production':
+    if settings.BUILD == 'production':
       return HttpResponse('Only for dev_appserver eyes.')
     return func(request, *args, **kw)
   return _wrapper
@@ -78,9 +63,9 @@ def _make_csrf_key():
     randrange = random.SystemRandom().randrange
   else:
  	  randrange = random.randrange
-  csrf_key = md5_constructor('%s%s' % (randrange(0, _MAX_CSRF_KEY),
-                                       SECRET_KEY)
-                            ).hexdigest()
+  csrf_key = hashlib.md5('%s%s' % (randrange(0, _MAX_CSRF_KEY),
+                                   settings.SECRET_KEY)
+                         ).hexdigest()
   return csrf_key
 
 
@@ -106,11 +91,6 @@ def check_csrf(func):
     valid_csrf_tokens = request.session.get('csrf_tokens')
     request_csrf_token = request.REQUEST.get('csrf_token')
 
-    # Special easter-egg to get around the csrf token.
-    # Because most malintents don't really read code.
-    if request.GET.get('csrf_override') == 'elsigh':
-      return func(request, *args, **kw)
-
     if request_csrf_token is None:
       return HttpResponseForbidden('CSRF Error - Need csrf_token in request.')
     if valid_csrf_tokens is None or request_csrf_token not in valid_csrf_tokens:
@@ -122,3 +102,13 @@ def check_csrf(func):
     return func(request, *args, **kw)
   return _wrapper
 
+
+def provide_check_csrf(func):
+  def _wrapper(request, *args, **kw):
+    if request.POST:
+      #return check_csrf._wrapper(request, *args, **kw)
+      return func(request, *args, **kw)
+    else:
+      #return provide_csrf._wrapper(request, *args, **kw)
+      return func(request, *args, **kw)
+  return _wrapper

@@ -152,16 +152,16 @@
     <span class="bs-results-dl">
       <span>Downloads:</span>
       <a class="bs-dl-py"
-        href="/?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}&o=pickle"
+        href="{{ request_path_noparams }}?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}&o=pickle"
         >pickle</a>
       <a class="bs-dl-csv"
-        href="/?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}&o=csv"
+        href="{{ request_path_noparams }}?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}&o=csv"
         >csv</a>
     </span>
 
     <a
       class="bs-l-p"
-      href="/?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}"
+      href="{{ request_path_noparams }}?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}"
       >Link to this page</a>
   </div>
 

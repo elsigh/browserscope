@@ -23,10 +23,12 @@ from google.appengine.api import users
 APP_TITLE = 'Browserscope'
 APPEND_SLASH = False
 ADMINS = (('Lindsey Simon', 'elsigh@gmail.com'),
-          ('Stephen', 'steve.lamm@gmail.com'))
+          #('Stephen', 'steve.lamm@gmail.com'),
+          )
 MANAGERS = ADMINS
-SERVER_EMAIL = 'lsimon@commoner.com'
-DATABASE_ENGINE = 'appengine'
+DEFAULT_FROM_EMAIL = 'elsigh@gmail.com'
+SERVER_EMAIL = 'elsigh@gmail.com'
+#DATABASE_ENGINE = 'appengine'
 TIME_ZONE = 'UTC'
 LANGUAGE_CODE = 'en-us'
 SITE_ID = 1
@@ -41,8 +43,8 @@ MIDDLEWARE_CLASSES = (
   # For AppEngine AppStats.
   #'google.appengine.ext.appstats.recording.AppStatsDjangoMiddleware',
   'django.middleware.common.CommonMiddleware',
-  'django.contrib.sessions.middleware.SessionMiddleware', # needed by CSRF
-  'base.middleware.ExceptionMiddleware',
+  'django.contrib.sessions.middleware.SessionMiddleware',
+  #'base.middleware.ExceptionMiddleware',
 )
 TEMPLATE_CONTEXT_PROCESSORS = (
   'django.core.context_processors.debug'
@@ -55,10 +57,10 @@ TEMPLATE_DIRS = (
   os.path.join(ROOT_PATH, 'static_mode'),
 )
 INSTALLED_APPS = (
-  'appengine_django',
+  #'appengine_django',
   'django.contrib.sessions',
 )
-
+SESSION_ENGINE = 'django_ae_utils.sessions.backends.datastore'
 
 # BROWSERSCOPE SPECIFIC GLOBALS
 CATEGORIES = ['security', 'richtext', 'selectors', 'network', 'acid3']

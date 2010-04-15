@@ -14,59 +14,66 @@
 
 '''Bootstrap for running a Django app under Google App Engine.
 
-The site-specific code is all in other files: settings.py, urls.py,
-models.py, views.py.  And in fact, only 'settings' is referenced here
-directly -- everything else is controlled from there.
-
+Alot of this is copied from Guido's Rietveld app.
 '''
 
+import logging
 import os
 import sys
-import logging
-
-from appengine_django import InstallAppengineHelperForDjango
-from appengine_django import have_django_zip
-from appengine_django import django_zip_path
-InstallAppengineHelperForDjango()
 
 # Google App Engine imports.
 from google.appengine.ext.webapp import util
-from google.appengine.api import users
 
-# Import the part of Django that we use here.
+# Log a message each time this module get loaded.
+logging.info('Loading %s, app version = %s',
+             __name__, os.getenv('CURRENT_VERSION_ID'))
+
+# Declare the Django version we need.
+from google.appengine.dist import use_library
+use_library('django', '1.1')
+
+# Fail early if we can't import Django 1.x.  Log identifying information.
+import django
+logging.info('django.__file__ = %r, django.VERSION = %r',
+             django.__file__, django.VERSION)
+assert django.VERSION[0] >= 1, "This Django version is too old"
+
+
+# Custom django configuration.
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+from django.conf import settings
+settings._target = None
+
+import logging
 import django.core.handlers.wsgi
+import django.core.signals
+import django.db
+import django.dispatch.dispatcher
+
+# Moving this to main.py to try to prevent weird exceptions in prod.
+from django.template import add_to_builtins
+add_to_builtins('base.custom_filters')
+
+def log_exception(*args, **kwds):
+  """Django signal handler to log an exception."""
+  cls, err = sys.exc_info()[:2]
+  logging.exception('Exception in request: %s: %s', cls.__name__, err)
 
 
-def profile_main():
-  # This is the main function for profiling
-  import cProfile, pstats, StringIO
-  prof = cProfile.Profile()
-  prof = prof.runctx('main()', globals(), locals())
-  stream = StringIO.StringIO()
-  stats = pstats.Stats(prof, stream=stream)
-  stats.sort_stats('cumulative')  # Or cumulative
-  stats.print_stats(80)  # 80 = how many to print
-  # The rest is optional.
-  # stats.print_callees()
-  # stats.print_callers()
-  logging.info('Profile data:\n%s', stream.getvalue())
+# Log all exceptions detected by Django.
+django.core.signals.got_request_exception.connect(log_exception)
+
+# Unregister Django's default rollback event handler.
+django.core.signals.got_request_exception.disconnect(
+    django.db._rollback_on_exception)
 
 
 def main():
-  # Ensure the Django zipfile is in the path if required.
-  if have_django_zip and django_zip_path not in sys.path:
-    sys.path.insert(1, django_zip_path)
-
   # Create a Django application for WSGI.
   application = django.core.handlers.wsgi.WSGIHandler()
 
   # Run the WSGI CGI handler with that application.
   util.run_wsgi_app(application)
 
-
 if __name__ == '__main__':
-  profile_main = False
-  if profile_main:
-    profile_main()
-  else:
-    main()
+  main()

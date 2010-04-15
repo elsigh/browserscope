@@ -16,8 +16,9 @@
 
 """Handlers for the Browserscope Security Tests."""
 
+from Cookie import Morsel
+import logging
 
-from categories import all_test_sets
 from base import util
 from django.http import HttpResponse
 from django.http import HttpResponsePermanentRedirect
@@ -39,11 +40,34 @@ def About(request):
   return util.About(request, CATEGORY, overview=overview)
 
 
+
+
+
 def Test(request):
   response = util.Render(request, 'templates/test.html', params={},
                          category=CATEGORY)
-  response.set_cookie('regularTestCookie', '1', expires=None, httponly=False, path='/security/')
-  response.set_cookie('httpOnlyTestCookie', '1', expires=None, httponly=True, path='/security/')
+  response.set_cookie('regularTestCookie', '1', expires=None, path='/security/')
+  response.set_cookie('httpOnlyTestCookie', '1', expires=None,
+                      path='/security/')
+
+  # This is a really naughty bunch of hacks to get around that fact that we
+  # switched from our own Django.zip (django1.2) to the built-in django1.1
+  # in App Engine. response.set_cookie does not know about the httpOnly
+  # attribute in django1.1, so we need to modify the cookie output routine
+  # to append httpOnly for out httpOnlyTestCookie.
+  # -elsigh
+  def httpOnlyAwareMorselOutputString(self, attrs=None):
+    output = self.OriginalOutputString(attrs)
+    if self.__dict__['key'] == 'httpOnlyTestCookie':
+      output += "; httpOnly"
+    return output
+  morsel = response.cookies['httpOnlyTestCookie']
+  OriginalOutputString = morsel.OutputString
+  instancemethod = type(Morsel.OutputString)
+  morsel.OriginalOutputString = OriginalOutputString
+  morsel.OutputString = instancemethod(httpOnlyAwareMorselOutputString, morsel,
+      Morsel)
+
   return response
 
 def XFrameOptionsTest(request):

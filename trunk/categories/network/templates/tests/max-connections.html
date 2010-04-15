@@ -9,7 +9,7 @@
 var t_start = Number(new Date());
 
 var gUnderTwiceSleep = 0;
-function countImage(sId) {
+function countImage() {
 	var t_done = Number(new Date());
 	if ( t_done - t_start < {{ sleep }}*1000*2 ) {
 		gUnderTwiceSleep++;
@@ -27,71 +27,24 @@ window.onload = doTest;
 
 <p>
 This page tries to find the maximum number of connections a browser will open.
-It does this by opening two images from each of 30 different hostnames (<code>[1-30].cuzillion.com</code>).
+It does this by opening two images from each of 30 different hostnames (<code>[1-30].{{ resource_cgi_base }}</code>).
 Each image takes {{ sleep }} seconds to load.
 The most connections that can be measured is 60 (2 images x 30 hostnames).
 Therefore, browsers that support more than 60 open connections will be shown as just 60.
 
-<p>
-<img id=img1 src='http://1.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=1&t={{ epoch }}' onload='countImage()'>
-<img id=img2 src='http://2.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=2&t={{ epoch }}' onload='countImage()'>
-<img id=img3 src='http://3.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=3&t={{ epoch }}' onload='countImage()'>
-<img id=img4 src='http://4.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=4&t={{ epoch }}' onload='countImage()'>
-<img id=img5 src='http://5.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=5&t={{ epoch }}' onload='countImage()'>
-<img id=img6 src='http://6.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=6&t={{ epoch }}' onload='countImage()'>
-<img id=img7 src='http://7.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=7&t={{ epoch }}' onload='countImage()'>
-<img id=img8 src='http://8.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=8&t={{ epoch }}' onload='countImage()'>
-<img id=img9 src='http://9.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=9&t={{ epoch }}' onload='countImage()'>
-<img id=img10 src='http://10.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=10&t={{ epoch }}' onload='countImage()'>
-<img id=img11 src='http://11.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=11&t={{ epoch }}' onload='countImage()'>
-<img id=img12 src='http://12.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=12&t={{ epoch }}' onload='countImage()'>
-<img id=img13 src='http://13.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=13&t={{ epoch }}' onload='countImage()'>
-<img id=img14 src='http://14.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=14&t={{ epoch }}' onload='countImage()'>
-<img id=img15 src='http://15.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=15&t={{ epoch }}' onload='countImage()'>
-<img id=img16 src='http://16.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=16&t={{ epoch }}' onload='countImage()'>
-<img id=img17 src='http://17.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=17&t={{ epoch }}' onload='countImage()'>
-<img id=img18 src='http://18.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=18&t={{ epoch }}' onload='countImage()'>
-<img id=img19 src='http://19.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=19&t={{ epoch }}' onload='countImage()'>
-<img id=img20 src='http://20.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=20&t={{ epoch }}' onload='countImage()'>
-<img id=img21 src='http://21.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=21&t={{ epoch }}' onload='countImage()'>
-<img id=img22 src='http://22.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=22&t={{ epoch }}' onload='countImage()'>
-<img id=img23 src='http://23.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=23&t={{ epoch }}' onload='countImage()'>
-<img id=img24 src='http://24.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=24&t={{ epoch }}' onload='countImage()'>
-<img id=img25 src='http://25.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=25&t={{ epoch }}' onload='countImage()'>
-<img id=img26 src='http://26.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=26&t={{ epoch }}' onload='countImage()'>
-<img id=img27 src='http://27.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=27&t={{ epoch }}' onload='countImage()'>
-<img id=img28 src='http://28.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=28&t={{ epoch }}' onload='countImage()'>
-<img id=img29 src='http://29.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=29&t={{ epoch }}' onload='countImage()'>
-<img id=img30 src='http://30.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=30&t={{ epoch }}' onload='countImage()'>
-<img id=img31 src='http://1.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=31&t={{ epoch }}' onload='countImage()'>
-<img id=img32 src='http://2.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=32&t={{ epoch }}' onload='countImage()'>
-<img id=img33 src='http://3.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=33&t={{ epoch }}' onload='countImage()'>
-<img id=img34 src='http://4.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=34&t={{ epoch }}' onload='countImage()'>
-<img id=img35 src='http://5.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=35&t={{ epoch }}' onload='countImage()'>
-<img id=img36 src='http://6.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=36&t={{ epoch }}' onload='countImage()'>
-<img id=img37 src='http://7.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=37&t={{ epoch }}' onload='countImage()'>
-<img id=img38 src='http://8.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=38&t={{ epoch }}' onload='countImage()'>
-<img id=img39 src='http://9.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=39&t={{ epoch }}' onload='countImage()'>
-<img id=img40 src='http://10.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=40&t={{ epoch }}' onload='countImage()'>
-<img id=img41 src='http://11.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=41&t={{ epoch }}' onload='countImage()'>
-<img id=img42 src='http://12.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=42&t={{ epoch }}' onload='countImage()'>
-<img id=img43 src='http://13.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=43&t={{ epoch }}' onload='countImage()'>
-<img id=img44 src='http://14.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=44&t={{ epoch }}' onload='countImage()'>
-<img id=img45 src='http://15.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=45&t={{ epoch }}' onload='countImage()'>
-<img id=img46 src='http://16.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=46&t={{ epoch }}' onload='countImage()'>
-<img id=img47 src='http://17.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=47&t={{ epoch }}' onload='countImage()'>
-<img id=img48 src='http://18.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=48&t={{ epoch }}' onload='countImage()'>
-<img id=img49 src='http://19.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=49&t={{ epoch }}' onload='countImage()'>
-<img id=img50 src='http://20.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=50&t={{ epoch }}' onload='countImage()'>
-<img id=img51 src='http://21.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=51&t={{ epoch }}' onload='countImage()'>
-<img id=img52 src='http://22.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=52&t={{ epoch }}' onload='countImage()'>
-<img id=img53 src='http://23.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=53&t={{ epoch }}' onload='countImage()'>
-<img id=img54 src='http://24.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=54&t={{ epoch }}' onload='countImage()'>
-<img id=img55 src='http://25.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=55&t={{ epoch }}' onload='countImage()'>
-<img id=img56 src='http://26.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=56&t={{ epoch }}' onload='countImage()'>
-<img id=img57 src='http://27.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=57&t={{ epoch }}' onload='countImage()'>
-<img id=img58 src='http://28.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=58&t={{ epoch }}' onload='countImage()'>
-<img id=img59 src='http://29.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=59&t={{ epoch }}' onload='countImage()'>
-<img id=img60 src='http://30.{{ resource_cgi }}?type=gif&sleep={{ sleep }}&n=60&t={{ epoch }}' onload='countImage()'>
+<p id="img-c"></p>
+<script>
+  // Done w/ Javascript to prevent bots from hitting our servers hard.
+  var imgC = document.getElementById('img-c');
+  var img = document.createElement('img');
+  for (var i = 1; i <= 30; i++) {
+    var clone = img.cloneNode(true);
+    clone.id = 'img' + i;
+    clone.onload = countImage;
+    clone.src = 'http://' + i + '.{{ resource_cgi_base }}?type=gif&' +
+        'sleep={{ sleep }}&n=1&t={{ epoch }}';
+    imgC.appendChild(clone);
+  }
+</script>
 
 {% endblock %}

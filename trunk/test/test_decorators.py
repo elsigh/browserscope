@@ -44,12 +44,18 @@ class TestDecorators(unittest.TestCase):
     response = self.client.get('/get_csrf', params)
     self.assertEquals(response.content, 'True')
 
+
   def test_check_csrf_with_token(self):
     params = {
       'csrf_token': self.client.get('/get_csrf').content
     }
     response = self.client.get('/fake_check_csrf', params)
     self.assertEquals(200, response.status_code)
+
+    # Second time shouldn't work with the same token.
+    response = self.client.get('/fake_check_csrf', params)
+    self.assertNotEquals(200, response.status_code)
+
 
   def test_check_csrf_without_token(self):
     response = self.client.get('/fake_check_csrf')
