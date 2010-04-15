@@ -41,6 +41,7 @@ RESOURCE_CGI_BASE = 'cuzillion.com/bin/resource.cgi'
 
 RESOURCE_CGI = '1.%s' % RESOURCE_CGI_BASE
 RESOURCE_CGI2 = '2.%s' % RESOURCE_CGI_BASE
+TRAILER_RESOURCE_CGI = 'cgi.browserscope.org/cgi-bin/nph-trailer.cgi'
 
 def About(request):
   """About page."""
@@ -368,5 +369,16 @@ def StylesheetsBlock(request):
     'resource_cgi2': RESOURCE_CGI2,
   }
   return util.Render(request, 'templates/tests/stylesheets-block.html', params,
+                     CATEGORY)
+
+
+def Trailer(request):
+  """Network Performance Headers in Trailer Test"""
+
+  params = {
+    'page_title': 'Performance Headers in Trailer Test',
+    'resource_cgi': TRAILER_RESOURCE_CGI,
+  }
+  return util.Render(request, 'templates/tests/trailer.html', params,
                      CATEGORY)
 
