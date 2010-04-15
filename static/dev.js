@@ -10,6 +10,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+CLOSURE_NO_DEPS = true;
 // Copyright 2006 Google Inc. All Rights Reserved.
 
 /**

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+
+{% if message %}
+  <p class="d-msg">{{ message }}</p>
+{% endif %}
+
+<div id="bs-results" class="bs-usertest">
+  <ul id="bs-results-bycat" class="bs-results-bycat bs-compact">
+    <li id="usertest_{{ test.key }}-results">
+      <h3>{{ test.name }}</h3>
+      {% if test.description %}
+        <p>{{ test.description }}</p>
+      {% endif %}
+      {{ stats_table|safe }}
+    </li>
+  </ul>
+</div>
+
+{% ifequal build "production" %}
+  <script src="{{ "browserscope.js"|resource_path }}"></script>
+{% else %}
+  <script src="{{ "dev.js"|resource_path }}"></script>
+  <script src="{{ "util.js"|resource_path }}"></script>
+{% endifequal %}
+
+<script>
+  (function(){
+    var category = 'usertest_{{ test.key }}';
+    var httpUserAgent = '{{ current_ua_string }}';
+    var output = '{{ output }}';
+    var userAgentPretty = '{{ current_ua }}';
+    var realUaString = Util.reconcileClientServerUaPretty(httpUserAgent,
+        userAgentPretty);
+    var resultsUriParams = '{{ results_params }}';
+    var uaUriParams = '{{ ua_params }}';
+    var browserFamily = '{{ v }}';
+    var controller = new Util.ResultTablesController(category,
+        browserFamily, output, realUaString, uaUriParams, resultsUriParams);
+    if (realUaString != userAgentPretty) {
+      var curUaStringEl = document.getElementById('bs-home-cur-ua-s');
+      curUaStringEl.innerHTML = realUaString;
+    }
+    var cb = Util.createChromeFrameCheckbox(httpUserAgent, true);
+    if (cb) {
+      var curUaStringContainer = document.getElementById('bs-home-cur-ua');
+      curUaStringContainer.appendChild(cb);
+    }
+  })();
+</script>
+
+{% endblock %}

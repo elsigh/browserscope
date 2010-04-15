@@ -15,7 +15,7 @@
 # Author elsigh@google.com (Lindsey Simon)
 
 application: ua-profiler
-version: 3
+version: 4     # 4 is the current default
 runtime: python
 api_version: 1
 
@@ -176,6 +176,11 @@ handlers:
 - url: /(sunspider|v8)/(.*).(js|css|png|html)
   static_files: categories/\1/static/\2.\3
   upload: categories/(sunspider|v8)/static/.*
+
+# Deferred Handler.
+- url: /_ah/queue/deferred
+  script: $PYTHON_LIB/google/appengine/ext/deferred/handler.py
+  login: admin
 
 # App Stats
 - url: /stats.*

@@ -36,6 +36,8 @@ from models.user_agent import UserAgent
 import util
 import settings
 
+from django.template import add_to_builtins
+add_to_builtins('base.custom_filters')
 
 def UserAgentGroup(request):
   category = request.REQUEST.get('category')

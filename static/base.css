@@ -39,6 +39,10 @@ a:active {
 a:visited {
  color: #4291bf;
 }
+sup {
+  font-size: 70%;
+  color: green;
+}
 
 /** General styles **/
 .bs-compact {
@@ -752,4 +756,27 @@ a.bs-l-p {
 }
 #bs-faq dd {
   margin: .5em 0 1em .5em;
+}
+
+/** User **/
+#bs-user-settings .rt {
+  margin-bottom: 18px;
+}
+#bs-user-settings .rt th {
+  text-align: left;
+  cursor: auto;
+}
+#bs-user-settings .bs-btn {
+  font-size: 100%;
+}
+#bs-user-test-form label {
+  display: block;
+}
+.bs-usertest .bs-admin,
+.bs-usertest .bs-results-links,
+.bs-usertest .rt-ua-s-d {
+  display: none;
+}
+.bs-usertest #bs-results-cats .bs-sel a {
+  cursor: default;
 }

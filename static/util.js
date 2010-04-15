@@ -31,6 +31,8 @@ goog.require('goog.ui.Tooltip');
 goog.require('goog.uri.utils');
 goog.require('goog.userAgent');
 
+// Prevent requests for deps.js
+goog.global.CLOSURE_NO_DEPS = true;
 
 /**
  * Adds CSS text to the DOM.
@@ -1192,3 +1194,4 @@ goog.exportSymbol('Util.TestDriver.prototype.runTest',
     Util.TestDriver.prototype.runTest);
 goog.exportSymbol('Util.TestDriver.prototype.sendScore',
     Util.TestDriver.prototype.sendScore);
+goog.exportSymbol('goog.net.XhrIo.send', goog.net.XhrIo.send);

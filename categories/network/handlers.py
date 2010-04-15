@@ -24,6 +24,7 @@ Example beacon request:
 
 __author__ = 'steve@souders.com (Steve Souders)'
 
+import re
 
 from categories import all_test_sets
 from base import decorators
@@ -36,7 +37,7 @@ CATEGORY = 'network'
 TEST_PAGE = '/%s/frameset' % CATEGORY
 
 RESOURCE_CGI_BASE = 'cuzillion.com/bin/resource.cgi'
-#RESOURCE_CGI_BASE = 'resource-cgi.appspot.com/resource.py'
+#RESOURCE_CGI_BASE = 'resource-cgi.appspot.com'
 
 RESOURCE_CGI = '1.%s' % RESOURCE_CGI_BASE
 RESOURCE_CGI2 = '2.%s' % RESOURCE_CGI_BASE
@@ -51,6 +52,7 @@ def Faq(request):
 
   params = {
     'page_title': 'Performance FAQ',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -62,6 +64,7 @@ def CacheExpires(request):
 
   params = {
     'page_title': 'Performance Cache Expires Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -81,6 +84,7 @@ def CacheExpires2(request):
   params = {
     'page_title': 'Performance Cache Expires Test',
     'prevt': prevt,
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -93,6 +97,7 @@ def CacheRedirects(request):
 
   params = {
     'page_title': 'Performance Cache Redirects Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -111,6 +116,7 @@ def CacheRedirects2(request):
 
   params = {
     'page_title': 'Performance Cache Redirects Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
     'prevt': prevt,
@@ -124,6 +130,7 @@ def CacheResourceRedirects(request):
 
   params = {
     'page_title': 'Performance Cache Resource Redirects Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -142,6 +149,7 @@ def CacheResourceRedirects2(request):
 
   params = {
     'page_title': 'Performance Cache Resource Redirects Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
     'prevt': prevt,
@@ -158,6 +166,7 @@ def ConnectionsPerHostname(request):
 
   params = {
     'page_title': 'Performance Connections per Hostname Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
     'sleep': sleep,
@@ -172,6 +181,7 @@ def DataUrls(request):
 
   params = {
     'page_title': 'Performance Data URLs Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -187,6 +197,7 @@ def Gzip(request):
 
   params = {
     'page_title': 'Performance Gzip Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -198,6 +209,7 @@ def InlineScriptAfterStylesheet(request):
 
   params = {
     'page_title': 'Performance Inline Script After Stylesheet Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -211,6 +223,7 @@ def Latency(request):
 
   params = {
     'page_title': 'Performance Latency Measurement',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -222,6 +235,7 @@ def LinkPrefetch(request):
 
   params = {
     'page_title': 'Performance Link Prefetch Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -240,6 +254,7 @@ def LinkPrefetch2(request):
 
   params = {
     'page_title': 'Performance Link Prefetch Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
     'prevt': prevt,
@@ -256,6 +271,7 @@ def MaxConnections(request):
 
   params = {
     'page_title': 'Performance Max Connections Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
     'sleep': sleep
@@ -269,6 +285,7 @@ def ScriptsBlock(request):
 
   params = {
     'page_title': 'Performance Scripts Block Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -281,6 +298,7 @@ def ScriptsBlockScripts(request):
 
   params = {
     'page_title': 'Performance Scripts Block Scripts Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -293,6 +311,7 @@ def ScriptsBlockStylesheets(request):
 
   params = {
     'page_title': 'Performance Scripts Block Stylesheets Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -305,6 +324,7 @@ def ScriptsBlockImages(request):
 
   params = {
     'page_title': 'Performance Scripts Block Images Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -317,6 +337,7 @@ def ScriptsBlockIframes(request):
 
   params = {
     'page_title': 'Performance Scripts Block Iframes Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -329,6 +350,7 @@ def ScriptsAsync(request):
 
   params = {
     'page_title': 'Performance Scripts Support Async Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
@@ -341,6 +363,7 @@ def StylesheetsBlock(request):
 
   params = {
     'page_title': 'Performance Stylesheets Block Test',
+    'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }

@@ -39,14 +39,12 @@ from django import http
 from django import shortcuts
 from django.template import loader, Context
 
-from django.template import add_to_builtins
-add_to_builtins('base.custom_filters')
-
 import settings
 
+import models.user_test
+import models.result
+import models.user_agent
 from models import result_stats
-from models.result import *
-from models.user_agent import *
 from models import user_agent_release_dates
 from categories import all_test_sets
 from categories import test_set_params
@@ -56,6 +54,8 @@ from base import custom_filters
 
 from third_party.gviz import gviz_api
 
+from django.template import add_to_builtins
+add_to_builtins('base.custom_filters')
 
 MULTI_TEST_DRIVER_TEST_PAGE = '/multi_test_frameset'
 
@@ -76,9 +76,10 @@ def Render(request, template, params={}, category=None):
   # we never want o=xhr in our request_path, right?
   params['request_path'] = request.get_full_path().replace('&o=xhr', '')
   params['request_path_lastbit'] = re.sub('^.+\/([^\/]+$)', '\\1', request.path)
+  params['request_path_noparams'] = request.path
   params['current_ua_string'] = request.META.get('HTTP_USER_AGENT')
   if params['current_ua_string']:
-    params['current_ua'] = UserAgent.factory(
+    params['current_ua'] = models.user_agent.UserAgent.factory(
         params['current_ua_string']).pretty()
   params['chromeframe_enabled'] = request.COOKIES.get(
       'browserscope-chromeframe-enabled', '0')
@@ -133,7 +134,6 @@ def CategoryTest(request):
     'testurl': testurl,
     'test_page': test_set.test_page
   }
-  #return shortcuts.render_to_response('test_frameset.html', params)
   return Render(request, 'test_frameset.html', params)
 
 
@@ -144,6 +144,7 @@ def CategoryTestDriver(request):
   test_set = all_test_sets.GetTestSet(category)
   params = {
     'category': test_set.category,
+    'category_name': test_set.category_name,
     'page_title': '%s - Test Driver' % test_set.category_name,
     'continue': request.GET.get('continue', ''),
     'autorun': request.GET.get('autorun', ''),
@@ -292,7 +293,7 @@ def BrowseResults(request):
   bookmark = request.GET.get('bookmark')
   limit = int(request.GET.get('limit', 100))
   order = request.GET.get('order', 'desc')
-  query = pager.PagerQuery(ResultParent, keys_only=True)
+  query = pager.PagerQuery(models.result.ResultParent, keys_only=True)
   #query.filter()
   if order == 'desc':
     query.order('-created')
@@ -479,20 +480,29 @@ def Beacon(request):
   category = request.REQUEST.get('category')
   results_str = request.REQUEST.get('results')
   params_str = request.REQUEST.get('params')
+  user_test_keys = request.REQUEST.get('test_key')
 
   if not category or not results_str:
     logging.info('Got no category or results.')
     return http.HttpResponse(BAD_BEACON_MSG + 'Category/Results')
-  test_set = all_test_sets.GetTestSet(category)
+
+  # Quick check for a user-api test result.
+  user_test_set = models.user_test.Test.get_test_set_from_results_str(category,
+                                                                 results_str)
+  if user_test_set:
+    test_set = user_test_set
+  # Normal Browserscope category.
+  else:
+    test_set = all_test_sets.GetTestSet(category)
   if not test_set:
-    logging.info('Could not get a test_set for category: %s' % category)
     return http.HttpResponse(BAD_BEACON_MSG + 'TestSet')
 
-  logging.info('Beacon category: %s\nresults_str: %s' % (category, results_str))
+  logging.info('Beacon category: %s\n w/ results_str: %s' %
+               (category, results_str))
 
   if params_str:
     params_str = urllib.unquote(params_str)
-  result_parent = ResultParent.AddResult(
+  result_parent = models.result.ResultParent.AddResult(
       test_set, ip_hash, user_agent_string, results_str,
       params_str=params_str,
       js_user_agent_string=js_user_agent_string,
@@ -506,22 +516,6 @@ def Beacon(request):
   else:
     # Return a successful, empty 204.
     return http.HttpResponse('', status=204)
-
-
-@decorators.dev_appserver_only
-@decorators.provide_csrf
-def GetCsrf(request):
-  """A get request to return a CSRF token."""
-  csrf_token = request.session['csrf_token']
-  return_csrf = request.GET.get('return_csrf', True)
-  if return_csrf != '0':
-    msg = csrf_token
-  else:
-    if csrf_token:
-      msg = 'True'
-    else:
-      msg = 'False'
-  return http.HttpResponse(msg)
 
 
 def GetStats(request, test_set, output='html',  opt_tests=None,
@@ -586,7 +580,7 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
 
 
   # Set current_browser to one in browsers or add it if not found.
-  current_browser = UserAgent.factory(current_user_agent_string).pretty()
+  current_browser = models.user_agent.UserAgent.factory(current_user_agent_string).pretty()
   for browser in browsers:
     if current_browser.startswith(browser):
       current_browser = browser
@@ -751,21 +745,22 @@ def SeedDatastore(request):
   def _GetRandomScore(test):
     return random.randrange(test.min_value, test.max_value + 1)
 
-  for user_agent_string in TOP_USER_AGENT_STRINGS:
-    user_agent = UserAgent.factory(user_agent_string)
+  for user_agent_string in models.user_agent.TOP_USER_AGENT_STRINGS:
+    user_agent = models.user_agent.UserAgent.factory(user_agent_string)
     logging.info(' - user_agent: %s', user_agent.pretty())
   for test_set in test_sets:
     logging.info(' -- category: %s', test_set.category)
-    for user_agent_string in TOP_USER_AGENT_STRINGS:
+    for user_agent_string in models.user_agent.TOP_USER_AGENT_STRINGS:
       logging.info(' ---- browser: %s',
-                   UserAgent.factory(user_agent_string).pretty())
+                   models.user_agent.UserAgent.factory(
+                       user_agent_string).pretty())
       for i in range(NUM_RECORDS):
         results_str = ','.join(['%s=%s' % (test.key, _GetRandomScore(test))
                                for test in test_set.tests])
         params_str = None
         if test_set.default_params:
           params_str = str(test_set.default_params)
-        result_parent = ResultParent.AddResult(
+        result_parent = models.result.ResultParent.AddResult(
             test_set, '1.2.3.4', user_agent_string, results_str, params_str)
         logging.info(' ------ AddResult, %s of %s: %s',
                      i + 1, NUM_RECORDS, results_str)
@@ -777,15 +772,7 @@ def SeedDatastore(request):
 def UpdateDatastore(request):
   """Generic datastore munging routine."""
 
-  # user_agent = UserAgent.factory(TOP_USER_AGENT_STRINGS[0])
-  # query = db.Query(TestTime)
-  # test_times = query.fetch(1000, 0)
-  # for test_time in test_times:
-  #   test_time.user_agent = user_agent
-  #   test_time.put()
-  # return http.HttpResponse('All Done')
-
-  query = db.Query(UserAgent)
+  query = db.Query(models.user_agent.UserAgent)
   key = request.GET.get('key')
   if key:
     query.filter('__key__ >', db.Key(key))
@@ -828,14 +815,30 @@ def ClearDatastore(request):
 
 
 @decorators.dev_appserver_only
+@decorators.provide_csrf
+def GetCsrf(request):
+  """A get request to return a CSRF token."""
+  csrf_token = request.session['csrf_token']
+  return_csrf = request.GET.get('return_csrf', True)
+  if return_csrf != '0':
+    msg = csrf_token
+  else:
+    if csrf_token:
+      msg = 'True'
+    else:
+      msg = 'False'
+  return http.HttpResponse(msg)
+
+
+@decorators.dev_appserver_only
 @decorators.check_csrf
 def FakeCheckCsrf(request):
   return http.HttpResponse('yo')
 
 
 def UserAgents(request):
-  user_agents = UserAgent.all().fetch(1000)
+  user_agents = models.user_agent.UserAgent.all().fetch(1000)
   ua_csv = '\n'.join(
     ['%s,%s,"%s"' % (x.pretty(), x.key().id_or_name(), x.string)
      for x in user_agents])
-  return http.HttpResponse(ua_csv, mimetype="text/csv")
+  return http.HttpResponse(ua_csv, mimetype='text/csv')

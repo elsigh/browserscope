@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<img src="/static/img/stethoscope.png" height="256" width="256" align="right" vspace="10" hspace="20" alt="">
+
+<div id="bs-user-settings">
+  <!--
+  <h1>User Info</h1>
+  <form action="/user/settings" method="post">
+    <p>
+      <label for="guid">API Key:</label>
+      <strong>{{ api_key }}</strong>
+    </p>
+    <p>
+      <label for="email">Email:</label>
+      <input type="text" name="email" size="30" value="{{ user.email }}">
+    </p>
+    <p>
+      <input type="submit" value="Save">
+    </p>
+  </form>
+  -->
+  <h1>{{ user.nickname }}</h1>
+
+  <h2>Tests</h2>
+  <p>
+    Read the <a href="/user/tests/howto">HowTo page</a> to learn how to use
+    Browserscope to store and present your test data.
+  </p>
+
+  {% if tests %}
+    <div class="rt">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for test in tests %}
+            <tr>
+              <td>
+                <a href="/user/tests/edit/{{ test.key  }}"
+                  >{{ test.key }}</a>
+              </td>
+              <td>{{ test.name }}</td>
+              <td>
+                <a href="{{ test.url }}" target="_blank">{{ test.url }}</a>
+              </td>
+              <td>{{ test.description }}</td>
+              <td>
+                <!--
+                <a href="/user/tests/view/{{ test.key }}">View</a>
+                <a href="/user/tests/{{ test.key }}">Run</a>
+                -->
+                <a href="/user/tests/table/{{ test.key }}?v=3&layout=simple"
+                  >Results</a>
+                <a href="/user/tests/raw/{{ test.key }}">CSV</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>
+      You don't have any tests configured yet.
+    </p>
+  {% endif %}
+
+  <a href="/user/tests/create" class="bs-btn">+ Add a test</a>
+</div>
+
+{% endblock %}

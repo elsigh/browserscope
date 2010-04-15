@@ -269,6 +269,7 @@ class CategoryStatsManager(object):
       }
     """
     category = test_set.category
+    stats = {}
     if use_memcache:
       memcache_params = cls.MemcacheParams(category)
       stats = memcache.get_multi(browsers, **memcache_params)

@@ -37,6 +37,8 @@ from base import decorators
 
 import settings
 
+from django.template import add_to_builtins
+add_to_builtins('base.custom_filters')
 
 UPDATE_DIRTY_DONE = 'No more dirty ResultTimes.'
 UPDATE_DIRTY_ADDED_TASK = 'Added task to update more dirty.'

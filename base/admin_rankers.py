@@ -33,6 +33,9 @@ import django
 from django import http
 from django.utils import simplejson
 
+from django.template import add_to_builtins
+add_to_builtins('base.custom_filters')
+
 @decorators.admin_required
 def UploadRankers(request):
   """Rebuild rankers."""

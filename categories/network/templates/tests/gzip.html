@@ -1,41 +1,48 @@
 {% extends "simple.html" %}
 
 {% block body %}
-<h1>Compression Supported</h1>
+<h1>Compression Supported Test</h1>
 
-<div id=results>&nbsp;</div>
+{% ifequal build "production" %}
+  <script src="{{ "browserscope.js"|resource_path }}"></script>
+{% else %}
+  <script src="{{ "dev.js"|resource_path }}"></script>
+  <script src="{{ "util.js"|resource_path }}"></script>
+{% endifequal %}
 
-<script src="http://{{ resource_cgi }}?headers=1&t={{ epoch }}"
-        type="text/javascript"></script>
+<div id="results">&nbsp;</div>
+
 <script>
 function doTest() {
 	var bCompresses = 0;
-	var aeheader = aHeaders['HTTP_ACCEPT_ENCODING'];
-	if ( aeheader ) {
-		aeheader = aeheader.toLowerCase();
-		document.getElementById('aeheader').innerHTML = "Accept-Encoding: " + aeheader;
-		bCompresses = (-1 != aeheader.indexOf('gzip') || -1 != aeheader.indexOf('deflate') ? 1 : 0 );
-	}
-	parent.saveResult('gzip', bCompresses);
-	if (bCompresses) {
-		document.getElementById('results').innerHTML =
-			"Your browser <i>does</i> support compression.";
-	} else {
-		document.getElementById('results').innerHTML =
-		"Your browser does <i>not</i> support compression.";
-	}
+	var resultsEl = document.getElementById('results');
+
+	// Get a static resource.
+	//var staticResourceUrl = 'http://{{ resource_cgi }}?t={{ epoch }}&type=html';
+	var staticResourceUrl = '/static/base.css?t={{ epoch }}';
+	goog.net.XhrIo.send(staticResourceUrl, function(e) {
+	  var contentEncoding = this.getResponseHeader('Content-Encoding');
+	  if (contentEncoding.toLowerCase() == 'gzip') {
+	    bCompresses = 1;
+	  }
+    if (bCompresses) {
+      resultsEl.innerHTML =
+          "Your browser <i>does</i> support compression.";
+    } else {
+      resultsEl.innerHTML =
+          "Your browser does <i>not</i> support compression.";
+    }
+	  parent.saveResult('gzip', bCompresses);
+	});
 }
 
 window.onload = doTest;
 </script>
 
 <p>
-This test checks that the browser is sending an <code>Accept-Encoding</code> header that contains "gzip" or "deflate".
-
-<p>
-Your browser's <code>Accept-Encoding</code> header is:
-<pre id=aeheader style="margin-left: 40px">
-</pre>
-
+  This test sends a XMLHttpRequest for a static resource that should
+  be sent back gzip compressed. We then examine the Content-Encoding
+  header of the response to see if is in fact compressed.
+</p>
 
 {% endblock %}
