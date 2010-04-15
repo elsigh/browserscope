@@ -33,7 +33,7 @@ from models import result_stats
 from models.result import ResultParent
 from models.user_agent import UserAgent
 
-import util
+from base import util
 import settings
 
 from django.template import add_to_builtins
