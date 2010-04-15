@@ -23,6 +23,8 @@ import logging
 import re
 import settings
 
+import models.user_test
+
 ALL_CATEGORIES = settings.CATEGORIES + settings.CATEGORIES_BETA
 ALL_TEST_SETS = []  # lazy loaded to avoid import loop
 CATEGORY_TEST_SETS = {}
@@ -46,11 +48,9 @@ def GetVisibleTestSets(forced_categories=None):
 
 def GetTestSet(category):
   # First check to see if this is a user-api test set.
-  #user_test_set = models.user_test.Test.get_test_set_from_category(category)
-  #if user_test_set:
-  #  return user_test_set
-  if re.match('usertest_', category):
-    return None
+  user_test_set = models.user_test.Test.get_test_set_from_category(category)
+  if user_test_set:
+    return user_test_set
 
   if not CATEGORY_TEST_SETS:
     _InitializeLists()

@@ -22,7 +22,6 @@ __author__ = 'slamm@google.com (Stephen Lamm)'
 import logging
 
 from models import result_ranker
-from models import result_stats
 
 import settings
 
