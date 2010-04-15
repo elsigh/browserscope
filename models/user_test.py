@@ -27,7 +27,6 @@ from google.appengine.ext import db
 from google.appengine.ext import deferred
 
 from categories import test_set_base
-from third_party.mirorrr import mirror
 
 
 class User(db.Model):
@@ -67,10 +66,10 @@ class Test(db.Model):
     base_url = '%s://%s/' % (o.scheme, o.netloc)
     return base_url
 
-  def get_mirrored_content(self):
-    mirrored_content = mirror.MirroredContent.get_by_key_name(
-        self.get_memcache_keyname())
-    return mirrored_content
+  # def get_mirrored_content(self):
+  #   mirrored_content = mirror.MirroredContent.get_by_key_name(
+  #       self.get_memcache_keyname())
+  #   return mirrored_content
 
   def get_memcache_keyname(self):
     return Test.get_memcache_keyname_static(self.key())
