@@ -79,7 +79,7 @@ browser_slash_v12_names = (
     'Opera Mini|Opera|Vodafone|'
     'NetFront|Konqueror|SeaMonkey|Kazehakase|Vienna|Iceape|Iceweasel|IceWeasel|'
     'Iron|K-Meleon|Sleipnir|Galeon|GranParadiso|'
-    'iCab|NetNewsWire|Iron|Space Bison|Stainless|Orca|MozillaDeveloperPreview')
+    'iCab|NetNewsWire|Iron|Space Bison|Stainless|Orca')
 
 _P = UserAgentParser
 USER_AGENT_PARSERS = (
@@ -91,6 +91,7 @@ USER_AGENT_PARSERS = (
      'Firefox ($1)'),
   _P(r'(Namoroka|Shiretoko|Minefield)/(\d+)\.(\d+)([ab]\d+[a-z]*)?',
      'Firefox ($1)'),
+  _P(r'(MozillaDeveloperPreview)/(\d+)\.(\d+)([ab]\d+[a-z]*)?'),
   _P(r'(SeaMonkey|Fennec|Camino)/(\d+)\.(\d+)([ab]?\d+[a-z]*)'),
   # e.g.: Flock/2.0b2
   _P(r'(Flock)/(\d+)\.(\d+)(b\d+?)'),

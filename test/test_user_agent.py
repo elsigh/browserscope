@@ -85,11 +85,12 @@ class UserAgentTest(unittest.TestCase):
                      ua.get_string_list())
 
     # MozillaDeveloperPreview
-    ua_string = ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '
-                 'AppleWebKit/530.1 (KHTML, like Gecko) '
-                 'Chrome/2.0.169.1 Safari/530.1')
+    ua_string = ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; '
+                 'rv:1.9.3a4) Gecko/20100407 ' 'MozillaDeveloperPreview/3.7a4,gzip(gfe),gzip(gfe)')
     ua = UserAgent.factory(ua_string)
-    self.assertEqual(['Chrome', 'Chrome 2', 'Chrome 2.0', 'Chrome 2.0.169'],
+    self.assertEqual(['MozillaDeveloperPreview', 'MozillaDeveloperPreview 3',
+                     'MozillaDeveloperPreview 3.7',
+                     'MozillaDeveloperPreview 3.7a4'],
                      ua.get_string_list())
 
 

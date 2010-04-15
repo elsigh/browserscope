@@ -1,0 +1,43 @@
+{% extends "simple.html" %}
+
+{% block body %}
+<h1>Headers in trailer</h1>
+
+<div id=results>&nbsp;</div>
+
+<script src="http://{{ resource_cgi }}?do=set"></script>
+
+<script>
+function addScriptTag(scriptURL) {
+  var scriptNode = document.createElement('script');
+  scriptNode.src = scriptURL;
+
+  var headEl = document.getElementsByTagName('head')[0];
+  headEl.appendChild(scriptNode);
+
+  return scriptNode;
+};
+
+function doCheck(supportsTrailer) {
+  if (supportsTrailer) {
+    document.getElementById('results').innerHTML = "sending headers in the trailer <i>does</i> work";
+    parent.saveResult('trailer', 1);
+  } else {
+    document.getElementById('results').innerHTML = "sending headers in the trailer <i>doesn't</i> work";
+    parent.saveResult('trailer', 0);
+  }
+};
+
+function doTest() {
+  var scriptNode = addScriptTag('http://{{ resource_cgi }}?do=check');
+};
+
+window.onload = doTest;
+</script>
+
+<p>
+This test determines if the browser supports headers being sent in the trailer of a chunked HTTP response.
+This test loads a resource which is sent back in chunks with a Set-Cookie header in the trailer.
+In a subsequent request to a resource on the same domain the server checks whether the cookie from the previous response is present in the request and thus if the browser supports headers being sent in the trailer.
+
+{% endblock %}

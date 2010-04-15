@@ -176,6 +176,9 @@ This test measures if the browser sends an <code>Accept-Encoding</code> header a
     '''A "data:" URL (aka an inline image), is a technique for embedding other resources directly into the main HTML document.
 Doing this avoids an extra HTTP request.
 This test checks if an image inserted using a "data:" URL is rendered correctly.'''),
+  #BooleanNetworkTest(
+  #  'trailer', 'Headers in trailer', 'trailer',
+  #  '''This test checks if sending headers in the trailer of a chunked HTTP #response is supported by the browser.'''),
 )
 
 

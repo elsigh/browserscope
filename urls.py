@@ -131,6 +131,7 @@ urlpatterns = patterns('',
   (r'^network/tests/scripts-block$', 'categories.network.handlers.ScriptsBlock'),
   (r'^network/tests/scripts-async', 'categories.network.handlers.ScriptsAsync'),
   (r'^network/tests/stylesheets-block', 'categories.network.handlers.StylesheetsBlock'),
+  (r'^network/tests/trailer', 'categories.network.handlers.Trailer'),
   # Network Performance admin URLs
   (r'^network/admin', 'categories.network.handlers.Admin'),
   (r'^network/confirm-ua', 'categories.network.handlers.ConfirmUa'),
