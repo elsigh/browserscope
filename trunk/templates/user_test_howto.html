@@ -2,65 +2,97 @@
 
 {% block body %}
 
-<img src="/static/img/stethoscope.png" height="256" width="256" align="right" vspace="10" hspace="20" alt="">
+<div id="bs-usertest-howto">
+  <img src="/static/img/stethoscope.png" height="256" width="256" align="right" vspace="10" hspace="20" alt="">
 
-<h1>User Tests Howto</h1>
-<p>
-  Browserscope wants to help you to store and understand your browser test data.
-  Storing your data in our system gives you the benefit of not having to write
-  a complex, scaling, backend with a user agent parser built in. You can always
-  download all of your data for offline processing, and we provide a stats table
-  view/interface/widget that you can embed on your page which shows the median
-  results for your tests.
-</p>
+  <h1>User Tests<sup>alpha</sup> Howto </h1>
+  <p>
+    Browserscope wants to help you to store and understand your browser test data.
+    Storing your data in our system gives you the benefit of not having to write
+    a complex, scaling, backend with a user agent parser built in. You can always
+    download all of your data for offline processing, and we provide a stats table
+    view/interface/widget that you can embed on your page which shows the median
+    results for your tests.
+  </p>
 
-<h2>Steps to set up your test</h2>
-<ol>
-  <li>
-    Write a test page and host it on your server. You'll need to
-    be able to access the results of your test in Javascript in
-    order to send the results to Browserscope.
-  </li>
-  <li>
-    Add a record for your test on the
-    <a href="/user/settings">settings</a> page.
-  </li>
-  <li>
-    Add the following code to your test page, so that it executes after
-    your test is complete, allowing you to format a _bTestResults object.
-    <div>
-      <strong>Don't forget to set the _bTestKey to your test's ID which you
-      can find on the <a href="/user/settings">settings</a> page.
-    </strong>
-    <pre><code>
-&lt;script&gt;
-  // To save data in Browserscope do something like the following.
-  // The syntax is 'test_key': 'value' where test_key is some unique
-  // identifier for a piece of data you want to store and value is
-  // a value of 0 through 10000.
-  var _bTestResults = {
-    'test_one': '1',
-    'test_two': '0'
-  };
+  <h2>Steps to set up your test</h2>
+  <ol>
+    <li>
+      Write a test page and host it on your server. You'll need to
+      be able to access the results of your test in Javascript in
+      order to send the results to Browserscope.
+    </li>
+    <li>
+      Sign in to Browserscope.
+    </li>
+    <li>
+      Create a record for your test on the
+      <a href="/user/settings">settings</a> page.
+    </li>
+    <li>
+      Add the following code to your test page, so that it executes after
+      your test is complete, allowing you to format a _bTestResults object.
+      <pre><code>&lt;script&gt;
+// To save data in Browserscope do something like the following.
+// The syntax is 'test_key': 'value' where test_key is some unique
+// identifier for a piece of data you want to store and value is
+// a value of 0 through 10000.
+var _bTestResults = {
+  'test_one': '1',
+  'test_two': '0'
+};
 
-  // Beacon the results to Browserscope.
-  (function() {
-    var _bTestKey = 'CHANGE-THIS-TO-YOUR-TEST-ID';
-    var _bScript = document.createElement('script');
-    _bScript.src = 'http://www.browserscope.org/user/beacon/' + _bTestKey;
-    _bScript.setAttribute('async', 'true');
-    var scripts = document.getElementsByTagName('script');
-    var lastScript = scripts[scripts.length - 1];
-    lastScript.parentNode.insertBefore(_bScript, lastScript);
-  })();
+// Beacon the results to Browserscope.
+(function() {
+  var _bTestKey = 'CHANGE-THIS-TO-YOUR-TEST-ID';
+  var _bScript = document.createElement('script');
+  _bScript.src = 'http://www.browserscope.org/user/beacon/' + _bTestKey;
+  _bScript.setAttribute('async', 'true');
+  var scripts = document.getElementsByTagName('script');
+  var lastScript = scripts[scripts.length - 1];
+  lastScript.parentNode.insertBefore(_bScript, lastScript);
+})();
 &lt;/script&gt;
 </code></pre>
-  </li>
-  <li>
-    Check out the "Table" and "CSV" links on the
-    <a href="/user/settings">settings</a> to see your
-    results in realtime!
-  </li>
-</ol>
+      <div id="bs-usertest-dontforget">
+        <em>
+          * Don't forget to set the _bTestKey in the snippet
+          to <strong>your test ID</strong>, which you
+          can find on your <a href="/user/settings">settings</a> page.
 
+        </em>
+      </div>
+    </li>
+    <li>
+      Troubleshooting?
+      <a href="http://groupmenuselect.appspot.com/"
+        >Check out a working test/beacon example</a> and
+      read <a
+      href="http://code.google.com/p/groupmenuselect/source/browse/trunk/index.html#268"
+        >the code</a>.
+    </li>
+    <li>
+      Send your test page link to all your friends!
+    </li>
+    <li>
+      Check out the "Table" and "CSV" links on the
+      <a href="/user/settings">settings</a> to see your
+      results in realtime.
+    </li>
+    <li>
+      You can embed the results table in a blog post or on your site using an
+      iframe.
+      <pre><code>&lt;iframe
+  src="http://www.browserscope.org/user/tests/table/YOUR-TEST-ID?v=3&amp;layout=simple"&gt;&lt;/iframe&gt;</code></pre>
+      <a
+        href="http://groupmenuselect.appspot.com/results"
+        >Check out a working iframe example</a>.
+    </li>
+    <li>
+      <a href="http://groups.google.com/group/browserscope"
+        >Please send any feedback and ideas about this feature to
+        our Google Group</a>.
+    </li>
+  </ol>
+</div>
 {% endblock %}

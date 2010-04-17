@@ -780,3 +780,15 @@ a.bs-l-p {
 .bs-usertest #bs-results-cats .bs-sel a {
   cursor: default;
 }
+#bs-usertest-howto pre {
+  margin: 4px 0;
+  border: 1px inset #bbb;
+  display: table-cell;
+  padding: 10px;
+}
+#bs-usertest-howto ol {
+  line-height: 1.7;
+}
+#bs-usertest-dontforget {
+  margin-bottom: 8px;
+}
