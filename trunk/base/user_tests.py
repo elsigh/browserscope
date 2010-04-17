@@ -269,6 +269,7 @@ def BeaconJs(request, key):
   params = {
     'test_key': test.key(),
     'csrf_token': request.session.get('csrf_token'),
+    'callback': request.GET.get('callback'),
     'server': util.GetServer(request)
   }
   return shortcuts.render_to_response('user_test_beacon.js', params,
