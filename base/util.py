@@ -458,7 +458,6 @@ def ScheduleRecentTestsUpdate():
 
 
 BAD_BEACON_MSG = 'Error in Beacon: '
-BEACON_COMPLETE_CB_RESPONSE = 'BEACON_COMPLETE = 1;'
 @decorators.check_csrf
 def Beacon(request):
   """Records result times in the datastore.
@@ -512,7 +511,7 @@ def Beacon(request):
   ScheduleRecentTestsUpdate()
 
   if callback:
-    return http.HttpResponse(BEACON_COMPLETE_CB_RESPONSE)
+    return http.HttpResponse('%s();' % callback)
   else:
     # Return a successful, empty 204.
     return http.HttpResponse('', status=204)
