@@ -230,7 +230,9 @@ def Home(request):
     results_key = '%s_results' % test_set.category
     results_uri_string = request.GET.get(results_key)
     if results_uri_string:
-      results_params.append('='.join((results_key, results_uri_string)))
+      results_params_uri_string = '='.join((results_key, results_uri_string))
+      results_params.append(results_params_uri_string)
+      query_string = re.sub(query_string, '', query_string)
       if not results_test_set:
         results_test_set = test_set  # pick the first test_set with results
 
@@ -532,7 +534,8 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
   version_level = request.GET.get('v', 'top')
   is_skip_static = request.GET.get('sc')  # 'sc' for skip cache
   browser_param = request.GET.get('ua')
-  results_str = request.GET.get('%s_results' % category, '')
+  results_str = request.GET.get('%s_results' % category,
+      request.GET.get('results', None)) # allow "results" for user_tests.
   current_user_agent_string = request.META['HTTP_USER_AGENT']
 
   visible_test_keys = [t.key for t in test_set.VisibleTests()]
