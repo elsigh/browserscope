@@ -63,9 +63,10 @@
             {% spaceless %}
               {% if user %}
                 {% if is_admin %}
-                  <a href="/user/settings" target="_top">
+                  <a href="/user/settings" target="_top"
+                    class="bs-nav-settings">
                 {% endif %}
-                <span>{{ user.nickname }}</span>
+                <span class="bs-nav-settings">{{ user.nickname }}</span>
                 {% if is_admin %}
                   </a>
                 {% endif %}

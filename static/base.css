@@ -202,6 +202,14 @@ a.bs-admin {
 #bs-nav-sub span {
   font-size: 80%;
 }
+#bs-nav-sub .bs-nav-settings {
+  font-size: 80%;
+  padding: 0;
+}
+#bs-nav-sub a.bs-nav-settings {
+  text-decoration: underline;
+  margin-right: .8em;
+}
 #bs-nav-cats li {
   margin: 0 .5em 0 0;
 }
