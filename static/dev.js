@@ -10,8 +10,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-CLOSURE_NO_DEPS = true;
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Bootstrap for the Google JS Library (Closure).
@@ -271,13 +282,6 @@ goog.require = function(rule) {
     }
   }
 };
-
-
-/**
- * Whether goog.require should throw an exception if it fails.
- * @type {boolean}
- */
-goog.useStrictRequires = false;
 
 
 /**
@@ -790,62 +794,86 @@ goog.isObject = function(val) {
 
 
 /**
- * Adds a hash code field to an object. The hash code is unique for the
- * given object.
- * @param {Object} obj The object to get the hash code for.
- * @return {number} The hash code for the object.
+ * Gets a unique ID for an object. This mutates the object so that further
+ * calls with the same object as a parameter returns the same value. The unique
+ * ID is guaranteed to be unique across the current session amongst objects that
+ * are passed into {@code getUid}. There is no guarantee that the ID is unique
+ * or consistent across sessions.
+ *
+ * @param {Object} obj The object to get the unique ID for.
+ * @return {number} The unique ID for the object.
  */
-goog.getHashCode = function(obj) {
+goog.getUid = function(obj) {
+  // TODO: Make the type stricter, do not accept null.
+
   // In IE, DOM nodes do not extend Object so they do not have this method.
   // we need to check hasOwnProperty because the proto might have this set.
-
-  // TODO: There is a proposal to add hashcode as a global function to JS2
-  //            we should keep track of this process so we can use that whenever
-  //            it starts to show up in the real world.
-  if (obj.hasOwnProperty && obj.hasOwnProperty(goog.HASH_CODE_PROPERTY_)) {
-    return obj[goog.HASH_CODE_PROPERTY_];
+  if (obj.hasOwnProperty && obj.hasOwnProperty(goog.UID_PROPERTY_)) {
+    return obj[goog.UID_PROPERTY_];
   }
-  if (!obj[goog.HASH_CODE_PROPERTY_]) {
-    obj[goog.HASH_CODE_PROPERTY_] = ++goog.hashCodeCounter_;
+  if (!obj[goog.UID_PROPERTY_]) {
+    obj[goog.UID_PROPERTY_] = ++goog.uidCounter_;
   }
-  return obj[goog.HASH_CODE_PROPERTY_];
+  return obj[goog.UID_PROPERTY_];
 };
 
 
 /**
- * Removes the hash code field from an object.
- * @param {Object} obj The object to remove the field from.
+ * Removes the unique ID from an object. This is useful if the object was
+ * previously mutated using {@code goog.getUid} in which case the mutation is
+ * undone.
+ * @param {Object} obj The object to remove the unique ID field from.
  */
-goog.removeHashCode = function(obj) {
+goog.removeUid = function(obj) {
+  // TODO: Make the type stricter, do not accept null.
+
   // DOM nodes in IE are not instance of Object and throws exception
   // for delete. Instead we try to use removeAttribute
   if ('removeAttribute' in obj) {
-    obj.removeAttribute(goog.HASH_CODE_PROPERTY_);
+    obj.removeAttribute(goog.UID_PROPERTY_);
   }
   /** @preserveTry */
   try {
-    delete obj[goog.HASH_CODE_PROPERTY_];
+    delete obj[goog.UID_PROPERTY_];
   } catch (ex) {
   }
 };
 
 
 /**
- * Name for hash code property. Initialized in a way to help avoid collisions
+ * Name for unique ID property. Initialized in a way to help avoid collisions
  * with other closure javascript on the same page.
  * @type {string}
  * @private
  */
-goog.HASH_CODE_PROPERTY_ = 'closure_hashCode_' +
+goog.UID_PROPERTY_ = 'closure_uid_' +
     Math.floor(Math.random() * 2147483648).toString(36);
 
 
 /**
- * Counter for hash codes.
+ * Counter for UID.
  * @type {number}
  * @private
  */
-goog.hashCodeCounter_ = 0;
+goog.uidCounter_ = 0;
+
+
+/**
+ * Adds a hash code field to an object. The hash code is unique for the
+ * given object.
+ * @param {Object} obj The object to get the hash code for.
+ * @return {number} The hash code for the object.
+ * @deprecated Use goog.getUid instead.
+ */
+goog.getHashCode = goog.getUid;
+
+
+/**
+ * Removes the hash code field from an object.
+ * @param {Object} obj The object to remove the field from.
+ * @deprecated Use goog.removeUid instead.
+ */
+goog.removeHashCode = goog.removeUid;
 
 
 /**
@@ -1284,7 +1312,19 @@ goog.base = function(me, opt_methodName, var_args) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Utilities for manipulating arrays.
@@ -2050,8 +2090,8 @@ goog.array.slice = function(arr, start, opt_end) {
  * occurrence of each array element).  This function modifies the
  * array in place and doesn't change the order of the non-duplicate items.
  *
- * For objects, duplicates are identified as having the same hash code property
- * as defined by {@link goog.getHashCode}.
+ * For objects, duplicates are identified as having the same unique ID as
+ * defined by {@link goog.getUid}.
  *
  * Runtime: N,
  * Worstcase space: 2N (no dupes)
@@ -2066,9 +2106,9 @@ goog.array.removeDuplicates = function(arr, opt_rv) {
   var seen = {}, cursorInsert = 0, cursorRead = 0;
   while (cursorRead < arr.length) {
     var current = arr[cursorRead++];
-    var hc = goog.isObject(current) ? goog.getHashCode(current) : current;
-    if (!Object.prototype.hasOwnProperty.call(seen, hc)) {
-      seen[hc] = true;
+    var uid = goog.isObject(current) ? goog.getUid(current) : current;
+    if (!Object.prototype.hasOwnProperty.call(seen, uid)) {
+      seen[uid] = true;
       rv[cursorInsert++] = current;
     }
   }
@@ -2101,15 +2141,42 @@ goog.array.removeDuplicates = function(arr, opt_rv) {
  *     iff target is found.
  */
 goog.array.binarySearch = function(arr, target, opt_compareFn) {
+  return goog.array.binarySelect(arr,
+      goog.partial(opt_compareFn || goog.array.defaultCompare, target));
+};
+
+
+/**
+ * Selects an index in the specified array using the binary search algorithm.
+ * The evaluator receives an element and determines whether the desired index
+ * is before, at, or after it.  The evaluator must be consistent (formally,
+ * goog.array.map(goog.array.map(arr, evaluator, opt_obj), goog.math.sign)
+ * must be monotonically non-increasing).
+ *
+ * Runtime: O(log n)
+ *
+ * @param {goog.array.ArrayLike} arr The array to be searched.
+ * @param {Function} evaluator Evaluator function that receives 3 arguments
+ *     (the element, the index and the array).  Should return a negative
+ *     integer, zero, or a positive integer depending on whether the
+ *     desired index is before, at, or after the element passed to it.
+ * @param {Object=} opt_obj The object to be used as the value of 'this'
+ *     within evaluator.
+ * @return {number} Index of an element matched by the evaluator, if such
+ *     exists; otherwise (-(insertion point) - 1).  The insertion point is the
+ *     index of the first element for which the evaluator returns negative, or
+ *     arr.length if no such element exists.  Return value non-negative iff a
+ *     match is found.
+ */
+goog.array.binarySelect = function(arr, evaluator, opt_obj) {
   var left = 0;
   var right = arr.length - 1;
-  var compareFn = opt_compareFn || goog.array.defaultCompare;
   while (left <= right) {
     var mid = (left + right) >> 1;
-    var compareResult = compareFn(target, arr[mid]);
-    if (compareResult > 0) {
+    var evalResult = evaluator.call(opt_obj, arr[mid], mid, arr);
+    if (evalResult > 0) {
       left = mid + 1;
-    } else if (compareResult < 0) {
+    } else if (evalResult < 0) {
       right = mid - 1;
     } else {
       return mid;
@@ -2400,7 +2467,19 @@ goog.array.rotate = function(array, n) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2007 Google Inc. All Rights Reserved.
+// Copyright 2007 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Defines the goog.dom.TagName enum.  This enumerates
@@ -2519,7 +2598,19 @@ goog.dom.TagName = {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Utilities for adding, removing and setting classes.
@@ -2669,6 +2760,11 @@ goog.dom.classes.swap = function(element, fromClass, toClass) {
  * single operation. Unlike calling {@link goog.dom.classes.add} and
  * {@link goog.dom.classes.remove} separately this is more efficient as it only
  * parses the class property once.
+ *
+ * If a class is in both the remove and add lists, it will be added. Thus,
+ * you can use this instead of {@link goog.dom.classes.swap} when you have
+ * more than two class names that you want to swap.
+ *
  * @param {Node} element DOM node to swap classes on.
  * @param {string|Array.<string>|null} classesToRemove Class or classes to
  *     remove, if null no classes are removed.
@@ -2747,7 +2843,19 @@ goog.dom.classes.toggle = function(element, className) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview A utility class for representing two-dimensional positions.
@@ -2882,7 +2990,19 @@ goog.math.Coordinate.sum = function(a, b) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2007 Google Inc. All Rights Reserved.
+// Copyright 2007 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview A utility class for representing two-dimensional sizes.
@@ -3075,7 +3195,19 @@ goog.math.Size.prototype.scaleToFit = function(target) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Utilities for manipulating objects/maps/hashes.
@@ -3602,7 +3734,19 @@ goog.object.createSet = function(var_args) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Utilities for string manipulation.
@@ -4250,7 +4394,6 @@ goog.string.whitespaceEscape = function(str, opt_xml) {
  * @param {string} str The string to strip.
  * @param {string} quoteChars The quote characters to strip.
  * @return {string} A copy of {@code str} without the quotes.
- *
  */
 goog.string.stripQuotes = function(str, quoteChars) {
   var length = quoteChars.length;
@@ -4672,17 +4815,16 @@ goog.string.hashCode = function(str) {
 
 
 /**
- * The most recent globally unique ID.
+ * The most recent unique ID. |0 is equivalent to Math.floor in this case.
  * @type {number}
  * @private
  */
-goog.string.uniqueStringCounter_ = goog.now();
+goog.string.uniqueStringCounter_ = Math.random() * 0x80000000 | 0;
 
 
 /**
- * Generates and returns a unique string based on the current date so strings
- * remain unique between sessions.  This is useful, for example, to create
- * unique IDs for DOM elements.
+ * Generates and returns a string which is unique in the current document.
+ * This is useful, for example, to create unique IDs for DOM elements.
  * @return {string} A unique id.
  */
 goog.string.createUniqueString = function() {
@@ -4720,7 +4862,19 @@ goog.string.toNumber = function(str) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Rendering engine detection.
@@ -5162,7 +5316,19 @@ goog.userAgent.isVersion = function(version) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Utilities for manipulating the browser's Document Object Model
@@ -7401,7 +7567,19 @@ goog.dom.DomHelper.prototype.getAncestor = goog.dom.getAncestor;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2008 Google Inc. All Rights Reserved.
+// Copyright 2008 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview File which defines dummy object to work around undefined
@@ -7438,7 +7616,19 @@ goog.debug.errorHandlerWeakDep = {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2005 Google Inc. All Rights Reserved.
+// Copyright 2005 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Implements the disposable interface. The dispose method is used
@@ -7546,7 +7736,19 @@ goog.dispose = function(obj) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2005 Google Inc. All Rights Reserved.
+// Copyright 2005 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview A base class for event objects.
@@ -7665,7 +7867,19 @@ goog.events.Event.preventDefault = function(e) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2005 Google Inc. All Rights Reserved.
+// Copyright 2005 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview A patched, standardized event object for browser events.
@@ -8050,7 +8264,19 @@ goog.events.BrowserEvent.prototype.disposeInternal = function() {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2009 Google Inc. All Rights Reserved.
+// Copyright 2009 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Definition of the goog.events.EventWrapper interface.
@@ -8116,7 +8342,19 @@ goog.events.EventWrapper.prototype.unlisten = function(src, listener, opt_capt,
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2005 Google Inc. All Rights Reserved.
+// Copyright 2005 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Listener object.
@@ -8273,7 +8511,19 @@ goog.events.Listener.prototype.handleEvent = function(eventObject) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2007 Google Inc. All Rights Reserved.
+// Copyright 2007 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Datastructure: Pool.
@@ -8309,7 +8559,6 @@ goog.require('goog.Disposable');
  * @param {number} maxCount Maximum number of objects to keep in the free pool.
  * @constructor
  * @extends {goog.Disposable}
- *
  */
 goog.structs.SimplePool = function(initialCount, maxCount) {
   goog.Disposable.call(this);
@@ -8476,7 +8725,19 @@ goog.structs.SimplePool.prototype.disposeInternal = function() {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2007 Google Inc. All Rights Reserved.
+// Copyright 2007 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Detection of JScript version.
@@ -8570,6 +8831,18 @@ goog.userAgent.jscript.isVersion = function(version) {
 // limitations under the License.
 
 // Copyright 2005 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Helper object to manage the event system pools. This should not
@@ -8911,7 +9184,19 @@ goog.events.pools.releaseEvent;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2005 Google Inc. All Rights Reserved.
+// Copyright 2005 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Event Manager.
@@ -8945,13 +9230,13 @@ goog.events.pools.releaseEvent;
 
 
 // This uses 3 lookup tables/trees.
-// listenerTree_ is a tree of type -> capture -> src hash code -> [Listener]
+// listenerTree_ is a tree of type -> capture -> src uid -> [Listener]
 // listeners_ is a map of key -> [Listener]
 //
 // The key is a field of the Listener. The Listener class also has the type,
 // capture and the src so one can always trace back in the tree
 //
-// sources_: src hc -> [Listener]
+// sources_: src uid -> [Listener]
 
 
 goog.provide('goog.events');
@@ -8985,7 +9270,7 @@ goog.events.listenerTree_ = {};
 
 
 /**
- * Lookup for mapping source hash codes to listeners
+ * Lookup for mapping source UIDs to listeners.
  * @private
  * @type {Object}
  */
@@ -9057,7 +9342,7 @@ goog.events.listen = function(src, type, listener, opt_capt, opt_handler) {
     }
     map = map[capture];
 
-    var srcHashCode = goog.getHashCode(src);
+    var srcUid = goog.getUid(src);
     var listenerArray, listenerObj;
 
     // The remaining_ property is used to be able to short circuit the iteration
@@ -9069,13 +9354,13 @@ goog.events.listen = function(src, type, listener, opt_capt, opt_handler) {
     // guaranteed that we will not skip any event listeners.
     map.remaining_++;
 
-    // Do not use srcHashCode in map here since that will cast the number to a
+    // Do not use srcUid in map here since that will cast the number to a
     // string which will allocate one string object.
-    if (!map[srcHashCode]) {
-      listenerArray = map[srcHashCode] = goog.events.pools.getArray();
+    if (!map[srcUid]) {
+      listenerArray = map[srcUid] = goog.events.pools.getArray();
       map.count_++;
     } else {
-      listenerArray = map[srcHashCode];
+      listenerArray = map[srcUid];
       // Ensure that the listeners do not already contain the current listener
       for (var i = 0; i < listenerArray.length; i++) {
         listenerObj = listenerArray[i];
@@ -9105,10 +9390,10 @@ goog.events.listen = function(src, type, listener, opt_capt, opt_handler) {
     listenerArray.push(listenerObj);
     goog.events.listeners_[key] = listenerObj;
 
-    if (!goog.events.sources_[srcHashCode]) {
-      goog.events.sources_[srcHashCode] = goog.events.pools.getArray();
+    if (!goog.events.sources_[srcUid]) {
+      goog.events.sources_[srcUid] = goog.events.pools.getArray();
     }
-    goog.events.sources_[srcHashCode].push(listenerObj);
+    goog.events.sources_[srcUid].push(listenerObj);
 
 
     // Attach the proxy through the browser's API
@@ -9256,8 +9541,8 @@ goog.events.unlistenByKey = function(key) {
     src.detachEvent(goog.events.getOnString_(type), proxy);
   }
 
-  var srcHashCode = goog.getHashCode(src);
-  var listenerArray = goog.events.listenerTree_[type][capture][srcHashCode];
+  var srcUid = goog.getUid(src);
+  var listenerArray = goog.events.listenerTree_[type][capture][srcUid];
 
   // In a perfect implementation we would decrement the remaining_ field here
   // but then we would need to know if the listener has already been fired or
@@ -9265,17 +9550,17 @@ goog.events.unlistenByKey = function(key) {
   // ancestor chain will need to be traversed as before.
 
   // Remove from sources_
-  if (goog.events.sources_[srcHashCode]) {
-    var sourcesArray = goog.events.sources_[srcHashCode];
+  if (goog.events.sources_[srcUid]) {
+    var sourcesArray = goog.events.sources_[srcUid];
     goog.array.remove(sourcesArray, listener);
     if (sourcesArray.length == 0) {
-      delete goog.events.sources_[srcHashCode];
+      delete goog.events.sources_[srcUid];
     }
   }
 
   listener.removed = true;
   listenerArray.needsCleanup_ = true;
-  goog.events.cleanUp_(type, capture, srcHashCode, listenerArray);
+  goog.events.cleanUp_(type, capture, srcUid, listenerArray);
 
   delete goog.events.listeners_[key];
 
@@ -9306,11 +9591,11 @@ goog.events.unlistenWithWrapper = function(src, wrapper, listener, opt_capt,
  * @param {string} type  The type of the event.
  * @param {boolean} capture Whether to clean up capture phase listeners instead
  *     bubble phase listeners.
- * @param {number} srcHashCode  The hash code of the source.
+ * @param {number} srcUid  The unique ID of the source.
  * @param {Array.<goog.events.Listener>} listenerArray The array being cleaned.
  * @private
  */
-goog.events.cleanUp_ = function(type, capture, srcHashCode, listenerArray) {
+goog.events.cleanUp_ = function(type, capture, srcUid, listenerArray) {
   // The listener array gets locked during the dispatch phase so that removals
   // of listeners during this phase does not screw up the indeces. This method
   // is called after we have removed a listener as well as after the dispatch
@@ -9345,7 +9630,7 @@ goog.events.cleanUp_ = function(type, capture, srcHashCode, listenerArray) {
       // In case the length is now zero we release the object.
       if (newIndex == 0) {
         goog.events.pools.releaseArray(listenerArray);
-        delete goog.events.listenerTree_[type][capture][srcHashCode];
+        delete goog.events.listenerTree_[type][capture][srcUid];
         goog.events.listenerTree_[type][capture].count_--;
 
         if (goog.events.listenerTree_[type][capture].count_ == 0) {
@@ -9386,9 +9671,9 @@ goog.events.removeAll = function(opt_obj, opt_type, opt_capt) {
   opt_capt = !!opt_capt;
 
   if (!noObj) {
-    var srcHashCode = goog.getHashCode(/** @type {Object} */ (opt_obj));
-    if (goog.events.sources_[srcHashCode]) {
-      var sourcesArray = goog.events.sources_[srcHashCode];
+    var srcUid = goog.getUid(/** @type {Object} */ (opt_obj));
+    if (goog.events.sources_[srcUid]) {
+      var sourcesArray = goog.events.sources_[srcUid];
       for (var i = sourcesArray.length - 1; i >= 0; i--) {
         var listener = sourcesArray[i];
         if ((noType || opt_type == listener.type) &&
@@ -9446,9 +9731,9 @@ goog.events.getListeners_ = function(obj, type, capture) {
     map = map[type];
     if (capture in map) {
       map = map[capture];
-      var objHashCode = goog.getHashCode(obj);
-      if (map[objHashCode]) {
-        return map[objHashCode];
+      var objUid = goog.getUid(obj);
+      if (map[objUid]) {
+        return map[objUid];
       }
     }
   }
@@ -9501,8 +9786,8 @@ goog.events.getListener = function(src, type, listener, opt_capt, opt_handler) {
  *     the requested type and/or capture phase.
  */
 goog.events.hasListener = function(obj, opt_type, opt_capture) {
-  var objHashCode = goog.getHashCode(obj)
-  var listeners = goog.events.sources_[objHashCode];
+  var objUid = goog.getUid(obj)
+  var listeners = goog.events.sources_[objUid];
 
   if (listeners) {
     var hasType = goog.isDef(opt_type);
@@ -9511,7 +9796,7 @@ goog.events.hasListener = function(obj, opt_type, opt_capture) {
     if (hasType && hasCapture) {
       // Lookup in the listener tree whether the specified listener exists.
       var map = goog.events.listenerTree_[opt_type]
-      return !!map && !!map[opt_capture] && objHashCode in map[opt_capture];
+      return !!map && !!map[opt_capture] && objUid in map[opt_capture];
 
     } else if (!(hasType || hasCapture)) {
       // Simple check for whether the event target has any listeners at all.
@@ -9650,10 +9935,10 @@ goog.events.fireListeners = function(obj, type, capture, eventObject) {
 goog.events.fireListeners_ = function(map, obj, type, capture, eventObject) {
   var retval = 1;
 
-  var objHashCode = goog.getHashCode(obj);
-  if (map[objHashCode]) {
+  var objUid = goog.getUid(obj);
+  if (map[objUid]) {
     map.remaining_--;
-    var listenerArray = map[objHashCode];
+    var listenerArray = map[objUid];
 
     // If locked_ is not set (and if already 0) initialize it to 1.
     if (!listenerArray.locked_) {
@@ -9677,7 +9962,7 @@ goog.events.fireListeners_ = function(map, obj, type, capture, eventObject) {
       }
     } finally {
       listenerArray.locked_--;
-      goog.events.cleanUp_(type, capture, objHashCode, listenerArray);
+      goog.events.cleanUp_(type, capture, objUid, listenerArray);
     }
   }
 
@@ -10023,7 +10308,19 @@ goog.events.getUniqueId = function(identifier) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2005 Google Inc. All Rights Reserved.
+// Copyright 2005 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Implementation of EventTarget as defined by W3C DOM 2/3.
@@ -10218,7 +10515,19 @@ goog.events.EventTarget.prototype.disposeInternal = function() {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview A timer class to which other classes and objects can
@@ -10498,7 +10807,19 @@ goog.Timer.clear = function(timerId) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Generics method for collection-like classes and objects.
@@ -10507,7 +10828,6 @@ goog.Timer.clear = function(timerId) {
  * This file contains functions to work with collections. It supports using
  * Map, Set, Array and Object and other classes that implement collection-like
  * methods.
- *
  */
 
 
@@ -10840,7 +11160,19 @@ goog.structs.every = function(col, f, opt_obj) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2007 Google Inc. All Rights Reserved.
+// Copyright 2007 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Python style iteration utilities.
@@ -11394,7 +11726,19 @@ goog.iter.nextOrValue = function(iterable, defaultValue) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Datastructure: Hash Map.
@@ -11823,7 +12167,19 @@ goog.structs.Map.hasKey_ = function(obj, key) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Datastructure: Set.
@@ -11850,9 +12206,8 @@ goog.require('goog.structs.Map');
  * contain both 1 and (new Number(1)), because they are not the same.  WARNING:
  * Adding (new Number(1)) twice will yield two distinct elements, because they
  * are two different objects.  WARNING: Any object that is added to a
- * goog.structs.Set will be modified!  Because goog.getHashCode() is used to
- * identify objects, every object in the set will gain a property whose name
- * begins with 'closure_hashCode_'.
+ * goog.structs.Set will be modified!  Because goog.getUid() is used to
+ * identify objects, every object in the set will be mutated.
  * @param {Array|Object=} opt_values Initial values to start with.
  * @constructor
  */
@@ -11875,7 +12230,7 @@ goog.structs.Set = function(opt_values) {
 goog.structs.Set.getKey_ = function(val) {
   var type = typeof val;
   if (type == 'object' && val || type == 'function') {
-    return 'o' + goog.getHashCode(/** @type {Object} */ (val));
+    return 'o' + goog.getUid(/** @type {Object} */ (val));
   } else {
     return type.substr(0, 1) + val;
   }
@@ -12074,7 +12429,19 @@ goog.structs.Set.prototype.__iterator__ = function(opt_keys) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Logging and debugging utilities.
@@ -12153,9 +12520,8 @@ goog.debug.expose = function(obj, opt_showFn) {
  * Creates a string representing a given primitive or object, and for an
  * object, all its properties and nested objects.  WARNING: If an object is
  * given, it and all its nested objects will be modified.  To detect reference
- * cycles, this method identifies objects using goog.getHashCode(), so every
- * object it touches will gain a property whose name begins with
- * 'closure_hashCode_'.
+ * cycles, this method identifies objects using goog.getUid() which mutates the
+ * object.
  * @param {*} obj Object to expose.
  * @param {boolean=} opt_showFn Also show properties that are functions (by
  *     default, functions are omitted).
@@ -12506,7 +12872,19 @@ goog.debug.fnNameCache_ = {};
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Definition of the LogRecord class. Please minimize
@@ -12735,7 +13113,19 @@ goog.debug.LogRecord.prototype.getSequenceNumber = function() {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Definition of the Logger class. Please minimize dependencies
@@ -12776,29 +13166,15 @@ goog.debug.Logger = function(name) {
    * @private
    */
   this.name_ = name;
-
-  /**
-   * Parent Logger.
-   * @type {goog.debug.Logger?}
-   * @private
-   */
-  this.parent_ = null;
-
-  /**
-   * Map of children loggers. The keys are the leaf names of the children and
-   * the values are the child loggers.
-   * @type {!Object}
-   * @private
-   */
-  this.children_ = {};
-
-  /**
-   * Handlers that are listening to this logger.
-   * @type {!Array.<Function>}
-   * @private
-   */
-  this.handlers_ = [];
 };
+
+
+/**
+ * Parent Logger.
+ * @type {goog.debug.Logger}
+ * @private
+ */
+goog.debug.Logger.prototype.parent_ = null;
 
 
 /**
@@ -12808,6 +13184,23 @@ goog.debug.Logger = function(name) {
  * @private
  */
 goog.debug.Logger.prototype.level_ = null;
+
+
+/**
+ * Map of children loggers. The keys are the leaf names of the children and
+ * the values are the child loggers.
+ * @type {Object}
+ * @private
+ */
+goog.debug.Logger.prototype.children_ = null;
+
+
+/**
+ * Handlers that are listening to this logger.
+ * @type {Array.<Function>}
+ * @private
+ */
+goog.debug.Logger.prototype.handlers_ = null;
 
 
 /**
@@ -13048,6 +13441,9 @@ goog.debug.Logger.prototype.getName = function() {
  * @param {Function} handler Handler function to add.
  */
 goog.debug.Logger.prototype.addHandler = function(handler) {
+  if (!this.handlers_) {
+    this.handlers_ = [];
+  }
   this.handlers_.push(handler);
 };
 
@@ -13059,7 +13455,7 @@ goog.debug.Logger.prototype.addHandler = function(handler) {
  * @return {boolean} Whether the handler was removed.
  */
 goog.debug.Logger.prototype.removeHandler = function(handler) {
-  return goog.array.remove(this.handlers_, handler);
+  return !!this.handlers_ && goog.array.remove(this.handlers_, handler);
 };
 
 
@@ -13078,6 +13474,9 @@ goog.debug.Logger.prototype.getParent = function() {
  *     values are the Logger objects.
  */
 goog.debug.Logger.prototype.getChildren = function() {
+  if (!this.children_) {
+    this.children_ = {};
+  }
   return this.children_;
 };
 
@@ -13155,7 +13554,7 @@ goog.debug.Logger.prototype.isLoggable = function(level) {
 goog.debug.Logger.prototype.log = function(level, msg, opt_exception) {
   // java caches the effective level, not sure it's necessary here
   if (this.isLoggable(level)) {
-    this.logRecord(this.getLogRecord(level, msg, opt_exception));
+    this.doLogRecord_(this.getLogRecord(level, msg, opt_exception));
   }
 };
 
@@ -13283,11 +13682,21 @@ goog.debug.Logger.prototype.finest = function(msg, opt_exception) {
  */
 goog.debug.Logger.prototype.logRecord = function(logRecord) {
   if (this.isLoggable(logRecord.getLevel())) {
-    var target = this;
-    while (target) {
-      target.callPublish_(logRecord);
-      target = target.getParent();
-    }
+    this.doLogRecord_(logRecord);
+  }
+};
+
+
+/**
+ * Log a LogRecord.
+ * @param {goog.debug.LogRecord} logRecord A log record to log.
+ * @private
+ */
+goog.debug.Logger.prototype.doLogRecord_ = function(logRecord) {
+  var target = this;
+  while (target) {
+    target.callPublish_(logRecord);
+    target = target.getParent();
   }
 };
 
@@ -13298,8 +13707,10 @@ goog.debug.Logger.prototype.logRecord = function(logRecord) {
  * @private
  */
 goog.debug.Logger.prototype.callPublish_ = function(logRecord) {
-  for (var i = 0; i < this.handlers_.length; i++) {
-    this.handlers_[i](logRecord);
+  if (this.handlers_) {
+    for (var i = 0, handler; handler = this.handlers_[i]; i++) {
+      handler(logRecord);
+    }
   }
 };
 
@@ -13321,7 +13732,7 @@ goog.debug.Logger.prototype.setParent_ = function(parent) {
  * @private
  */
 goog.debug.Logger.prototype.addChild_ = function(name, logger) {
-  this.children_[name] = logger;
+  this.getChildren()[name] = logger;
 };
 
 
@@ -13329,7 +13740,6 @@ goog.debug.Logger.prototype.addChild_ = function(name, logger) {
  * There is a single global LogManager object that is used to maintain a set of
  * shared state about Loggers and log services. This is loosely based on the
  * java class java.util.logging.LogManager.
- *
  */
 goog.debug.LogManager = {};
 
@@ -13390,11 +13800,8 @@ goog.debug.LogManager.getRoot = function() {
  */
 goog.debug.LogManager.getLogger = function(name) {
   goog.debug.LogManager.initialize();
-  if (name in goog.debug.LogManager.loggers_) {
-    return goog.debug.LogManager.loggers_[name];
-  } else {
-    return goog.debug.LogManager.createLogger_(name);
-  }
+  var ret = goog.debug.LogManager.loggers_[name];
+  return ret || goog.debug.LogManager.createLogger_(name);
 };
 
 
@@ -13424,10 +13831,9 @@ goog.debug.LogManager.createFunctionForCatchErrors = function(opt_logger) {
 goog.debug.LogManager.createLogger_ = function(name) {
   // find parent logger
   var logger = new goog.debug.Logger(name);
-  var parts = name.split('.');
-  var leafName = parts[parts.length - 1];
-  parts.length = parts.length - 1;
-  var parentName = parts.join('.');
+  var lastDotIndex = name.lastIndexOf('.');
+  var parentName = name.substr(0, lastDotIndex);
+  var leafName = name.substr(lastDotIndex + 1);
   var parentLogger = goog.debug.LogManager.getLogger(parentName);
 
   // tell the parent about the child and the child about the parent
@@ -13449,7 +13855,19 @@ goog.debug.LogManager.createLogger_ = function(name) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview JSON utility functions.
@@ -13606,7 +14024,7 @@ goog.json.Serializer.prototype.serialize_ = function(object, sb) {
         break;
       }
       if (goog.isArray(object)) {
-        this.serializeArray_((/** @type {Array} */ object), sb);
+        this.serializeArray_((/** @type {!Array} */ object), sb);
         break;
       }
       // should we allow new String, new Number and new Boolean to be treated
@@ -13751,7 +14169,19 @@ goog.json.Serializer.prototype.serializeObject_ = function(obj, sb) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2007 Google Inc. All Rights Reserved.
+// Copyright 2007 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Error codes shared between goog.net.IframeIo and
@@ -13881,7 +14311,19 @@ goog.net.ErrorCode.getDebugMessage = function(errorCode) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Common events for the network classes.
@@ -13918,14 +14360,28 @@ goog.net.EventType = {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Low level handling of XMLHttpRequest.
  */
 
-
 goog.provide('goog.net.XmlHttp');
+goog.provide('goog.net.XmlHttp.OptionType');
+goog.provide('goog.net.XmlHttp.ReadyState');
+
 
 
 /**
@@ -14133,7 +14589,19 @@ goog.net.XmlHttp.getProgId_ = function() {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2007 Google Inc. All Rights Reserved.
+// Copyright 2007 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Class used by XHR wrappers to publish their state to IframeIo
@@ -14172,8 +14640,8 @@ goog.net.XhrMonitor_ = function() {
   if (!goog.userAgent.GECKO) return;
 
   /**
-   * A map of context identifiers to an array of XHR hashcodes that were created
-   * in the context.
+   * A map of context identifiers to an array of XHR unique IDs that were
+   * created in the context.
    * String -> Array.<String>
    * @type {Object}
    * @private
@@ -14181,7 +14649,7 @@ goog.net.XhrMonitor_ = function() {
   this.contextsToXhr_ = {};
 
   /**
-   * Inverse lookup from an XHR hashcode to any context that was open when it
+   * Inverse lookup from an XHR unique ID to any context that was open when it
    * was created.  There should rarely be multiple open contexts, but support
    * has been added for completeness.
    * String -> Array.<String>
@@ -14202,13 +14670,13 @@ goog.net.XhrMonitor_ = function() {
 
 /**
  * Returns a string key for the argument -- Either the string itself, the
- * hashcode of the object, or an empty string otherwise.
+ * unique ID of the object, or an empty string otherwise.
  * @param {Object|string} obj The object to make a key for.
  * @return {string|number} A string key for the argument.
  */
 goog.net.XhrMonitor_.getKey = function(obj) {
   return goog.isString(obj) ? obj :
-         goog.isObject(obj) ? goog.getHashCode(obj) :
+         goog.isObject(obj) ? goog.getUid(obj) :
          '';
 };
 
@@ -14291,14 +14759,14 @@ goog.net.XhrMonitor_.prototype.isContextSafe = function(context) {
 goog.net.XhrMonitor_.prototype.markXhrOpen = function(xhr) {
   if (!this.enabled_) return;
 
-  var hc = goog.getHashCode(xhr);
-  this.logger_.fine('Opening XHR : ' + hc);
+  var uid = goog.getUid(xhr);
+  this.logger_.fine('Opening XHR : ' + uid);
 
   // Update all contexts that are currently on the stack.
   for (var i = 0; i < this.stack_.length; i++) {
     var context = this.stack_[i];
-    this.addToMap_(this.contextsToXhr_, context, hc);
-    this.addToMap_(this.xhrToContexts_, hc, context);
+    this.addToMap_(this.contextsToXhr_, context, uid);
+    this.addToMap_(this.xhrToContexts_, uid, context);
   }
 };
 
@@ -14310,13 +14778,13 @@ goog.net.XhrMonitor_.prototype.markXhrOpen = function(xhr) {
 goog.net.XhrMonitor_.prototype.markXhrClosed = function(xhr) {
   if (!this.enabled_) return;
 
-  var hc = goog.getHashCode(xhr);
-  this.logger_.fine('Closing XHR : ' + hc);
+  var uid = goog.getUid(xhr);
+  this.logger_.fine('Closing XHR : ' + uid);
 
   // Delete the XHR look up and remove the XHR from any contexts.
-  delete this.xhrToContexts_[hc];
+  delete this.xhrToContexts_[uid];
   for (var context in this.contextsToXhr_) {
-    goog.array.remove(this.contextsToXhr_[context], hc);
+    goog.array.remove(this.contextsToXhr_[context], uid);
     if (this.contextsToXhr_[context].length == 0) {
       delete this.contextsToXhr_[context];
     }
@@ -14328,17 +14796,17 @@ goog.net.XhrMonitor_.prototype.markXhrClosed = function(xhr) {
  * Updates any contexts that were dependent on the given XHR request with any
  * XHRs that were opened by the same XHR.  This is used to track Iframes that
  * open XHRs which then in turn open an XHR.
- * @param {string} xhrHc The hashcode for the XHR to update.
+ * @param {string} xhrUid The unique ID for the XHR to update.
  * @private
  */
-goog.net.XhrMonitor_.prototype.updateDependentContexts_ = function(xhrHc) {
+goog.net.XhrMonitor_.prototype.updateDependentContexts_ = function(xhrUid) {
   // Update any contexts that are dependent on this XHR with any requests
   // registered with the XHR as a base context.  This is used for the situation
   // when an XHR event triggers another XHR.  The original XHR is closed, but
   // the source context needs to be informed about any XHRs that were opened as
   // a result of the first.
-  var contexts = this.xhrToContexts_[xhrHc];
-  var xhrs = this.contextsToXhr_[xhrHc];
+  var contexts = this.xhrToContexts_[xhrUid];
+  var xhrs = this.contextsToXhr_[xhrUid];
   if (contexts && xhrs) {
     this.logger_.finest('Updating dependent contexts');
     goog.array.forEach(contexts, function(context) {
@@ -14386,7 +14854,19 @@ goog.net.xhrMonitor = new goog.net.XhrMonitor_();
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Wrapper class for handling XmlHttpRequests.
@@ -15281,7 +15761,19 @@ goog.net.XhrIo.prototype.formatMsg_ = function(msg) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Functions for setting, getting and deleting cookies.
@@ -15564,7 +16056,19 @@ goog.net.cookies.clear = function() {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2005 Google Inc. All Rights Reserved.
+// Copyright 2005 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Class to create objects which want to handle multiple events
@@ -15681,7 +16185,7 @@ goog.events.EventHandler.key_ = null;
 
 
 /**
- * Listen to an event on a DOM node or EventTarget.  If the function is ommitted
+ * Listen to an event on a DOM node or EventTarget.  If the function is omitted
  * then the EventHandler's handleEvent method will be used.
  * @param {goog.events.EventTarget|EventTarget} src Event source.
  * @param {string|Array.<string>} type Event type to listen for or array of
@@ -15713,7 +16217,7 @@ goog.events.EventHandler.prototype.listen = function(src, type, opt_fn,
 
 
 /**
- * Listen to an event on a DOM node or EventTarget.  If the function is ommitted
+ * Listen to an event on a DOM node or EventTarget.  If the function is omitted
  * then the EventHandler's handleEvent method will be used. After the event has
  * fired the event listener is removed from the target. If an array of event
  * types is provided, each event type will be listened to once.
@@ -15900,7 +16404,19 @@ goog.events.EventHandler.prototype.handleEvent = function(e) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview A utility class for representing a numeric box.
@@ -16030,6 +16546,21 @@ goog.math.Box.prototype.expand = function(top, opt_right, opt_bottom,
 
 
 /**
+ * Expand this box to include another box.
+ * NOTE: This is used in code that needs to be very fast, please don't
+ * add functionality to this function at the expense of speed (variable
+ * arguments, accepting multiple argument types, etc).
+ * @param {goog.math.Box} box The box to include in this one.
+ */
+goog.math.Box.prototype.expandToInclude = function(box) {
+  this.left = Math.min(this.left, box.left);
+  this.top = Math.min(this.top, box.top);
+  this.right = Math.max(this.right, box.right);
+  this.bottom = Math.max(this.bottom, box.bottom);
+};
+
+
+/**
  * Compares boxes for equality.
  * @param {goog.math.Box} a A Box.
  * @param {goog.math.Box} b A Box.
@@ -16121,7 +16652,19 @@ goog.math.Box.intersects = function(a, b) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview A utility class for representing rectangles.
@@ -16170,7 +16713,7 @@ goog.math.Rect = function(x, y, w, h) {
 
 /**
  * Returns a new copy of the rectangle.
- * @return {goog.math.Rect} A clone of this Rectangle.
+ * @return {!goog.math.Rect} A clone of this Rectangle.
  */
 goog.math.Rect.prototype.clone = function() {
   return new goog.math.Rect(this.left, this.top, this.width, this.height);
@@ -16180,7 +16723,7 @@ goog.math.Rect.prototype.clone = function() {
 /**
  * Returns a new Box object with the same position and dimensions as this
  * rectangle.
- * @return {goog.math.Box} A new Box representation of this Rectangle.
+ * @return {!goog.math.Box} A new Box representation of this Rectangle.
  */
 goog.math.Rect.prototype.toBox = function() {
   var right = this.left + this.width;
@@ -16196,7 +16739,7 @@ goog.math.Rect.prototype.toBox = function() {
  * Creates a new Rect object with the same position and dimensions as a given
  * Box.  Note that this is only the inverse of toBox if left/top are defined.
  * @param {goog.math.Box} box A box.
- * @return {goog.math.Rect} A new Rect initialized with the box's position
+ * @return {!goog.math.Rect} A new Rect initialized with the box's position
  *     and size.
  */
 goog.math.Rect.createFromBox = function(box) {
@@ -16269,7 +16812,7 @@ goog.math.Rect.prototype.intersection = function(rect) {
  * intersect if they had the same top and left.
  * @param {goog.math.Rect} a A Rectangle.
  * @param {goog.math.Rect} b A Rectangle.
- * @return {goog.math.Rect?} A new intersection rect (even if width and height
+ * @return {goog.math.Rect} A new intersection rect (even if width and height
  *     are 0), or null if there is no intersection.
  */
 goog.math.Rect.intersection = function(a, b) {
@@ -16322,7 +16865,7 @@ goog.math.Rect.prototype.intersects = function(rect) {
  * rectangle after the second has been subtracted.
  * @param {goog.math.Rect} a A Rectangle.
  * @param {goog.math.Rect} b A Rectangle.
- * @return {Array.<goog.math.Rect>} An array with 0 to 4 rectangles which
+ * @return {!Array.<!goog.math.Rect>} An array with 0 to 4 rectangles which
  *     together define the difference area of rectangle a minus rectangle b.
  */
 goog.math.Rect.difference = function(a, b) {
@@ -16372,7 +16915,7 @@ goog.math.Rect.difference = function(a, b) {
  * return value is an array of 0 to 4 rectangles defining the remaining regions
  * of this rectangle after the other has been subtracted.
  * @param {goog.math.Rect} rect A Rectangle.
- * @return {Array.<goog.math.Rect>} An array with 0 to 4 rectangles which
+ * @return {!Array.<!goog.math.Rect>} An array with 0 to 4 rectangles which
  *     together define the difference area of rectangle a minus rectangle b.
  */
 goog.math.Rect.prototype.difference = function(rect) {
@@ -16401,7 +16944,7 @@ goog.math.Rect.prototype.boundingRect = function(rect) {
  * Returns a new rectangle which completely contains both input rectangles.
  * @param {goog.math.Rect} a A rectangle.
  * @param {goog.math.Rect} b A rectangle.
- * @return {goog.math.Rect?} A new bounding rect, or null if either rect is
+ * @return {goog.math.Rect} A new bounding rect, or null if either rect is
  *     null.
  */
 goog.math.Rect.boundingRect = function(a, b) {
@@ -16441,7 +16984,7 @@ goog.math.Rect.prototype.contains = function(another) {
 
 /**
  * Returns the size of this rectangle.
- * @return {goog.math.Size} The size of this rectangle.
+ * @return {!goog.math.Size} The size of this rectangle.
  */
 goog.math.Rect.prototype.getSize = function() {
   return new goog.math.Size(this.width, this.height);
@@ -16458,7 +17001,19 @@ goog.math.Rect.prototype.getSize = function() {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Utilities for element styles.
@@ -17327,12 +17882,22 @@ goog.style.toCamelCase = function(selector) {
 
 
 /**
- * Converts a CSS selector in the form styleProperty to style-property
+ * A memoized cache for goog.style.toSelectorCase.
+ * @type {Object.<string>}
+ * @private
+ */
+goog.style.toSelectorCaseCache_ = {};
+
+
+/**
+ * Converts a CSS selector in the form styleProperty to style-property.
  * @param {string} selector Camel case selector.
  * @return {string} Selector cased.
  */
 goog.style.toSelectorCase = function(selector) {
-  return selector.replace(/([A-Z])/g, '-$1').toLowerCase();
+  return goog.style.toSelectorCaseCache_[selector] ||
+      (goog.style.toSelectorCaseCache_[selector] =
+          selector.replace(/([A-Z])/g, '-$1').toLowerCase());
 };
 
 
@@ -18205,7 +18770,19 @@ goog.style.getScrollbarWidth = function() {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2008 Google Inc. All Rights Reserved.
+// Copyright 2008 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Generator for unique element IDs.
@@ -18259,7 +18836,19 @@ goog.ui.IdGenerator.instance = goog.ui.IdGenerator.getInstance();
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2007 Google Inc. All Rights Reserved.
+// Copyright 2007 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Abstract class for all UI components. This defines the standard
@@ -19136,6 +19725,7 @@ goog.ui.Component.prototype.addChild = function(child, opt_render) {
  *    added; must be between 0 and the current child count (inclusive).
  * @param {boolean=} opt_render If true, the child component will be rendered
  *    into the parent.
+ * @return {void}
  */
 goog.ui.Component.prototype.addChildAt = function(child, index, opt_render) {
   if (child.inDocument_ && (opt_render || !this.inDocument_)) {
@@ -19175,7 +19765,7 @@ goog.ui.Component.prototype.addChildAt = function(child, index, opt_render) {
     // Changing the position of an existing child, move the DOM node.
     var contentElement = this.getContentElement();
     contentElement.insertBefore(child.getElement(),
-        (contentElement.childNodes[index + 1] || null));
+        (contentElement.childNodes[index] || null));
 
   } else if (opt_render) {
     // If this (parent) component doesn't have a DOM yet, call createDom now
@@ -19426,7 +20016,19 @@ goog.ui.Component.prototype.removeChildren = function(opt_unrender) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2008 Google Inc. All Rights Reserved.
+// Copyright 2008 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview A table sorting decorator.
@@ -19691,7 +20293,19 @@ goog.ui.TableSorter.createReverseSort = function(sortFunction) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Common positioning code.
@@ -20168,7 +20782,19 @@ goog.positioning.flipCorner = function(corner) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Abstract base class for positioning implementations.
@@ -20215,7 +20841,19 @@ goog.positioning.AbstractPosition.prototype.reposition =
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Client positioning class.
@@ -20290,7 +20928,19 @@ goog.positioning.AnchoredPosition.prototype.reposition = function(
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Client positioning class.
@@ -20353,7 +21003,19 @@ goog.positioning.ViewportPosition.prototype.reposition = function(
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Client viewport positioning class.
@@ -20426,7 +21088,19 @@ goog.positioning.AbsolutePosition.prototype.reposition = function(
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Anchored viewport positioning class.
@@ -20551,7 +21225,19 @@ goog.positioning.AnchoredViewportPosition.prototype.reposition = function(
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Client positioning class.
@@ -20626,7 +21312,19 @@ goog.positioning.ClientPosition.prototype.reposition = function(
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Client viewport positioning class.
@@ -20726,7 +21424,19 @@ goog.positioning.ViewportClientPosition.prototype.reposition = function(
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Constant declarations for common key codes.
@@ -21022,7 +21732,19 @@ goog.events.KeyCodes.isCharacterKey = function(keyCode) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Definition of the PopupBase class.
@@ -21727,7 +22449,19 @@ goog.ui.PopupBase.prototype.disposeInternal = function() {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+// Copyright 2006 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Definition of the Popup class.
@@ -22133,7 +22867,19 @@ goog.ui.Popup.ViewPortClientPosition = goog.positioning.ViewportClientPosition;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2007 Google Inc. All Rights Reserved.
+// Copyright 2007 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Tooltip widget implementation.
@@ -23044,7 +23790,19 @@ goog.ui.Tooltip.ElementTooltipPosition.prototype.reposition = function(
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2009 Google Inc. All Rights Reserved.
+// Copyright 2009 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Provides a base class for custom Error objects such that the
@@ -23088,7 +23846,19 @@ goog.debug.Error.prototype.name = 'CustomError';
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2008 Google Inc. All Rights Reserved.
+// Copyright 2008 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Utilities to check the preconditions, postconditions and
@@ -23331,7 +24101,19 @@ goog.asserts.assertInstanceof = function(value, type, opt_message, var_args) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2008 Google Inc. All rights reserved.
+// Copyright 2008 Google Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Simple utilities for dealing with URI strings.
@@ -23876,11 +24658,21 @@ goog.uri.utils.appendKeyValuePairs_ = function(key, value, pairs) {
     // jscompiler that it is, indeed, an array.
     value = /** @type {Array} */ (value);
     for (var j = 0; j < value.length; j++) {
-      pairs.push('&', key, '=', goog.string.urlEncode(value[j]));
+      pairs.push('&', key);
+      // Check for empty string, null and undefined get encoded
+      // into the url as literal strings
+      if (value[j] !== '') {
+        pairs.push('=', goog.string.urlEncode(value[j]));
+      }
     }
   } else if (value != null) {
     // Not null or undefined, so safe to append.
-    pairs.push('&', key, '=', goog.string.urlEncode(value));
+    pairs.push('&', key);
+    // Check for empty string, null and undefined get encoded
+    // into the url as literal strings
+    if (value !== '') {
+      pairs.push('=', goog.string.urlEncode(value));
+    }
   }
 };
 
@@ -23912,9 +24704,7 @@ goog.uri.utils.buildQueryDataBuffer_ = function(
 
 /**
  * Builds a query data string from a sequence of alternating keys and values.
- *
- * Currently generates "&key=&" for empty args; there is no way to generate
- * "&key&" arguments with no equal sign.
+ * Currently generates "&key&" for empty args.
  *
  * @param {goog.uri.utils.QueryArray} keysAndValues Alternating keys and
  *     values.  See the typedef.
@@ -23951,9 +24741,7 @@ goog.uri.utils.buildQueryDataBufferFromMap_ = function(buffer, map) {
 
 /**
  * Builds a query data string from a map.
- *
- * Currently generates "&key=&" for empty args; there is no way to generate
- * "&key&" arguments with no equal sign.
+ * Currently generates "&key&" for empty args.
  *
  * @param {Object} map An object where keys are URI-encoded parameter keys,
  *     and the values are arbitrary types or arrays.  Keys with a null value
