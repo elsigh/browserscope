@@ -31,3 +31,8 @@ indexes:
   properties:
   - name: category
   - name: created
+
+- kind: Test
+  properties:
+  - name: user
+  - name: created

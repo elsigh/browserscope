@@ -148,28 +148,6 @@ def Stats(request):
   return util.Render(request, 'admin/stats.html', params)
 
 
-# @decorators.admin_required
-# def GetUserAgentGroupStrings(request):
-#   version_level = request.GET.get('v', 'top')
-#   UserAgentGroup.ClearMemcache(version_level)
-#   ua_strings = UserAgentGroup.GetStrings(version_level)
-#   return http.HttpResponse('<br>'.join(ua_strings))
-
-@decorators.admin_required
-def WTF(request):
-  key = request.GET.get('key')
-  dbkey = db.Key(key)
-  if not key:
-    return http.HttpResponse('No key')
-  ua = UserAgent.get(dbkey)
-  logging.info('ua: %s' % user_agent)
-  if ua:
-    ua.update_groups()
-    logging.info('DONE WTF!!')
-    return http.HttpResponse('Done with UserAgent key=%s' % key)
-  else:
-    return http.HttpResponse('No user_agent with this key.')
-
 @decorators.admin_required
 def DataDump(request):
   """This is used by bin/data_dump.py to replicate the datastore."""
