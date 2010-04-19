@@ -193,6 +193,11 @@ def TestStatsTable(request, key):
   test_set = test.get_test_set_from_test_keys(test_keys)
 
   stats_table = util.GetStats(request, test_set, output)
+
+  if output in ('xhr', 'pickle', 'csv',
+                'gviz', 'gviz_data', 'gviz_timeline_data'):
+    return http.HttpResponse(stats_table)
+
   simple_layout = request.GET.get('layout') == 'simple'
   params = {
     'hide_nav': simple_layout,
@@ -272,8 +277,17 @@ def BeaconJs(request, key):
     'callback': request.GET.get('callback'),
     'server': util.GetServer(request)
   }
-  return shortcuts.render_to_response('user_test_beacon.js', params,
-                                      mimetype='text/javascript')
+  response = shortcuts.render_to_response('user_test_beacon.js', params,
+                                          mimetype='text/javascript')
 
+  # Add on a P3P header so that the provide_csrf will work as a third-party
+  # cookie for IE security happiness.
+  # Reference: http://www.w3.org/P3P/
+  # To be fair, I copied this example string from a blog and it works in IE.
+  # I did not spend the 6 hours it looks like it would take to read this
+  # documentation nor did I spend $39 for the P3PEdit service ;0
+  # So I'm not sure that this string honestly represents our cookie policy.
+  response['P3P'] = ('CP="NOI DSP COR NID ADM DEV PSA OUR IND UNI PUR COM '
+                     'NAV INT STA"')
 
-
+  return response

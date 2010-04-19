@@ -75,8 +75,10 @@ def UpdateRecentTests(request):
 
   recent_tests = []
   recent_query = db.Query(ResultParent).order('-created')
+  logging.info('RECENT: %s' % recent_query)
   for result_parent in recent_query.fetch(30):
-    if result_parent.category not in visible_categories:
+    if result_parent.category not in [vis.category for vis in
+                                      visible_categories]:
       continue
     if str(result_parent.key()) == prev_result_parent_key:
       num_needed = max_recent_tests - len(recent_tests)
@@ -85,6 +87,7 @@ def UpdateRecentTests(request):
       else:
         recent_tests.extend(prev_recent_tests[:num_needed])
         break
+    logging.info('GOT HERE')
     recent_scores = result_parent.GetResults()
     test_set = all_test_sets.GetTestSet(result_parent.category)
     visible_test_keys = [t.key for t in test_set.VisibleTests()]
@@ -99,7 +102,6 @@ def UpdateRecentTests(request):
         })
     if len(recent_tests) >= max_recent_tests:
       break
-
   memcache.set(util.RECENT_TESTS_MEMCACHE_KEY, recent_tests,
                time=settings.STATS_MEMCACHE_TIMEOUT)
   return http.HttpResponse('Done')
