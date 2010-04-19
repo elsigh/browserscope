@@ -65,6 +65,7 @@ def Settings(request):
       email=current_user.email())
   tests = db.Query(models.user_test.Test)
   tests.filter('user', u)
+  tests.order('created')
   if tests.count() == 0:
     tests = None
 
