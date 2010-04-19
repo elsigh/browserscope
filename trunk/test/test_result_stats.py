@@ -24,6 +24,7 @@ import unittest
 
 from google.appengine.api import memcache
 from google.appengine.ext import db
+from categories import all_test_sets
 from models import result_stats
 from models.result import ResultParent
 from third_party import mox
@@ -51,6 +52,17 @@ class CategoryBrowserManagerTest(unittest.TestCase):
         ['Firefox 3.0', 'Firefox 3.5'],
         ['Firefox 3.0.7', 'Firefox 3.5'])):
       browsers = self.cls.GetBrowsers(category, version_level)
+      self.assertEqual(expected_browsers, browsers)
+
+  def testAddUserAgentSummary(self):
+    self.cls.AddUserAgent('network', mock_data.GetUserAgent('Firefox 3.5'))
+    self.cls.AddUserAgent('security', mock_data.GetUserAgent('Firefox 3.0.7'))
+    for version_level, expected_browsers in enumerate((
+        ['Firefox'],
+        ['Firefox 3'],
+        ['Firefox 3.0', 'Firefox 3.5'],
+        ['Firefox 3.0.7', 'Firefox 3.5'])):
+      browsers = self.cls.GetBrowsers('summary', version_level)
       self.assertEqual(expected_browsers, browsers)
 
   def testGetBrowsersTop(self):
@@ -198,12 +210,244 @@ class CategoryBrowserManagerFilterTest(unittest.TestCase):
     self.assertEqual(expected_browsers, browsers)
 
 
+TEST_STATS = {
+    'Aardvark': {
+        'Firefox 3': {
+            'summary_score': 2,
+            'summary_display': '93/100',
+            'total_runs': 8
+            },
+        'Firefox 3.5': {
+            'summary_score': 5,
+            'summary_display': '83/100',
+            'total_runs': 5
+            },
+        },
+    'Badger': {
+        'Firefox 3': {
+            'summary_score': 7,
+            'summary_display': '12/15',
+            'total_runs': 3
+            },
+        'IE 7': {
+            'summary_score': 9,
+            'summary_display': '14/15',
+            'total_runs': 1
+            },
+        },
+    'Coati': {
+        'Firefox 3': {
+            'summary_score': 2,
+            'summary_display': '9/19',
+            'total_runs': 99
+            },
+        'Firefox 3.5': {
+            'summary_score': 1,
+            'summary_display': '8/19',
+            'total_runs': 89
+            },
+        },
+    }
+
+
+class SummaryStatsManagerTest(unittest.TestCase):
+
+  def setUp(self):
+    self.cls = result_stats.SummaryStatsManager
+
+  def testUpdateStatsBasic(self):
+    category = 'Aardvark'
+    updated_summary_stats = self.cls.UpdateStats(category, TEST_STATS[category])
+    memcache_summary_stats = memcache.get_multi(
+        ['Firefox 3', 'Firefox 3.5'], namespace=self.cls.MEMCACHE_NAMESPACE)
+    expected_summary_stats = {
+        'Firefox 3': {
+            'Aardvark': {
+                'score': 2,
+                'display': '93/100',
+                'total_runs': 8,
+                },
+            },
+        'Firefox 3.5': {
+            'Aardvark': {
+                'score': 5,
+                'display': '83/100',
+                'total_runs': 5,
+                },
+            },
+        }
+    self.assertEqual(expected_summary_stats, updated_summary_stats)
+    self.assertEqual(expected_summary_stats, memcache_summary_stats)
+
+  def testUpdateStatsTwoCategories(self):
+    for category in ('Aardvark', 'Badger'):
+      updated_summary_stats = self.cls.UpdateStats(
+          category, TEST_STATS[category])
+    expected_updated_summary_stats = {
+        'Firefox 3': {
+            'Aardvark': {
+                'score': 2,
+                'display': '93/100',
+                'total_runs': 8,
+                },
+            'Badger': {
+                'score': 7,
+                'display': '12/15',
+                'total_runs': 3,
+                },
+            },
+        'IE 7': {
+            'Badger': {
+                'score': 9,
+                'display': '14/15',
+                'total_runs': 1,
+                },
+            },
+        }
+    self.assertEqual(expected_updated_summary_stats, updated_summary_stats)
+    expected_summary_stats = expected_updated_summary_stats.copy()
+    expected_summary_stats.update({
+        'Firefox 3.5': {
+            'Aardvark': {
+                'score': 5,
+                'display': '83/100',
+                'total_runs': 5,
+                },
+            },
+        })
+    memcache_summary_stats = memcache.get_multi(
+        ['Firefox 3', 'Firefox 3.5', 'IE 7'],
+        namespace=self.cls.MEMCACHE_NAMESPACE)
+    self.assertEqual(expected_summary_stats, memcache_summary_stats)
+
+
+class SummaryStatsManagerGetStatsTest(unittest.TestCase):
+
+  def setUp(self):
+    self.mox = mox.Mox()
+    self.cls = result_stats.SummaryStatsManager
+
+  def tearDown(self):
+    self.mox.UnsetStubs()
+
+  def test_FindAndUpdateStats(self):
+    # TODO(slamm): add test for _FindAndUpdateStats
+    pass
+
+  def testGetStatsBasic(self):
+    for category in ('Aardvark', 'Coati'):
+      updated_summary_stats = self.cls.UpdateStats(
+          category, TEST_STATS[category])
+    expected_summary_stats = {
+        'Firefox 3.5': {
+            'Aardvark': {
+                'score': 5,
+                'display': '83/100',
+                'total_runs': 5,
+                },
+            'Coati': {
+                'score': 1,
+                'display': '8/19',
+                'total_runs': 89,
+                },
+            },
+        }
+    summary_stats = self.cls.GetStats(
+        ['Firefox 3.5'], categories=['Aardvark', 'Coati'])
+    self.assertEqual(expected_summary_stats, summary_stats)
+
+  def testGetStatsTrimUnwanted(self):
+    for category in ('Aardvark', 'Coati'):
+      updated_summary_stats = self.cls.UpdateStats(
+          category, TEST_STATS[category])
+    expected_summary_stats = {
+        'Firefox 3': {
+            'Aardvark': {
+                'score': 2,
+                'display': '93/100',
+                'total_runs': 8,
+                },
+            'Coati': {
+                'score': 2,
+                'display': '9/19',
+                'total_runs': 99,
+                },
+            },
+        'Firefox 3.5': {
+            'Aardvark': {
+                'score': 5,
+                'display': '83/100',
+                'total_runs': 5,
+                },
+            'Coati': {
+                'score': 1,
+                'display': '8/19',
+                'total_runs': 89,
+                },
+            },
+        }
+    summary_stats = self.cls.GetStats(
+        ['Firefox 3', 'Firefox 3.5'], categories=['Aardvark', 'Coati'])
+    self.assertEqual(expected_summary_stats, summary_stats)
+
+  def testGetStatsMissingStats(self):
+    for category in ('Aardvark', 'Badger'):
+      updated_summary_stats = self.cls.UpdateStats(
+          category, TEST_STATS[category])
+    self.mox.StubOutWithMock(
+        result_stats.SummaryStatsManager, '_FindAndUpdateStats')
+    result_stats.SummaryStatsManager._FindAndUpdateStats(
+        'Aardvark', ['Safari']).InAnyOrder().AndReturn({})
+    result_stats.SummaryStatsManager._FindAndUpdateStats(
+        'Badger', ['Safari']).InAnyOrder().AndReturn({
+            'Safari': {
+                'Badger': {
+                    'score': 1,
+                    'display': '1/15',
+                    'total_runs': 15,
+                    },
+                 },
+            })
+    self.mox.ReplayAll()
+    expected_summary_stats = {
+        'Firefox 3': {
+            'Aardvark': {
+                'score': 2,
+                'display': '93/100',
+                'total_runs': 8,
+                },
+            'Badger': {
+                'score': 7,
+                'display': '12/15',
+                'total_runs': 3,
+                },
+            },
+        'Safari': {
+            'Badger': {
+                'score': 1,
+                'display': '1/15',
+                'total_runs': 15,
+                },
+            },
+        }
+    summary_stats = self.cls.GetStats(
+        ['Firefox 3', 'Safari'], categories=['Aardvark', 'Badger'])
+    self.mox.VerifyAll()
+    self.assertEqual(expected_summary_stats, summary_stats)
+
+
 class CategoryStatsManagerTest(unittest.TestCase):
 
   MANAGER_QUERY = result_stats.CategoryBrowserManager.all(keys_only=True)
 
+  def setUp(self):
+    self.test_set = mock_data.MockTestSet()
+    all_test_sets.AddTestSet(self.test_set)
+
+  def tearDown(self):
+    all_test_sets.RemoveTestSet(self.test_set)
+
   def testGetStats(self):
-    test_set = mock_data.MockTestSet()
     add_result_params = (
         # ((apple, banana, coconut), firefox_version)
         ((0, 0, 500), 'Firefox 3.0.7'),
@@ -214,7 +458,7 @@ class CategoryStatsManagerTest(unittest.TestCase):
         )
     for scores, browser in add_result_params:
       parent = ResultParent.AddResult(
-          test_set, '12.2.2.25', mock_data.GetUserAgentString(browser),
+          self.test_set, '12.2.2.25', mock_data.GetUserAgentString(browser),
           'apple=%s,banana=%s,coconut=%s' % scores)
     level_1_stats = {
         'Firefox 3': {
@@ -230,7 +474,7 @@ class CategoryStatsManagerTest(unittest.TestCase):
         'total_runs': 5,
         }
     self.assertEqual(level_1_stats, result_stats.CategoryStatsManager.GetStats(
-        test_set, browsers=('Firefox 3',),
+        self.test_set, browsers=('Firefox 3',),
         test_keys=['apple', 'banana', 'coconut']))
 
     level_3_stats = {
@@ -257,7 +501,7 @@ class CategoryStatsManagerTest(unittest.TestCase):
         'total_runs': 5,
         }
     self.assertEqual(level_3_stats, result_stats.CategoryStatsManager.GetStats(
-        test_set, browsers=('Firefox 3.0.7', 'Firefox 3.5'),
+        self.test_set, browsers=('Firefox 3.0.7', 'Firefox 3.5'),
         test_keys=['apple', 'banana', 'coconut']))
 
 
@@ -268,9 +512,11 @@ class UpdateStatsCacheTest(unittest.TestCase):
   def setUp(self):
     self.mox = mox.Mox()
     self.test_set = mock_data.MockTestSet()
+    all_test_sets.AddTestSet(self.test_set)
 
   def tearDown(self):
     self.mox.UnsetStubs()
+    all_test_sets.RemoveTestSet(self.test_set)
 
   def testBasic(self):
     category = self.test_set.category
@@ -279,15 +525,18 @@ class UpdateStatsCacheTest(unittest.TestCase):
     test_keys = ['apple', 'banana', 'coconut']
     self.mox.StubOutWithMock(self.test_set, 'GetMediansAndNumScores')
     self.mox.StubOutWithMock(self.test_set, 'GetStats')
+    self.mox.StubOutWithMock(result_stats.SummaryStatsManager, 'UpdateStats')
     self.test_set.GetMediansAndNumScores('Earth').AndReturn(('m1', 'n1'))
     self.test_set.GetStats(test_keys, 'm1', 'n1').AndReturn('s1')
     self.test_set.GetMediansAndNumScores('Wind').AndReturn(('m2', 'n2'))
     self.test_set.GetStats(test_keys, 'm2', 'n2').AndReturn('s2')
     self.test_set.GetMediansAndNumScores('Fire').AndReturn(('m3', 'n3'))
     self.test_set.GetStats(test_keys, 'm3', 'n3').AndReturn('s3')
+    expected_ua_stats = {'Earth': 's1', 'Wind': 's2', 'Fire': 's3'}
+    result_stats.SummaryStatsManager.UpdateStats(
+        category, expected_ua_stats).AndReturn('notused')
     self.mox.ReplayAll()
     cls.UpdateStatsCache(category, browsers)
     self.mox.VerifyAll()
     ua_stats = memcache.get_multi(browsers, **cls.MemcacheParams(category))
-    self.assertEqual({'Earth': 's1', 'Wind': 's2', 'Fire': 's3'},
-                     ua_stats)
+    self.assertEqual(expected_ua_stats, ua_stats)

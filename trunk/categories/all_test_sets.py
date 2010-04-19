@@ -70,6 +70,14 @@ def AddTestSet(test_set):
   ALL_TEST_SETS.append(test_set)
   CATEGORY_TEST_SETS[test_set.category] = test_set
 
+def RemoveTestSet(test_set):
+  """Remove a test_set (for unit tests)."""
+  global ALL_CATEGORIES
+  global ALL_TEST_SETS
+  global CATEGORY_TEST_SETS
+  ALL_CATEGORIES.remove(test_set.category)
+  ALL_TEST_SETS.remove(test_set)
+  del CATEGORY_TEST_SETS[test_set.category]
 
 def _InitializeLists():
   global ALL_TEST_SETS

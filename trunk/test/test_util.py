@@ -27,6 +27,7 @@ from google.appengine.api import memcache
 from django.test.client import Client
 
 from base import util
+from categories import all_test_sets
 from categories import test_set_params
 from models import result
 from models.user_agent import UserAgent
@@ -54,7 +55,12 @@ class TestHome(unittest.TestCase):
 class TestBeacon(unittest.TestCase):
 
   def setUp(self):
+    self.test_set = mock_data.MockTestSet()
+    all_test_sets.AddTestSet(self.test_set)
     self.client = Client()
+
+  def tearDown(self):
+    all_test_sets.RemoveTestSet(self.test_set)
 
   def testBeaconWithoutCsrfToken(self):
     params = {}
@@ -70,10 +76,9 @@ class TestBeacon(unittest.TestCase):
 
 
   def testBeacon(self):
-    test_set = mock_data.MockTestSet()
     csrf_token = self.client.get('/get_csrf').content
     params = {
-      'category': test_set.category,
+      'category': self.test_set.category,
       'results': 'apple=1,banana=2,coconut=4',
       'csrf_token': csrf_token
     }
@@ -82,7 +87,7 @@ class TestBeacon(unittest.TestCase):
 
     # Did a ResultParent get created?
     query = db.Query(result.ResultParent)
-    query.filter('category =', test_set.category)
+    query.filter('category =', self.test_set.category)
     result_parent = query.get()
     self.assertNotEqual(result_parent, None)
 
@@ -93,7 +98,6 @@ class TestBeacon(unittest.TestCase):
 
 
   def testBeaconWithChromeFrame(self):
-    test_set = mock_data.MockTestSet()
     csrf_token = self.client.get('/get_csrf').content
     chrome_ua_string = ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '
         'AppleWebKit/530.1 (KHTML, like Gecko) Chrome/4.0.169.1 Safari/530.1')
@@ -105,7 +109,7 @@ class TestBeacon(unittest.TestCase):
     unit_test_ua = mock_data.UNIT_TEST_UA
     unit_test_ua['HTTP_USER_AGENT'] = chrome_frame_ua_string
     params = {
-      'category': test_set.category,
+      'category': self.test_set.category,
       'results': 'apple=0,banana=0,coconut=1000',
       'csrf_token': csrf_token,
       'js_ua': chrome_ua_string
@@ -115,7 +119,7 @@ class TestBeacon(unittest.TestCase):
 
     # Did a ResultParent get created?
     query = db.Query(result.ResultParent)
-    query.filter('category =', test_set.category)
+    query.filter('category =', self.test_set.category)
     result_parent = query.get()
     self.assertNotEqual(result_parent, None)
 
@@ -130,10 +134,9 @@ class TestBeacon(unittest.TestCase):
         sorted((x.test, x.score, x.dirty) for x in result_times))
 
   def testBeaconWithBogusTests(self):
-    test_set = mock_data.MockTestSet()
     csrf_token = self.client.get('/get_csrf').content
     params = {
-      'category': test_set.category,
+      'category': self.test_set.category,
       'results': 'testBogus=1,testVisibility=2',
       'csrf_token': csrf_token
     }
@@ -142,7 +145,7 @@ class TestBeacon(unittest.TestCase):
 
     # Did a ResultParent get created? Shouldn't have.
     query = db.Query(result.ResultParent)
-    query.filter('category =', test_set.category)
+    query.filter('category =', self.test_set.category)
     result_parent = query.get()
     self.assertEqual(None, result_parent)
 

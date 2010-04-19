@@ -25,6 +25,7 @@ from django.test.client import Client
 
 from base import manage_dirty
 
+from categories import all_test_sets
 from models import result_ranker
 from models.result import ResultParent
 from models.result import ResultTime
@@ -37,12 +38,17 @@ class TestManageDirty(unittest.TestCase):
   CATEGORY = 'test_manage_dirty'
 
   def setUp(self):
+    self.test_set = mock_data.MockTestSet(self.CATEGORY)
+    all_test_sets.AddTestSet(self.test_set)
+
     self.old_schedule_dirty_update = manage_dirty.ScheduleDirtyUpdate
     self.old_limit = manage_dirty.DirtyResultTimesQuery.RESULT_TIME_LIMIT
     self.client = Client()
 
   def tearDown(self):
     """Need to clean up it seems."""
+    all_test_sets.RemoveTestSet(self.test_set)
+
     manage_dirty.ScheduleDirtyUpdate = self.old_schedule_dirty_update
     manage_dirty.DirtyResultTimesQuery.RESULT_TIME_LIMIT = self.old_limit
 
@@ -60,10 +66,8 @@ class TestManageDirty(unittest.TestCase):
     ua_string = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
                  'Gecko/2009011912 Firefox/3.0.6')
 
-    test_set = mock_data.MockTestSet(self.CATEGORY)
-    category = self.CATEGORY
-    ResultParent.AddResult(test_set, '12.2.2.11', ua_string,
-                           'apple=0,banana=99,coconut=101')
+    ResultParent.AddResult(
+        self.test_set, '12.2.2.11', ua_string, 'apple=0,banana=99,coconut=101')
 
     response = self.client.get('/admin/update_dirty', {},
         **mock_data.UNIT_TEST_UA)
@@ -82,7 +86,7 @@ class TestManageDirty(unittest.TestCase):
                      [x.dirty for x in result_times])
 
     ranker = result_ranker.GetRanker(
-        test_set.GetTest('coconut'), 'Firefox 3')
+        self.test_set.GetTest('coconut'), 'Firefox 3')
     self.assertEqual((101, 1), ranker.GetMedianAndNumScores())
 
   def testUpdateDirtyOverMultipleRequests(self):
@@ -95,10 +99,8 @@ class TestManageDirty(unittest.TestCase):
     ua_string = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
                  'Gecko/2009011912 Firefox/3.0.6')
 
-    test_set = mock_data.MockTestSet(self.CATEGORY)
-    category = self.CATEGORY
-    result_parent = ResultParent.AddResult(test_set, '12.2.2.11', ua_string,
-                                           'apple=0,banana=99,coconut=101')
+    result_parent = ResultParent.AddResult(
+        self.test_set, '12.2.2.11', ua_string, 'apple=0,banana=99,coconut=101')
     self.assertEqual([False, False, True],
                      sorted([x.dirty for x in result_parent.GetResultTimes()]))
     self.assertEqual([result_parent.key()], schedule_dirty_args)

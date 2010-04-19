@@ -30,6 +30,7 @@ from django.test.client import Client
 from django.utils import simplejson
 from google.appengine.api import memcache
 from google.appengine.ext import db
+from categories import all_test_sets
 from models import result_stats
 from models.result import ResultParent
 from models.result import ResultTime
@@ -70,7 +71,12 @@ class TestConfirmUa(unittest.TestCase):
 
 class TestDataDump(unittest.TestCase):
   def setUp(self):
+    self.test_set = mock_data.MockTestSet()
+    all_test_sets.AddTestSet(self.test_set)
     self.client = Client()
+
+  def tearDown(self):
+    all_test_sets.RemoveTestSet(self.test_set)
 
   def testNoParamsGivesError(self):
     params = {}
@@ -97,11 +103,10 @@ class TestDataDump(unittest.TestCase):
       self.assertEqual(expected_data, response_params['data'])
 
   def testDumpAll(self):
-    test_set = mock_data.MockTestSet()
     keys = []
     for scores in ((1, 4, 50), (1, 1, 20), (0, 2, 30), (1, 0, 10), (1, 3, 10)):
       result = ResultParent.AddResult(
-          test_set, '1.2.2.5', mock_data.GetUserAgentString('Firefox 3.5'),
+          self.test_set, '1.2.2.5', mock_data.GetUserAgentString('Firefox 3.5'),
           'apple=%s,banana=%s,coconut=%s' % scores)
       keys.append(str(result.key()))
     params = {
@@ -115,17 +120,22 @@ class TestDataDump(unittest.TestCase):
 
 
 class TestDataDumpKeys(unittest.TestCase):
+
   def setUp(self):
+    self.test_set = mock_data.MockTestSet()
+    all_test_sets.AddTestSet(self.test_set)
     self.client = Client()
 
+  def tearDown(self):
+    all_test_sets.RemoveTestSet(self.test_set)
+
   def testCreated(self):
-    test_set = mock_data.MockTestSet()
     created_base = datetime.datetime(2009, 9, 9, 9, 9, 0)
     keys = []
     for scores in ((0, 10, 100), (1, 20, 200)):
       ip = '1.2.2.%s' % scores[1]
       result = ResultParent.AddResult(
-          test_set, ip, mock_data.GetUserAgentString('Firefox 3.5'),
+          self.test_set, ip, mock_data.GetUserAgentString('Firefox 3.5'),
           'apple=%s,banana=%s,coconut=%s' % scores,
           created=created_base + datetime.timedelta(seconds=scores[1]))
       keys.append(str(result.key()))
@@ -140,11 +150,10 @@ class TestDataDumpKeys(unittest.TestCase):
     self.assertEqual(keys[1:], response_params['keys'])
 
   def testBookmarkRestart(self):
-    test_set = mock_data.MockTestSet()
     expected_keys = []
     for scores in ((1, 4, 50), (1, 1, 20), (0, 2, 30), (1, 0, 10), (1, 3, 10)):
       result = ResultParent.AddResult(
-          test_set, '1.2.2.5', mock_data.GetUserAgentString('Firefox 3.5'),
+          self.test_set, '1.2.2.5', mock_data.GetUserAgentString('Firefox 3.5'),
           'apple=%s,banana=%s,coconut=%s' % scores)
       expected_keys.append(str(result.key()))
     params = {
@@ -257,13 +266,25 @@ class TestUpdateStatsCache(unittest.TestCase):
     self.assertEqual('Success.', response.content)
     self.assertEqual(200, response.status_code)
 
+
+class TestUpdateAllStatsCAche(unittest.TestCase):
+
+  def setUp(self):
+    self.test_set_1 = mock_data.MockTestSet(category='foo')
+    self.test_set_2 = mock_data.MockTestSet(category='bar')
+    all_test_sets.AddTestSet(self.test_set_1)
+    all_test_sets.AddTestSet(self.test_set_2)
+    self.client = Client()
+
+  def tearDown(self):
+    all_test_sets.RemoveTestSet(self.test_set_1)
+    all_test_sets.RemoveTestSet(self.test_set_2)
+
   def testUpdateAllStatsCache(self):
-    test_set_1 = mock_data.MockTestSet(category='foo')
-    test_set_2 = mock_data.MockTestSet(category='bar')
     category_browsers = {
-        test_set_1: ('Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7',
-                     'Firefox 3.1.8', 'Firefox 3.5', 'IE 7.0'),
-        test_set_2: ('Firefox 2.5.1', 'Firefox 3.5', 'IE 7.0'),
+        self.test_set_1: ('Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7',
+                          'Firefox 3.1.8', 'Firefox 3.5', 'IE 7.0'),
+        self.test_set_2: ('Firefox 2.5.1', 'Firefox 3.5', 'IE 7.0'),
         }
     for test_set, browsers in category_browsers.items():
       for browser in browsers:
