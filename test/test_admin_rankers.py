@@ -31,6 +31,7 @@ from django.utils import simplejson
 from google.appengine.api import datastore_types
 from google.appengine.ext import db
 
+from categories import all_test_sets
 from models import result_ranker
 from third_party import mox
 
@@ -41,6 +42,7 @@ class TestUploadRankers(unittest.TestCase):
 
   def setUp(self):
     self.test_set = mock_data.MockTestSet()
+    all_test_sets.AddTestSet(self.test_set)
 
     self.mox = mox.Mox()
     self.mox.StubOutWithMock(time, 'clock')
@@ -56,6 +58,7 @@ class TestUploadRankers(unittest.TestCase):
 
   def tearDown(self):
     self.mox.UnsetStubs()
+    all_test_sets.RemoveTestSet(self.test_set)
 
   def testBasic(self):
     test_key_browsers = (

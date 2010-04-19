@@ -74,7 +74,6 @@ class MockTestSet(test_set_base.TestSet):
         )
     test_set_base.TestSet.__init__(
         self, category, category.capitalize(), tests, default_params=params)
-    all_test_sets.AddTestSet(self)
 
   def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
     raw_score = raw_scores[test_key]

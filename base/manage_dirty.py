@@ -24,7 +24,6 @@ import traceback
 
 from google.appengine.api import memcache
 from google.appengine.ext import db
-from google.appengine.api.labs import taskqueue
 from google.appengine import runtime
 
 import django

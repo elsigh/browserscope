@@ -26,6 +26,7 @@ from google.appengine.ext import db
 from django.test.client import Client
 from base import cron
 from base import util
+from categories import all_test_sets
 from models.result import ResultParent
 from models.result import ResultTime
 from models.user_agent import UserAgent
@@ -34,14 +35,18 @@ import mock_data
 
 class TestUpdateRecentTests(unittest.TestCase):
   def setUp(self):
+    self.test_set = mock_data.MockTestSet()
+    all_test_sets.AddTestSet(self.test_set)
     self.client = Client()
 
+  def tearDown(self):
+    all_test_sets.RemoveTestSet(self.test_set)
+
   def testRecentTestsBasic(self):
-    test_set = mock_data.MockTestSet()
     result_parents = []
     for scores in ((1, 4, 50), (1, 1, 20), (0, 2, 30)):
       result = ResultParent.AddResult(
-          test_set, '1.2.2.5', mock_data.GetUserAgentString('Firefox 3.5'),
+          self.test_set, '1.2.2.5', mock_data.GetUserAgentString('Firefox 3.5'),
           'apple=%s,banana=%s,coconut=%s' % scores)
       result_parents.append(result)
 
