@@ -31,6 +31,8 @@ from categories import test_set_base
 
 class User(db.Model):
   email = db.StringProperty()
+  created = db.DateTimeProperty(auto_now_add=True)
+  modified = db.DateTimeProperty(auto_now=True)
 
 
 class TestSet(test_set_base.TestSet):
@@ -64,6 +66,8 @@ class Test(db.Model):
   url = db.LinkProperty(required=True)
   hosted = db.BooleanProperty(required=True, default=False)
   description = db.TextProperty()
+  created = db.DateTimeProperty(auto_now_add=True)
+  modified = db.DateTimeProperty(auto_now=True)
 
   def get_base_url(self):
     o = urlparse(self.url)
