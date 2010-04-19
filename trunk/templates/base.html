@@ -59,19 +59,11 @@
         </div>
         <div class="g-unit">
           <div id="bs-nav-sub" class="g-c">
-
-            {% spaceless %}
-              {% if user %}
-                {% if is_admin %}
-                  <a href="/user/settings" target="_top"
-                    class="bs-nav-settings">
-                {% endif %}
-                <span class="bs-nav-settings">{{ user.nickname }}</span>
-                {% if is_admin %}
-                  </a>
-                {% endif %}
-              {% endif %}
-            {% endspaceless %}
+            {% if user %}
+              <a href="/user/settings" target="_top"
+                class="bs-nav-settings"
+                ><span class="bs-nav-settings">{{ user.nickname }}</span></a>
+            {% endif %}
 
             <a href="/faq" target="_top">FAQ</a>
 

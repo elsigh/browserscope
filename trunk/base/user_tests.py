@@ -48,9 +48,7 @@ def TestHowto(request):
   params = {}
   return util.Render(request, 'user_test_howto.html', params)
 
-#@decorators.login_required
-@decorators.admin_required
-#@decorators.provide_check_csrf
+@decorators.login_required
 def Settings(request):
   logging.info('Settings start.')
   if request.POST:
@@ -78,21 +76,24 @@ def Settings(request):
   return util.Render(request, 'user_settings.html', params)
 
 
-@decorators.admin_required
+@decorators.login_required
 @decorators.provide_check_csrf
 def TestCreate(request):
   return TestEdit(request, None)
 
-@decorators.admin_required
+
+@decorators.login_required
 @decorators.provide_check_csrf
 def TestEdit(request, key):
   test = None
   error_msg = None
   current_user = users.get_current_user()
 
+  # Key means this is an edit.
   if key:
     test = models.user_test.Test.get_mem(key)
-    if test.user != current_user and not users.is_current_user_admin():
+    if (test.user.key().name() != current_user.user_id() and not
+        users.is_current_user_admin()):
       return http.HttpResponse('You cannot mess with this test duder.')
 
   if request.POST:
@@ -105,8 +106,8 @@ def TestEdit(request, key):
         test.description = request.POST.get('description')
       else:
         test = models.user_test.Test(user=user, name=request.POST.get('name'),
-                                url=request.POST.get('url'),
-                                description=request.POST.get('description'))
+                                     url=request.POST.get('url'),
+                                     description=request.POST.get('description'))
       test.save()
       test.add_memcache()
       return http.HttpResponseRedirect('/user/settings')
@@ -136,8 +137,17 @@ def TestEdit(request, key):
   return util.Render(request, 'user_test_form.html', params)
 
 
+@decorators.login_required
 def RawTestData(request, key):
+  current_user = users.get_current_user()
+
+  if not key:
+    return http.HttpResponse('No key.')
+
   test = models.user_test.Test.get_mem(key)
+  if (test.user.key().name() != current_user.user_id() and not
+      users.is_current_user_admin()):
+    return http.HttpResponse('You cannot mess with this test duder.')
 
   fields = request.GET.get('f')
   if fields:
