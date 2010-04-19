@@ -73,7 +73,6 @@ STATIC_CATEGORIES = []
 #STATIC_SOURCE_FORMAT = 'static_mode/%(category)s_%(version_level)s.py'
 STATIC_SOURCE_FORMAT = 'http://static.latest.ua-profiler.appspot.com/static_mode/%(category)s_%(version_level)s.py'
 SYSTEM_COOKIES = [SESSION_COOKIE_NAME]
-SYSTEM_COOKIES = [SESSION_COOKIE_NAME]
 
 STATS_MEMCACHE_TIMEOUT = 0
 STATS_MEMCACHE_UA_ROW_NS = 'ua_row'
