@@ -223,6 +223,7 @@ def Home(request):
   recent_tests = memcache.get(key=RECENT_TESTS_MEMCACHE_KEY)
   if not recent_tests:
     ScheduleRecentTestsUpdate()
+  logging.info('RECENT: %s' % recent_tests)
 
   results_params = []
   results_test_set = None
@@ -232,7 +233,6 @@ def Home(request):
     if results_uri_string:
       results_params_uri_string = '='.join((results_key, results_uri_string))
       results_params.append(results_params_uri_string)
-      query_string = re.sub(query_string, '', query_string)
       if not results_test_set:
         results_test_set = test_set  # pick the first test_set with results
 

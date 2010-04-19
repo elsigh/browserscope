@@ -316,6 +316,16 @@ Util.ResultTablesController = function(category, browserFamily,
   this.updateExtraBrowserFamilyOpts();
 };
 
+Util.ResultTablesController.prototype.getTabUrl_ = function(category) {
+  var tabUrl;
+  if (!window.location.href.match('/user/tests')) {
+    tabUrl = goog.uri.utils.setParam(this.url, 'category', category);
+  } else {
+    tabUrl = window.location.href;
+  }
+  return tabUrl;
+};
+
 Util.ResultTablesController.prototype.decorate = function() {
   var categoriesList = goog.dom.createElement('ul');
   categoriesList.id = 'bs-results-cats';
@@ -336,7 +346,7 @@ Util.ResultTablesController.prototype.decorate = function() {
     goog.dom.removeNode(h3);
 
     var link = aClone.cloneNode(true);
-    link.href = goog.uri.utils.setParam(this.url, 'category', category);
+    link.href = this.getTabUrl_(category);
     link.category = category;
     link.appendChild(goog.dom.createTextNode(categoryName));
     this.categoryLinks[category] = link;
@@ -903,8 +913,19 @@ Util.ResultTable.prototype.fixRealUaStringInResults = function() {
  */
 Util.ResultTablesController.generateUrl = function(category, output,
     opt_versionLevel, opt_ua, opt_results, opt_output) {
-  var url = '/';
-  url = goog.uri.utils.appendParam(url, 'category', category);
+
+  // Get the base path for this page.
+  var url = goog.uri.utils.split(window.location.href)[5];
+
+  // User Tests already have the category/test_key in the url.
+  if (!window.location.href.match('/user/tests')) {
+    url = goog.uri.utils.appendParam(url, 'category', category);
+  }
+  // Preserve the layout if sent.
+  if (goog.uri.utils.hasParam(window.location.href, 'layout')) {
+    url = goog.uri.utils.appendParam(url, 'layout',
+        goog.uri.utils.getParamValue(window.location.href, 'layout'));
+  }
   url = goog.uri.utils.appendParam(url, 'o', output);
 
   if (opt_versionLevel) {

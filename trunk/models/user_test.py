@@ -36,7 +36,11 @@ class User(db.Model):
 class TestSet(test_set_base.TestSet):
   def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
     raw_score = raw_scores.get(test_key, 0)
-    return 0, str(raw_score)
+    if raw_score is None:
+      raw_score = ''
+    else:
+      raw_score = str(raw_score)
+    return 0, raw_score
 
   def GetRowScoreAndDisplayValue(self, results):
     return 0, ''

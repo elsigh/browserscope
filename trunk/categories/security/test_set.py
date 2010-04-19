@@ -132,7 +132,7 @@ class SecurityTestSet(test_set_base.TestSet):
           # score is from 0 to 100.
           # display_value is the text for the cell.
     """
-    logging.info('security getrowscore results: %s' % results)
+    #logging.info('security getrowscore results: %s' % results)
 
     total_tests = 0
     total_valid_tests = 0
