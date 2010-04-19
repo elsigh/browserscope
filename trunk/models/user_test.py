@@ -123,7 +123,6 @@ class Test(db.Model):
 
   @staticmethod
   def get_test_set_from_results_str(category, results_str):
-    logging.info('CA %s' % category)
     category_prefix = '%s_' % Test.get_prefix()
     if category_prefix not in category:
       return None

@@ -23,6 +23,7 @@ urlpatterns = patterns('',
   (r'^beacon.*', 'base.util.Beacon'),
   (r'^get_csrf',  'base.util.GetCsrf'),
   (r'^resource',  'third_party.resource-cgi.resource.Handler'),
+  (r'^set_cookie',  'base.util.SetCookieAndRedirect'),
   (r'^timeline$', 'base.util.BrowserTimeLine'),  # beta
   (r'^user/settings$', 'base.user_tests.Settings'),  # beta
   (r'^user/tests/create$', 'base.user_tests.TestCreate'),  # beta

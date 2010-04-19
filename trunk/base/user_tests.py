@@ -41,6 +41,9 @@ from base import util
 from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
 
+import settings
+
+
 def TestHowto(request):
   params = {}
   return util.Render(request, 'user_test_howto.html', params)
@@ -275,7 +278,7 @@ def BeaconJs(request, key):
     'test_key': test.key(),
     'csrf_token': request.session.get('csrf_token'),
     'callback': request.GET.get('callback'),
-    'server': util.GetServer(request)
+    'server': util.GetServer(request),
   }
   response = shortcuts.render_to_response('user_test_beacon.js', params,
                                           mimetype='text/javascript')

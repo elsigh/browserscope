@@ -21,6 +21,7 @@ __author__ = 'elsigh@google.com (Lindsey Simon)'
 import hashlib
 import logging
 import random
+import re
 
 from google.appengine.api import users
 
@@ -45,7 +46,6 @@ def admin_required(func):
       return HttpResponseRedirect(
           users.create_login_url(request.get_full_path()))
   return _wrapper
-
 
 
 def dev_appserver_only(func):
@@ -91,6 +91,13 @@ def check_csrf(func):
     valid_csrf_tokens = request.session.get('csrf_tokens')
     request_csrf_token = request.REQUEST.get('csrf_token')
 
+    # Special exemption for Safari usertest results.
+    # TODO(elsigh): Surely there's a better way to handle the fact that
+    # Safari won't accept third-party cookies.
+    if valid_csrf_tokens is None and isSafariAndUserTest(request):
+      logging.info('SAFARI USER-TEST EXCEPTION for check_csrf')
+      return func(request, *args, **kw)
+
     if request_csrf_token is None:
       return HttpResponseForbidden('CSRF Error - Need csrf_token in request.')
     if valid_csrf_tokens is None or request_csrf_token not in valid_csrf_tokens:
@@ -112,3 +119,13 @@ def provide_check_csrf(func):
       #return provide_csrf._wrapper(request, *args, **kw)
       return func(request, *args, **kw)
   return _wrapper
+
+
+def isSafariAndUserTest(request):
+  user_agent_string = request.META.get('HTTP_USER_AGENT')
+  category = request.GET.get('category')
+  is_safari = False
+  if category and re.search('usertest_', category):
+    if re.search('Safari/', user_agent_string):
+      is_safari = True
+  return is_safari

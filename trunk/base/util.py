@@ -844,3 +844,13 @@ def UserAgents(request):
     ['%s,%s,"%s"' % (x.pretty(), x.key().id_or_name(), x.string)
      for x in user_agents])
   return http.HttpResponse(ua_csv, mimetype='text/csv')
+
+
+@decorators.provide_csrf
+def SetCookieAndRedirect(request):
+  continue_url = request.GET.get('c')
+  if continue_url:
+    return http.HttpResponseRedirect(continue_url)
+  else:
+    return http.HttpResponse('Browserscope cookie set.')
+
