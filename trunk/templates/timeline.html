@@ -6,6 +6,7 @@
 {% ifequal build "production" %}
   <script src="{{ "browserscope.js"|resource_path }}"></script>
 {% else %}
+  <script>var CLOSURE_NO_DEPS = true;</script>
   <script src="{{ "dev.js"|resource_path }}"></script>
   <script src="{{ "util.js"|resource_path }}"></script>
 {% endifequal %}
@@ -26,7 +27,7 @@
         alert('Error in query');
       }
       var data = response.getDataTable()
-     
+
       var annotatedtimeline = new google.visualization.AnnotatedTimeLine(
           document.getElementById('visualization'));
       annotatedtimeline.draw(data, {
