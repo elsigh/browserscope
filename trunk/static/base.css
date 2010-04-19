@@ -794,8 +794,8 @@ a.bs-l-p {
   display: table-cell;
   padding: 10px;
 }
-#bs-usertest-howto ol {
-  line-height: 1.7;
+#bs-usertest-howto li {
+  margin-bottom: 1em;
 }
 #bs-usertest-dontforget {
   margin-bottom: 8px;

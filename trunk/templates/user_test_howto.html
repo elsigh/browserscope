@@ -8,14 +8,21 @@
 
   <h1>User Tests<sup>alpha</sup> Howto </h1>
   <p>
-    Browserscope wants to help you to store and understand your browser test
+    Browserscope wants to help you store and aggregate your browser test
     data.
     Storing your data in our system gives you the benefit of not having to write
     a complex, scaling backend with a user agent parser built in.
-    You can always download all of your data for offline processing, and we
-    provide a stats table
-    view/interface/widget that you can embed on your page which shows the median
-    results for your tests.
+    You can download all of your data for offline processing, and we
+    provide a stats table widget that you can embed on your page which shows
+    the median results for your tests.
+  </p>
+
+  <p>
+    <em>
+      This is definitely a release early/often feature, and we want to be
+      explicit that things may change or break in the API while we're in alpha
+      mode.
+    </em>
   </p>
 
   <h2>Steps to set up your test</h2>
@@ -80,7 +87,8 @@ var _bTestResults = {
     <li>
       Check out the "Table" and "CSV" links on the
       <a href="/user/settings">settings</a> to see your
-      results in realtime.
+      results in realtime. (We are still working on how to handle
+      CSV downloads for large datasets.)
     </li>
     <li>
       You can embed the results table in a blog post or on your site using an
