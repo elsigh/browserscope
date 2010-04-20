@@ -257,12 +257,13 @@ class SummaryStatsManager(db.Model):
       The summary stats that have been updated by the given stats.
       (Used by GetStats.)
     """
-    browsers = stats.keys()
+    browsers = [b for b in stats.keys() if b != 'total_runs']
     update_summary_stats = memcache.get_multi(
         browsers, namespace=cls.MEMCACHE_NAMESPACE)
     for browser in browsers:
-      ua_summary_stats = update_summary_stats.setdefault(browser, {})
-      ua_summary_stats[category] = {
+      ua_summary_stats = update_summary_stats.setdefault(browser, {
+          'results': {}})
+      ua_summary_stats['results'][category] = {
           'score': stats[browser]['summary_score'],
           'display': stats[browser]['summary_display'],
           'total_runs': stats[browser]['total_runs'],
@@ -273,9 +274,31 @@ class SummaryStatsManager(db.Model):
   @classmethod
   def _FindAndUpdateStats(cls, category, browsers):
     test_set = all_test_sets.GetTestSet(category)
+    logging.info('_FindAndUpdateStats: GetStats(%s, %s, %s)',
+                 test_set, browsers, [t.key for t in test_set.VisibleTests()])
     ua_stats = CategoryStatsManager.GetStats(
-        test_set, browsers, test_set.VisibleTests())
+        test_set, browsers, [t.key for t in test_set.VisibleTests()])
     return cls.UpdateStats(category, ua_stats)
+
+  @classmethod
+  def _AddSummaryOfSummaries(cls, summary_stats):
+    """Update summary_stats with row summaries."""
+    grand_total_runs = 0
+    for browser in summary_stats.keys():
+      results = summary_stats[browser]['results']
+      categories = results.keys()
+      score = int(sum(results[c]['score'] for c in categories)
+                  / len(categories))
+      display = '%s/100' % score
+      total_runs = sum(results[c]['total_runs'] for c in categories)
+      grand_total_runs += total_runs
+      summary_stats[browser].update({
+          'summary_score': score,
+          'summary_display': display,
+          'total_runs': total_runs,
+          })
+    summary_stats['total_runs'] = grand_total_runs
+
 
   @classmethod
   def GetStats(cls, browsers, categories=None):
@@ -302,27 +325,29 @@ class SummaryStatsManager(db.Model):
     summary_stats = memcache.get_multi(
         browsers, namespace=cls.MEMCACHE_NAMESPACE)
     if not categories:
-      categories = all_test_sets.GetVisibleTestSets()
+      categories = [t.category for t in all_test_sets.GetVisibleTestSets()]
     # Trim any unwanted stats and find any missing stats.
     missing_stats = {}
     for browser in browsers:
       logging.info('GetStats: browser: %s', browser)
-      ua_summary_stats = summary_stats.get(browser, {})
-      existing_categories = ua_summary_stats.keys()
+      ua_summary_stats = summary_stats.get(browser, {'results': {}})
+      existing_categories = ua_summary_stats['results'].keys()
       for category in existing_categories:
-        logging.info('GetStats: existing category: %s', category)
         if category not in categories:
-          logging.info('GetStats: unneeded category: %s', category)
-          del ua_summary_stats[category]
+          del ua_summary_stats['results'][category]
       for category in categories:
-        logging.info('GetStats: requested category: %s', category)
         if category not in existing_categories:
-          logging.info('GetStats: missing category: %s', category)
           missing_stats.setdefault(category, []).append(browser)
     # Load any missing stats
+    logging.info('missing stats: %s', missing_stats)
     for category, browsers in missing_stats.items():
       updated_stats = cls._FindAndUpdateStats(category, browsers)
+      logging.info('updated stats: %s', updated_stats)
       summary_stats.update(updated_stats)
+
+    logging.info('summary stats: %s', summary_stats)
+
+    cls._AddSummaryOfSummaries(summary_stats)
     return summary_stats
 
   @classmethod
