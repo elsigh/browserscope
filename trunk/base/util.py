@@ -238,17 +238,13 @@ def Home(request):
 
   test_set = None
   category = request.GET.get('category')
-  if category == 'summary':
-    # test_set = summary_test_set.TEST_SET
-    # TODO(slamm): add test_set for summary
-    pass
-  elif category:
+  if category:
     test_set = all_test_sets.GetTestSet(category)
   elif results_test_set:
     test_set = results_test_set
   if not test_set:
     # Take the first test_set.
-    test_set = list(all_test_sets.GetAllTestSets())[0]
+    test_set = list(all_test_sets.GetVisibleTestSets())[0]
   category = test_set.category
 
   # Tell GetStats what to output.
@@ -561,15 +557,15 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
       browsers = stats_data.keys()
       result_stats.CategoryBrowserManager.SortBrowsers(browsers)
     logging.info('Retrieved static stats: category=%s', category)
-  # elif test_set.category == 'summary':
-  # TODO(slamm): write-something tailored to the summary.
   else:
     if not browsers:
       browsers = result_stats.CategoryBrowserManager.GetBrowsers(
           category, version_level)
-    stats_data = result_stats.CategoryStatsManager.GetStats(
-        test_set, browsers, visible_test_keys, use_memcache=use_memcache)
-
+    if test_set.category == 'summary':
+      stats_data = result_stats.SummaryStatsManager.GetStats(browsers)
+    else:
+      stats_data = result_stats.CategoryStatsManager.GetStats(
+          test_set, browsers, visible_test_keys, use_memcache=use_memcache)
   # If the output is pickle, we are done and need to return a string.
   if output == 'pickle':
     return pickle.dumps(stats_data)

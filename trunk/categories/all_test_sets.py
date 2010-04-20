@@ -85,6 +85,9 @@ def _InitializeLists():
   ALL_TEST_SETS = [_ImportTestSet(c) for c in ALL_CATEGORIES]
   CATEGORY_TEST_SETS = dict(zip(ALL_CATEGORIES, ALL_TEST_SETS))
 
+  # Allow look-ups for the summary category, but do not use
+  # it for iteration.
+  CATEGORY_TEST_SETS['summary'] = _ImportTestSet('summary')
 
 def _ImportTestSet(category):
   """Modules that define tests must add them."""

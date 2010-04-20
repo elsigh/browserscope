@@ -262,17 +262,21 @@ class SummaryStatsManagerTest(unittest.TestCase):
         ['Firefox 3', 'Firefox 3.5'], namespace=self.cls.MEMCACHE_NAMESPACE)
     expected_summary_stats = {
         'Firefox 3': {
-            'Aardvark': {
-                'score': 2,
-                'display': '93/100',
-                'total_runs': 8,
+            'results': {
+                'Aardvark': {
+                    'score': 2,
+                    'display': '93/100',
+                    'total_runs': 8,
+                    },
                 },
             },
         'Firefox 3.5': {
-            'Aardvark': {
-                'score': 5,
-                'display': '83/100',
-                'total_runs': 5,
+            'results': {
+                'Aardvark': {
+                    'score': 5,
+                    'display': '83/100',
+                    'total_runs': 5,
+                    },
                 },
             },
         }
@@ -285,22 +289,26 @@ class SummaryStatsManagerTest(unittest.TestCase):
           category, TEST_STATS[category])
     expected_updated_summary_stats = {
         'Firefox 3': {
-            'Aardvark': {
-                'score': 2,
-                'display': '93/100',
-                'total_runs': 8,
-                },
-            'Badger': {
-                'score': 7,
-                'display': '12/15',
-                'total_runs': 3,
+            'results': {
+                'Aardvark': {
+                    'score': 2,
+                    'display': '93/100',
+                    'total_runs': 8,
+                    },
+                'Badger': {
+                    'score': 7,
+                    'display': '12/15',
+                    'total_runs': 3,
+                    },
                 },
             },
         'IE 7': {
-            'Badger': {
-                'score': 9,
-                'display': '14/15',
-                'total_runs': 1,
+            'results': {
+                'Badger': {
+                    'score': 9,
+                    'display': '14/15',
+                    'total_runs': 1,
+                    },
                 },
             },
         }
@@ -308,10 +316,12 @@ class SummaryStatsManagerTest(unittest.TestCase):
     expected_summary_stats = expected_updated_summary_stats.copy()
     expected_summary_stats.update({
         'Firefox 3.5': {
-            'Aardvark': {
-                'score': 5,
-                'display': '83/100',
-                'total_runs': 5,
+            'results': {
+                'Aardvark': {
+                    'score': 5,
+                    'display': '83/100',
+                    'total_runs': 5,
+                    },
                 },
             },
         })
@@ -326,13 +336,15 @@ class SummaryStatsManagerGetStatsTest(unittest.TestCase):
   def setUp(self):
     self.mox = mox.Mox()
     self.cls = result_stats.SummaryStatsManager
+    self.test_set_a = mock_data.MockTestSet(category='Aardvark')
+    self.test_set_b = mock_data.MockTestSet(category='Badger')
+    all_test_sets.AddTestSet(self.test_set_a)
+    all_test_sets.AddTestSet(self.test_set_b)
 
   def tearDown(self):
     self.mox.UnsetStubs()
-
-  def test_FindAndUpdateStats(self):
-    # TODO(slamm): add test for _FindAndUpdateStats
-    pass
+    all_test_sets.RemoveTestSet(self.test_set_a)
+    all_test_sets.RemoveTestSet(self.test_set_b)
 
   def testGetStatsBasic(self):
     for category in ('Aardvark', 'Coati'):
@@ -340,17 +352,23 @@ class SummaryStatsManagerGetStatsTest(unittest.TestCase):
           category, TEST_STATS[category])
     expected_summary_stats = {
         'Firefox 3.5': {
-            'Aardvark': {
-                'score': 5,
-                'display': '83/100',
-                'total_runs': 5,
-                },
-            'Coati': {
-                'score': 1,
-                'display': '8/19',
-                'total_runs': 89,
+            'summary_score': 3,
+            'summary_display': '3/100',
+            'total_runs': 94,
+            'results': {
+                'Aardvark': {
+                    'score': 5,
+                    'display': '83/100',
+                    'total_runs': 5,
+                    },
+                'Coati': {
+                    'score': 1,
+                    'display': '8/19',
+                    'total_runs': 89,
+                    },
                 },
             },
+        'total_runs': 94,
         }
     summary_stats = self.cls.GetStats(
         ['Firefox 3.5'], categories=['Aardvark', 'Coati'])
@@ -362,29 +380,40 @@ class SummaryStatsManagerGetStatsTest(unittest.TestCase):
           category, TEST_STATS[category])
     expected_summary_stats = {
         'Firefox 3': {
-            'Aardvark': {
-                'score': 2,
-                'display': '93/100',
-                'total_runs': 8,
-                },
-            'Coati': {
-                'score': 2,
-                'display': '9/19',
-                'total_runs': 99,
+            'summary_score': 2,
+            'summary_display': '2/100',
+            'total_runs': 107,
+            'results': {
+                'Aardvark': {
+                    'score': 2,
+                    'display': '93/100',
+                    'total_runs': 8,
+                    },
+                'Coati': {
+                    'score': 2,
+                    'display': '9/19',
+                    'total_runs': 99,
+                    },
                 },
             },
         'Firefox 3.5': {
-            'Aardvark': {
-                'score': 5,
-                'display': '83/100',
-                'total_runs': 5,
-                },
-            'Coati': {
-                'score': 1,
-                'display': '8/19',
-                'total_runs': 89,
+            'summary_score': 3,
+            'summary_display': '3/100',
+            'total_runs': 94,
+            'results': {
+                'Aardvark': {
+                    'score': 5,
+                    'display': '83/100',
+                    'total_runs': 5,
+                    },
+                'Coati': {
+                    'score': 1,
+                    'display': '8/19',
+                    'total_runs': 89,
+                    },
                 },
             },
+        'total_runs': 201,
         }
     summary_stats = self.cls.GetStats(
         ['Firefox 3', 'Firefox 3.5'], categories=['Aardvark', 'Coati'])
@@ -395,40 +424,78 @@ class SummaryStatsManagerGetStatsTest(unittest.TestCase):
       updated_summary_stats = self.cls.UpdateStats(
           category, TEST_STATS[category])
     self.mox.StubOutWithMock(
-        result_stats.SummaryStatsManager, '_FindAndUpdateStats')
-    result_stats.SummaryStatsManager._FindAndUpdateStats(
-        'Aardvark', ['Safari']).InAnyOrder().AndReturn({})
-    result_stats.SummaryStatsManager._FindAndUpdateStats(
-        'Badger', ['Safari']).InAnyOrder().AndReturn({
+        result_stats.CategoryStatsManager, 'GetStats')
+    result_stats.CategoryStatsManager.GetStats(
+        self.test_set_a, ['Safari'], ['apple', 'banana', 'coconut']
+        ).InAnyOrder().AndReturn({
             'Safari': {
-                'Badger': {
-                    'score': 1,
-                    'display': '1/15',
-                    'total_runs': 15,
+                'summary_score': 0,
+                'summary_display': '',
+                'total_runs': 0,
+                'results': {
+                    'Aardvark': {
+                        'score': 0,
+                        'display': '',
+                        'total_runs': 0,
+                        },
                     },
-                 },
+                },
+            'total_runs': 0,
+            })
+    result_stats.CategoryStatsManager.GetStats(
+        self.test_set_b, ['Safari'], ['apple', 'banana', 'coconut']
+        ).InAnyOrder().AndReturn({
+            'Safari': {
+                'summary_score': 5,
+                'summary_display': '5/15',
+                'total_runs': 15,
+                'results': {
+                    'Badger': {
+                        'score': 5,
+                        'display': '5/15',
+                        'total_runs': 15,
+                        },
+                     },
+                },
+            'total_runs': 15,
             })
     self.mox.ReplayAll()
     expected_summary_stats = {
         'Firefox 3': {
-            'Aardvark': {
-                'score': 2,
-                'display': '93/100',
-                'total_runs': 8,
-                },
-            'Badger': {
-                'score': 7,
-                'display': '12/15',
-                'total_runs': 3,
+            'summary_score': 4,
+            'summary_display': '4/100',
+            'total_runs': 11,
+            'results': {
+                'Aardvark': {
+                    'score': 2,
+                    'display': '93/100',
+                    'total_runs': 8,
+                    },
+                'Badger': {
+                    'score': 7,
+                    'display': '12/15',
+                    'total_runs': 3,
+                    },
                 },
             },
         'Safari': {
-            'Badger': {
-                'score': 1,
-                'display': '1/15',
-                'total_runs': 15,
+            'summary_score': 2,
+            'summary_display': '2/100',
+            'total_runs': 15,
+            'results': {
+                'Aardvark': {
+                    'score': 0,
+                    'display': '',
+                    'total_runs': 0,
+                    },
+                'Badger': {
+                    'score': 5,
+                    'display': '5/15',
+                    'total_runs': 15,
+                    },
                 },
             },
+        'total_runs': 26,
         }
     summary_stats = self.cls.GetStats(
         ['Firefox 3', 'Safari'], categories=['Aardvark', 'Badger'])
