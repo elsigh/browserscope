@@ -181,6 +181,10 @@ class TestUploadCategoryBrowsers(unittest.TestCase):
   def setUp(self):
     self.client = Client()
     self.manager = result_stats.CategoryBrowserManager
+    self.mox = mox.Mox()
+
+  def tearDown(self):
+    self.mox.UnsetStubs()
 
   def testNoBrowsersGivesError(self):
     params = {}
@@ -217,6 +221,12 @@ class TestUploadCategoryBrowsers(unittest.TestCase):
     self.assertEqual(500, response.status_code)
 
   def testBasic(self):
+    self.mox.StubOutWithMock(
+        result_stats.CategoryBrowserManager, 'UpdateSummaryBrowsers')
+    categories = [ts.category for ts in all_test_sets.GetVisibleTestSets()]
+    # Use mox to make sure UpdateSummaryBrowsers gets called.
+    result_stats.CategoryBrowserManager.UpdateSummaryBrowsers(categories)
+    self.mox.ReplayAll()
     params = {
         'category': 'network',
         'version_level': 0,
@@ -226,6 +236,7 @@ class TestUploadCategoryBrowsers(unittest.TestCase):
     self.assertEqual('Success.', response.content)
     self.assertEqual(200, response.status_code)
     self.assertEqual(['Firefox', 'IE'], self.manager.GetBrowsers('network', 0))
+    self.mox.VerifyAll()
 
 
 class TestUpdateStatsCache(unittest.TestCase):

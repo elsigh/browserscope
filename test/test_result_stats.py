@@ -105,6 +105,22 @@ class CategoryBrowserManagerTest(unittest.TestCase):
     browsers = self.cls.GetBrowsers(category, version_level)
     self.assertEqual(expected_browsers, browsers)
 
+  def testUpdateSummaryBrowsers(self):
+    self.cls.SetBrowsers(
+        'anise', 0, ['Firefox', 'IE'])
+    self.cls.SetBrowsers(
+        'basil', 0, ['IE', 'Safari'])
+    self.cls.SetBrowsers(
+        'anise', 3, ['Firefox 3.5.6', 'Firefox 3.6', 'IE 7', 'IE 8'])
+    self.cls.SetBrowsers(
+        'basil', 3, ['IE 8', 'IE 9', 'Safari 4.3', 'Safari 4.4'])
+    self.cls.UpdateSummaryBrowsers(['anise', 'basil'])
+    self.assertEqual(['Firefox', 'IE', 'Safari'],
+                     self.cls.GetBrowsers('summary', 0))
+    self.assertEqual(['Firefox 3.5.6', 'Firefox 3.6', 'IE 7', 'IE 8', 'IE 9',
+                      'Safari 4.3', 'Safari 4.4'],
+                     self.cls.GetBrowsers('summary', 3))
+
   def testSortBrowsers(self):
     expected_browsers = [
         'Firefox',
