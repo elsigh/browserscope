@@ -166,6 +166,15 @@ class CategoryBrowserManager(db.Model):
     manager.browsers = browsers
     manager.put()
 
+  @classmethod
+  def UpdateSummaryBrowsers(cls, categories):
+    for version_level in range(4):
+      browsers = set()
+      for category in categories:
+        browsers.update(cls.GetBrowsers(category, version_level))
+      browsers = list(browsers)
+      cls.SortBrowsers(browsers)
+      cls.SetBrowsers('summary', version_level, browsers)
 
   @classmethod
   def SortBrowsers(cls, browsers):
