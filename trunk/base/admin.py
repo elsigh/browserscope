@@ -316,6 +316,13 @@ def UploadCategoryBrowsers(request):
   browsers = browsers_str.split(',')
   result_stats.CategoryBrowserManager.SetBrowsers(
       category, version_level, browsers)
+  UpdateSummaryBrowsers(request)
+  return http.HttpResponse('Success.')
+
+
+@decorators.admin_required
+def UpdateSummaryBrowsers(request):
+  """Update all the browsers for the summary category."""
   result_stats.CategoryBrowserManager.UpdateSummaryBrowsers(
       [ts.category for ts in all_test_sets.GetVisibleTestSets()])
   return http.HttpResponse('Success.')
