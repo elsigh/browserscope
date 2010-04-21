@@ -268,14 +268,15 @@ class SummaryStatsManager(db.Model):
           'display': stats[browser]['summary_display'],
           'total_runs': stats[browser]['total_runs'],
           }
+      if category == 'acid3':
+        ua_summary_stats['results']['acid3']['display'] = (
+            stats[browser]['results']['score']['display'])
     memcache.set_multi(update_summary_stats, namespace=cls.MEMCACHE_NAMESPACE)
     return update_summary_stats
 
   @classmethod
   def _FindAndUpdateStats(cls, category, browsers):
     test_set = all_test_sets.GetTestSet(category)
-    logging.info('_FindAndUpdateStats: GetStats(%s, %s, %s)',
-                 test_set, browsers, [t.key for t in test_set.VisibleTests()])
     ua_stats = CategoryStatsManager.GetStats(
         test_set, browsers, [t.key for t in test_set.VisibleTests()])
     return cls.UpdateStats(category, ua_stats)
@@ -329,7 +330,6 @@ class SummaryStatsManager(db.Model):
     # Trim any unwanted stats and find any missing stats.
     missing_stats = {}
     for browser in browsers:
-      logging.info('GetStats: browser: %s', browser)
       ua_summary_stats = summary_stats.get(browser, {'results': {}})
       existing_categories = ua_summary_stats['results'].keys()
       for category in existing_categories:
@@ -339,13 +339,9 @@ class SummaryStatsManager(db.Model):
         if category not in existing_categories:
           missing_stats.setdefault(category, []).append(browser)
     # Load any missing stats
-    logging.info('missing stats: %s', missing_stats)
     for category, browsers in missing_stats.items():
       updated_stats = cls._FindAndUpdateStats(category, browsers)
-      logging.info('updated stats: %s', updated_stats)
       summary_stats.update(updated_stats)
-
-    logging.info('summary stats: %s', summary_stats)
 
     cls._AddSummaryOfSummaries(summary_stats)
     return summary_stats
