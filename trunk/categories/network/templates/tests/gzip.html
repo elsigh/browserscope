@@ -22,7 +22,7 @@ function doTest() {
 	var staticResourceUrl = '/static/base.css?t={{ epoch }}';
 	goog.net.XhrIo.send(staticResourceUrl, function(e) {
 	  var contentEncoding = this.getResponseHeader('Content-Encoding');
-	  if (contentEncoding.toLowerCase() == 'gzip') {
+	  if (contentEncoding && contentEncoding.toLowerCase() == 'gzip') {
 	    bCompresses = 1;
 	  }
     if (bCompresses) {
