@@ -203,6 +203,7 @@ class ReflowTestSet(test_set_base.TestSet):
 TEST_SET = ReflowTestSet(
   category=_CATEGORY,
   category_name='Reflow',
+  summary_doc='Tests of reflow time for different CSS selectors.',
   tests=_TESTS,
   # default_params=Params(
   # 'nested_anchors', 'num_elements=400', 'num_nest=4',

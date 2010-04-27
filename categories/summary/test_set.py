@@ -24,20 +24,21 @@ from categories import all_test_sets
 
 class SummaryTest(test_set_base.TestBase):
 
-  def __init__(self, category, category_name):
+  def __init__(self, category, category_name, summary_doc):
     test_set_base.TestBase.__init__(
         self,
         key=category,
         name=category_name,
         url=None,
-        doc=None,
+        doc=summary_doc,
         min_value=0,
         max_value=0)
 
 
 _TESTS = []
 for test_set in all_test_sets.GetVisibleTestSets():
-  _TESTS.append(SummaryTest(test_set.category, test_set.category_name))
+  _TESTS.append(SummaryTest(
+      test_set.category, test_set.category_name, test_set.summary_doc))
 
 class SummaryTestSet(test_set_base.TestSet):
 
@@ -82,6 +83,7 @@ class SummaryTestSet(test_set_base.TestSet):
 TEST_SET = SummaryTestSet(
     category='summary',
     category_name='Summary',
+    summary_doc='Summary of all the test categories.',
     tests=_TESTS,
     test_page=''
 )

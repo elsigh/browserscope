@@ -206,6 +206,7 @@ class JskbTestSet(test_set_base.TestSet):
 TEST_SET = JskbTestSet(
     category=_CATEGORY,
     category_name='JSKB',
+    summary_doc='Tests of JavaScript expressions to expose optimizer related characteristics.',
     tests=_TESTS,
     test_page='/%s/environment-checks' % _CATEGORY
 )

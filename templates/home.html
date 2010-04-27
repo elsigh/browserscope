@@ -70,13 +70,13 @@
 {% endif %}
 <div id="bs-results">
   <ul id="bs-results-bycat" class="bs-results-bycat bs-compact">
-    {% ifequal stats_table_category "summary" %}
-      <li
-        id="summary-results">
-        <h3>Summary</h3>
-        {{ stats_table|safe }}
-      </li>
-    {% endifequal %}
+    <li
+      id="summary-results">
+      <h3>Summary</h3>
+      {% ifequal stats_table_category "summary" %}
+          {{ stats_table|safe }}
+      {% endifequal %}
+    </li>
     {% for app_category in app_categories %}
       {% with app_category|by_key:0 as category %}
         <li

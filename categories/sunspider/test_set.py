@@ -103,6 +103,7 @@ class SunSpiderTestSet(test_set_base.TestSet):
 TEST_SET = SunSpiderTestSet(
     category=_CATEGORY,
     category_name='SunSpider',
+    summary_doc='Tests for the core JavaScript language.',
     subnav={
       'Test': '/%s/test' % _CATEGORY,
       'About': '/%s/about' % _CATEGORY,
