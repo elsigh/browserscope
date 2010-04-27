@@ -60,7 +60,6 @@ def Settings(request):
 
   # Regular GET.
   current_user = users.get_current_user()
-  logging.info('current user: %s' % current_user)
   u = models.user_test.User.get_or_insert(current_user.user_id(),
       email=current_user.email())
   tests = db.Query(models.user_test.Test)
@@ -129,6 +128,7 @@ def TestEdit(request, key):
         'url': request.POST.get('url'),
         'description': request.POST.get('description')
       }
+
 
   params = {
     'test': test,
