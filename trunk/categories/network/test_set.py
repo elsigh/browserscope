@@ -263,6 +263,7 @@ class NetworkTestSet(test_set_base.TestSet):
 TEST_SET = NetworkTestSet(
     category=_CATEGORY,
     category_name='Network',
+    summary_doc='Tests that address network performance issues.',
     tests=_TESTS,
 #    test_page=util.MULTI_TEST_DRIVER_TEST_PAGE
     test_page='/multi_test_frameset'

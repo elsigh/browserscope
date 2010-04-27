@@ -207,6 +207,7 @@ class CookiesTestSet(test_set_base.TestSet):
 TEST_SET = CookiesTestSet(
     category=_CATEGORY,
     category_name='Cookies',
+    summary_doc='Tests of cookie capabilities.',
     tests=_TESTS,
 #    test_page='http://mirrorrr.browsersrc.com/www.browserscope.org' + \
 #                util.MULTI_TEST_DRIVER_TEST_PAGE

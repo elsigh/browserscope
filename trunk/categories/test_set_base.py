@@ -83,8 +83,8 @@ class TestBase(object):
     return not hasattr(self, 'is_hidden_stat') or not self.is_hidden_stat
 
 class TestSet(object):
-  def __init__(self, category, category_name, tests, default_params=None,
-               test_page=None):
+  def __init__(self, category, category_name, summary_doc, tests,
+               default_params=None, test_page=None):
     """Initialize a test set.
 
     A test set has all the tests for a category.
@@ -92,10 +92,12 @@ class TestSet(object):
     Args:
       category: a string
       category_name: a string, human-readable
+      summary_doc: a brief description of test set.
       tests: a list of test instances
     """
     self.category = category
     self.category_name = category_name
+    self.summary_doc = summary_doc
     self.tests = tests
     self.default_params = default_params
     self.test_page = test_page

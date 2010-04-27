@@ -125,5 +125,6 @@ class SelectorsTestSet(test_set_base.TestSet):
 TEST_SET = SelectorsTestSet(
     category=_CATEGORY,
     category_name='Selectors API',
+    summary_doc='Tests for the W3C CSS Selectors API written by John Resig.',
     tests=_TESTS
 )

@@ -97,6 +97,7 @@ class V8TestSet(test_set_base.TestSet):
 TEST_SET = V8TestSet(
     category=_CATEGORY,
     category_name='V8 Benchmark',
+    summary_doc='A collection of pure JavaScript benchmarks that the V8 team has used to tune V8.',
     subnav={
       'Test': '/%s/test' % _CATEGORY,
       'About': '/%s/about' % _CATEGORY,

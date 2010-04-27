@@ -143,6 +143,7 @@ class Html5TestSet(test_set_base.TestSet):
 TEST_SET = Html5TestSet(
     category=_CATEGORY,
     category_name='HTML5',
+    summary_doc='Tests of HTML5 capabilities.',
     tests=_TESTS,
     test_page='/%s/static/%s.html' % (_CATEGORY, _CATEGORY)
 )

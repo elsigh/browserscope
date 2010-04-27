@@ -350,5 +350,6 @@ class RichTextTestSet(test_set_base.TestSet):
 TEST_SET = RichTextTestSet(
     category=_CATEGORY,
     category_name='Rich Text',
+    summary_doc='Tests to see how well editor controls work with a variety of HTML.',
     tests=_TESTS,
 )

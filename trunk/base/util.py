@@ -231,20 +231,17 @@ def Home(request):
     results_key = '%s_results' % test_set.category
     results_uri_string = request.GET.get(results_key)
     if results_uri_string:
-      results_params_uri_string = '='.join((results_key, results_uri_string))
-      results_params.append(results_params_uri_string)
-      if not results_test_set:
-        results_test_set = test_set  # pick the first test_set with results
+      results_params.append('='.join((results_key, results_uri_string)))
+      results_test_set  = test_set
 
   test_set = None
   category = request.GET.get('category')
   if category:
     test_set = all_test_sets.GetTestSet(category)
-  elif results_test_set:
+  elif len(results_params) == 1:
     test_set = results_test_set
   if not test_set:
-    # Take the first test_set.
-    test_set = list(all_test_sets.GetVisibleTestSets())[0]
+    test_set = all_test_sets.GetTestSet('summary')
   category = test_set.category
 
   # Tell GetStats what to output.
@@ -561,7 +558,7 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
     if not browsers:
       browsers = result_stats.CategoryBrowserManager.GetBrowsers(
           category, version_level)
-    if test_set.category == 'summary':
+    if category == 'summary':
       stats_data = result_stats.SummaryStatsManager.GetStats(browsers)
     else:
       stats_data = result_stats.CategoryStatsManager.GetStats(
@@ -570,12 +567,21 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
   if output == 'pickle':
     return pickle.dumps(stats_data)
 
-  current_scores = None
-  if results_str:
+  current_scores = {}
+  if category == 'summary':
+    for sub_category in visible_test_keys:
+      sub_test_set = all_test_sets.GetTestSet(sub_category)
+      results_str = request.GET.get('%s_results' % sub_category)
+      if results_str:
+        results = sub_test_set.GetResults(results_str, ignore_key_errors=True)
+        current_scores[sub_category] = dict(
+            (test_key, result['raw_score'])
+            for test_key, result in results.items())
+  elif results_str:
     results = test_set.GetResults(results_str, ignore_key_errors=True)
-    current_scores = dict((test_key, result['raw_score'])
-                          for test_key, result in results.items())
-
+    current_scores[category] = dict(
+        (test_key, result['raw_score'])
+        for test_key, result in results.items())
 
   # Set current_browser to one in browsers or add it if not found.
   current_browser = models.user_agent.UserAgent.factory(current_user_agent_string).pretty()
@@ -590,7 +596,33 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
 
   # Adds the current results into the stats_data dict.
   if current_scores:
-    current_stats = test_set.GetStats(visible_test_keys, current_scores)
+    if category == 'summary':
+      # TODO(slamm): Refactor to avoid code duplication in results_stats.py.
+      current_stats = {'results': {}}
+      total_score = 0
+      for sub_category in visible_test_keys:
+        sub_test_set = all_test_sets.GetTestSet(sub_category)
+        test_keys = [t.key for t in sub_test_set.VisibleTests()]
+        if sub_category in current_scores:
+          stats = sub_test_set.GetStats(test_keys, current_scores[sub_category])
+          score = stats['summary_score']
+          if sub_category == 'acid3':
+            display = stats['results']['score']['display']
+          else:
+            display = stats['summary_display']
+        else:
+          score = 0
+          display = ''
+        current_stats['results'][sub_category] = {
+            'score': score,
+            'display': display
+            }
+        total_score += int(score)
+      current_stats['summary_score'] = total_score / len(visible_test_keys)
+      current_stats['summary_display'] = (
+          '%s/100' % current_stats['summary_score'])
+    else:
+      current_stats = test_set.GetStats(visible_test_keys, current_scores)
     browser_stats = stats_data.setdefault(current_browser, {})
     browser_stats['current_results'] = current_stats['results']
     browser_stats['current_score'] = current_stats['summary_score']
@@ -849,4 +881,3 @@ def SetCookieAndRedirect(request):
     return http.HttpResponseRedirect(continue_url)
   else:
     return http.HttpResponse('Browserscope cookie set.')
-

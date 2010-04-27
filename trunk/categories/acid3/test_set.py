@@ -94,6 +94,7 @@ class Acid3TestSet(test_set_base.TestSet):
 TEST_SET = Acid3TestSet(
     category=_CATEGORY,
     category_name='Acid3',
+    summary_doc='Tests of dynamic browser capabilities to encourage browser interoperability.',
     tests=_TESTS,
     test_page='/%s/%s.html' % (_CATEGORY, _CATEGORY)
 )

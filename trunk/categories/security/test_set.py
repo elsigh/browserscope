@@ -161,6 +161,7 @@ class SecurityTestSet(test_set_base.TestSet):
 TEST_SET = SecurityTestSet(
     category=_CATEGORY,
     category_name='Security',
+    summary_doc='Tests JavaScript APIs for ability to block harmful interactions between sites',
     tests=_TESTS,
     test_page='/%s/test_tpl' % _CATEGORY
 )

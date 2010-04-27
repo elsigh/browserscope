@@ -644,6 +644,10 @@ a.bs-l-p {
 
 
 /* Test scores */
+.rt-t th {
+  vertical-align: bottom;
+}
+
 .rt-t-s-0 {
   background: #fff;
 }
@@ -652,22 +656,20 @@ a.bs-l-p {
 .rt-t-s-3,
 .rt-t-s-4,
 .rt-t-s-5 {
-  background: #f7d7d7;
+  background: #f7d6d6;
 }
 .rt-t-s-6 {
-  background: #fffdd9;
+  background: #ffebc6;
 }
 .rt-t-s-7 {
-  background: #dffcd8;
+  background: #ffffd6;
 }
 .rt-t-s-8 {
-  background: #c0f9b0;
+  background: #dffcd8;
 }
-.rt-t-s-9 {
-  background: #a3f687;
-}
+.rt-t-s-9,
 .rt-t-s-10 {
-  background-color: #a3f687;
+  background: #a3f687;
 }
 
 .rt-ua-s-0 {
@@ -678,20 +680,18 @@ a.bs-l-p {
 .rt-ua-s-3,
 .rt-ua-s-4,
 .rt-ua-s-5 {
-  background-color: #f7d7d7;
+  background-color: #f7d6d6;
 }
 .rt-ua-s-6 {
-  background-color: #fffdd9;
+  background-color: #ffebc6;
 }
 .rt-ua-s-7 {
-  background-color: #dffcd8;
+  background-color: #ffffd6;
 }
 .rt-ua-s-8 {
-  background-color: #c0f9b0;
+  background-color: #dffcd8;
 }
-.rt-ua-s-9 {
-  background-color: #a3f687;
-}
+.rt-ua-s-9,
 .rt-ua-s-10 {
   background-color: #a3f687;
 }
