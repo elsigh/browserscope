@@ -104,3 +104,28 @@ def TestSts(request):
     return HttpResponsePermanentRedirect('http://www.browserscope.org/security/static/sts-pass.html')
   else:
     return HttpResponsePermanentRedirect('http://www.browserscope.org/security/static/sts-fail.html')
+
+def ReflectedXSSVictim(request):  
+  attack_str = ""
+  expected_attack = "<script>script_ran = true</script>"
+  
+  attack = request.GET.get("q")
+  attack_part = ""
+  if attack:
+    attack_part = attack[0:len(expected_attack)]
+    if attack_part == expected_attack:
+      attack_str = attack_part
+  
+  html = """<html>
+	<body>
+	<script src='../static/config.js'></script>
+	<!-- XSS filter should stop the following line from running -->
+	%s
+	<script type='text/javascript'>
+	var success = !window.script_ran;
+	document.write(\"<iframe src='\" + SAME_ORIGIN_BASE_URL + \"xss-filter-test-done.html?\" + success + \"'></iframe>\");
+	</script>
+	</body>
+	</html>""" % attack_str
+  return HttpResponse(html);
+
