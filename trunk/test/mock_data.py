@@ -73,7 +73,7 @@ class MockTestSet(test_set_base.TestSet):
         MockTest('coconut', min_value=0, max_value=1000),
         )
     test_set_base.TestSet.__init__(
-        self, category, category.capitalize(), tests, default_params=params)
+        self, category, category.capitalize(), '', tests, default_params=params)
 
   def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
     raw_score = raw_scores[test_key]
