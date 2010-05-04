@@ -102,6 +102,7 @@ class Test(db.Model):
       test_set_tests.append(test)
     test_set = TestSet(category=self.get_memcache_keyname(),
                        category_name=self.name,
+                       summary_doc='',
                        tests=test_set_tests,
                        test_page='%s' % self.url)
     return test_set
