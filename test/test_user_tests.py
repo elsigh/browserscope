@@ -49,6 +49,24 @@ class TestModels(unittest.TestCase):
     user_q = models.user_test.User.get_by_key_name(current_user.user_id())
     self.assertTrue(user_q.email, current_user.email())
 
+  def testGetTestSetFromResultString(self):
+    current_user = users.get_current_user()
+    u = models.user_test.User.get_or_insert(current_user.user_id())
+    test = models.user_test.Test(user=u, name='Fake Test',
+                                 url='http://fakeurl.com/test.html',
+                                 description='stuff')
+    test.save()
+
+    results_str = 'test_1=0,test_2=1'
+    test_set_category = 'usertest_%s' % test.key()
+    test_set = models.user_test.Test.get_test_set_from_results_str(
+        test_set_category, results_str)
+    self.assertTrue(test_set != None)
+    self.assertEqual(test_set.category, test_set_category)
+    self.assertEqual(len(test_set.tests), 2)
+    self.assertEqual('test_1', test_set.tests[0].key)
+    self.assertEqual('test_2', test_set.tests[1].key)
+
 
 class TestHandlers(unittest.TestCase):
 
