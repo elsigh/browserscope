@@ -128,6 +128,14 @@ class Test(db.Model):
 
   @staticmethod
   def get_test_set_from_results_str(category, results_str):
+    """Creates a runtime version of a browserscope TestSet by parsing strings.
+    Args:
+      category: A string that looks like 'usertest_sad7dsa987sa9dsa7dsa9'.
+      results_str: A string that looks like 'test_1=0,test_2=1'.
+
+    Returns:
+      A models.user_test.TestSet instance.
+    """
     category_prefix = '%s_' % Test.get_prefix()
     if category_prefix not in category:
       return None
