@@ -579,7 +579,7 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
             for test_key, result in results.items())
   elif results_str:
     results = test_set.GetResults(results_str, ignore_key_errors=True)
-    current_scores[category] = dict(
+    current_scores = dict(
         (test_key, result['raw_score'])
         for test_key, result in results.items())
 
