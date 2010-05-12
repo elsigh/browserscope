@@ -332,21 +332,24 @@ def UpdateStatsCache(request):
   """Load rankers into memcache."""
   category = request.REQUEST.get('category')
   browsers_str = request.REQUEST.get('browsers')
-  logging.info('UpdateStatsCache: category=%s, browsers=%s', category, browsers_str)
+  compressed_browsers_str = request.REQUEST.get('zbrowsers')
   if not category:
     logging.info('UpdateStatsCache: Must set category')
     return http.HttpResponseServerError('Must set "category".')
+  if not browsers_str and compressed_browsers_str:
+    browsers_str = compressed_browsers_str.decode('base64').decode('zlib')
+  logging.info('UpdateStatsCache: category=%s, browsers=%s',
+               category, browsers_str)
   if not browsers_str:
-    logging.info('UpdateStatsCache: Must set browsers.')
-    return http.HttpResponseServerError('Must set "browsers" '
-                                        '(comma-separated list).')
+    logging.info('UpdateStatsCache: Must set "browsers" (or "zbrowsers").')
+    return http.HttpResponseServerError('Must set "browsers" (or "zbrowsers").')
   browsers = browsers_str.split(',')
   result_stats.CategoryStatsManager.UpdateStatsCache(category, browsers)
   return http.HttpResponse('Success.')
 
 
 def UpdateAllStatsCache(request):
-  tests_per_batch = int(request.REQUEST.get('tests_per_batch', 600))
+  tests_per_batch = int(request.REQUEST.get('tests_per_batch', 500))
   categories_str = request.REQUEST.get('categories')
   if categories_str:
     test_sets = [all_test_sets.GetTestSet(category)
@@ -362,10 +365,16 @@ def UpdateAllStatsCache(request):
     batch_size = tests_per_batch / len(test_set.tests)
     logging.info('batch_size: %s', batch_size)
     for i in range(0, len(browsers), batch_size):
+      browsers_str = ','.join(sorted(browsers[i:i+batch_size]))
       params = {
           'category': category,
-          'browsers': ','.join(sorted(browsers[i:i+batch_size]))
           }
+      if len(browsers_str) > 1000:
+        # Avoid going over the task size limit of 10M.
+        compressed_browsers_str = browsers_str.encode('zlib').encode('base64')
+        params['zbrowsers'] = compressed_browsers_str
+      else:
+        params['browsers'] = browsers_str
       taskqueue.add(url='/admin/update_stats_cache', params=params)
       num_tasks += 1
   return http.HttpResponse('Queued stats cache update: num_tasks=%s' % num_tasks)
