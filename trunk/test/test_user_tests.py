@@ -30,6 +30,8 @@ from google.appengine.api import memcache
 from google.appengine.api import users
 from google.appengine.ext import db
 
+from base import util
+
 from models import result_stats
 import models.user_test
 
@@ -123,3 +125,43 @@ class TestHandlers(unittest.TestCase):
 
     response = self.client.get('/user/beacon/%s' % test.key())
     self.assertEquals('text/javascript', response['Content-type'])
+
+
+  def testBeaconWithSandboxId(self):
+    current_user = users.get_current_user()
+    u = models.user_test.User.get_or_insert(current_user.user_id())
+    u.email = current_user.email()
+    u.save()
+
+    test = models.user_test.Test(user=u, name='Fake Test SandboxID',
+                                 url='http://fakeurl.com/test.html',
+                                 description='stuff',
+                                 sandboxid='sandbox-id')
+    test.save()
+
+    params = {
+      'category': test.get_memcache_keyname(),
+      'results': 'apple=1,banana=2,coconut=4',
+    }
+    # Run 10 times.
+    for i in range(11):
+      csrf_token = self.client.get('/get_csrf').content
+      params['csrf_token'] = csrf_token
+      response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
+      self.assertEqual(204, response.status_code)
+
+    # The 11th should bomb due to IP throttling.
+    csrf_token = self.client.get('/get_csrf').content
+    params['csrf_token'] = csrf_token
+    response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
+    self.assertEqual(util.BAD_BEACON_MSG + 'IP', response.content)
+
+    # But we should be able to run 11 beacons (i.e. 10 + 1) with a sandboxid.
+    params['sandboxid'] = test.sandboxid
+    # Run 11 times
+    for i in range(12):
+      csrf_token = self.client.get('/get_csrf').content
+      params['csrf_token'] = csrf_token
+      response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
+      self.assertEqual(204, response.status_code)
+

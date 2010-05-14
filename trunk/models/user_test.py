@@ -59,6 +59,7 @@ def update_test_keys(key, test_keys):
     test.save()
     test.add_memcache()
 
+
 class Test(db.Model):
   user = db.Reference(User)
   name = db.StringProperty(required=True)
@@ -66,6 +67,7 @@ class Test(db.Model):
   url = db.LinkProperty(required=True)
   hosted = db.BooleanProperty(required=True, default=False)
   description = db.TextProperty()
+  sandboxid = db.StringProperty()
   created = db.DateTimeProperty(auto_now_add=True)
   modified = db.DateTimeProperty(auto_now=True)
 
@@ -105,6 +107,7 @@ class Test(db.Model):
                        summary_doc='',
                        tests=test_set_tests,
                        test_page='%s' % self.url)
+    test_set.sandboxid = self.sandboxid
     return test_set
 
   @staticmethod

@@ -213,6 +213,7 @@ def GetServer(request):
     server = server + ':' + server_port
   return server
 
+
 STATIC_MESSAGE = ('<em class="rt-static">This is a recent snapshot '
                   'of the results - '
                   'it will be refreshed every hour.</em>')
@@ -353,26 +354,27 @@ def Contribute(request):
 
 
 IP_THROTTLE_NS = 'IPTHROTTLE'
-def CheckThrottleIpAddress(ip, user_agent_string):
-  """Prevent beacon abuse.
-  This throttle allows you to "RunAllTests" 10 times per day per IP and
-  major browser. i.e. the key is something like 1.1.1.1_Opera 10
+def CheckThrottleIpAddress(ip, user_agent_string, category):
+  """Prevent beacon abuse and over-achievers ;)
+  This throttle allows users to send a beacon 10 times per day per IP per
+  major browser per category.
+  i.e. The memcache key is something like 1.1.1.1_Opera 10_network
 
   We only use memcache here, so if we allow some extras in b/c of that, phooey.
 
   Args:
     ip: A masked IP address string.
     user_agent_string: A user agent string.
+    category: A test category string.
   Returns:
     A Boolean, True if things are aok, False otherwise.
   """
 
-  key = '%s_%s' % (ip, user_agent_string)
+  key = '%s_%s_%s' % (ip, user_agent_string, category)
   timeout = 86400 # 60 * 60 * 24
   runs_per_timeout = 10
 
   runs = memcache.get(key, IP_THROTTLE_NS)
-  #logging.info('CheckThrottleIpAddress runs: %s' % runs)
   if runs is None:
     memcache.set(key=key, value=1, time=timeout, namespace=IP_THROTTLE_NS)
   elif runs <= runs_per_timeout:
@@ -459,23 +461,19 @@ def Beacon(request):
   This is the handler for after a test is done.
   ex: /beacon?category=reflow&csrf_token=number&results=tes1=150,test2=300
   """
-  # First make sure this IP is not being an overachiever ;)
   ip = request.META.get('REMOTE_ADDR')
   ip_hash = hashlib.md5(ip).hexdigest()
-
+  category = request.REQUEST.get('category')
   user_agent_string = request.META.get('HTTP_USER_AGENT')
-  if not CheckThrottleIpAddress(ip_hash, user_agent_string):
-    return http.HttpResponseServerError(BAD_BEACON_MSG + 'IP')
-
   js_user_agent_string = request.REQUEST.get('js_ua')
   js_document_mode = request.REQUEST.get('doc_mode')
-
   callback = request.REQUEST.get('callback')
-  category = request.REQUEST.get('category')
   results_str = request.REQUEST.get('results')
   params_str = request.REQUEST.get('params')
   user_test_keys = request.REQUEST.get('test_key')
+  sandboxid = request.REQUEST.get('sandboxid')
 
+  # Totally bogus beacon.
   if not category or not results_str:
     logging.info('Got no category or results.')
     return http.HttpResponse(BAD_BEACON_MSG + 'Category/Results')
@@ -483,11 +481,21 @@ def Beacon(request):
   # Quick check for a user-api test result.
   user_test_set = models.user_test.Test.get_test_set_from_results_str(category,
                                                                  results_str)
+
+  # UserTest beacon.
   if user_test_set:
     test_set = user_test_set
-  # Normal Browserscope category.
+    # A matching sandboxid bypasses the IP throttling for UserTests.
+    if sandboxid is None or sandboxid != test_set.sandboxid:
+      if not CheckThrottleIpAddress(ip_hash, user_agent_string, category):
+        return http.HttpResponseServerError(BAD_BEACON_MSG + 'IP')
+
+  # Normal Browserscope category beacon.
   else:
+    if not CheckThrottleIpAddress(ip_hash, user_agent_string, category):
+      return http.HttpResponseServerError(BAD_BEACON_MSG + 'IP')
     test_set = all_test_sets.GetTestSet(category)
+
   if not test_set:
     return http.HttpResponse(BAD_BEACON_MSG + 'TestSet')
 

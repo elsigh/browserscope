@@ -46,7 +46,7 @@
 // To save data in Browserscope do something like the following.
 // The syntax is 'test_key': 'value' where test_key is some unique
 // identifier for a piece of data you want to store and value is
-// a value of 0 through 10000.
+// a numeric value from 0 through 10000.
 var _bTestResults = {
   'test_one': '1',
   'test_two': '0'
@@ -69,8 +69,14 @@ var _bTestResults = {
           * Don't forget to set the _bTestKey in the snippet
           to <strong>your test ID</strong>, which you
           can find on your <a href="/user/settings">settings</a> page.
-
         </em>
+      </div>
+      <div>
+        You can bypass Browserscope's IP throttling feature (while testing) by
+        adding the line:<br>
+        <code><pre>_bScript.src += '?sandboxid=YOUR-SANDBOX-ID';</pre></code>
+        Just remember not to publish this widely and/or change it after you're
+        done testing so that no one can corrupt your dataset.
       </div>
     </li>
     <li>
@@ -92,12 +98,18 @@ var _bTestResults = {
     </li>
     <li>
       You can embed the results table in a blog post or on your site using an
-      iframe.
-      <pre><code>&lt;iframe
-  src="http://www.browserscope.org/user/tests/table/YOUR-TEST-ID?v=3&amp;layout=simple"&gt;&lt;/iframe&gt;</code></pre>
-      <a
+      iframe. <a
         href="http://groupmenuselect.appspot.com/results"
-        >Check out a working iframe example</a>.
+        >Check out a working iframe example</a>
+      <pre><code>&lt;iframe
+  src="http://www.browserscope.org/user/tests/table/YOUR-TEST-ID?v=3&amp;layout=simple"&gt;&lt;/iframe&gt;
+
+Parameters:
+  v=0: Shows the "Top Browsers" list.
+  v=1: Shows the browser families.
+  v=2: Shows the minor browser versions.
+  v=3: Shows all browser versions.
+  layout=simple: Hides a variety of things, good for embedding.</pre></code>
     </li>
     <li>
       <a href="http://groups.google.com/group/browserscope"

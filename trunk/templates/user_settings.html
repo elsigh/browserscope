@@ -37,6 +37,7 @@
             <th>ID</th>
             <th>Name</th>
             <th>URL</th>
+            <th>Sandbox ID</th>
             <th>Description</th>
             <th></th>
           </tr>
@@ -52,6 +53,7 @@
               <td>
                 <a href="{{ test.url }}" target="_blank">{{ test.url }}</a>
               </td>
+              <td>{{ test.sandboxid }}</td>
               <td>{{ test.description }}</td>
               <td>
                 <!--
@@ -61,6 +63,7 @@
                 <a href="/user/tests/table/{{ test.key }}?v=3&layout=simple"
                   >Results</a>
                 <a href="/user/tests/raw/{{ test.key }}">CSV</a>
+                <!--<a href="/user/tests/json/{{ test.key }}">JSON</a>-->
               </td>
             </tr>
           {% endfor %}

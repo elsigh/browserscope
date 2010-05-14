@@ -26,6 +26,7 @@ urlpatterns = patterns('',
   (r'^set_cookie',  'base.util.SetCookieAndRedirect'),
   (r'^timeline$', 'base.util.BrowserTimeLine'),  # beta
   (r'^user/settings$', 'base.user_tests.Settings'),  # beta
+  (r'^user/tests/update_schema$', 'base.user_tests.UpdateSchema'),
   (r'^user/tests/create$', 'base.user_tests.TestCreate'),  # beta
   (r'^user/beacon/(.+)$', 'base.user_tests.BeaconJs'),  # beta
   (r'^user/tests/edit/(.+)$', 'base.user_tests.TestEdit'),  # beta
