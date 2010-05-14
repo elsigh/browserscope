@@ -42,6 +42,7 @@ RESOURCE_CGI_BASE = 'cuzillion.com/bin/resource.cgi'
 
 RESOURCE_CGI = '1.%s' % RESOURCE_CGI_BASE
 RESOURCE_CGI2 = '2.%s' % RESOURCE_CGI_BASE
+
 TRAILER_RESOURCE_CGI = 'cgi.browserscope.org/cgi-bin/nph-trailer.cgi'
 
 def About(request):

@@ -19,7 +19,9 @@
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 
+import hashlib
 import logging
+import random
 import re
 
 from google.appengine.api import users
@@ -82,6 +84,19 @@ def TestCreate(request):
   return TestEdit(request, None)
 
 
+_MAX_SANDBOXID = 18446744073709551616L
+_MAX_SANDBOXID_LEN = 15
+def _get_random_sandboxid():
+  # Use the system (hardware-based) random number generator if it exists.
+  if hasattr(random, 'SystemRandom'):
+    randrange = random.SystemRandom().randrange
+  else:
+    randrange = random.randrange
+  sanboxid_md5 = hashlib.md5('%s' % (randrange(0, _MAX_SANDBOXID)))
+  sanboxid = sanboxid_md5.hexdigest()[0:_MAX_SANDBOXID_LEN]
+  return sanboxid
+
+
 @decorators.login_required
 @decorators.provide_check_csrf
 def TestEdit(request, key):
@@ -104,10 +119,12 @@ def TestEdit(request, key):
         test.name = request.POST.get('name')
         test.url = request.POST.get('url')
         test.description = request.POST.get('description')
+        test.sandboxid = request.POST.get('sandboxid')
       else:
         test = models.user_test.Test(user=user, name=request.POST.get('name'),
                                      url=request.POST.get('url'),
-                                     description=request.POST.get('description'))
+                                     description=request.POST.get('description'),
+                                     sandboxid=request.POST.get('sandboxid'))
       test.save()
       test.add_memcache()
       return http.HttpResponseRedirect('/user/settings')
@@ -119,19 +136,22 @@ def TestEdit(request, key):
       test = {
         'name': request.POST.get('name'),
         'url': request.POST.get('url'),
-        'description': request.POST.get('description')
+        'description': request.POST.get('description'),
+        'sandboxid': request.POST.get('sandboxid')
       }
     except:
       error_msg = 'Something did not quite work there, very sorry'
       test = {
         'name': request.POST.get('name'),
         'url': request.POST.get('url'),
-        'description': request.POST.get('description')
+        'description': request.POST.get('description'),
+        'sandboxid': request.POST.get('sandboxid')
       }
-
 
   params = {
     'test': test,
+    'sandboxid': _get_random_sandboxid(),
+    'max_sandboxid_len': _MAX_SANDBOXID_LEN,
     'error_msg': error_msg,
     'csrf_token': request.session.get('csrf_token')
   }
@@ -223,7 +243,18 @@ def TestStatsTable(request, key):
 
 
 @decorators.admin_required
+def UpdateSchema(request):
+  tests = db.Query(models.user_test.Test)
+  for test in tests:
+    if not hasattr(test, 'sandboxid') or test.sandboxid is None:
+      setattr(test, 'sandboxid', str(_get_random_sandboxid()))
+      test.save()
+  return http.HttpResponse('All done')
+
+
+@decorators.admin_required
 def TestView(request, key):
+  """Experimental hosted mode for user tests."""
   test = models.user_test.Test.get_mem(key)
 
   #TODO(elsigh): Remove this.

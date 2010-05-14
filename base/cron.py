@@ -67,6 +67,7 @@ def UserAgentGroup(request):
 def UpdateRecentTests(request):
   max_recent_tests = 10
   visible_categories = all_test_sets.GetVisibleTestSets()
+  #logging.info('visible_categories %s' % visible_categories)
 
   prev_recent_tests = memcache.get(util.RECENT_TESTS_MEMCACHE_KEY)
   prev_result_parent_key = None
@@ -75,7 +76,6 @@ def UpdateRecentTests(request):
 
   recent_tests = []
   recent_query = db.Query(ResultParent).order('-created')
-  logging.info('RECENT: %s' % recent_query)
   for result_parent in recent_query.fetch(30):
     if result_parent.category not in [vis.category for vis in
                                       visible_categories]:
@@ -87,7 +87,6 @@ def UpdateRecentTests(request):
       else:
         recent_tests.extend(prev_recent_tests[:num_needed])
         break
-    logging.info('GOT HERE')
     recent_scores = result_parent.GetResults()
     test_set = all_test_sets.GetTestSet(result_parent.category)
     visible_test_keys = [t.key for t in test_set.VisibleTests()]
@@ -102,6 +101,9 @@ def UpdateRecentTests(request):
         })
     if len(recent_tests) >= max_recent_tests:
       break
+  #logging.info('Setting recent tests: %s' % recent_tests)
   memcache.set(util.RECENT_TESTS_MEMCACHE_KEY, recent_tests,
                time=settings.STATS_MEMCACHE_TIMEOUT)
+  #logging.info('Get recent tests: %s' %
+  #    memcache.get(key=util.RECENT_TESTS_MEMCACHE_KEY))
   return http.HttpResponse('Done')

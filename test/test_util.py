@@ -162,17 +162,19 @@ class TestBeacon(unittest.TestCase):
     self.assertEqual(util.BAD_BEACON_MSG + 'TestSet', response.content)
 
 
-
-
 class TestUtilFunctions(unittest.TestCase):
-
   def testCheckThrottleIpAddress(self):
     ip = mock_data.UNIT_TEST_UA['REMOTE_ADDR']
     ua_string = mock_data.UNIT_TEST_UA['HTTP_USER_AGENT']
+    category = 'foo'
     for i in range(11):
-      self.assertTrue(util.CheckThrottleIpAddress(ip, ua_string))
+      self.assertTrue(util.CheckThrottleIpAddress(ip, ua_string, category))
+
     # The next one should bomb.
-    self.assertFalse(util.CheckThrottleIpAddress(ip, ua_string))
+    self.assertFalse(util.CheckThrottleIpAddress(ip, ua_string, category))
+
+    # But a new category should work fine.
+    self.assertTrue(util.CheckThrottleIpAddress(ip, ua_string, 'bar'))
 
 
 class TestClearMemcache(unittest.TestCase):

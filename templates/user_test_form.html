@@ -11,15 +11,16 @@
 <form id="bs-user-test-form" action="{{ request_path }}" method="post">
   <p>
     <label for="name">Test Name:</label>
-     <input type="text" id="name" name="name" size="30"
-       value="{{ test.name }}">
+      <input type="text" id="name" name="name" size="30"
+        value="{{ test.name }}">
   </p>
 
   <p>
     <label for="url">URL:</label>
     <input type="text" id="url" name="url" size="50"
       value="{% if test %}{{ test.url }}{% else %}http://{% endif %}">
-    &nbsp;<span style="font-size:90%; color: #aaa;">used for referrer checking</span>
+    &nbsp;<span style="font-size:90%; color: #aaa;"
+      >used for referrer checking</span>
   </p>
   <!--
   <p>
@@ -36,6 +37,15 @@
     </label>
   </p>
   -->
+
+  <p>
+    <label for="sandboxid">Sandbox ID:</label>
+    <input type="text" id="sandboxid" name="sandboxid" size="20"
+      max="{{ max_sandboxid_len }}"
+      value="{% if test %}{{ test.sandboxid }}{% else %}{{ sandboxid }}{% endif %}">
+    &nbsp;<span style="font-size:90%; color: #aaa;"
+      >used for testing to bypass IP throttling</span>
+  </p>
 
   <label for="description">Description:</label>
   <div>
