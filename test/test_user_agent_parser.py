@@ -69,7 +69,11 @@ TEST_STRINGS = (
      'Safari/531.21.10', {}),
     (('Midori', '0', '2', None),
      'Midori/0.2 (X11; Linux; U; en-us) WebKit/531.2 ,gzip(gfe),gzip(gfe)',
-     {})
+     {}),
+    (('MozillaDeveloperPreview', '3', '7', 'a1'),
+     'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.3a1) '
+     'Gecko/20100208 MozillaDeveloperPreview/3.7a1 '
+     '(.NET CLR 3.5.30729),gzip(gfe),gzip(gfe)', {}),
     )
 
 
