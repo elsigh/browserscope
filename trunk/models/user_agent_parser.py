@@ -152,6 +152,8 @@ USER_AGENT_PARSERS = (
   _P(r'(Pre)/(\d+)\.(\d+)', 'Palm Pre'),
   _P(r'(Links) \((\d+)\.(\d+)'),
   _P(r'(QtWeb) Internet Browser/(\d+)\.(\d+)'),
+  _P(r'\(iPad;.+(Version)/(\d+)\.(\d+)(?:\.(\d+))?.*Safari/',
+     family_replacement='iPad'),
   _P(r'(Version)/(\d+)\.(\d+)(?:\.(\d+))?.*Safari/',
      family_replacement='Safari'),
   _P(r'(OLPC)/Update(\d+)\.(\d+)'),
