@@ -21,8 +21,8 @@ __author__ = 'slamm@google.com (Stephen Lamm)'
 
 import datetime
 import logging
+import re
 import unittest
-
 
 from django.test.client import Client
 
@@ -125,6 +125,15 @@ class TestHandlers(unittest.TestCase):
 
     response = self.client.get('/user/beacon/%s' % test.key())
     self.assertEquals('text/javascript', response['Content-type'])
+    # There should be no callback in the beacon url.
+    self.assertFalse(re.search('callback=', response.content))
+
+    # Now test a beacon with a callback specified.
+    params = {'callback': 'MyFunction'}
+    response = self.client.get('/user/beacon/%s' % test.key(), params)
+    self.assertEquals('text/javascript', response['Content-type'])
+    self.assertTrue(re.search('callback=%s' % params['callback'],
+        response.content))
 
 
   def testBeaconWithSandboxId(self):
