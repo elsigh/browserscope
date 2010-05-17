@@ -66,7 +66,10 @@ TEST_STRINGS = (
     (('iPad', '4', '0', '4'),
      'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) Apple '
      'WebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B367 '
-     'Safari/531.21.10', {})
+     'Safari/531.21.10', {}),
+    (('Midori', '0', '2', None),
+     'Midori/0.2 (X11; Linux; U; en-us) WebKit/531.2 ,gzip(gfe),gzip(gfe)',
+     {})
     )
 
 
