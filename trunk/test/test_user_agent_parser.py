@@ -74,6 +74,13 @@ TEST_STRINGS = (
      'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.3a1) '
      'Gecko/20100208 MozillaDeveloperPreview/3.7a1 '
      '(.NET CLR 3.5.30729),gzip(gfe),gzip(gfe)', {}),
+    (('Opera', '10', '53', None),
+      'Opera/9.80 (Windows NT 5.1; U; ru) Presto/2.5.24 Version/10.53',
+      {}),
+    (('Opera Mobile', '10', '00', None),
+     'Opera/9.80 (S60; SymbOS; Opera Mobi/275; U; es-ES) '
+     'Presto/2.4.13 Version/10.00,gzip(gfe),gzip(gfe)', {}),
+
     )
 
 

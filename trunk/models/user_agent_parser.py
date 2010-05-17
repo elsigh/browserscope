@@ -105,6 +105,8 @@ USER_AGENT_PARSERS = (
   _P(r'(Firefox).*Tablet browser (\d+)\.(\d+)\.(\d+)', 'MicroB'),
   # Opera will stop at 9.80 and hide the real version in the Version string.
   # see: http://dev.opera.com/articles/view/opera-ua-string-changes/
+  _P(r'(Opera)/.+Opera Mobi.+Version/(\d+)\.(\d+)',
+      family_replacement='Opera Mobile'),
   _P(r'(Opera)/9.80.*Version\/(\d+)\.(\d+)(?:\.(\d+))?'),
 
   _P(r'(Firefox)/(\d+)\.(\d+)\.(\d+(?:pre)?) \(Swiftfox\)', 'Swiftfox'),
@@ -140,7 +142,6 @@ USER_AGENT_PARSERS = (
   _P(r'(PLAYSTATION) (\d+)', family_replacement='PlayStation'),
   _P(r'(PlayStation Portable)[^\d]+(\d+).(\d+)'),
   _P(r'(BrowseX) \((\d+)\.(\d+)\.(\d+)'),
-  _P(r'(Opera)/(\d+)\.(\d+).*Opera Mobi', 'Opera Mobile'),
   _P(r'(POLARIS)/(\d+)\.(\d+)', family_replacement='Polaris'),
   _P(r'(BonEcho)/(\d+)\.(\d+)\.(\d+)', 'Bon Echo'),
   _P(r'(iPhone) OS (\d+)_(\d+)(?:_(\d+))?'),
