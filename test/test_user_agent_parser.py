@@ -80,7 +80,10 @@ TEST_STRINGS = (
     (('Opera Mobile', '10', '00', None),
      'Opera/9.80 (S60; SymbOS; Opera Mobi/275; U; es-ES) '
      'Presto/2.4.13 Version/10.00,gzip(gfe),gzip(gfe)', {}),
-
+    (('Palm webOS', '1', '2', None),
+     'Mozilla/5.0 (webOS/1.2; U; en-US) AppleWebKit/525.27.1 '
+     '(KHTML, like Gecko) Version/1.0 Safari/525.27.1 '
+     'Desktop/1.0,gzip(gfe),gzip(gfe)', {}),
     )
 
 

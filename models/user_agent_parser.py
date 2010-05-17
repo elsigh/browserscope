@@ -109,6 +109,9 @@ USER_AGENT_PARSERS = (
       family_replacement='Opera Mobile'),
   _P(r'(Opera)/9.80.*Version\/(\d+)\.(\d+)(?:\.(\d+))?'),
 
+  # Palm WebOS looks a lot like Safari.
+  _P('(webOS)/(\d+)\.(\d+)', 'Palm webOS'),
+
   _P(r'(Firefox)/(\d+)\.(\d+)\.(\d+(?:pre)?) \(Swiftfox\)', 'Swiftfox'),
   _P(r'(Firefox)/(\d+)\.(\d+)([ab]\d+[a-z]*)? \(Swiftfox\)', 'Swiftfox'),
 
