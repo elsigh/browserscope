@@ -20,7 +20,9 @@
     }
     var url = 'http://{{ server }}/beacon?category=usertest_{{ test_key }}&' +
         'csrf_token=' + csrf_token + '&' +
-        'callback=' + callback + '&' +
+        {% if callback %}
+          'callback={{ callback }}&' +
+        {% endif %}
         'results=' + results.join(',');
     script.src = url;
     script.setAttribute('async', 'true');
