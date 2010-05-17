@@ -74,7 +74,7 @@ browser_slash_v123_names = (
     'GranParadiso|Opera Mini|iCab|NetNewsWire|Iron|Iris')
 
 browser_slash_v12_names = (
-    'Bolt|Jasmine|Maxthon|Lynx|Arora|IBrowse|Dillo|Camino|Shiira|Fennec|'
+    'Bolt|Jasmine|Midori|Maxthon|Lynx|Arora|IBrowse|Dillo|Camino|Shiira|Fennec|'
     'Phoenix|Chrome|Flock|Netscape|Lunascape|Epiphany|WebPilot|'
     'Opera Mini|Opera|Vodafone|'
     'NetFront|Konqueror|SeaMonkey|Kazehakase|Vienna|Iceape|Iceweasel|IceWeasel|'
