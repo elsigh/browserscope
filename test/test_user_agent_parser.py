@@ -63,6 +63,10 @@ TEST_STRINGS = (
      {'js_user_agent_string': 'Mozilla/4.0 (compatible; MSIE 8.0; '
       'Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727; .NET CLR 1.1.4322)',
       'js_document_mode': '9'}),
+    (('iPad', '4', '0', '4'),
+     'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) Apple '
+     'WebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B367 '
+     'Safari/531.21.10', {})
     )
 
 
