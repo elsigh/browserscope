@@ -64,6 +64,8 @@ TEST_DRIVER_TPL = 'test_driver.html'
 MULTI_TEST_FRAMESET_TPL = 'multi_test_frameset.html'
 MULTI_TEST_DRIVER_TPL = 'multi_test_driver.html'
 
+VALID_STATS_OUTPUTS = ('html', 'pickle', 'xhr', 'csv', 'json',
+                       'gviz', 'gviz_data', 'gviz_timeline_data')
 
 #@decorators.trusted_tester_required
 def Render(request, template, params={}, category=None):
@@ -247,8 +249,7 @@ def Home(request):
 
   # Tell GetStats what to output.
   output = request.GET.get('o', 'html')
-  if output not in ('html', 'pickle', 'xhr', 'csv',
-                    'gviz', 'gviz_data', 'gviz_timeline_data'):
+  if output not in VALID_STATS_OUTPUTS:
     return http.HttpResponse('Invalid output specified')
   stats_table = GetStats(request, test_set, output)
 
@@ -256,10 +257,7 @@ def Home(request):
   if category in settings.STATIC_CATEGORIES and output in ('xhr', 'html'):
     stats_table = '%s%s' % (STATIC_MESSAGE, stats_table)
 
-  if output in ('xhr', 'pickle', 'csv',
-                'gviz', 'gviz_data', 'gviz_timeline_data'):
-    return http.HttpResponse(stats_table)
-  else:
+  if output == 'html':
     params = {
       'page_title': 'Home',
       'results_params': '&'.join(results_params),
@@ -272,6 +270,12 @@ def Home(request):
       'message': request.GET.get('message'),
     }
     return Render(request, 'home.html', params)
+
+  elif output == 'json':
+    return http.HttpResponse(stats_table, mimetype='application/json')
+
+  else:
+    return http.HttpResponse(stats_table)
 
 
 def BrowserTimeLine(request):
@@ -653,7 +657,7 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
   #logging.info("GetStats got params: %s", str(params))
   if output in ['html', 'xhr']:
     return GetStatsDataTemplatized(params, 'table')
-  elif output in ['csv', 'gviz']:
+  elif output in ['csv', 'gviz', 'json']:
     return GetStatsDataTemplatized(params, output)
   elif output == 'gviz_data':
     return FormatStatsDataAsGviz(params, request.GET.get('tqx', ''))

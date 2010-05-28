@@ -109,12 +109,16 @@ var _bTestResults = {
   src="http://www.browserscope.org/user/tests/table/YOUR-TEST-ID?v=3&amp;layout=simple"&gt;&lt;/iframe&gt;
 
 Parameters:
-  v=0: Shows the "Top Browsers" list.
+  v=0: Shows the "Top Browsers" list. (DEFAULT)
   v=1: Shows the browser families.
   v=2: Shows the minor browser versions.
   v=3: Shows all browser versions.
-  layout=simple: Hides a variety of things, good for embedding.
-  f=test_key_1,test_key_2: Show only these tests in the table.</pre></code>
+  o=html: The browserscope HTML table (DEFAULT)
+  o=json: A JSON encoded response with all the data.
+  o=gviz_data: Preformatted gviz output, suitable for gviz widgets.
+  layout=full: Includes links and headers we use in Browserscope (o=HTML, DEFAULT).
+  layout=simple: Hides a variety of things, good for embedding (o=HTML).
+  f=test_key_1,test_key_2: Limit results to these test_keys.</pre></code>
     </li>
     <li>
       <a href="http://groups.google.com/group/browserscope"
