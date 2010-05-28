@@ -537,11 +537,10 @@ a.bs-l-p {
   border: 1px solid #ddd;
   white-space: nowrap;
 }
-/*
-.rt tr:hover td {
-  border-bottom-color: #333;
+#rt-jskb tbody td {
+  white-space: normal;
 }
-*/
+
 .rt thead td,
 .rt th,
 .rt tfoot,

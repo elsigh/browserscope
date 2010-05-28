@@ -1,5 +1,5 @@
 {% spaceless %}
-<div class="rt">
+<div id="rt-{{ category }}" class="rt">
   <table class="rt-t" cellpadding="0" cellspacing="0">
     <thead>
       <tr>
@@ -151,6 +151,9 @@
 
     <span class="bs-results-dl">
       <span>Downloads:</span>
+      <a class="bs-dl-json"
+        href="{{ request_path_noparams }}?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}&o=json"
+        >json</a>
       <a class="bs-dl-py"
         href="{{ request_path_noparams }}?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}&o=pickle"
         >pickle</a>
