@@ -44,8 +44,13 @@ def About(request):
       that expose information about a browser that can be useful to
       JavaScript code optimizers.
 
-      <p>Optimizers should get output in a JSON format at
-      <a href=\"json?ua=Firefox+3.5\"><tt>json?ua=&hellip;</tt></a>.
+      <p>Optimizers can get output in a JSON format at
+      <a href=\"json?ua=Chrome\"><tt>json?ua=&hellip;</tt></a>.</p>
+
+      <p>Scores on the test summary page are not meant to be a measure
+      of the quality of a browser, but to indicate how many features
+      are available as a predictor of how much redundant code might be
+      eliminated on that browser.</p>
       """)
   return util.About(request, CATEGORY, overview=overview)
 
