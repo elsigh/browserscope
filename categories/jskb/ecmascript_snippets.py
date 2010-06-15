@@ -235,8 +235,10 @@ SNIPPET_GROUPS = (
     { NAME: 'Network', DOC: 'Network APIs' },
 
     { CODE: 'typeof XMLHttpRequest', NAME: 'XHR',
-      VALUES: TYPEOF_VALUES, SUMMARY: 'XMLHttpRequest',
-      GOOD: (T_FUN,), ABBREV: { T_FUN: 'XHR' } },
+      VALUES: TYPEOF_VALUES, ABBREV: {} },
+    { CODE: '!!window.XMLHttpRequest', NAME: 'BXHR',
+      VALUES: BOOL_VALUES, SUMMARY: 'XMLHttpRequest',
+      GOOD: ('true',), ABBREV: { 'true': 'XHR' } },
     { CODE: 'typeof ActiveXObject', NAME: 'ActiveX',
       VALUES: TYPEOF_VALUES, SUMMARY: 'ActiveXObject',
       ABBREV: { T_FUN: 'ActiveX', T_OBJ: 'ActiveX' } },
