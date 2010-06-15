@@ -142,9 +142,7 @@ class Test(db.Model):
     category_prefix = '%s_' % Test.get_prefix()
     if category_prefix not in category:
       return None
-    [category, key] = category.split('_')
-    if category != Test.get_prefix():
-      return None
+    key = category.replace(category_prefix, '')
     test = Test.get_mem(key)
     if not test:
       return None
@@ -158,9 +156,10 @@ class Test(db.Model):
   @staticmethod
   def get_test_set_from_category(category):
     if re.match(Test.get_prefix(), category):
-      [category, key] = category.split('_')
-      if category != Test.get_prefix():
+      category_prefix = '%s_' % Test.get_prefix()
+      if category_prefix not in category:
         return None
+      key = category.replace(category_prefix, '')
       test = Test.get_mem(key)
       return test.get_test_set_from_test_keys(test.test_keys)
     else:
