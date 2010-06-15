@@ -158,7 +158,7 @@ class JskbTestSet(test_set_base.TestSet):
               abbrevs.add(abbrev)
           total_score += score
           n_scored += 1
-      avg_score = (n_scored and int(total_score / n_scored)) or 60
+      avg_score = (n_scored and int(total_score / n_scored)) or 0
       abbrevs = list(abbrevs)
       abbrevs.sort()
       return avg_score, ', '.join(abbrevs)
@@ -192,16 +192,12 @@ class JskbTestSet(test_set_base.TestSet):
     """
     total_score = 0
     n_results = 0
-    display = ''
     for _, v in results.iteritems():
       total_score += float(v['score'])
       n_results += 1
     if not n_results: return 0, ''
     score = total_score / n_results
-    if score > 75: display = 'Good'
-    elif score > 50: display = 'OK'
-    else: display = 'Meh'
-    return score, display
+    return score, '%d' % int(score)
 
 TEST_SET = JskbTestSet(
     category=_CATEGORY,
