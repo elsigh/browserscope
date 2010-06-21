@@ -17,7 +17,6 @@
 import logging
 
 from google.appengine.ext import db
-from google.appengine.api import memcache
 from google.appengine.api.labs import taskqueue
 
 from categories import all_test_sets
@@ -40,6 +39,8 @@ class ResultTime(db.Model):
   def GetOrCreateRankers(self):
     parent = self.parent()
     test_set = all_test_sets.GetTestSet(parent.category)
+    logging.info('ResultTime.GetOrCreateRankers test_set %s, '
+                 'category: %s' % (test_set, parent.category))
     test = test_set.GetTest(self.test)
     if test:
       params_str = parent.params_str or None

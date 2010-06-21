@@ -32,6 +32,8 @@ from google.appengine.ext import db
 
 from base import util
 
+from categories import all_test_sets
+
 from models import result_stats
 import models.user_test
 
@@ -174,3 +176,80 @@ class TestHandlers(unittest.TestCase):
       response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
       self.assertEqual(204, response.status_code)
 
+
+class TestAliasedUserTest(unittest.TestCase):
+  """Using HTML5 as an example."""
+
+  def setUp(self):
+    self.client = Client()
+
+    current_user = users.get_current_user()
+    u = models.user_test.User.get_or_insert(current_user.user_id())
+    u.email = current_user.email()
+    u.save()
+
+    test = models.user_test.Test(user=u, name='Fake Test',
+                                 url='http://fakeurl.com/test.html',
+                                 description='stuff')
+    # Because GAEUnit won't run the deferred taskqueue properly.
+    test.test_keys = ['apple', 'coconut', 'banana']
+    test.save()
+    self.test = test
+
+    self.test_set = mock_data.MockUserTestSet()
+    self.test_set.user_test_category = test.get_memcache_keyname()
+    #all_test_sets.AddTestSet(self.test_set)
+
+    params = {
+      'category': self.test.get_memcache_keyname(),
+      'results': 'apple=1,banana=2,coconut=4',
+    }
+    csrf_token = self.client.get('/get_csrf').content
+    params['csrf_token'] = csrf_token
+    response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
+    self.assertEqual(204, response.status_code)
+
+  def testResultStats(self):
+    # These stats do not run through GetTestScoreAndDisplayValue, etc..
+    stats = {
+      'Other': {
+         'summary_display': '',
+         'total_runs': 1,
+         'summary_score': 0,
+         'results': {
+            'apple': {'score': 0, 'raw_score': 1, 'display': '1'},
+            'banana': {'score': 0, 'raw_score': 2, 'display': '2'},
+            'coconut': {'score': 0, 'raw_score': 4, 'display': '4'},
+         }
+      },
+      'total_runs': 1,
+    }
+    # First get results for the UserTest test_set
+    test_set = self.test.get_test_set_from_test_keys(
+        ['apple', 'banana', 'coconut'])
+    results = result_stats.CategoryStatsManager.GetStats(
+        test_set, browsers=('Other',),
+        test_keys=['apple', 'banana', 'coconut'], use_memcache=False)
+    self.assertEqual(stats, results)
+
+    # Our MockTestSet has GetTestScoreAndDisplayValue &
+    # GetRowScoreAndDisplayValue
+    stats = {
+      'Other': {
+        'summary_display': '7',
+        'total_runs': 1,
+        'summary_score': 14,
+        'results': {
+          'apple': {'score': 2, 'raw_score': 1, 'display': 'd:2'},
+          'banana': {'score': 4, 'raw_score': 2, 'display': 'd:4'},
+          'coconut': {'score': 8, 'raw_score': 4, 'display': 'd:8'},
+        }
+      },
+      'total_runs': 1,
+    }
+
+    # Now see if the test_set with user_test_category gets the same.
+    results = result_stats.CategoryStatsManager.GetStats(
+        self.test_set, browsers=('Other',),
+        test_keys=['apple', 'banana', 'coconut'], use_memcache=False)
+    self.assertEqual(stats, results)

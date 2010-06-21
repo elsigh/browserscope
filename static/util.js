@@ -1126,39 +1126,40 @@ Util.TestDriver.prototype.sendScore = function(testResults,
 };
 
 
+Util.TestDriver.prototype.getNextUrl = function() {
+  var len = this.testCategories.length;
+  var nextUrl;
+  var nextTest;
+  for (var i = 0, n = len; i < n; i++) {
+    if (this.testCategories[i] == this.category) {
+      // last test?
+      if (i == len - 1) {
+        nextTest = '/?';
+      } else {
+        nextTest = '/' + this.testCategories[i + 1] +
+            '/test?autorun=1&continue=1';
+      }
+    }
+  }
+  nextUrl = nextTest + '&' + this.uriResults;
+
+  // now add on previous test scores
+  for (var i = 0, n = len; i < n; i++) {
+    var category = this.testCategories[i];
+    var results = Util.getParam(category + '_results',
+        window.top);
+    if (results) {
+      nextUrl += '&' + category + '_results=' + results;
+    }
+  }
+};
+
 /**
  * @param {goog.events.Event} e
  */
 Util.TestDriver.prototype.onBeaconCompleteAutorun = function(e) {
-  var len = this.testCategories.length;
-  var nextUrl;
   if (this.continueToNextTest) {
-    var nextTest;
-    for (var i = 0, n = len; i < n; i++) {
-      if (this.testCategories[i] == this.category) {
-        // last test?
-        if (i == len - 1) {
-          nextTest = '/?';
-        } else {
-          nextTest = '/' + this.testCategories[i + 1] +
-              '/test?autorun=1&continue=1';
-        }
-      }
-    }
-    nextUrl = nextTest + '&' + this.uriResults;
-
-    // now add on previous test scores
-    for (var i = 0, n = len; i < n; i++) {
-      var category = this.testCategories[i];
-      var results = Util.getParam(category + '_results',
-          window.top);
-      if (results) {
-        nextUrl += '&' + category + '_results=' + results;
-      }
-    }
-    window.top.location.href = nextUrl;
-  } else {
-    //console.log('autorun but no continue');
+    window.top.location.href = this.getNextUrl();
   }
 };
 
@@ -1186,16 +1187,41 @@ Util.TestDriver.prototype.runTestButtonClickHandler = function(e) {
  * @export
  */
 Util.TestDriver.prototype.runTest = function() {
-  // i.e. run just one test.
+  // i.e. Run just one single test in a category, by test key.
   if (this.testUrl != '') {
     this.sendBeaconCheckbox.style.display = 'none';
     this.runTestButton.style.display = 'none';
     goog.dom.$('bs-send-beacon-label').style.display = 'none';
     this.testFrame.location.href = this.testUrl;
+
   } else {
-    var rand = Math.floor(Math.random() * 10000000);
-    var categoryTestUrl = this.testPage + '?category=' + this.category + '&r=' + rand;
-    this.testFrame.location.href = categoryTestUrl;
+
+    // Is this a remote/UserTest? (i.e. html5)
+    // If so we'll send the user off to that test page and then the test
+    // author on the other end will need to append
+    // &category_results=test1%3Dval1,test2%3Dval2, etc..
+    if (this.testPage.match(/https?:/)) {
+      var remoteUrl = this.testPage;
+      remoteUrl = goog.uri.utils.setParam(remoteUrl, 'referrer',
+          'browserscope');
+
+      var protocolAndHost = 'http://' + window.location.host;
+      var continueUrl;
+      if (this.continueToNextTest) {
+        continueUrl = protocolAndHost + this.getNextUrl();
+      } else {
+        continueUrl = protocolAndHost + '/?category=' + this.category
+      }
+      remoteUrl = goog.uri.utils.setParam(remoteUrl, 'continue', continueUrl);
+      window.top.location.href = remoteUrl;
+
+    // Regular Browserscope-hosted test.
+    } else {
+      var rand = Math.floor(Math.random() * 10000000);
+      var categoryTestUrl = this.testPage + '?category=' + this.category +
+          '&r=' + rand;
+      this.testFrame.location.href = categoryTestUrl;
+    }
   }
 };
 

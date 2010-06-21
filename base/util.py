@@ -226,14 +226,14 @@ def Home(request):
   recent_tests = memcache.get(key=RECENT_TESTS_MEMCACHE_KEY)
   if not recent_tests:
     ScheduleRecentTestsUpdate()
-  logging.info('RECENT: %s' % recent_tests)
 
   results_params = []
   results_test_set = None
   for test_set in all_test_sets.GetAllTestSets():
     results_key = '%s_results' % test_set.category
     results_uri_string = request.GET.get(results_key)
-    if results_uri_string:
+    # Adding a check for None since bots are sending it.
+    if results_uri_string and results_uri_string != 'None':
       results_params.append('='.join((results_key, results_uri_string)))
       results_test_set  = test_set
 
@@ -483,8 +483,8 @@ def Beacon(request):
     return http.HttpResponse(BAD_BEACON_MSG + 'Category/Results')
 
   # Quick check for a user-api test result.
-  user_test_set = models.user_test.Test.get_test_set_from_results_str(category,
-                                                                 results_str)
+  user_test_set = models.user_test.Test.get_test_set_from_results_str(
+      category, results_str)
 
   # UserTest beacon.
   if user_test_set:
@@ -518,7 +518,10 @@ def Beacon(request):
   ScheduleRecentTestsUpdate()
 
   if callback:
-    return http.HttpResponse('%s();' % callback)
+    if user_test_set:
+      return http.HttpResponse('<script>parent.%s();</script>' % callback)
+    else:
+      return http.HttpResponse('%s();' % callback)
   else:
     # Return a successful, empty 204.
     return http.HttpResponse('', status=204)
