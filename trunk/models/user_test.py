@@ -28,6 +28,9 @@ from google.appengine.ext import deferred
 
 from categories import test_set_base
 
+# This value turns out to be key for aliasing, meaning we need to be
+# sure that aliased test sets use it when defining their tests.
+MAX_VALUE = 10000
 
 class User(db.Model):
   email = db.StringProperty()
@@ -91,17 +94,20 @@ class Test(db.Model):
   def delete_memcache(self):
     memcache.delete(self.get_memcache_keyname())
 
-  def get_test_set_from_test_keys(self, test_keys):
+  def get_test_set_tests_from_test_keys(self, test_keys):
     test_set_tests = []
-    max_value = 10000
     for test_key in test_keys:
       test = test_set_base.TestBase(key=test_key,
                                     name=test_key,
                                     url='',
                                     doc='',
                                     min_value=0,
-                                    max_value=max_value)
+                                    max_value=MAX_VALUE)
       test_set_tests.append(test)
+    return test_set_tests
+
+  def get_test_set_from_test_keys(self, test_keys):
+    test_set_tests = self.get_test_set_tests_from_test_keys(test_keys)
     test_set = TestSet(category=self.get_memcache_keyname(),
                        category_name=self.name,
                        summary_doc='',

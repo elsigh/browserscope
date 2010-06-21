@@ -18,11 +18,14 @@
 
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
+import logging
+
 from google.appengine.ext import db
 
 from categories import test_set_base
 from categories import all_test_sets
 from models.user_agent import UserAgent
+from models import user_test
 
 def GetUserAgentString(browser):
   browser_user_agents = {
@@ -78,9 +81,35 @@ class MockTestSet(test_set_base.TestSet):
   def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
     raw_score = raw_scores[test_key]
     score = raw_score * 2
-    return score, 'd:%s' % str(score)
+    display = 'd:%s' % str(score)
+    return score, display
 
   def GetRowScoreAndDisplayValue(self, results):
     score = sum(x['score'] for x in results.values())
     display = str(sum(x['raw_score'] for x in results.values()))
+    return score, display
+
+
+class MockUserTestSet(test_set_base.TestSet):
+  def __init__(self, category='mockTestSet', params=None):
+    # matches user_test max_value
+    tests = (
+        MockTest('apple', min_value=0, max_value=user_test.MAX_VALUE),
+        MockTest('banana', min_value=0, max_value=user_test.MAX_VALUE),
+        MockTest('coconut', min_value=0, max_value=user_test.MAX_VALUE),
+        )
+    test_set_base.TestSet.__init__(
+        self, category, category.capitalize(), '', tests, default_params=params)
+
+  def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
+    raw_score = raw_scores[test_key]
+    score = raw_score * 2
+    display = 'd:%s' % str(score)
+    logging.info('GetTestScoreAndDisplayValue %s: %s - %s' % (test_key, score, display))
+    return score, display
+
+  def GetRowScoreAndDisplayValue(self, results):
+    score = sum(x['score'] for x in results.values())
+    display = str(sum(x['raw_score'] for x in results.values()))
+    logging.info('GetRowScoreAndDisplayValue %s, %s' % (score, display))
     return score, display

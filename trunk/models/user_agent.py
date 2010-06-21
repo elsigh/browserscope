@@ -23,7 +23,8 @@ import sys
 from google.appengine.ext import db
 from models import user_agent_parser
 
-# Mainly used for SeedDatastore
+# Mainly used for SeedDatastore.
+# You may want models.result_stats.py
 TOP_USER_AGENT_STRINGS = (
   ('Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) '
    'AppleWebKit/530.1 (KHTML, like Gecko) '

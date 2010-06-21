@@ -101,6 +101,7 @@ class TestSet(object):
     self.tests = tests
     self.default_params = default_params
     self.test_page = test_page
+    self.user_test_category = None
     if self.test_page is None:
       # i.e. default is like /acid3/acid3.html
       self.test_page = '/%s/static/%s.html' % (self.category, self.category)
@@ -207,6 +208,8 @@ class TestSet(object):
     """
     medians, num_scores = {}, {}
     for test, ranker in zip(self.tests, self.GetRankers(browser)):
+      logging.info('GetMediansAndNumScores test:%s - %s, ranker:%s' %
+                   (test.key, test, ranker));
       if ranker:
         medians[test.key], num_scores[test.key] = ranker.GetMedianAndNumScores()
       else:

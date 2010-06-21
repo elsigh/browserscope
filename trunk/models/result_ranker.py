@@ -200,6 +200,11 @@ def GetRankers(test_browsers, params_str=None, use_insert=False):
   ranker_classes = {}
   for test, browser in test_browsers:
     category = test.test_set.category
+
+    # If this is an aliased UserTest (like HTML5), use the usertest key instead.
+    if test.test_set.user_test_category is not None:
+      category = test.test_set.user_test_category
+
     key_name = RankerKeyName(category, test.key, browser, params_str)
     key_names.append(key_name)
     ranker_classes[key_name] = RankerClass(test.min_value, test.max_value)
