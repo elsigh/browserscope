@@ -1152,6 +1152,7 @@ Util.TestDriver.prototype.getNextUrl = function() {
       nextUrl += '&' + category + '_results=' + results;
     }
   }
+  return nextUrl;
 };
 
 /**
@@ -1159,7 +1160,8 @@ Util.TestDriver.prototype.getNextUrl = function() {
  */
 Util.TestDriver.prototype.onBeaconCompleteAutorun = function(e) {
   if (this.continueToNextTest) {
-    window.top.location.href = this.getNextUrl();
+    var nextUrl = this.getNextUrl();
+    window.top.location.href = nextUrl;
   }
 };
 

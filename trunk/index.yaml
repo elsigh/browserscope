@@ -32,6 +32,12 @@ indexes:
   - name: category
   - name: created
 
+- kind: ResultParent
+  properties:
+  - name: category
+  - name: created
+    direction: desc
+
 - kind: Test
   properties:
   - name: user
