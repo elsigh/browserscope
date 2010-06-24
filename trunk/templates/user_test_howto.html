@@ -69,18 +69,26 @@ var _bTestResults = {
 &lt;/script&gt;
 </code></pre>
       <div id="bs-usertest-dontforget">
-        <em>
+        <em style="font-size:85%">
           * Don't forget to set the _bTestKey in the snippet
           to <strong>your test ID</strong>, which you
           can find on your <a href="/user/settings">settings</a> page.
         </em>
       </div>
-      <div>
+      <div style="margin-top: 1em">
+        You can execute a callback Javascript function after the
+        results data is sent to Browserscope by adding the following
+        parameter to _bScript.src:<br>
+        <code><pre>_bScript.src += '?callback=YOUR-FUNCTION-NAME';</pre></code>
+      </div>
+      <div style="margin-top: 1em">
         You can bypass Browserscope's IP throttling feature (while testing) by
-        adding the line:<br>
+        adding the the following parameter to _bScript.src:<br>
         <code><pre>_bScript.src += '?sandboxid=YOUR-SANDBOX-ID';</pre></code>
-        Just remember not to publish this widely and/or change it after you're
-        done testing so that no one can corrupt your dataset.
+        <em style="font-size:85%">
+          Just remember not to publish this widely and/or change it after
+          you're done testing so that no one can corrupt your dataset.
+        </em>
       </div>
     </li>
     <li>

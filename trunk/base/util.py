@@ -81,8 +81,13 @@ def Render(request, template, params={}, category=None):
   params['request_path_noparams'] = request.path
   params['current_ua_string'] = request.META.get('HTTP_USER_AGENT')
   if params['current_ua_string']:
-    params['current_ua'] = models.user_agent.UserAgent.factory(
-        params['current_ua_string']).pretty()
+    js_user_agent_string = request.REQUEST.get('js_ua')
+    js_document_mode = request.REQUEST.get('doc_mode')
+    ua = models.user_agent.UserAgent.factory(params['current_ua_string'],
+        js_user_agent_string=js_user_agent_string,
+        js_document_mode=js_document_mode)
+    #params['current_ua'] = ua.pretty()
+    params['current_ua'] = ua
   params['chromeframe_enabled'] = request.COOKIES.get(
       'browserscope-chromeframe-enabled', '0')
   params['app_categories'] = []
@@ -113,7 +118,10 @@ def Render(request, template, params={}, category=None):
                                     MULTI_TEST_FRAMESET_TPL, ABOUT_TPL)):
     template = '%s/%s' % (category, template)
 
-  return shortcuts.render_to_response(template, params)
+  mimetype = 'text/html'
+  if params.has_key('mimetype'):
+    mimetype = params['mimetype']
+  return shortcuts.render_to_response(template, params, mimetype=mimetype)
 
 
 
@@ -205,6 +213,15 @@ def About(request, category, category_title=None, overview='',
     'show_test_urls': show_test_urls
   }
   return Render(request, ABOUT_TPL, params, category)
+
+
+def UaParser(request):
+  output = request.REQUEST.get('o', 'js')
+  if output == 'js':
+    params = {'mimetype': 'text/javascript'}
+    return Render(request, 'user_agent_js.tpl', params)
+  else:
+    raise NotImplementedError
 
 
 def GetServer(request):

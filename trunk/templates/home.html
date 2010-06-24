@@ -59,10 +59,10 @@
     We think you're using
     <strong
       id="bs-home-cur-ua-s"
-      title="{{ current_ua_string }}">{{ current_ua }}</strong>
+      title="{{ current_ua_string }}">{{ current_ua.pretty }}</strong>
   </span>
   <a
-    href="http://code.google.com/p/browserscope/issues/entry?template=UA%20Parsing%20Is%20Incorrect&comment={{ current_ua }} is not {{ current_ua_string }}"
+    href="http://code.google.com/p/browserscope/issues/entry?template=UA%20Parsing%20Is%20Incorrect&comment={{ current_ua.pretty }} is not {{ current_ua_string }}"
     target="_blank">No?</a>
 </div>
 {% if message %}
@@ -109,7 +109,7 @@
     var category = '{{ stats_table_category }}';
     var httpUserAgent = '{{ current_ua_string }}';
     var output = '{{ output }}';
-    var userAgentPretty = '{{ current_ua }}';
+    var userAgentPretty = '{{ current_ua.pretty }}';
     var realUaString = Util.reconcileClientServerUaPretty(httpUserAgent,
         userAgentPretty);
     var resultsUriParams = '{{ results_params }}';

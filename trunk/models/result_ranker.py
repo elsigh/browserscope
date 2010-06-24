@@ -201,7 +201,7 @@ def GetRankers(test_browsers, params_str=None, use_insert=False):
   for test, browser in test_browsers:
     category = test.test_set.category
 
-    # If this is an aliased UserTest (like HTML5), use the usertest key instead.
+    # If this is an aliased UserTest (like HTML5), use its key instead.
     if test.test_set.user_test_category is not None:
       category = test.test_set.user_test_category
 

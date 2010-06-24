@@ -32,7 +32,7 @@
     var category = 'usertest_{{ test.key }}';
     var httpUserAgent = '{{ current_ua_string }}';
     var output = '{{ output }}';
-    var userAgentPretty = '{{ current_ua }}';
+    var userAgentPretty = '{{ current_ua.pretty }}';
     var realUaString = Util.reconcileClientServerUaPretty(httpUserAgent,
         userAgentPretty);
     var resultsUriParams = '{{ results_params }}';

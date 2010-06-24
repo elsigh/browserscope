@@ -127,14 +127,16 @@ class TestHandlers(unittest.TestCase):
 
     response = self.client.get('/user/beacon/%s' % test.key())
     self.assertEquals('text/javascript', response['Content-type'])
-    # There should be no callback in the beacon url.
-    self.assertFalse(re.search('callback=', response.content))
+
+    # There should be no callback setTimeout in the page.
+    self.assertFalse(re.search('window.setTimeout', response.content))
 
     # Now test a beacon with a callback specified.
+    # This is a regex test ensuring it's there in a setTimeout.
     params = {'callback': 'MyFunction'}
     response = self.client.get('/user/beacon/%s' % test.key(), params)
     self.assertEquals('text/javascript', response['Content-type'])
-    self.assertTrue(re.search('callback=%s' % params['callback'],
+    self.assertTrue(re.search('window.setTimeout\(%s' % params['callback'],
         response.content))
 
 
