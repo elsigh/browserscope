@@ -39,7 +39,8 @@
       'test_key': test_key,
       'csrf_token': csrf_token,
       'category': 'usertest_{{ test_key }}',
-      'results': results.join(',')
+      'results': results.join(','){% if sandboxid %},
+      'sandboxid': '{{ sandboxid }}'{% endif %}
     };
     for (key in inputs) {
       var input = iframeDoc.createElement('input');
