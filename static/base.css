@@ -468,7 +468,8 @@ html>body .goog-inline-block {
 }
 #bs-results-cats a {
   display: block;
-  padding: 4px 15px;
+  font-size: 95%;
+  padding: 4px 5px;
   cursor: pointer;
   text-decoration: underline;
   color: #000;
@@ -767,8 +768,15 @@ a.bs-l-p {
 }
 
 /** User **/
+#bs-user-settings-steth {
+  position: relative;
+  top: -20px;
+}
 #bs-user-settings .rt {
   margin-bottom: 18px;
+}
+#bs-user-settings .rt td {
+  white-space: normal;
 }
 #bs-user-settings .rt th {
   text-align: left;
