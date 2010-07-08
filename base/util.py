@@ -532,13 +532,13 @@ def Beacon(request):
       js_document_mode=js_document_mode)
   if not result_parent:
     return http.HttpResponse(BAD_BEACON_MSG + 'ResultParent')
-  ScheduleRecentTestsUpdate()
+
+  # User tests don't need to update our recent tests list.
+  if not user_test_set:
+    ScheduleRecentTestsUpdate()
 
   if callback:
-    if user_test_set:
-      return http.HttpResponse('<script>parent.%s();</script>' % callback)
-    else:
-      return http.HttpResponse('%s();' % callback)
+    return http.HttpResponse('%s();' % callback)
   else:
     # Return a successful, empty 204.
     return http.HttpResponse('', status=204)
