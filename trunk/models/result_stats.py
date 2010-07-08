@@ -116,7 +116,7 @@ class CategoryBrowserManager(db.Model):
     else:
       # If this is an aliased UserTest (like HTML5), use its key instead.
       test_set = all_test_sets.GetTestSet(category)
-      if test_set and test_set.user_test_category is not None:
+      if test_set is not None and test_set.user_test_category is not None:
         category = test_set.user_test_category
 
       key_name = cls.KeyName(category, version_level)
