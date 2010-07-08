@@ -320,6 +320,7 @@ def BeaconJs(request, key):
     'test_key': test.key(),
     'csrf_token': request.session.get('csrf_token'),
     'server': util.GetServer(request),
+    'sandboxid': request.GET.get('sandboxid', ''),
   }
 
   # Does the user want a callback?
