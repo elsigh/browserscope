@@ -131,12 +131,17 @@ class TestHandlers(unittest.TestCase):
     # There should be no callback setTimeout in the page.
     self.assertFalse(re.search('window.setTimeout', response.content))
 
+    # There should be no sandboxid in the page.
+    self.assertFalse(re.search('sandboxid', response.content))
+
     # Now test a beacon with a callback specified.
     # This is a regex test ensuring it's there in a setTimeout.
-    params = {'callback': 'MyFunction'}
+    params = {'callback': 'MyFunction', 'sandboxid': 'foobar'}
     response = self.client.get('/user/beacon/%s' % test.key(), params)
     self.assertEquals('text/javascript', response['Content-type'])
     self.assertTrue(re.search('window.setTimeout\(%s' % params['callback'],
+        response.content))
+    self.assertTrue(re.search("'sandboxid': '%s'" % params['sandboxid'],
         response.content))
 
 

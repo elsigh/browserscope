@@ -67,7 +67,6 @@ MULTI_TEST_DRIVER_TPL = 'multi_test_driver.html'
 VALID_STATS_OUTPUTS = ('html', 'pickle', 'xhr', 'csv', 'json',
                        'gviz', 'gviz_data', 'gviz_timeline_data')
 
-#@decorators.trusted_tester_required
 def Render(request, template, params={}, category=None):
   """Wrapper function to render templates with global and category vars."""
   params['app_title'] = settings.APP_TITLE
