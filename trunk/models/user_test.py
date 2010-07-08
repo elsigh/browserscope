@@ -155,7 +155,7 @@ class Test(db.Model):
 
     test_scores = [x.split('=') for x in str(results_str).split(',')]
     test_keys = sorted([x[0] for x in test_scores])
-    deferred.defer(update_test_keys, key, test_keys, _countdown=60)
+    deferred.defer(update_test_keys, key, test_keys)
     test_set = test.get_test_set_from_test_keys(test_keys)
     return test_set
 
