@@ -69,7 +69,7 @@ class UpdateDirtyLock(object):
     condition.
     @see http://code.google.com/appengine/docs/python/memcache/functions.html
     """
-    return memcache.delete(key=self.result_parent_key, namespace=cls.NAMESPACE)
+    return memcache.delete(key=self.result_parent_key, namespace=self.NAMESPACE)
 
 
 class UpdateDirtyController(db.Model):
@@ -167,8 +167,9 @@ def UpdateDirty(request):
     logging.debug('PAUSED')
     return http.HttpResponse('UpdateDirty is paused.')
 
-  dirty_query = DirtyResultTimesQuery(request.GET.get('result_parent_key'))
-  lock = UpdateDirtyLock(dirty_query.result_parent_key)
+  result_parent_key = request.GET.get('result_parent_key')
+  dirty_query = DirtyResultTimesQuery(result_parent_key)
+  lock = UpdateDirtyLock(result_parent_key)
   if not lock.Acquire():
     # Return an error to have the taskqueue retry the same result_parent_key.
     # This will show us if the taskqueue is getting behind.
@@ -182,7 +183,7 @@ def UpdateDirty(request):
       logging.warn('UpdateDirty DeadlineExceededError')
   finally:
     logging.debug('Releasing lock: %s', lock.result_parent_key)
-    lock.Release(result_parent_key)
+    lock.Release()
   next_result_parent_key = dirty_query.NextResultParentKey()
   if next_result_parent_key:
     logging.debug('ScheduleDirtyUpdate')

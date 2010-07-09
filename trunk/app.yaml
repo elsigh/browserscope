@@ -14,7 +14,7 @@
 #
 # Author elsigh@google.com (Lindsey Simon)
 
-application: ua-profiler
+application: ua-profiler-test
 version: 5     # 5 is the current default.
 runtime: python
 api_version: 1
