@@ -476,7 +476,7 @@ def ScheduleRecentTestsUpdate():
 
 BAD_BEACON_MSG = 'Error in Beacon: '
 @decorators.check_csrf
-def Beacon(request):
+def Beacon(request, category_id=None):
   """Records result times in the datastore.
   This is the handler for after a test is done.
   ex: /beacon?category=reflow&csrf_token=number&results=tes1=150,test2=300
