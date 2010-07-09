@@ -33,7 +33,7 @@
     iframeDoc.close();
 
     var form = iframeDoc.createElement('form');
-    form.action = 'http://{{ server }}/beacon';
+    form.action = 'http://{{ server }}/beacon/{{ test_key }}';
     form.method = 'post';
     var inputs = {
       'test_key': test_key,
