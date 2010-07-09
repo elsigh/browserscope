@@ -42,9 +42,38 @@ add_to_builtins('base.custom_filters')
 UPDATE_DIRTY_DONE = 'No more dirty ResultTimes.'
 UPDATE_DIRTY_ADDED_TASK = 'Added task to update more dirty.'
 
+
+class UpdateDirtyLock(object):
+  NAMESPACE = 'update_dirty_lock'
+  LOCK_TIMEOUT_SECONDS = 45
+
+  def __init__(self, result_parent_key):
+    self.result_parent_key = result_parent_key
+
+  def Acquire(self):
+    """Attempt to acquire a lock for UpdateDirty.
+
+    Returns:
+      True if lock acquired; otherwise, False.
+    """
+    return memcache.add(
+        key=self.result_parent_key, value=1, time=self.LOCK_TIMEOUT_SECONDS,
+        namespace=self.NAMESPACE)
+
+  def Release(self):
+    """Release UpdateDirty lock.
+    The return value is 0 (DELETE_NETWORK_FAILURE) on network failure,
+    1 (DELETE_ITEM_MISSING) if the server tried to delete the item but didn't
+    have it, and 2 (DELETE_SUCCESSFUL) if the item was actually deleted. This
+    can be used as a boolean value, where a network failure is the only bad
+    condition.
+    @see http://code.google.com/appengine/docs/python/memcache/functions.html
+    """
+    return memcache.delete(key=self.result_parent_key, namespace=cls.NAMESPACE)
+
+
 class UpdateDirtyController(db.Model):
   NAMESPACE = 'cron_update_dirty'
-  LOCK_TIMEOUT_SECONDS = 33
 
   is_paused = db.BooleanProperty(default=False)
 
@@ -68,28 +97,6 @@ class UpdateDirtyController(db.Model):
       memcache.set(key='paused', value=is_paused, namespace=cls.NAMESPACE)
     logging.info('UpdateDirtyController returning is_paused: %s' % is_paused)
     return is_paused
-
-  @classmethod
-  def AcquireLock(cls):
-    """Attempt to acquire a lock for UpdateDirty.
-
-    Returns:
-       True if lock acquired; otherwise, False.
-    """
-    return memcache.add(key='lock', value=1, time=cls.LOCK_TIMEOUT_SECONDS,
-                        namespace=cls.NAMESPACE)
-
-  @classmethod
-  def ReleaseLock(cls):
-    """Release UpdateDirty lock.
-    The return value is 0 (DELETE_NETWORK_FAILURE) on network failure,
-    1 (DELETE_ITEM_MISSING) if the server tried to delete the item but didn't
-    have it, and 2 (DELETE_SUCCESSFUL) if the item was actually deleted. This
-    can be used as a boolean value, where a network failure is the only bad
-    condition.
-    @see http://code.google.com/appengine/docs/python/memcache/functions.html
-    """
-    return memcache.delete(key='lock', namespace=cls.NAMESPACE)
 
 
 class DirtyResultTimesQuery(object):
@@ -140,7 +147,7 @@ class DirtyResultTimesQuery(object):
         self.result_parent_key = None
       else:
         dirty_result_times.pop()
-      return dirty_result_times
+    return dirty_result_times
 
   def IsResultParentDone(self):
     return self.result_parent_key is None
@@ -160,28 +167,30 @@ def UpdateDirty(request):
     logging.debug('PAUSED')
     return http.HttpResponse('UpdateDirty is paused.')
 
-  if not UpdateDirtyController.AcquireLock():
-    logging.debug('LOCKED')
-    return http.HttpResponse('UpdateDirty: unable to acquire lock.')
-
-  logging.debug('Acquired lock, onwards through the fog.')
+  dirty_query = DirtyResultTimesQuery(request.GET.get('result_parent_key'))
+  lock = UpdateDirtyLock(dirty_query.result_parent_key)
+  if not lock.Acquire():
+    # Return an error to have the taskqueue retry the same result_parent_key.
+    # This will show us if the taskqueue is getting behind.
+    logging.debug('LOCKED out: %s', lock.result_parent_key)
+    return http.HttpResponseServerError('UpdateDirty: unable to acquire lock.')
   try:
+    logging.debug('Acquired lock, onwards through the fog: %s', lock.result_parent_key)
     try:
-      dirty_query = DirtyResultTimesQuery(request.GET.get('result_parent_key'))
       ResultParent.UpdateStatsFromDirty(dirty_query)
     except runtime.DeadlineExceededError:
       logging.warn('UpdateDirty DeadlineExceededError')
-    next_result_parent_key = dirty_query.NextResultParentKey()
-    if next_result_parent_key:
-      logging.debug('ScheduleDirtyUpdate')
-      ScheduleDirtyUpdate(next_result_parent_key)
-      return http.HttpResponse(UPDATE_DIRTY_ADDED_TASK)
-    else:
-      logging.debug('UPDATE_DIRTY_DONE')
-      return http.HttpResponse(UPDATE_DIRTY_DONE)
   finally:
-    logging.debug('Releasing lock')
-    UpdateDirtyController.ReleaseLock()
+    logging.debug('Releasing lock: %s', lock.result_parent_key)
+    lock.Release(result_parent_key)
+  next_result_parent_key = dirty_query.NextResultParentKey()
+  if next_result_parent_key:
+    logging.debug('ScheduleDirtyUpdate')
+    ScheduleDirtyUpdate(next_result_parent_key)
+    return http.HttpResponse(UPDATE_DIRTY_ADDED_TASK)
+  else:
+    logging.debug('UPDATE_DIRTY_DONE')
+    return http.HttpResponse(UPDATE_DIRTY_DONE)
 
 
 @decorators.admin_required
