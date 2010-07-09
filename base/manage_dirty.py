@@ -155,11 +155,16 @@ class DirtyResultTimesQuery(object):
 def UpdateDirty(request):
   """Updates any dirty tests, adding its score to the appropriate ranker."""
   logging.debug('UpdateDirty starting...')
+
   if UpdateDirtyController.IsPaused():
+    logging.debug('PAUSED')
     return http.HttpResponse('UpdateDirty is paused.')
+
   if not UpdateDirtyController.AcquireLock():
+    logging.debug('LOCKED')
     return http.HttpResponse('UpdateDirty: unable to acquire lock.')
-  logging.debug('Acquired lock')
+
+  logging.debug('Acquired lock, onwards through the fog.')
   try:
     try:
       dirty_query = DirtyResultTimesQuery(request.GET.get('result_parent_key'))
