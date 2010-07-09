@@ -154,6 +154,7 @@ class DirtyResultTimesQuery(object):
 
 def UpdateDirty(request):
   """Updates any dirty tests, adding its score to the appropriate ranker."""
+  logging.debug('UpdateDirty starting...')
   if UpdateDirtyController.IsPaused():
     return http.HttpResponse('UpdateDirty is paused.')
   if not UpdateDirtyController.AcquireLock():
