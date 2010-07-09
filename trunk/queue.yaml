@@ -1,13 +1,13 @@
 queue:
 
 - name: default
-  rate: 20/s
+  rate: 5/s
 
 - name: recent-tests
   rate: 7/s
 
 - name: update-dirty
-  rate: 15/s
+  rate: 30/s
 
 - name: update-stats-cache
   rate: 2/s
