@@ -39,30 +39,6 @@ import settings
 from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
 
-def UserAgentGroup(request):
-  category = request.REQUEST.get('category')
-  user_agent_key = request.REQUEST.get('user_agent_key')
-  if not category:
-    logging.info('cron.UserAgentGroup: No category')
-    return http.HttpResponse('No category')
-  if not all_test_sets.GetTestSet(category):
-    logging.info('cron.UserAgentGroup: Bad category: %s', category)
-    return http.HttpResponse('Bad category: %s' % category)
-  if not user_agent_key:
-    logging.info('cron.UserAgentGroup: No key')
-    return http.HttpResponse('No key')
-  try:
-    user_agent = UserAgent.get(db.Key(user_agent_key))
-  except db.BadKeyError:
-    logging.info('cron.UserAgentGroup: Invalid UserAgent key: %s', user_agent_key)
-    return http.HttpResponse('Invalid UserAgent key: %s' % user_agent_key)
-  if user_agent:
-    logging.info('cron.UserAgentGroup: UpdateCategory(%s, %s)', category, user_agent)
-    result_stats.UpdateCategory(category, user_agent)
-    return http.HttpResponse('Done with UserAgent key=%s' % user_agent_key)
-  else:
-    return http.HttpResponse('No user_agent with this key.')
-
 
 def UpdateRecentTests(request):
   max_recent_tests = 10
