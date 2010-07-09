@@ -158,6 +158,7 @@ def UpdateDirty(request):
     return http.HttpResponse('UpdateDirty is paused.')
   if not UpdateDirtyController.AcquireLock():
     return http.HttpResponse('UpdateDirty: unable to acquire lock.')
+  logging.debug('Acquired lock')
   try:
     try:
       dirty_query = DirtyResultTimesQuery(request.GET.get('result_parent_key'))
@@ -166,11 +167,14 @@ def UpdateDirty(request):
       logging.warn('UpdateDirty DeadlineExceededError')
     next_result_parent_key = dirty_query.NextResultParentKey()
     if next_result_parent_key:
+      logging.debug('ScheduleDirtyUpdate')
       ScheduleDirtyUpdate(next_result_parent_key)
       return http.HttpResponse(UPDATE_DIRTY_ADDED_TASK)
     else:
+      logging.debug('UPDATE_DIRTY_DONE')
       return http.HttpResponse(UPDATE_DIRTY_DONE)
   finally:
+    logging.debug('Releasing lock')
     UpdateDirtyController.ReleaseLock()
 
 

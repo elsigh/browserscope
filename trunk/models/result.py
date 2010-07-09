@@ -84,9 +84,10 @@ class ResultParent(db.Expando):
     Returns:
       A ResultParent instance.
     """
-    logging.debug('ResultParent.AddResult')
+    logging.debug('ResultParent.AddResult category=%s' % test_set.category)
     if params_str in ('None', ''):
       # params_str should either unset, None, or a non-empty string
+      logging.debug('params_str is wonky')
       raise ValueError
 
     user_agent = UserAgent.factory(user_agent_string,
@@ -119,6 +120,8 @@ class ResultParent(db.Expando):
                       for test_key, values in results.items()]
       db.put(result_times)
     db.run_in_transaction(_AddResultInTransaction)
+
+    logging.debug('ScheduleDirtyUpdate parent.key=%s' % parent.key())
     parent.ScheduleDirtyUpdate(parent.key())
     return parent
 
