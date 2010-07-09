@@ -37,7 +37,7 @@ BROWSER_NAV = (
 
 TOP_BROWSERS = (
   'Android 2.2',
-  'Chrome 4', 'Chrome 5',
+  'Chrome 5', 'Chrome 6',
   'Firefox 3.5', 'Firefox 3.6',
   'IE 7', 'IE 8',
   'iPhone 3.1',
@@ -461,9 +461,9 @@ class CategoryStatsManager(object):
 
 
 def ScheduleCategoryUpdate(category, user_agent):
-  """Add a task to update a category's statistic.
+  """Add a task to update a category's statistics.
 
-  The task is handled by base.cron.UserAgentGroup which then
+  The task is handled by base.admin.UpdateCategory which then
   calls UpdateCategory below.
   """
   task = taskqueue.Task(method='GET', params={
@@ -471,7 +471,7 @@ def ScheduleCategoryUpdate(category, user_agent):
       'user_agent_key': user_agent.key(),
       })
   try:
-    task.add(queue_name='user-agent-group')
+    task.add(queue_name='update-category')
   except:
     logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
 

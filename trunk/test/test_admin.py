@@ -278,7 +278,7 @@ class TestUpdateStatsCache(unittest.TestCase):
     self.assertEqual(200, response.status_code)
 
 
-class TestUpdateAllStatsCAche(unittest.TestCase):
+class TestUpdateAllStatsCache(unittest.TestCase):
 
   def setUp(self):
     self.test_set_1 = mock_data.MockTestSet(category='foo')

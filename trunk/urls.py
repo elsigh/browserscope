@@ -48,6 +48,7 @@ urlpatterns = patterns('',
   (r'^admin/stats', 'base.admin.Stats'),
   (r'^admin/rankers/upload', 'base.admin_rankers.UploadRankers'),
   (r'^admin/upload_category_browsers', 'base.admin.UploadCategoryBrowsers'),
+  (r'^admin/update_category', 'base.admin.UpdateCategory'),
   (r'^admin/update_summary_browsers', 'base.admin.UpdateSummaryBrowsers'),
   (r'^admin/update_stats_cache', 'base.admin.UpdateStatsCache'),
   (r'^admin/update_all_stats_cache', 'base.admin.UpdateAllStatsCache'),
@@ -68,12 +69,12 @@ urlpatterns = patterns('',
   (r'^admin/test_task_queue', 'gaeunit_test.TaskHandler'),
 
   # Cron admin scripts
-  (r'^cron/user_agent_group$', 'base.cron.UserAgentGroup'),
   (r'^cron/update_recent_tests$', 'base.cron.UpdateRecentTests'),
 
   (r'^_ah/queue/update-dirty', 'base.manage_dirty.UpdateDirty'),
-  (r'^_ah/queue/user-agent-group', 'base.cron.UserAgentGroup'),
+  (r'^_ah/queue/update-category', 'base.admin.UpdateCategory'),
   (r'^_ah/queue/recent-tests$', 'base.cron.UpdateRecentTests'),
+  (r'^_ah/queue/update-stats-cache$', 'base.admin.UpdateStatsCache'),
 
   # GViz Data source
   #(r'^gviz$', 'base.util.Gviz'),

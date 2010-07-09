@@ -320,6 +320,31 @@ def UploadCategoryBrowsers(request):
   return http.HttpResponse('Success.')
 
 
+def UpdateCategory(request):
+  category = request.REQUEST.get('category')
+  user_agent_key = request.REQUEST.get('user_agent_key')
+  if not category:
+    logging.info('cron.UserAgentGroup: No category')
+    return http.HttpResponse('No category')
+  if not all_test_sets.GetTestSet(category):
+    logging.info('cron.UserAgentGroup: Bad category: %s', category)
+    return http.HttpResponse('Bad category: %s' % category)
+  if not user_agent_key:
+    logging.info('cron.UserAgentGroup: No key')
+    return http.HttpResponse('No key')
+  try:
+    user_agent = UserAgent.get(db.Key(user_agent_key))
+  except db.BadKeyError:
+    logging.info('cron.UserAgentGroup: Invalid UserAgent key: %s', user_agent_key)
+    return http.HttpResponse('Invalid UserAgent key: %s' % user_agent_key)
+  if user_agent:
+    logging.info('cron.UserAgentGroup: UpdateCategory(%s, %s)', category, user_agent)
+    result_stats.UpdateCategory(category, user_agent)
+    return http.HttpResponse('Done with UserAgent key=%s' % user_agent_key)
+  else:
+    return http.HttpResponse('No user_agent with this key.')
+
+
 @decorators.admin_required
 def UpdateSummaryBrowsers(request):
   """Update all the browsers for the summary category."""
@@ -362,7 +387,10 @@ def UpdateAllStatsCache(request):
     logging.info('update all: %s', category)
     browsers = result_stats.CategoryBrowserManager.GetAllBrowsers(category)
     logging.info('browsers: %s', browsers)
-    batch_size = tests_per_batch / len(test_set.tests)
+    #batch_size = max(1, tests_per_batch / len(test_set.tests))
+    # TODO(slamm): If batch_size of 1 seems to work well, the code can
+    # be simplified to do away with the batches all together--and zbrowsers.
+    batch_size = 1
     logging.info('batch_size: %s', batch_size)
     for i in range(0, len(browsers), batch_size):
       browsers_str = ','.join(sorted(browsers[i:i+batch_size]))
@@ -375,6 +403,8 @@ def UpdateAllStatsCache(request):
         params['zbrowsers'] = compressed_browsers_str
       else:
         params['browsers'] = browsers_str
-      taskqueue.add(url='/admin/update_stats_cache', params=params)
+      task = taskqueue.Task(params=params)
+      task.add(queue_name='update-stats-cache')
       num_tasks += 1
+  logging.info('num_tasks=%s', num_tasks)
   return http.HttpResponse('Queued stats cache update: num_tasks=%s' % num_tasks)
