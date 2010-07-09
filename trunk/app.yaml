@@ -19,6 +19,9 @@ version: 5     # 5 is the current default.
 runtime: python
 api_version: 1
 
+derived_file_type:
+- python_precompiled
+
 # Magic skip configuration, do not edit.
 skip_files: |
   ^(.*/)?(
