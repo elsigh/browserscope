@@ -3,12 +3,15 @@ queue:
 - name: default
   rate: 20/s
 
-- name: update-dirty
-  rate: 15/s
-
 - name: recent-tests
   rate: 7/s
 
-- name: user-agent-group
+- name: update-dirty
+  rate: 15/s
+
+- name: update-stats-cache
+  rate: 2/s
+
+- name: update-category
   rate: 8/s
 
