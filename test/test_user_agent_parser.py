@@ -63,10 +63,6 @@ TEST_STRINGS = (
      {'js_user_agent_string': 'Mozilla/4.0 (compatible; MSIE 8.0; '
       'Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727; .NET CLR 1.1.4322)',
       'js_document_mode': '9'}),
-    (('iPad', '4', '0', '4'),
-     'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) Apple '
-     'WebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B367 '
-     'Safari/531.21.10', {}),
     (('Midori', '0', '2', None),
      'Midori/0.2 (X11; Linux; U; en-us) WebKit/531.2 ,gzip(gfe),gzip(gfe)',
      {}),
@@ -84,7 +80,10 @@ TEST_STRINGS = (
      'Mozilla/5.0 (webOS/1.2; U; en-US) AppleWebKit/525.27.1 '
      '(KHTML, like Gecko) Version/1.0 Safari/525.27.1 '
      'Desktop/1.0,gzip(gfe),gzip(gfe)', {}),
-    )
+    (('iPad', '3', '2', None),
+      'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) ' 'AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B367 ' 'Safari/531.21.10,gzip(gfe),gzip(gfe)', {}),
+)
+
 
 
 class ParseTest(unittest.TestCase):
