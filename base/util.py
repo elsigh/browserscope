@@ -493,6 +493,11 @@ def Beacon(request, category_id=None):
   user_test_keys = request.REQUEST.get('test_key')
   sandboxid = request.REQUEST.get('sandboxid')
 
+  # Temporarily disable the HTML5 tests from processing.
+  # TODO(elsigh): remove this once we fix the stacking issue.
+  if category == 'usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBis_8gBDA':
+    return http.HttpResponse('', status=204)
+
   # Totally bogus beacon.
   if not category or not results_str:
     logging.info('Got no category or results.')
