@@ -181,3 +181,4 @@ class ResultParent(db.Expando):
   def GetBrowsers(self):
     """Get browser list (e.g. ['Firefox', 'Firefox 3', 'Firefox 3.5])."""
     return self.user_agent.get_string_list()
+
