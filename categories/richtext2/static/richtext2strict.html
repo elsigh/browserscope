@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html> 
+<html lang="en"> 
+
+<head> 
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
+  <title>New Rich Text Tests</title>
+
+  <link rel="stylesheet" href="common.css" type="text/css">
+
+  <!-- utility scripts -->
+  <script src="js/variables.js"></script> 
+
+  <script src="js/canonicalize.js"></script> 
+  <script src="js/compare.js"></script> 
+  <script src="js/output.js"></script> 
+  <script src="js/pad.js"></script> 
+  <script src="js/range.js"></script> 
+  <script src="js/units.js"></script> 
+
+  <script src="js/run.js"></script> 
+
+  <!-- new tests -->
+  <script src="tests/selection.js"></script> 
+  <script src="tests/apply.js"></script> 
+  <script src="tests/applyCSS.js"></script> 
+  <script src="tests/change.js"></script> 
+  <script src="tests/changeCSS.js"></script> 
+  <script src="tests/unapply.js"></script> 
+  <script src="tests/unapplyCSS.js"></script> 
+  <script src="tests/delete.js"></script> 
+  <script src="tests/forwarddelete.js"></script> 
+  <script src="tests/insert.js"></script> 
+  
+  <script type="text/javascript">
+  function onload() {
+    runTests();
+    var continueParams = [
+      'selection='     + scoresStrict['S'].total,
+      'apply='         + scoresStrict['A'].total,
+      'applyCSS='      + scoresStrict['AC'].total,
+      'unapply='       + scoresStrict['U'].total,
+      'unapplyCSS='    + scoresStrict['UC'].total,
+      'change='        + scoresStrict['C'].total,
+      'changeCSS='     + scoresStrict['CC'].total,
+      'delete='        + scoresStrict['D'].total,
+      'forwarddelete=' + scoresStrict['FD'].total,
+      'insert='        + scoresStrict['I'].total
+    ];
+    parent.sendScore(beaconStrict, continueParams);
+  }
+  </script>  
+</head> 
+
+<body onload="onload()">
+  <iframe name="editor" id="editor" src="editable.html"></iframe>
+  <!--<div id="editor" contentEditable="true"></div>-->
+</body> 
+</html> 

@@ -81,6 +81,9 @@ handlers:
 - url: /richtext/static
   static_dir: categories/richtext/static
   expiration: '3650d'
+- url: /richtext2/static
+  static_dir: categories/richtext2/static
+  expiration: '3650d'
 - url: /selectors/static
   static_dir: categories/selectors/static
   expiration: '3650d'

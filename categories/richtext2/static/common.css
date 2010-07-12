@@ -1,0 +1,70 @@
+.suite-thead {
+    text-align: left;
+}
+
+.success {
+  background-color: #b0ffa0;
+}
+.fail {
+  background-color: #ffb0b0;
+}
+.seldiff {
+  background-color: #ffffa0;
+}
+.exception {
+  background-color: #f0b0ff;
+}
+
+.successBkLo {
+  background-color: #d4ffc0;
+}
+.failBkLo {
+  background-color: #ffd0d0;
+}
+.seldiffBkLo {
+  background-color: #ffffc0;
+}
+.exceptionBkLo {
+  background-color: #fadcff;
+}
+
+.successBkHi {
+  background-color: #e0ffdc;
+}
+.failBkHi {
+  background-color: #ffe0e0;
+}
+.seldiffBkHi {
+  background-color: #ffffdc;
+}
+.exceptionBkHi {
+  background-color: #fae8ff;
+}
+
+.sel {
+  color: blue;
+}
+
+.txt {
+  padding: 1px;
+  margin: 1px;
+  border: 1px solid #b0b0b0;
+}
+.fade {
+  color: grey;
+}
+
+.comment {
+  color: grey;
+}
+
+.score {
+  color: #666666;
+}
+
+gen::before {
+  content: "[BEFORE]";
+}
+gen::after {
+  content: "[AFTER]";
+}
