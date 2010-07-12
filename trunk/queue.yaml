@@ -10,7 +10,7 @@ queue:
   rate: 10/s
 
 - name: update-stats-cache
-  rate: 2/s
+  rate: 5/s
 
 - name: update-category
   rate: 18/s
