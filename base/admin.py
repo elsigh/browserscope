@@ -69,6 +69,43 @@ def Admin(request):
   }
   return Render(request, 'admin/admin.html', params)
 
+
+@decorators.admin_required
+def GetDirty(request):
+  category = request.GET.get('category')
+  dirty = request.GET.get('dirty', '1')
+  is_dirty = False
+  if dirty == '1':
+    is_dirty = True
+
+  parents = db.Query(ResultParent)
+  parents.filter('category =', category)
+
+  dirtys = []
+  for parent in parents:
+    logging.info('parent %s' % parent.key())
+    time = db.Query(ResultTime)
+    if is_dirty:
+      time.filter('dirty =', True)
+    time.ancestor(parent)
+    logging.info('time.count() %s' % time.count())
+    if time.count() > 0:
+      key = parent.key()
+      dirtys.append(
+          '<a href="/admin/schedule-dirty-update?result_parent_key=%s">'
+          'Dirty ResultParent: %s. %s</a>' % (key, parent.user_agent.pretty(),
+                                              key))
+
+  return http.HttpResponse('<br>'.join(dirtys))
+
+
+@decorators.admin_required
+def ScheduleDirtyUpdate(request):
+  result_parent_key = request.GET.get('result_parent_key')
+  ResultParent.ScheduleDirtyUpdate(result_parent_key)
+  return http.HttpResponse('Ok, ScheduleDirtyUpdate for %s' % result_parent_key)
+
+
 @decorators.check_csrf
 def SubmitChanges(request):
   logging.info('^^^^^^^^^^^^^^^^^^^^ SubmitChanges')
