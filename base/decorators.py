@@ -104,8 +104,8 @@ def check_csrf(func):
     request_csrf_token = request.REQUEST.get('csrf_token')
 
     # Special exemption for Safari usertest results.
-    # TODO(elsigh): Surely there's a better way to handle the fact that
-    # Safari won't accept third-party cookies.
+    # TODO(elsigh): Maybe there's a better way to handle the fact that
+    # Safari won't accept third-party cookies?
     if valid_csrf_tokens is None and isSafariAndUserTest(request):
       logging.info('SAFARI USER-TEST EXCEPTION for check_csrf')
       return func(request, *args, **kw)
@@ -138,10 +138,11 @@ def provide_check_csrf(func):
 
 
 def isSafariAndUserTest(request):
+  """Safari (and iPhone) won't handle 3rd party cookies."""
   user_agent_string = request.META.get('HTTP_USER_AGENT')
-  category = request.GET.get('category')
+  category = request.REQUEST.get('category')
   is_safari = False
   if category and re.search('usertest_', category):
-    if re.search('Safari/', user_agent_string):
+    if re.search('Safari|iPhone', user_agent_string):
       is_safari = True
   return is_safari
