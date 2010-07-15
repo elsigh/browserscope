@@ -1,4 +1,7 @@
 cron:
-- description: Warm stats memcache.
+- description: Warm-up the stats cache.
   url: /admin/update_all_stats_cache
+  schedule: every 20 minutes
+- description: Clean up any strageling dirty ResultTime's.
+  url: /admin/update_dirty
   schedule: every 20 minutes

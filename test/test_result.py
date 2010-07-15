@@ -138,29 +138,6 @@ class ResultTest(unittest.TestCase):
         'testDisplay=500,testVisibility=200', params_str='')
 
 
-class IncrementAllCountsTest(unittest.TestCase):
-
-  def setUp(self):
-    self.test_set = mock_data.MockTestSet()
-    all_test_sets.AddTestSet(self.test_set)
-
-  def tearDown(self):
-    all_test_sets.RemoveTestSet(self.test_set)
-
-  def testIncrementAllCountsBogusTest(self):
-    parent = ResultParent.AddResult(
-        self.test_set, '12.2.2.25', mock_data.GetUserAgentString('Firefox 3.5'),
-        'apple=0,banana=44,coconut=444')
-    db.put(ResultTime(parent=parent,
-                      test='bogus test key',
-                      score=1,
-                      dirty=True))
-    self.assertEqual(3 + 1, ResultTime.all(keys_only=True).count())
-    dirty_query = manage_dirty.DirtyResultTimesQuery()
-    parent.UpdateStatsFromDirty(dirty_query)
-    self.assert_(dirty_query.IsResultParentDone())
-
-
 class ChromeFrameAddResultTest(unittest.TestCase):
 
   def setUp(self):

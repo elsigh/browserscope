@@ -18,6 +18,7 @@
 
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
+import logging
 import unittest
 
 from google.appengine.ext import db
@@ -30,6 +31,7 @@ from models import result_ranker
 from models.result import ResultParent
 from models.result import ResultTime
 from models.user_agent import UserAgent
+from third_party import mox
 
 import mock_data
 
@@ -38,72 +40,62 @@ class TestManageDirty(unittest.TestCase):
   CATEGORY = 'test_manage_dirty'
 
   def setUp(self):
+    self.client = Client()
     self.test_set = mock_data.MockTestSet(self.CATEGORY)
     all_test_sets.AddTestSet(self.test_set)
-
-    self.old_schedule_dirty_update = manage_dirty.ScheduleDirtyUpdate
-    self.old_limit = manage_dirty.DirtyResultTimesQuery.RESULT_TIME_LIMIT
-    self.client = Client()
+    self.mox = mox.Mox()
 
   def tearDown(self):
     """Need to clean up it seems."""
     all_test_sets.RemoveTestSet(self.test_set)
+    self.mox.UnsetStubs()
 
-    manage_dirty.ScheduleDirtyUpdate = self.old_schedule_dirty_update
-    manage_dirty.DirtyResultTimesQuery.RESULT_TIME_LIMIT = self.old_limit
-
-  def testUpdateDirtyLocked(self):
-    manage_dirty.UpdateDirtyController.AcquireLock()
-    response = self.client.get('/admin/update_dirty', {},
-        **mock_data.UNIT_TEST_UA)
-    self.assertEqual(200, response.status_code)
-    self.assertTrue(response.content.find('unable to acquire lock') > -1,
-                    'content: %s' % response.content)
-    manage_dirty.UpdateDirtyController.ReleaseLock()
-
-  def testUpdateDirty(self):
-    # First, create a "dirty" ResultParent
+  def testUpdateDirtyGeneral(self):
     ua_string = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
                  'Gecko/2009011912 Firefox/3.0.6')
 
-    ResultParent.AddResult(
-        self.test_set, '12.2.2.11', ua_string, 'apple=0,banana=99,coconut=101')
-
-    response = self.client.get('/admin/update_dirty', {},
-        **mock_data.UNIT_TEST_UA)
-    self.assertEqual(200, response.status_code)
-    self.assertEqual(manage_dirty.UPDATE_DIRTY_DONE, response.content)
-
-    response = self.client.get('/admin/update_dirty', {},
-        **mock_data.UNIT_TEST_UA)
-    self.assertEqual(200, response.status_code)
-    self.assertEqual(manage_dirty.UPDATE_DIRTY_DONE, response.content)
-
-    query = db.Query(ResultParent)
-    result_parent = query.get()
-    result_times = ResultTime.all().ancestor(result_parent)
-    self.assertEqual([False, False, False],
-                     [x.dirty for x in result_times])
-
-    ranker = result_ranker.GetRanker(
-        self.test_set.GetTest('coconut'), 'Firefox 3')
-    self.assertEqual((101, 1), ranker.GetMedianAndNumScores())
-
-  def testUpdateDirtyOverMultipleRequests(self):
-    schedule_dirty_args = []
-    def _ScheduleDirtyUpdate(x):
-      # Make sure ScheduleDirtyUpdate gets called to finish the dirty work.
-      schedule_dirty_args.append(x)
-    manage_dirty.ScheduleDirtyUpdate = _ScheduleDirtyUpdate # needs restore
-    manage_dirty.DirtyResultTimesQuery.RESULT_TIME_LIMIT = 2
-    ua_string = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
-                 'Gecko/2009011912 Firefox/3.0.6')
-
+    self.mox.StubOutWithMock(manage_dirty, 'ScheduleCategoryUpdate')
+    manage_dirty.ScheduleCategoryUpdate(mox.IgnoreArg())
+    self.mox.ReplayAll()
+    # AddResult schedules the dirty update.
     result_parent = ResultParent.AddResult(
         self.test_set, '12.2.2.11', ua_string, 'apple=0,banana=99,coconut=101')
-    self.assertEqual([False, False, True],
-                     sorted([x.dirty for x in result_parent.GetResultTimes()]))
-    self.assertEqual([result_parent.key()], schedule_dirty_args)
+    self.mox.VerifyAll()
+    self.assertEqual([False, False, False],
+                     [x.dirty for x in result_parent.GetResultTimes()])
+
+  def xxxNOT_WORKING_YETxxxtestUpdateDirtyWithResultTimeKey(self):
+    ua_string = ('Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) '
+                 'Gecko/2009011912 Firefox/3.0.6')
+    result_parent = ResultParent.AddResult(
+        self.test_set, '12.2.2.11', ua_string, 'apple=0,banana=99,coconut=101',
+        skip_update_dirty=True)
+    skip_rt, update_rt, next_rt = result_parent.GetResultTimes()
+
+    # Make so there is only one ResultTime to schedule after first update.
+    skip_rt.dirty = False
+    skip_rt.put()
+
+    self.mox.StubOutWithMock(ResultTime, 'UpdateStats')
+    self.mox.StubOutWithMock(ResultParent, 'ScheduleUpdateDirty')
+
+    ResultTime.UpdateStats(update_rt)
+    ResultParent.ScheduleUpdateDirty(next_rt.key())
+
+    self.mox.ReplayAll()
+    response = self.client.get('/admin/update_dirty/some_category',
+                               {'result_time_key': update_rt.key()},
+                               **mock_data.UNIT_TEST_UA)
+    self.mox.VerifyAll()
+
+
+# TODO: Add more tests
+#   * Call UpdateDirty with result_time_key
+#     - Only update times under same parent
+#   * Call UpdateDirty with result_parent_key
+#   * Call UpdateDirty with no params
+#   * Make sure schedule next is called
+#   * Make sure category update
 
 
 if __name__ == '__main__':

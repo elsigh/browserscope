@@ -440,6 +440,7 @@ class CategoryStatsManager(object):
       except db.Timeout:
         is_timed_out = True
       if is_timed_out:
+        logging.info('Timed out \'%s\' stats for %s', category, browser)
         unhandled_browsers.append(browser)
       else:
         stats = test_set.GetStats(test_keys, medians, num_scores)
@@ -460,23 +461,8 @@ class CategoryStatsManager(object):
     memcache.delete_multi(browsers, **cls.MemcacheParams(category))
 
 
-def ScheduleCategoryUpdate(category, user_agent):
-  """Add a task to update a category's statistics.
-
-  The task is handled by base.admin.UpdateCategory which then
-  calls UpdateCategory below.
-  """
-  task = taskqueue.Task(method='GET', params={
-      'category': category,
-      'user_agent_key': user_agent.key(),
-      })
-  try:
-    task.add(queue_name='update-category')
-  except:
-    logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
-
-
 def UpdateCategory(category, user_agent):
-  logging.info('result.stats.UpdateCategory for %s' % category)
+  logging.info('result.stats.UpdateCategory for %s, %s', category,
+               user_agent.pretty())
   CategoryBrowserManager.AddUserAgent(category, user_agent)
   CategoryStatsManager.UpdateStatsCache(category, user_agent.get_string_list())

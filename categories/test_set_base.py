@@ -208,8 +208,6 @@ class TestSet(object):
     """
     medians, num_scores = {}, {}
     for test, ranker in zip(self.tests, self.GetRankers(browser)):
-      logging.info('GetMediansAndNumScores test:%s - %s, ranker:%s' %
-                   (test.key, test, ranker));
       if ranker:
         medians[test.key], num_scores[test.key] = ranker.GetMedianAndNumScores()
       else:
