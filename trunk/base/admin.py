@@ -394,54 +394,45 @@ def UpdateStatsCache(request):
   """Load rankers into memcache."""
   category = request.REQUEST.get('category')
   browsers_str = request.REQUEST.get('browsers')
-  compressed_browsers_str = request.REQUEST.get('zbrowsers')
   if not category:
     logging.info('UpdateStatsCache: Must set category')
     return http.HttpResponseServerError('Must set "category".')
-  if not browsers_str and compressed_browsers_str:
-    browsers_str = compressed_browsers_str.decode('base64').decode('zlib')
   logging.info('UpdateStatsCache: category=%s, browsers=%s',
                category, browsers_str)
   if not browsers_str:
-    logging.info('UpdateStatsCache: Must set "browsers" (or "zbrowsers").')
-    return http.HttpResponseServerError('Must set "browsers" (or "zbrowsers").')
+    logging.info('UpdateStatsCache: Must set "browsers".')
+    return http.HttpResponseServerError('Must set "browsers".')
   browsers = browsers_str.split(',')
   result_stats.CategoryStatsManager.UpdateStatsCache(category, browsers)
   return http.HttpResponse('Success.')
 
 
 def UpdateAllStatsCache(request):
-  tests_per_batch = int(request.REQUEST.get('tests_per_batch', 500))
   categories_str = request.REQUEST.get('categories')
   if categories_str:
-    test_sets = [all_test_sets.GetTestSet(category)
-                 for category in categories_str.split(',')]
+    categories = categories_str.split(',')
   else:
-    test_sets = all_test_sets.GetVisibleTestSets()
-  num_tasks = 0
-  for test_set in test_sets:
-    category = test_set.category
-    logging.info('update all: %s', category)
-    browsers = result_stats.CategoryBrowserManager.GetAllBrowsers(category)
-    logging.info('browsers: %s', browsers)
-    #batch_size = max(1, tests_per_batch / len(test_set.tests))
-    # TODO(slamm): If batch_size of 1 seems to work well, the code can
-    # be simplified to do away with the batches all together--and zbrowsers.
-    batch_size = 1
-    logging.info('batch_size: %s', batch_size)
-    for i in range(0, len(browsers), batch_size):
-      browsers_str = ','.join(sorted(browsers[i:i+batch_size]))
-      params = {
-          'category': category,
-          }
-      if len(browsers_str) > 1000:
-        # Avoid going over the task size limit of 10M.
-        compressed_browsers_str = browsers_str.encode('zlib').encode('base64')
-        params['zbrowsers'] = compressed_browsers_str
-      else:
-        params['browsers'] = browsers_str
-      task = taskqueue.Task(params=params)
+    categories = [s.category for s in  all_test_sets.GetVisibleTestSets()]
+  if not categories:
+    return http.HttpResponseServerError('No categories given.')
+  elif len(categories) > 1:
+    for category in categories:
+      task = taskqueue.Task(
+          url='/admin/update_all_stats_cache',
+          params={'categories': category})
       task.add(queue_name='update-stats-cache')
-      num_tasks += 1
-  logging.info('num_tasks=%s', num_tasks)
-  return http.HttpResponse('Queued stats cache update: num_tasks=%s' % num_tasks)
+    return http.HttpResponse('Queued stats cache update for categories: %s' %
+                             categories)
+  category = categories[0]
+  test_set = all_test_sets.GetTestSet(category)
+  browsers = result_stats.CategoryBrowserManager.GetAllBrowsers(category)
+  logging.info('Update all stats cache: %s', category)
+  for i, browser in enumerate(browsers):
+    params = {
+        'category': category,
+        'browsers': browser
+        }
+    task = taskqueue.Task(params=params)
+    task.add(queue_name='update-stats-cache')
+    logging.info('Added task #%s: %s', i+1, browser)
+  return http.HttpResponse('Done creating update tasks.')
