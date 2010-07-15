@@ -7,11 +7,11 @@ queue:
   rate: 7/s
 
 - name: update-dirty
-  rate: 10/s
+  rate: 50/s
 
 - name: update-stats-cache
   rate: 5/s
 
 - name: update-category
-  rate: 18/s
+  rate: 3/s
 

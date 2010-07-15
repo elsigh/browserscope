@@ -440,9 +440,21 @@ class TestingTaskQueueService(taskqueue_stub.TaskQueueServiceStub):
 
     def _ExecuteTasksImmediately(self):
         logging.info("gaeunit executing tasks immediately")
-        for queue in self.GetQueues():
-            queue_name = queue['name']
-            for task in self.GetTasks(queue_name):
+        if hasattr(self, '_is_executing') and self._is_executing:
+            return
+        self._is_executing = True
+        try:
+            while 1:
+                task = None
+                for queue in self.GetQueues():
+                    queue_name = queue['name']
+                    tasks = self.GetTasks(queue_name)
+                    if tasks:
+                        task = tasks[0]
+                        break
+                if task is None:
+                    break
+
                 headers = dict((k.lower(), v) for k, v in task['headers'])
                 content_type = headers['content-type']
                 c = client.Client()
@@ -470,8 +482,9 @@ class TestingTaskQueueService(taskqueue_stub.TaskQueueServiceStub):
                     c.post(task['url'], data=body, content_type=content_type)
                 else:
                     raise NotImplementedError
-            self.FlushQueue(queue_name)
-
+                self.DeleteTask(queue_name, task['name'])
+        finally:
+            self._is_executing = False
 
 def _run_test_suite(runner, suite):
     """Run the test suite.

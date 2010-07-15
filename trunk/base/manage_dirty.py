@@ -19,10 +19,13 @@
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
 import logging
+import random
+import sys
 import time
 import traceback
 
 from google.appengine.api import memcache
+from google.appengine.api.labs import taskqueue
 from google.appengine.ext import db
 from google.appengine import runtime
 
@@ -39,182 +42,63 @@ import settings
 from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
 
-UPDATE_DIRTY_DONE = 'No more dirty ResultTimes.'
-UPDATE_DIRTY_ADDED_TASK = 'Added task to update more dirty.'
+
+# Maximum number of ResultTime's to query when picking the next one to update.
+MAX_RESULT_TIMES = 100
 
 
-class UpdateDirtyLock(object):
-  NAMESPACE = 'update_dirty_lock'
-  LOCK_TIMEOUT_SECONDS = 45
+def ScheduleCategoryUpdate(result_parent_key):
+  """Add a task to update a category's statistics.
 
-  def __init__(self, result_parent_key):
-    self.result_parent_key = result_parent_key
-
-  def Acquire(self):
-    """Attempt to acquire a lock for UpdateDirty.
-
-    Returns:
-      True if lock acquired; otherwise, False.
-    """
-    return memcache.add(
-        key=self.result_parent_key, value=1, time=self.LOCK_TIMEOUT_SECONDS,
-        namespace=self.NAMESPACE)
-
-  def Release(self):
-    """Release UpdateDirty lock.
-    The return value is 0 (DELETE_NETWORK_FAILURE) on network failure,
-    1 (DELETE_ITEM_MISSING) if the server tried to delete the item but didn't
-    have it, and 2 (DELETE_SUCCESSFUL) if the item was actually deleted. This
-    can be used as a boolean value, where a network failure is the only bad
-    condition.
-    @see http://code.google.com/appengine/docs/python/memcache/functions.html
-    """
-    return memcache.delete(key=self.result_parent_key, namespace=self.NAMESPACE)
-
-
-class UpdateDirtyController(db.Model):
-  NAMESPACE = 'cron_update_dirty'
-
-  is_paused = db.BooleanProperty(default=False)
-
-  @classmethod
-  def SetPaused(cls, is_paused):
-    cls(key_name=cls.NAMESPACE, is_paused=is_paused).put()
-    memcache.set(key='paused', value=is_paused, namespace=cls.NAMESPACE)
-    if is_paused:
-      # Allow pending changes to finish
-      while memcache.get(key='lock', namespace=cls.NAMESPACE):
-        time.sleep(1)
-
-
-  @classmethod
-  def IsPaused(cls):
-    is_paused = memcache.get(key='paused', namespace=cls.NAMESPACE)
-    logging.info('UpdateDirtyController is_paused: %s' % is_paused)
-    if is_paused is None:
-      is_paused = cls.get_or_insert(
-          key_name=cls.NAMESPACE, is_paused=False).is_paused
-      memcache.set(key='paused', value=is_paused, namespace=cls.NAMESPACE)
-    logging.info('UpdateDirtyController returning is_paused: %s' % is_paused)
-    return is_paused
-
-
-class DirtyResultTimesQuery(object):
-  """Iterate through dirty ResultTimes grouped by ResultParents."""
-
-  RESULT_TIME_LIMIT = 20
-
-  def __init__(self, encoded_result_parent_key=None):
-    """Initialize a DirtyResultTimesQuery.
-
-    Args:
-      encoded_result_parent_key: a string encoded ResultParent key
-    """
-    self.result_parent_key = None
-    if encoded_result_parent_key:
-      self.result_parent_key = db.Key(encoded_result_parent_key)
-    else:
-      self.result_parent_key = self._GetResultParentKey()
-
-  @classmethod
-  def _GetQuery(cls, result_parent_key=None):
-    """Return a query for ResultTime's with dirty=True.
-
-    Args:
-      result_parent_key: a ResultParent instance or Key instance
-    Returns:
-      a Query instance
-    """
-    query = ResultTime.all().filter('dirty =', True)
-    if result_parent_key:
-      query.ancestor(result_parent_key)
-    return query
-
-  @classmethod
-  def _GetResultParentKey(cls):
-    result_parent_key = None
-    dirty_result_time = cls._GetQuery().get()
-    if dirty_result_time:
-      result_parent_key = dirty_result_time.parent_key()
-    return result_parent_key
-
-  def Fetch(self):
-    dirty_result_times = []
-    if self.result_parent_key:
-      query = self._GetQuery(self.result_parent_key)
-      dirty_result_times = query.fetch(self.RESULT_TIME_LIMIT + 1)
-      if len(dirty_result_times) < self.RESULT_TIME_LIMIT + 1:
-        self.result_parent_key = None
-      else:
-        dirty_result_times.pop()
-    return dirty_result_times
-
-  def IsResultParentDone(self):
-    return self.result_parent_key is None
-
-  def NextResultParentKey(self):
-    if self.result_parent_key:
-      return self.result_parent_key
-    else:
-      return self._GetResultParentKey()
+  The task is handled by base.admin.UpdateCategory which then
+  calls UpdateCategory below.
+  """
+  name = 'category-update-%s' % result_parent_key  # run only once per parent
+  result_parent = ResultParent.get(result_parent_key)
+  task = taskqueue.Task(method='GET', name=name, params={
+      'category': result_parent.category,
+      'user_agent_key': result_parent.user_agent.key(),
+      })
+  try:
+    task.add(queue_name='update-category')
+  except:
+    logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
 
 
 def UpdateDirty(request):
   """Updates any dirty tests, adding its score to the appropriate ranker."""
-  logging.debug('UpdateDirty starting...')
+  logging.debug('UpdateDirty start.')
 
-  if UpdateDirtyController.IsPaused():
-    logging.debug('PAUSED')
-    return http.HttpResponse('UpdateDirty is paused.')
-
-  result_parent_key = request.GET.get('result_parent_key')
-  dirty_query = DirtyResultTimesQuery(result_parent_key)
-  lock = UpdateDirtyLock(result_parent_key)
-  if not lock.Acquire():
-    # Return an error to have the taskqueue retry the same result_parent_key.
-    # This will show us if the taskqueue is getting behind.
-    logging.debug('LOCKED out: %s', lock.result_parent_key)
-    return http.HttpResponseServerError('UpdateDirty: unable to acquire lock.')
-  try:
-    logging.debug('Acquired lock, onwards through the fog: %s', lock.result_parent_key)
+  result_time_key = request.REQUEST.get('result_time_key')
+  category = request.REQUEST.get('category')
+  if result_time_key:
+    result_time = ResultTime.get(result_time_key)
     try:
-      ResultParent.UpdateStatsFromDirty(dirty_query)
-    except runtime.DeadlineExceededError:
-      logging.warn('UpdateDirty DeadlineExceededError')
-  finally:
-    logging.debug('Releasing lock: %s', lock.result_parent_key)
-    lock.Release()
-  next_result_parent_key = dirty_query.NextResultParentKey()
-  if next_result_parent_key:
-    logging.debug('ScheduleDirtyUpdate')
-    ScheduleDirtyUpdate(next_result_parent_key)
-    return http.HttpResponse(UPDATE_DIRTY_ADDED_TASK)
+      ResultTime.UpdateStats(result_time)
+    except:
+      logging.info('UpdateStats: %s:%s' % (sys.exc_type, sys.exc_value))
+    result_parent_key = result_time.parent_key()
   else:
-    logging.debug('UPDATE_DIRTY_DONE')
-    return http.HttpResponse(UPDATE_DIRTY_DONE)
+    result_parent_key = request.REQUEST.get('result_parent_key')
 
-
-@decorators.admin_required
-def PauseUpdateDirty(request):
-  paused_was = UpdateDirtyController.IsPaused()
-  UpdateDirtyController.SetPaused(True)
-  paused_is = UpdateDirtyController.IsPaused()
-  return http.HttpResponse('PauseUpdateDirty Done. Was: %s, Is: %s' %
-                           (paused_was, paused_is))
-
-@decorators.admin_required
-def UnPauseUpdateDirty(request):
-  paused_was = UpdateDirtyController.IsPaused()
-  UpdateDirtyController.SetPaused(False)
-  paused_is = UpdateDirtyController.IsPaused()
-  return http.HttpResponse('UnPauseUpdateDirty Done. Was: %s, Is: %s' %
-                           (paused_was, paused_is))
-
-
-@decorators.admin_required
-def ReleaseLock(request):
-  released = UpdateDirtyController.ReleaseLock()
-  return http.HttpResponse('Released Lock with return: %s' % released)
+  # Create a task for the next dirty ResultTime to update.
+  dirty_query = ResultTime.all(keys_only=True).filter('dirty =', True)
+  if result_parent_key:
+    if not hasattr(result_parent_key, 'id'):
+      result_parent_key = db.Key(result_parent_key)
+    dirty_query.ancestor(result_parent_key)
+  elif category:
+    # TODO: Filter ResultTime on category (would need to add it as a field)
+    pass
+  dirty_result_times = dirty_query.fetch(MAX_RESULT_TIMES)
+  if dirty_result_times:
+    next_result_time_key = random.choice(dirty_result_times)
+    logging.debug('Schedule next ResultTime: %s', next_result_time_key)
+    ResultParent.ScheduleUpdateDirty(next_result_time_key, category)
+  elif result_parent_key:
+    logging.debug('Done with result_parent: %s', result_parent_key)
+    ScheduleCategoryUpdate(result_parent_key)
+  return http.HttpResponse('Done.')
 
 
 def MakeDirty(request):
@@ -227,23 +111,3 @@ def MakeDirty(request):
       result_times.append(result_time)
   db.put(result_times)
   return http.HttpResponse('Made %s result_times dirty' % len(result_times))
-
-
-def ScheduleDirtyUpdate(result_parent_instance_or_key=None):
-  logging.info('ScheduleDirtyUpdate result_parent_instance_or_key:%s'
-               % result_parent_instance_or_key)
-  if UpdateDirtyController.IsPaused():
-    # The update will happen when UpdateDirty is unpaused.
-    logging.info('ScheduleDirtyUpdate: UpdateDirtyController.IsPaused')
-    return
-  result_parent_key = result_parent_instance_or_key
-  if hasattr(result_parent_instance_or_key, 'key'):
-    result_parent_key = result_parent_instance_or_key.key()
-  logging.info('ScheduleDirtyUpdate result_parent_key: %s' %
-               result_parent_key)
-  if not result_parent_key:
-    result_parent_key = DirtyResultTimesQuery().NextResultParentKey()
-  if result_parent_key:
-    ResultParent.ScheduleDirtyUpdate(result_parent_key)
-  else:
-    logging.info('No dirty result times to schedule.')

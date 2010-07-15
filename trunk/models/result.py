@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import logging
+import sys
 
 from google.appengine.ext import db
 from google.appengine.api.labs import taskqueue
@@ -31,16 +32,17 @@ class ResultTime(db.Model):
   dirty = db.BooleanProperty(default=True)
 
   def UpdateStats(self):
-    logging.info('ResultTime.UpdateStats for test: %s, score: %s' %
-                 (self.test, self.score))
-    for ranker in self.GetOrCreateRankers():
-      ranker.Add(self.score)
+    logging.info('ResultTime.UpdateStats for test: %s, score: %s, dirty: %s' %
+                 (self.test, self.score, self.dirty))
+    if self.dirty:
+      for ranker in self.GetOrCreateRankers():
+        ranker.Add(self.score)
+      self.dirty = False
+      self.put()
 
   def GetOrCreateRankers(self):
     parent = self.parent()
     test_set = all_test_sets.GetTestSet(parent.category)
-    logging.info('ResultTime.GetOrCreateRankers test_set %s, '
-                 'category: %s' % (test_set, parent.category))
     test = test_set.GetTest(self.test)
     if test:
       params_str = parent.params_str or None
@@ -68,6 +70,7 @@ class ResultParent(db.Expando):
                 is_import=False, params_str=None,
                 js_user_agent_string=None,
                 js_document_mode=None,
+                skip_dirty_update=False,
                 **kwds):
     """Create result models and stores them as one transaction.
 
@@ -80,6 +83,7 @@ class ResultParent(db.Expando):
       params_str: a string representation of test_set_params.Params.
       js_user_agent_string: chrome frame ua string from client-side JavaScript.
       js_document_mode: js document.documentMode (e.g. '9' for IE 9 preview)
+      skip_dirty_update: For tests, allow skipping the update-dirty task.
       kwds: optional fields including 'loader_id'.
     Returns:
       A ResultParent instance.
@@ -119,54 +123,42 @@ class ResultParent(db.Expando):
                                  dirty=not is_import)
                       for test_key, values in results.items()]
       db.put(result_times)
-    db.run_in_transaction(_AddResultInTransaction)
-
-    logging.debug('ScheduleDirtyUpdate parent.key=%s' % parent.key())
-    parent.ScheduleDirtyUpdate(parent.key())
+      return result_times
+    result_times = db.run_in_transaction(_AddResultInTransaction)
+    if not skip_dirty_update:
+      cls.ScheduleUpdateDirty(result_times[0].key(), parent.category)
     return parent
 
   @classmethod
-  def ScheduleDirtyUpdate(cls, result_parent_key):
-    """Update the stats for dirty result times outside the current request.
+  def ScheduleUpdateDirty(cls, result_time_key, category=None):
+    """Schedule UpdateStats for a given ResultTime.
 
-    This gets handled by base.manage_dirty.UpdateDirty. That function calls
-    UpdateStatsFromDirty below.
+    This gets handled by base.manage_dirty.UpdateDirty which
+    then calls ResultTime.UpdateStats().
 
     Args:
-      result_parent_key: a Key for the ResultParent with dirty ResultTimes
+      result_time_key: a dirty ResultTime key
+      category: the category string
     """
+    if not category:
+      category = cls.get(result_time_key.parent()).category
     task = taskqueue.Task(
-        method='GET', params={'result_parent_key': result_parent_key})
-    task.add(queue_name='update-dirty')
-
-  @classmethod
-  def UpdateStatsFromDirty(cls, dirty_query):
-    """Aggregate the results of dirty ResultTime's.
-
-    Args:
-      dirty_query: a DirtyResultTimesQuery instance
-    """
-    dirty_result_times = dirty_query.Fetch()
-    logging.info('dirty_result_times: %s' % dirty_result_times)
-    if dirty_result_times:
-      result_parent = dirty_result_times[0].parent()
-      logging.info('ResultParent category: %s, ua: %s' %
-                   (result_parent.category, result_parent.user_agent.pretty()))
-      for result_time in dirty_result_times:
-        result_time.UpdateStats()
-        result_time.dirty = False
-      db.put(dirty_result_times)
-      if dirty_query.IsResultParentDone():
-        logging.info('Scheduling CategoryUpdate(%s, %s)',
-                     result_parent.category, result_parent.user_agent.pretty())
-        result_stats.ScheduleCategoryUpdate(
-            result_parent.category, result_parent.user_agent)
+        method='GET', url='/admin/update_dirty/%s' % category,
+        name='update-dirty-%s' % str(result_time_key).replace('_', '-'),
+        params={'result_time_key': result_time_key, 'category': category})
+    try:
+      task.add(queue_name='update-dirty')
+    except taskqueue.InvalidTaskError:
+      logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
+      return False
+    return True
 
   def UpdateStatsNonProduction(self):
     """This is not efficient enough to be used in prod."""
     result_times = self.GetResultTimes()
     for result_time in result_times:
       result_time.UpdateStats()
+    result_stats.UpdateCategory(self.category, self.user_agent)
 
   def ResultTimesQuery(self):
     return ResultTime.all().ancestor(self)
@@ -181,4 +173,3 @@ class ResultParent(db.Expando):
   def GetBrowsers(self):
     """Get browser list (e.g. ['Firefox', 'Firefox 3', 'Firefox 3.5])."""
     return self.user_agent.get_string_list()
-
