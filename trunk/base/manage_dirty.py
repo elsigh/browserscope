@@ -18,6 +18,7 @@
 
 __author__ = 'slamm@google.com (Stephen Lamm)'
 
+import datetime
 import logging
 import random
 import sys
@@ -41,10 +42,6 @@ import settings
 
 from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
-
-
-# Maximum number of ResultTime's to query when picking the next one to update.
-MAX_RESULT_TIMES = 100
 
 
 def ScheduleCategoryUpdate(result_parent_key):
@@ -84,27 +81,50 @@ def UpdateDirty(request):
     result_parent_key = result_time.parent_key()
   else:
     result_parent_key = request.REQUEST.get('result_parent_key')
+    if result_parent_key:
+      result_parent_key = db.Key(result_parent_key)
+    else:
+      UpdateOldDirty()
+      return http.HttpResponse('Done scheduling old results.')
 
   # Create a task for the next dirty ResultTime to update.
-  dirty_query = ResultTime.all(keys_only=True).filter('dirty =', True)
-  if result_parent_key:
-    if not hasattr(result_parent_key, 'id'):
-      result_parent_key = db.Key(result_parent_key)
-    dirty_query.ancestor(result_parent_key)
-  elif category:
-    # TODO: Filter ResultTime on category (would need to add it as a field)
-    pass
-  dirty_result_times = dirty_query.fetch(MAX_RESULT_TIMES)
-  if dirty_result_times:
-    next_result_time_key = random.choice(dirty_result_times)
+  dirty_query = ResultTime.all(keys_only=True)
+  dirty_query.filter('dirty =', True)
+  dirty_query.ancestor(result_parent_key)
+  next_result_time_key = dirty_query.get()
+  if next_result_time_key:
     logging.debug('Schedule next ResultTime: %s', next_result_time_key)
-    ResultParent.ScheduleUpdateDirty(next_result_time_key, category,
-                                     count=count+1)
-  elif result_parent_key:
+    ResultParent.ScheduleUpdateDirty(
+        next_result_time_key, category, count=count+1)
+  else:
     logging.debug('Done with result_parent: %s', result_parent_key)
     ScheduleCategoryUpdate(result_parent_key)
   return http.HttpResponse('Done.')
 
+
+MAX_SCHEDULED = 10
+OLD_SECONDS = 5 * 60  # code assumes this is less than one day
+def UpdateOldDirty():
+  """Update dirty queries from the past."""
+  num_scheduled = 0
+  seen_result_parent_keys = set()
+  dirty_query = ResultTime.all(keys_only=True).filter('dirty =', True)
+  for result_time_key in dirty_query.fetch(1000):
+    result_parent_key = result_time_key.parent()
+    if result_parent_key not in seen_result_parent_keys:
+      seen_result_parent_keys.add(result_parent_key)
+      result_parent = ResultParent.get(result_parent_key)
+      category = result_parent.category
+      age = datetime.datetime.now() - result_parent.created
+      if age.days > 0 or age.seconds > OLD_SECONDS:
+        logging.info(
+            'Schedule old dirty: %s, age=%s, result_parent=%s, result_time=%s',
+            category, age, result_parent_key, result_time_key)
+        if ResultParent.ScheduleUpdateDirty(
+            result_time_key, category, count=-1):
+          num_scheduled += 1
+          if num_scheduled == 10:
+            break
 
 def MakeDirty(request):
   """For testing purposes, make some tests dirty."""

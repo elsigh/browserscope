@@ -87,7 +87,7 @@ def GetDirty(request):
   parents.filter('category =', category)
 
   dirtys = []
-  for parent in parents:
+  for parent in parents.fetch(10):
     logging.info('parent %s' % parent.key())
     time = db.Query(ResultTime)
     if is_dirty:
