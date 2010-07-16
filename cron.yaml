@@ -5,6 +5,6 @@ cron:
 - description: Reload the stats cache.
   url: /admin/update_all_stats_cache
   schedule: every 24 hours
-- description: Clean up any strageling dirty ResultTime's.
+- description: Clean up any straggling dirty ResultTime's.
   url: /admin/update_dirty
   schedule: every 1 minutes
