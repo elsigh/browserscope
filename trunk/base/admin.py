@@ -51,6 +51,11 @@ from third_party.gaefy.db import pager
 from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
 
+
+UPDATE_ALL_BATCH_SIZE = 25
+UPDATE_ALL_UNCACHED_BATCH_SIZE = 250
+
+
 def Render(request, template_file, params):
   """Render network test pages."""
 
@@ -394,6 +399,7 @@ def UpdateStatsCache(request):
   """Load rankers into memcache."""
   category = request.REQUEST.get('category')
   browsers_str = request.REQUEST.get('browsers')
+  is_uncached_update = request.REQUEST.get('is_uncached_update')
   if not category:
     logging.info('UpdateStatsCache: Must set category')
     return http.HttpResponseServerError('Must set "category".')
@@ -403,6 +409,12 @@ def UpdateStatsCache(request):
     logging.info('UpdateStatsCache: Must set "browsers".')
     return http.HttpResponseServerError('Must set "browsers".')
   browsers = browsers_str.split(',')
+  if is_uncached_update:
+    num_checked_browsers = len(browsers)
+    browsers = result_stats.CategoryStatsManager.FindUncachedStats(
+        category, browsers)
+    logging.debug('Uncached \'%s\' stats (count: %s out of %s): %s',
+                  category, len(browsers), num_checked_browsers, browsers)
   # Only process one browser in each task.
   if len(browsers) > 1:
     taskqueue.Task(params={
@@ -413,8 +425,8 @@ def UpdateStatsCache(request):
   return http.HttpResponse('Success.')
 
 
-BATCH_SIZE = 25
-def UpdateAllStatsCache(request):
+def UpdateAllStatsCache(request, batch_size=UPDATE_ALL_BATCH_SIZE,
+                        is_uncached_update=False):
   categories_str = request.REQUEST.get('categories')
   if categories_str:
     categories = categories_str.split(',')
@@ -424,9 +436,7 @@ def UpdateAllStatsCache(request):
     return http.HttpResponseServerError('No categories given.')
   elif len(categories) > 1:
     for category in categories:
-      task = taskqueue.Task(
-          url='/admin/update_all_stats_cache',
-          params={'categories': category})
+      task = taskqueue.Task(url=request.path, params={'categories': category})
       task.add(queue_name='update-stats-cache')
     return http.HttpResponse('Queued stats cache update for categories: %s' %
                              categories)
@@ -434,10 +444,17 @@ def UpdateAllStatsCache(request):
   test_set = all_test_sets.GetTestSet(category)
   browsers = result_stats.CategoryBrowserManager.GetAllBrowsers(category)
   logging.info('Update all stats cache: %s', category)
-  for i in range(0, len(browsers), BATCH_SIZE):
-    taskqueue.Task(params={
+  for i in range(0, len(browsers), batch_size):
+    params={
         'category': category,
-        'browsers': ','.join(browsers[i:i+BATCH_SIZE]),
-        }).add(queue_name='update-stats-cache')
-    logging.info('Added task for browsers %s to %s.', i, i+BATCH_SIZE)
+        'browsers': ','.join(browsers[i:i+batch_size]),
+        }
+    if is_uncached_update:
+      params['is_uncached_update'] = 1
+    taskqueue.Task(params=params).add(queue_name='update-stats-cache')
+    logging.info('Added task for browsers %s to %s.', i, i+batch_size)
   return http.HttpResponse('Done creating update tasks.')
+
+
+def UpdateAllUncachedStats(request, batch_size=UPDATE_ALL_UNCACHED_BATCH_SIZE):
+  return UpdateAllStatsCache(request, batch_size, is_uncached_update=True)

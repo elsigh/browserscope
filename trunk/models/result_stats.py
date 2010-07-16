@@ -418,6 +418,23 @@ class CategoryStatsManager(object):
     return stats
 
   @classmethod
+  def FindUncachedStats(cls, category, browsers):
+    """Find which stats are not cached.
+
+    Also, resets the summary stats for the stats that are found in memcache.
+
+    Args:
+      category: a category string like 'network'
+      browsers: a list of browsers like ['Firefox 3.6', 'IE 8.0']
+    Returns:
+      a list of browsers without stats in memcache.
+    """
+    stats = memcache.get_multi(browsers, **cls.MemcacheParams(category))
+    SummaryStatsManager.UpdateStats(category, stats)
+    return [b for b in browsers if b not in stats]
+
+
+  @classmethod
   def UpdateStatsCache(cls, category, browsers):
     """Update the memcache of stats for all the tests for each browser.
 

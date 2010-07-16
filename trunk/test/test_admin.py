@@ -279,6 +279,53 @@ class TestUpdateStatsCache(unittest.TestCase):
     self.assertEqual(200, response.status_code)
 
 
+class TestUpdateAllUncachedStats(unittest.TestCase):
+
+  def setUp(self):
+    self.test_set_1 = mock_data.MockTestSet(category='foo')
+    self.test_set_2 = mock_data.MockTestSet(category='bar')
+    all_test_sets.AddTestSet(self.test_set_1)
+    all_test_sets.AddTestSet(self.test_set_2)
+    self.client = Client()
+
+  def tearDown(self):
+    all_test_sets.RemoveTestSet(self.test_set_1)
+    all_test_sets.RemoveTestSet(self.test_set_2)
+
+  def testUpdateAllUncachedStats(self):
+    category_browsers = {
+        self.test_set_1: ('Firefox 2.5.1', 'Firefox 3.0.7', 'Firefox 3.1.7',
+                          'Firefox 3.1.8', 'Firefox 3.5', 'IE 7.0'),
+        self.test_set_2: ('Firefox 2.5.1', 'Firefox 3.5', 'IE 7.0'),
+        }
+    for test_set, browsers in category_browsers.items():
+      for browser in browsers:
+        ua = mock_data.GetUserAgentString(browser)
+        result = ResultParent.AddResult(
+            test_set, '1.2.2.5', ua, 'apple=1,banana=1,coconut=1')
+
+    params = {'categories': 'foo,bar'}
+    response = self.client.get('/admin/update_all_uncached_stats', params)
+    # Instead of checking actual stats, I tried to mock out UpdateStatsCache
+    # as is done in testBasic. However, it did not work for some unknown reason.
+    # it would not verify the calls. VerifyAll succeeded no matter what I called
+    # or did not call. Grrr.
+    expected_stats = {
+        'summary_display': '3',
+        'total_runs': 5,
+        'summary_score': 104,
+        'results': {
+            'apple': {'score': 100, 'raw_score': 1, 'display': 'yes'},
+            'banana': {'score': 2, 'raw_score': 1, 'display': 'd:2'},
+            'coconut': {'score': 2, 'raw_score': 1, 'display': 'd:2'},
+            }
+        }
+    self.assertEqual(
+        expected_stats,
+        memcache.get('Firefox',
+                     **result_stats.CategoryStatsManager.MemcacheParams('foo')))
+
+
 class TestUpdateAllStatsCache(unittest.TestCase):
 
   def setUp(self):
@@ -304,7 +351,7 @@ class TestUpdateAllStatsCache(unittest.TestCase):
         result = ResultParent.AddResult(
             test_set, '1.2.2.5', ua, 'apple=1,banana=1,coconut=1')
 
-    params = {'tests_per_batch': 20, 'categories': 'foo,bar'}
+    params = {'categories': 'foo,bar'}
     response = self.client.get('/admin/update_all_stats_cache', params)
     # Instead of checking actual stats, I tried to mock out UpdateStatsCache
     # as is done in testBasic. However, it did not work for some unknown reason.
