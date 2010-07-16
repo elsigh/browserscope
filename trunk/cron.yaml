@@ -1,7 +1,7 @@
 cron:
 - description: Recache uncached stats.
   url: /admin/update_all_uncached_stats
-  schedule: every 15 minutes
+  schedule: every 30 minutes
 - description: Reload the stats cache.
   url: /admin/update_all_stats_cache
   schedule: every 24 hours
