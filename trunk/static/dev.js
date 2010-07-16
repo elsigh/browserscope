@@ -1067,6 +1067,8 @@ goog.globalEval = function(script) {
  * definitions with the union of Array and NodeList.
  *
  * Does nothing in uncompiled code.
+ *
+ * @deprecated Please use the {@code @typedef} annotation.
  */
 goog.typedef = true;
 
@@ -1155,7 +1157,8 @@ goog.setCssNameMapping = function(mapping) {
 goog.getMsg = function(str, opt_values) {
   var values = opt_values || {};
   for (var key in values) {
-    str = str.replace(new RegExp('\\{\\$' + key + '\\}', 'gi'), values[key]);
+    var value = ('' + values[key]).replace(/\$/g, '$$$$');
+    str = str.replace(new RegExp('\\{\\$' + key + '\\}', 'gi'), value);
   }
   return str;
 };
@@ -2787,9 +2790,9 @@ goog.require('goog.asserts');
 
 
 /**
- * @type {Array|NodeList|Arguments|{length: number}}
+ * @typedef {Array|NodeList|Arguments|{length: number}}
  */
-goog.array.ArrayLike = goog.typedef;
+goog.array.ArrayLike;
 
 
 /**
@@ -3600,7 +3603,6 @@ goog.array.removeDuplicates = function(arr, opt_rv) {
 /**
  * Searches the specified array for the specified target using the binary
  * search algorithm.  If no opt_compareFn is specified, elements are compared
- * using <code>goog.array.defaultCompare</code>, which compares the elements
  * using the built in < and > operators.  This will produce the expected
  * behavior for homogeneous arrays of String(s) and Number(s). The array
  * specified <b>must</b> be sorted in ascending order (as defined by the
@@ -3609,6 +3611,9 @@ goog.array.removeDuplicates = function(arr, opt_rv) {
  * of these instances may be found.
  *
  * Runtime: O(log n)
+ *
+ * This is almost identical to the implementation of binarySelect below. They
+ * have not been unified for performance reasons.
  *
  * @param {goog.array.ArrayLike} arr The array to be searched.
  * @param {*} target The sought value.
@@ -3622,8 +3627,35 @@ goog.array.removeDuplicates = function(arr, opt_rv) {
  *     iff target is found.
  */
 goog.array.binarySearch = function(arr, target, opt_compareFn) {
-  return goog.array.binarySelect(arr,
-      goog.partial(opt_compareFn || goog.array.defaultCompare, target));
+  var left = 0;  // inclusive
+  var right = arr.length;  // exclusive
+  var found;
+  while (left < right) {
+    var middle = (left + right) >> 1;
+    var compareResult;
+    var currentValue = arr[middle];
+    if (opt_compareFn) {
+      compareResult = opt_compareFn(target, currentValue);
+    } else {
+      // We assume that if a custom compare function was not provided, then the
+      // target is comparable with the built in < and > operators.
+      var comparableTarget = /** @type {string|number} */ (target);
+      // We inline the logic here rather than calling defaultCompare for
+      // performance reasons.
+      compareResult = comparableTarget > currentValue ? 1 :
+          comparableTarget < currentValue ? -1 : 0;
+    }
+    if (compareResult > 0) {
+      left = middle + 1;
+    } else {
+      right = middle;
+      // We are looking for the lowest index so we can't return immediately.
+      found = !compareResult;
+    }
+  }
+  // left is the index if found, or the insertion point otherwise.
+  // ~left is a shorthand for -left - 1.
+  return found ? left : ~left;
 };
 
 
@@ -3944,6 +3976,38 @@ goog.array.rotate = function(array, n) {
     }
   }
   return array;
+};
+
+
+/**
+ * Creates a new array for which the element at position i is an array of the
+ * ith element of the provided arrays.  The returned array will only be as long
+ * as the shortest array provided; additional values are ignored.  For example,
+ * the result of zipping [1, 2] and [3, 4, 5] is [[1,3], [2, 4]].
+ *
+ * This is similar to the zip() function in Python.  See {@link
+ * http://docs.python.org/library/functions.html#zip}
+ *
+ * @param {...!goog.array.ArrayLike} var_args Arrays to be combined.
+ * @return {!Array.<!Array>} A new array of arrays created from provided arrays.
+ */
+goog.array.zip = function(var_args) {
+  if (!arguments.length) {
+    return [];
+  }
+  var result = [];
+  for (var i = 0; true; i++) {
+    var value = [];
+    for (var j = 0; j < arguments.length; j++) {
+      var arr = arguments[j];
+      // If i is larger than the array length, this is the shortest array.
+      if (i >= arr.length) {
+        return result;
+      }
+      value.push(arr[i]);
+    }
+    result.push(value);
+  }
 };
 // Copyright 2007 The Closure Library Authors. All Rights Reserved.
 //
@@ -6200,7 +6264,7 @@ goog.dom.createDom = function(tagName, opt_attributes, var_args) {
 /**
  * Helper for {@code createDom}.
  * @param {!Document} doc The document to create the DOM in.
- * @param {Arguments} args Argument object passed from the callers. See
+ * @param {!Arguments} args Argument object passed from the callers. See
  *     {@code goog.dom.createDom} for details.
  * @return {!Element} Reference to a DOM node.
  * @private
@@ -6243,31 +6307,45 @@ goog.dom.createDom_ = function(doc, args) {
   }
 
   if (args.length > 2) {
-    var childHandler = function(child) {
-      // TODO(user): More coercion, ala MochiKit?
-      if (child) {
-        element.appendChild(goog.isString(child) ?
-            doc.createTextNode(child) : child);
-      }
-    };
-
-    for (var i = 2; i < args.length; i++) {
-      var arg = args[i];
-      // TODO(user): Fix isArrayLike to return false for a text node.
-      if (goog.isArrayLike(arg) && !goog.dom.isNodeLike(arg)) {
-        // If the argument is a node list, not a real array, use a clone,
-        // because forEach can't be used to mutate a NodeList.
-        goog.array.forEach(goog.dom.isNodeList(arg) ?
-            goog.array.clone(arg) : arg,
-            childHandler);
-      } else {
-        childHandler(arg);
-      }
-    }
+    goog.dom.append_(doc, element, args, 2);
   }
 
   return element;
 };
+
+
+/**
+ * Appends a node with text or other nodes.
+ * @param {!Document} doc The document to create new nodes in.
+ * @param {!Node} parent The node to append nodes to.
+ * @param {!Arguments} args The values to add. See {@code goog.dom.append}.
+ * @param {number} startIndex The index of the array to start from.
+ * @private
+ */
+goog.dom.append_ = function(doc, parent, args, startIndex) {
+  function childHandler(child) {
+    // TODO(user): More coercion, ala MochiKit?
+    if (child) {
+      parent.appendChild(goog.isString(child) ?
+          doc.createTextNode(child) : child);
+    }
+  }
+
+  for (var i = startIndex; i < args.length; i++) {
+    var arg = args[i];
+    // TODO(user): Fix isArrayLike to return false for a text node.
+    if (goog.isArrayLike(arg) && !goog.dom.isNodeLike(arg)) {
+      // If the argument is a node list, not a real array, use a clone,
+      // because forEach can't be used to mutate a NodeList.
+      goog.array.forEach(goog.dom.isNodeList(arg) ?
+          goog.array.clone(arg) : arg,
+          childHandler);
+    } else {
+      childHandler(arg);
+    }
+  }
+};
+
 
 /**
  * Alias for {@code createDom}.
@@ -6460,6 +6538,19 @@ goog.dom.canHaveChildren = function(node) {
  */
 goog.dom.appendChild = function(parent, child) {
   parent.appendChild(child);
+};
+
+
+/**
+ * Appends a node with text or other nodes.
+ * @param {!Node} parent The node to append nodes to.
+ * @param {...goog.dom.Appendable} var_args The things to append to the node.
+ *     If this is a Node it is appended as is.
+ *     If this is a string then a text node is appended.
+ *     If this is an array like object then fields 0 to length - 1 are appended.
+ */
+goog.dom.append = function(parent, var_args) {
+  goog.dom.append_(goog.dom.getOwnerDocument(parent), parent, arguments, 1);
 };
 
 
@@ -7453,6 +7544,13 @@ goog.dom.DomHelper.prototype.getDocumentHeight = function() {
 
 
 /**
+ * Typedef for use with goog.dom.createDom and goog.dom.append.
+ * @typedef {Object|string|Array|NodeList}
+ */
+goog.dom.Appendable;
+
+
+/**
  * Returns a dom node with a set of attributes.  This function accepts varargs
  * for subsequent nodes to be added.  Subsequent nodes will be added to the
  * first node as childNodes.
@@ -7471,7 +7569,7 @@ goog.dom.DomHelper.prototype.getDocumentHeight = function() {
  * @param {Object|string=} opt_attributes If object, then a map of name-value
  *     pairs for attributes. If a string, then this is the className of the new
  *     element.
- * @param {...Object|string|Array|NodeList} var_args Further DOM nodes or
+ * @param {...goog.dom.Appendable} var_args Further DOM nodes or
  *     strings for text nodes. If one of the var_args is an array or
  *     NodeList, its elements will be added as childNodes instead.
  * @return {!Element} Reference to a DOM node.
@@ -7489,9 +7587,9 @@ goog.dom.DomHelper.prototype.createDom = function(tagName,
  * @param {Object|string=} opt_attributes If object, then a map of name-value
  *     pairs for attributes. If a string, then this is the className of the new
  *     element.
- * @param {...Object|string|Array|NodeList} var_args Further DOM nodes
- *     or strings for text nodes.  If one of the var_args is an array, its
- *     children will be added as childNodes instead.
+ * @param {...goog.dom.Appendable} var_args Further DOM nodes or strings for
+ *     text nodes.  If one of the var_args is an array, its children will be
+ *     added as childNodes instead.
  * @return {!Element} Reference to a DOM node.
  * @deprecated Use {@link goog.dom.DomHelper.prototype.createDom} instead.
  */
@@ -7599,6 +7697,17 @@ goog.dom.DomHelper.prototype.getDocumentScroll = function() {
  * @param {Node} child Child.
  */
 goog.dom.DomHelper.prototype.appendChild = goog.dom.appendChild;
+
+
+/**
+ * Appends a node with text or other nodes.
+ * @param {!Node} parent The node to append nodes to.
+ * @param {...goog.dom.Appendable} var_args The things to append to the node.
+ *     If this is a Node it is appended as is.
+ *     If this is a string then a text node is appended.
+ *     If this is an array like object then fields 0 to length - 1 are appended.
+ */
+goog.dom.DomHelper.prototype.append = goog.dom.append;
 
 
 /**
@@ -11369,9 +11478,9 @@ goog.require('goog.array');
 
 
 /**
- * @type {goog.iter.Iterator|{length:number}|{__iterator__}}
+ * @typedef {goog.iter.Iterator|{length:number}|{__iterator__}}
  */
-goog.iter.Iterable = goog.typedef;
+goog.iter.Iterable;
 
 
 // For script engines that already support iterators.
@@ -19779,8 +19888,7 @@ goog.ui.Component.prototype.getParent = function() {
 /**
  * Overrides {@link goog.events.EventTarget#setParentEventTarget} to throw an
  * error if the parent component is set, and the argument is not the parent.
- *
- * @param {goog.events.EventTarget} parent Parent EventTarget (null if none).
+ * @override
  */
 goog.ui.Component.prototype.setParentEventTarget = function(parent) {
   if (this.parent_ && this.parent_ != parent) {
@@ -20135,7 +20243,7 @@ goog.ui.Component.prototype.addChild = function(child, opt_render) {
  *    added; must be between 0 and the current child count (inclusive).
  * @param {boolean=} opt_render If true, the child component will be rendered
  *    into the parent.
- * @return {void}
+ * @return {void} Nada.
  */
 goog.ui.Component.prototype.addChildAt = function(child, index, opt_render) {
   if (child.inDocument_ && (opt_render || !this.inDocument_)) {
@@ -21974,9 +22082,10 @@ goog.events.KeyCodes.firesKeyPressEvent = function(keyCode, opt_heldKeyCode,
     return false;
   }
 
-  // Saves Ctrl or Alt + key for IE7, which won't fire keypress.
-  if (goog.userAgent.IE &&
-      !opt_shiftKey &&
+  // Saves Ctrl or Alt + key for IE and WebKit 525+, which won't fire keypress.
+  // Non-IE browsers and WebKit prior to 525 won't get this far so no need to
+  // check the user agent.
+  if (!opt_shiftKey &&
       (opt_heldKeyCode == goog.events.KeyCodes.CTRL ||
        opt_heldKeyCode == goog.events.KeyCodes.ALT)) {
     return false;
@@ -22018,6 +22127,11 @@ goog.events.KeyCodes.isCharacterKey = function(keyCode) {
 
   if (keyCode >= goog.events.KeyCodes.A &&
       keyCode <= goog.events.KeyCodes.Z) {
+    return true;
+  }
+
+  // Safari sends zero key code for non-latin characters.
+  if (goog.userAgent.WEBKIT && keyCode == 0) {
     return true;
   }
 
@@ -23204,6 +23318,7 @@ goog.require('goog.ui.Popup');
 goog.require('goog.ui.PopupBase');
 
 
+
 /**
  * Tooltip widget. Can be attached to one or more elements and is shown, with a
  * slight delay, when the the cursor is over the element or the element gains
@@ -23237,14 +23352,6 @@ goog.ui.Tooltip = function(opt_el, opt_str, opt_domHelper) {
   this.cursorPosition = new goog.math.Coordinate(1, 1);
 
   /**
-   * Active element reference. Used by the delayed show functionality to keep
-   * track of the element the mouse is over or the element with focus.
-   * @type {Element}
-   * @private
-   */
-  this.activeEl_ = null;
-
-  /**
    * Elements this widget is attached to.
    * @type {goog.structs.Set}
    * @private
@@ -23273,6 +23380,16 @@ goog.inherits(goog.ui.Tooltip, goog.ui.Popup);
  */
 goog.ui.Tooltip.activeInstances_ = [];
 
+
+/**
+ * Active element reference. Used by the delayed show functionality to keep
+ * track of the element the mouse is over or the element with focus.
+ * @type {Element}
+ * @private
+ */
+goog.ui.Tooltip.prototype.activeEl_ = null;
+
+
 /**
  * CSS class name for tooltip.
  *
@@ -23280,13 +23397,16 @@ goog.ui.Tooltip.activeInstances_ = [];
  */
 goog.ui.Tooltip.prototype.className = goog.getCssName('goog-tooltip');
 
+
 /**
- * Delay in milliseconds before tooltip is displayed for an element.
+ * Delay in milliseconds since the last mouseover or mousemove before the
+ * tooltip is displayed for an element.
  *
  * @type {number}
  * @private
  */
 goog.ui.Tooltip.prototype.showDelayMs_ = 500;
+
 
 /**
  * Timer for when to show.
@@ -23296,6 +23416,7 @@ goog.ui.Tooltip.prototype.showDelayMs_ = 500;
  */
 goog.ui.Tooltip.prototype.showTimer;
 
+
 /**
  * Delay in milliseconds before tooltips are hidden.
  *
@@ -23304,6 +23425,7 @@ goog.ui.Tooltip.prototype.showTimer;
  */
 goog.ui.Tooltip.prototype.hideDelayMs_ = 0;
 
+
 /**
  * Timer for when to hide.
  *
@@ -23311,6 +23433,7 @@ goog.ui.Tooltip.prototype.hideDelayMs_ = 0;
  * @protected
  */
 goog.ui.Tooltip.prototype.hideTimer;
+
 
 /**
  * Element that triggered the tooltip.  Note that if a second element triggers
@@ -23321,6 +23444,7 @@ goog.ui.Tooltip.prototype.hideTimer;
  * @protected
  */
 goog.ui.Tooltip.prototype.anchor;
+
 
 /**
  * Possible states for the tooltip to be in.
@@ -23334,6 +23458,7 @@ goog.ui.Tooltip.State = {
   UPDATING: 4 // waiting to show new hovercard while old one still showing.
 };
 
+
 /**
  * Whether the anchor has seen the cursor move or has received focus since the
  * tooltip was last shown. Used to ignore mouse over events triggered by view
@@ -23343,12 +23468,14 @@ goog.ui.Tooltip.State = {
  */
 goog.ui.Tooltip.prototype.seenInteraction_;
 
+
 /**
  * Whether the cursor must have moved before the tooltip will be shown.
  * @type {boolean|undefined}
  * @private
  */
 goog.ui.Tooltip.prototype.requireInteraction_;
+
 
 /**
  * If this tooltip's element contains another tooltip that becomes active, this
@@ -23358,6 +23485,7 @@ goog.ui.Tooltip.prototype.requireInteraction_;
  * @private
  */
 goog.ui.Tooltip.prototype.childTooltip_;
+
 
 /**
  * If this tooltip is inside another tooltip's element, then it may have
@@ -24558,9 +24686,9 @@ goog.uri.utils.assertNoFragmentsOrQueries_ = function(uri) {
  * to a string and URI encoded.  Array values are expanded into multiple
  * &key=value pairs, with each element stringized and URI-encoded.
  *
- * @type {*}
+ * @typedef {*}
  */
-goog.uri.utils.QueryValue = goog.typedef;
+goog.uri.utils.QueryValue;
 
 
 /**
@@ -24582,9 +24710,9 @@ goog.uri.utils.QueryValue = goog.typedef;
  * ];
  * </pre>
  *
- * @type {!Array.<string|goog.uri.utils.QueryValue>}
+ * @typedef {!Array.<string|goog.uri.utils.QueryValue>}
  */
-goog.uri.utils.QueryArray = goog.typedef;
+goog.uri.utils.QueryArray;
 
 
 /**

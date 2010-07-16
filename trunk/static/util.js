@@ -1089,13 +1089,14 @@ Util.TestDriver.prototype.sendScore = function(testResults,
   }
 
   // Autorun always shares your score.
+  var beaconUrl = '/beacon/' + this.category;
   if (this.autorun) {
-    goog.net.XhrIo.send('/beacon',
+    goog.net.XhrIo.send(beaconUrl,
         goog.bind(this.onBeaconCompleteAutorun, this),
         'post', data);
   } else {
     if (this.sendBeaconCheckbox.checked) {
-      goog.net.XhrIo.send('/beacon', null, 'post', data);
+      goog.net.XhrIo.send(beaconUrl, null, 'post', data);
     }
     this.runTestButton.className = 'bs-btn';
     var checkmarkUtf8 = '✓';
