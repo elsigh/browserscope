@@ -54,7 +54,7 @@ def ScheduleCategoryUpdate(result_parent_key):
   calls UpdateCategory below.
   """
   # Give the task a name to ensure only one task for each ResultParent.
-  name = 'category-update-%s' % result_parent_key.replace('_', '-')
+  name = 'category-update-%s' % str(result_parent_key).replace('_', '-')
   result_parent = ResultParent.get(result_parent_key)
   task = taskqueue.Task(method='GET', name=name, params={
       'category': result_parent.category,
