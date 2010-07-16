@@ -403,10 +403,17 @@ def UpdateStatsCache(request):
     logging.info('UpdateStatsCache: Must set "browsers".')
     return http.HttpResponseServerError('Must set "browsers".')
   browsers = browsers_str.split(',')
-  result_stats.CategoryStatsManager.UpdateStatsCache(category, browsers)
+  # Only process one browser in each task.
+  if len(browsers) > 1:
+    taskqueue.Task(params={
+        'category': category,
+        'browsers': ','.join(browsers[1:]),
+        }).add(queue_name='update-stats-cache')
+  result_stats.CategoryStatsManager.UpdateStatsCache(category, browsers[:1])
   return http.HttpResponse('Success.')
 
 
+BATCH_SIZE = 25
 def UpdateAllStatsCache(request):
   categories_str = request.REQUEST.get('categories')
   if categories_str:
@@ -427,12 +434,10 @@ def UpdateAllStatsCache(request):
   test_set = all_test_sets.GetTestSet(category)
   browsers = result_stats.CategoryBrowserManager.GetAllBrowsers(category)
   logging.info('Update all stats cache: %s', category)
-  for i, browser in enumerate(browsers):
-    params = {
+  for i in range(0, len(browsers), BATCH_SIZE):
+    taskqueue.Task(params={
         'category': category,
-        'browsers': browser
-        }
-    task = taskqueue.Task(params=params)
-    task.add(queue_name='update-stats-cache')
-    logging.info('Added task #%s: %s', i+1, browser)
+        'browsers': ','.join(browsers[i:i+BATCH_SIZE]),
+        }).add(queue_name='update-stats-cache')
+    logging.info('Added task for browsers %s to %s.', i, i+BATCH_SIZE)
   return http.HttpResponse('Done creating update tasks.')

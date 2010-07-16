@@ -266,7 +266,8 @@ class TestUpdateStatsCache(unittest.TestCase):
 
   def testBasic(self):
     self.mox.StubOutWithMock(self.manager, 'UpdateStatsCache')
-    self.manager.UpdateStatsCache('network', ['IE', 'Firefox'])
+    self.manager.UpdateStatsCache('network', ['IE']).InAnyOrder()
+    self.manager.UpdateStatsCache('network', ['Firefox']).InAnyOrder()
     params = {
         'category': 'network',
         'browsers': 'IE,Firefox',
