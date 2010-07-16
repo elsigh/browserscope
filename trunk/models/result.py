@@ -130,7 +130,7 @@ class ResultParent(db.Expando):
     return parent
 
   @classmethod
-  def ScheduleUpdateDirty(cls, result_time_key, category=None):
+  def ScheduleUpdateDirty(cls, result_time_key, category=None, count=0):
     """Schedule UpdateStats for a given ResultTime.
 
     This gets handled by base.manage_dirty.UpdateDirty which
@@ -140,12 +140,15 @@ class ResultParent(db.Expando):
       result_time_key: a dirty ResultTime key
       category: the category string
     """
+    result_parent_key = result_time_key.parent()
     if not category:
-      category = cls.get(result_time_key.parent()).category
+      category = cls.get(result_parent_key).category
     task = taskqueue.Task(
-        method='GET', url='/admin/update_dirty/%s' % category,
-        name='update-dirty-%s' % str(result_time_key).replace('_', '-'),
-        params={'result_time_key': result_time_key, 'category': category})
+        url='/admin/update_dirty/%s/%s/%d/%s' % (
+            category, result_parent_key, count, result_time_key),
+        name='updatedirty-%s' % str(result_time_key).replace('_', '-under-'),
+        params={'result_time_key': result_time_key, 'category': category,
+                'count': count})
     try:
       task.add(queue_name='update-dirty')
     except taskqueue.InvalidTaskError:

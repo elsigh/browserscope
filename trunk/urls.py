@@ -66,7 +66,6 @@ urlpatterns = patterns('',
   (r'^admin/ua_test', 'base.ua.ParseTest'),
   (r'^admin/test_task_queue', 'gaeunit_test.TaskHandler'),
   (r'^admin/getdirty', 'base.admin.GetDirty'),
-  (r'^admin/schedule-dirty-update', 'base.admin.ScheduleDirtyUpdate'),
 
 
   # Cron admin scripts

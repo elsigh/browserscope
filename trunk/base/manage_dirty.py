@@ -54,10 +54,12 @@ def ScheduleCategoryUpdate(result_parent_key):
   calls UpdateCategory below.
   """
   # Give the task a name to ensure only one task for each ResultParent.
-  name = 'category-update-%s' % str(result_parent_key).replace('_', '-')
   result_parent = ResultParent.get(result_parent_key)
-  task = taskqueue.Task(method='GET', name=name, params={
-      'category': result_parent.category,
+  category = result_parent.category
+  name = 'categoryupdate-%s' % str(result_parent_key).replace('_', '-under-')
+  url = '/_ah/queue/update-category/%s/%s' % (category, result_parent_key)
+  task = taskqueue.Task(url=url, name=name, params={
+      'category': category,
       'user_agent_key': result_parent.user_agent.key(),
       })
   try:
@@ -72,6 +74,7 @@ def UpdateDirty(request):
 
   result_time_key = request.REQUEST.get('result_time_key')
   category = request.REQUEST.get('category')
+  count = int(request.REQUEST.get('count', 0))
   if result_time_key:
     result_time = ResultTime.get(result_time_key)
     try:
@@ -95,7 +98,8 @@ def UpdateDirty(request):
   if dirty_result_times:
     next_result_time_key = random.choice(dirty_result_times)
     logging.debug('Schedule next ResultTime: %s', next_result_time_key)
-    ResultParent.ScheduleUpdateDirty(next_result_time_key, category)
+    ResultParent.ScheduleUpdateDirty(next_result_time_key, category,
+                                     count=count+1)
   elif result_parent_key:
     logging.debug('Done with result_parent: %s', result_parent_key)
     ScheduleCategoryUpdate(result_parent_key)
