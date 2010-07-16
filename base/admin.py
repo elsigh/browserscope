@@ -104,13 +104,6 @@ def GetDirty(request):
   return http.HttpResponse('<br>'.join(dirtys))
 
 
-@decorators.admin_required
-def ScheduleDirtyUpdate(request):
-  result_parent_key = request.GET.get('result_parent_key')
-  ResultParent.ScheduleDirtyUpdate(result_parent_key)
-  return http.HttpResponse('Ok, ScheduleDirtyUpdate for %s' % result_parent_key)
-
-
 @decorators.check_csrf
 def SubmitChanges(request):
   logging.info('^^^^^^^^^^^^^^^^^^^^ SubmitChanges')
@@ -380,7 +373,7 @@ def UpdateCategory(request):
     logging.info('cron.UserAgentGroup: Invalid UserAgent key: %s', user_agent_key)
     return http.HttpResponse('Invalid UserAgent key: %s' % user_agent_key)
   if user_agent:
-    logging.info('cron.UserAgentGroup: UpdateCategory(%s, %s)', category, user_agent)
+    logging.info('cron.UserAgentGroup: UpdateCategory(%s, %s)', category, user_agent_key)
     result_stats.UpdateCategory(category, user_agent)
     return http.HttpResponse('Done with UserAgent key=%s' % user_agent_key)
   else:
