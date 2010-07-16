@@ -1,7 +1,10 @@
 cron:
-- description: Warm-up the stats cache.
+- description: Recache uncached stats.
+  url: /admin/update_all_uncached_stats
+  schedule: every 15 minutes
+- description: Reload the stats cache.
   url: /admin/update_all_stats_cache
-  schedule: every 20 minutes
+  schedule: every 24 hours
 - description: Clean up any strageling dirty ResultTime's.
   url: /admin/update_dirty
-  schedule: every 20 minutes
+  schedule: every 1 minutes
