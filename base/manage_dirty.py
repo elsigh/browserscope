@@ -102,14 +102,15 @@ def UpdateDirty(request):
   return http.HttpResponse('Done.')
 
 
-MAX_SCHEDULED = 10
+MAX_RESULT_TIMES = 500
+MAX_SCHEDULED = 8
 OLD_SECONDS = 5 * 60  # code assumes this is less than one day
 def UpdateOldDirty():
   """Update dirty queries from the past."""
   num_scheduled = 0
   seen_result_parent_keys = set()
   dirty_query = ResultTime.all(keys_only=True).filter('dirty =', True)
-  for result_time_key in dirty_query.fetch(1000):
+  for i, result_time_key in enumerate(dirty_query.fetch(500)):
     result_parent_key = result_time_key.parent()
     if result_parent_key not in seen_result_parent_keys:
       seen_result_parent_keys.add(result_parent_key)
@@ -118,8 +119,8 @@ def UpdateOldDirty():
       age = datetime.datetime.now() - result_parent.created
       if age.days > 0 or age.seconds > OLD_SECONDS:
         logging.info(
-            'Schedule old dirty: %s, age=%s, result_parent=%s, result_time=%s',
-            category, age, result_parent_key, result_time_key)
+            'Schedule old dirty:%d:%d: %s, age=%s, result_parent=%s, result_time=%s',
+            i, num_scheduled, category, age, result_parent_key, result_time_key)
         if ResultParent.ScheduleUpdateDirty(
             result_time_key, category, count=-1):
           num_scheduled += 1
