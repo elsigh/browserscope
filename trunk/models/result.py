@@ -130,7 +130,8 @@ class ResultParent(db.Expando):
     return parent
 
   @classmethod
-  def ScheduleUpdateDirty(cls, result_time_key, category=None, count=0):
+  def ScheduleUpdateDirty(cls, result_time_key, category=None, count=0,
+                          task_name_prefix=''):
     """Schedule UpdateStats for a given ResultTime.
 
     This gets handled by base.manage_dirty.UpdateDirty which
@@ -139,6 +140,8 @@ class ResultParent(db.Expando):
     Args:
       result_time_key: a dirty ResultTime key
       category: the category string
+      count: index of ResultTime for logging purposes
+      task_name_prefix: change a task name to retry tombstoned tasks
     """
     result_parent_key = result_time_key.parent()
     if not category:
@@ -146,7 +149,8 @@ class ResultParent(db.Expando):
     task = taskqueue.Task(
         url='/admin/update_dirty/%s/%s/%d/%s' % (
             category, result_parent_key, count, result_time_key),
-        name='updatedirty-%s' % str(result_time_key).replace('_', '-under-'),
+        name='%supdatedirty-%s' % (
+            task_name_prefix, str(result_time_key).replace('_', '-under-')),
         params={'result_time_key': result_time_key, 'category': category,
                 'count': count})
     try:

@@ -69,6 +69,7 @@ def UpdateDirty(request):
   """Updates any dirty tests, adding its score to the appropriate ranker."""
   logging.debug('UpdateDirty start.')
 
+  task_name_prefix = request.REQUEST.get('task_name_prefix', '')
   result_time_key = request.REQUEST.get('result_time_key')
   category = request.REQUEST.get('category')
   count = int(request.REQUEST.get('count', 0))
@@ -95,7 +96,7 @@ def UpdateDirty(request):
   if next_result_time_key:
     logging.debug('Schedule next ResultTime: %s', next_result_time_key)
     ResultParent.ScheduleUpdateDirty(
-        next_result_time_key, category, count=count+1)
+        next_result_time_key, category, count+1, task_name_prefix)
   else:
     logging.debug('Done with result_parent: %s', result_parent_key)
     ScheduleCategoryUpdate(result_parent_key)
