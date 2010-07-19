@@ -45,6 +45,16 @@ TOP_BROWSERS = (
   'Safari 4.0', 'Safari 5.0'
 )
 
+TOP_MOBILE_BROWSERS = (
+  'Android 2.2',
+  'Blackberry 9700',
+  'iPad 4.04',
+  'iPhone 3.1', 'iPhone 4.0',
+  'Nokia 95',
+  'Nokia 5800',
+  'Opera Mobile 10.00',
+  'Palm Pre 1.1',
+)
 
 class CategoryBrowserManager(db.Model):
   """Track the browsers that belong in each category/version level."""
@@ -73,10 +83,11 @@ class CategoryBrowserManager(db.Model):
       category: a category string like 'network' or 'reflow'.
       user_agent: a UserAgent instance.
     """
-    key_names = [cls.KeyName(c, version_level)
-                 for c in (category, 'summary')
-                 for version_level in range(4)]
-    version_levels = range(4) * 2
+    key_names = [cls.KeyName(category, v) for v in range(4)]
+    version_levels = range(4)
+    if category in [t.category for t in all_test_sets.GetVisibleTestSets()]:
+      key_names.extend([cls.KeyName('summary', v) for v in range(4)])
+      version_levels.extend(range(4))
     level_browsers = memcache.get_multi(key_names,
                                         namespace=cls.MEMCACHE_NAMESPACE)
     browser_key_names = []
