@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<img src="/static/img/stethoscope.png" height="256" width="256" align="right" vspace="10" hspace="20" alt="">
+
+<div id="bs-resources">
+  <h1>{{ app_title }} Resources</h1>
+  <p>Browserscope tests are great for identifying bugs and areas to improve in browsers, but that's only a small part of what's needed to make the Web better.
+  We encourage you to get involved! Please contribute by actively testing the latest builds of the browsers and filing bugs.
+  Here is a <a href="http://ejohn.org/blog/a-web-developers-responsibility/">great article by John Resig</a> to help you get started.</p>
+
+  <p>If you'd like to get involved, here are links to blogs, recent builds, and bug databases for some popular browsers:</p>
+  <ul>
+    {% for browser in browsers %}
+    <li style="list-style-type: none"><b>{{ browser.name }}</b></li>
+    <ul>
+      <li><a href="{{ browser.blog }}">Blog</a></li>
+      <li><a href="{{ browser.latest_build }}">Download the latest build</a></li>
+      <li><a href="{{ browser.file_bug }}">File a bug</a></li>
+      {% if browser.getting_involved %}<li><a href="{{ browser.getting_involved }}">Getting involved</a>{% endif %}
+    </ul>
+    {% endfor %}
+  </ul>
+
+  <p>If you have the correct links for another browser, please <a href="mailto:browserscope@googlegroups.com">contact us</a>.</p>
+  
+</div>
+
+{% endblock %}
