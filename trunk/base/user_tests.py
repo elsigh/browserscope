@@ -215,7 +215,7 @@ def TestStatsTable(request, key):
     return http.HttpResponseServerError(msg)
 
   output = request.GET.get('o', 'html')
-  if output not in ['html', 'pickle', 'xhr', 'csv',
+  if output not in ['html', 'pickle', 'xhr', 'csv', 'json',
                     'gviz', 'gviz_data', 'gviz_timeline_data']:
     return http.HttpResponse('Invalid output specified')
 
@@ -228,7 +228,7 @@ def TestStatsTable(request, key):
 
   stats_table = util.GetStats(request, test_set, output)
 
-  if output in ('xhr', 'pickle', 'csv',
+  if output in ('xhr', 'pickle', 'csv', 'json',
                 'gviz', 'gviz_data', 'gviz_timeline_data'):
     return http.HttpResponse(stats_table)
 
