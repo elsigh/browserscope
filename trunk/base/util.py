@@ -347,10 +347,10 @@ def News(request):
 
 
 def Browsers(request):
-  """Browsers"""
+  """Browser Resources"""
 
   params = {
-    'page_title': 'Browsers',
+    'page_title': 'Browser Resources',
     'section_urls': '',
     'browsers' : [
       {'name': 'Chrome',
