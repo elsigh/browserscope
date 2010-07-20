@@ -346,6 +346,41 @@ def News(request):
   return Render(request, 'news.html', params)
 
 
+def Browsers(request):
+  """Browsers"""
+
+  params = {
+    'page_title': 'Browsers',
+    'section_urls': '',
+    'browsers' : [
+      {'name': 'Chrome',
+       'file_bug': 'http://code.google.com/p/chromium/issues/entry',
+       'latest_build': 'http://build.chromium.org/buildbot/snapshots/chromium-rel-xp/',
+       'blog': 'http://blog.chromium.org/',
+       'getting_involved': 'http://www.chromium.org/getting-involved'},
+      {'name': 'Firefox/Mozilla',
+       'file_bug': 'https://bugzilla.mozilla.org/enter_bug.cgi?product=Core',
+       'latest_build': 'http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/',
+       'blog': 'http://hacks.mozilla.org',
+       'getting_involved': 'http://www.mozilla.org/contribute/'},
+      {'name': 'IE',
+       'file_bug': 'https://connect.microsoft.com/IE/Feedback',
+       'latest_build': 'https://connect.microsoft.com/IE/Downloads',
+       'blog': 'http://blogs.msdn.com/b/ie/',},
+      {'name': 'Opera',
+       'file_bug': 'https://bugs.opera.com/wizard/',
+       'latest_build': 'http://my.opera.com/desktopteam/blog/',
+       'blog': 'http://my.opera.com/core/blog/',},
+      {'name': 'Safari/WebKit',
+       'file_bug': 'https://bugs.webkit.org/enter_bug.cgi?product=WebKit',
+       'latest_build': 'http://nightly.webkit.org/',
+       'blog': 'http://webkit.org/blog/',
+       'getting_involved': 'http://webkit.org/'}
+      ],
+  }
+  return Render(request, 'browsers.html', params)
+
+
 def AllTests(request):
   """All Tests"""
   params = {
