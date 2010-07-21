@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h2>Browse results: {{ category }}</h2>
+<div class="rt">
+  <table>
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>UA</th>
+        <th>IP</th>
+        {% for test_key in test_keys %}
+          <th>{{ test_key }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for result_parent in results %}
+        <tr>
+          <td>{{ result_parent.created }}</td>
+          <td>{{ result_parent.user_agent.pretty }}</td>
+          <td>{{ result_parent.ip }}</td>
+          {% for result_time in result_parent.GetResultTimes %}
+            <td>{{ result_time.score }}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="{{ test_keys|length|add:3 }}">
+          {% if prev_bookmark %}
+            <a href="/browse?category={{ category }}&bookmark={{ prev_bookmark }}"
+              >Prev</a>
+          {% endif %}
+          {% if next_bookmark %}
+            <a href="/browse?category={{ category }}&bookmark={{ next_bookmark }}"
+              >Next</a>
+          {% endif %}
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{% endblock %}

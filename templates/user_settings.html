@@ -57,8 +57,10 @@
               <td>{{ test.sandboxid }}</td>
               <td>{{ test.description }}</td>
               <td>
-                <a href="/user/tests/table/{{ test.key }}?v=3&layout=simple"
+                <a href="/browse?category=usertest_{{ test.key }}"
                   >Results</a>
+                <a href="/user/tests/table/{{ test.key }}?v=3&layout=simple"
+                  >Table</a>
                 <a href="/user/tests/table/{{ test.key }}?v=3&o=csv">CSV</a>
                 <a href="/user/tests/table/{{ test.key }}?v=3&o=json">JSON</a>
               </td>

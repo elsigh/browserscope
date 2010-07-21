@@ -53,6 +53,7 @@ from base import manage_dirty
 from base import custom_filters
 
 from third_party.gviz import gviz_api
+from third_party.gaefy.db import pager
 
 from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
@@ -305,25 +306,34 @@ def BrowserTimeLine(request):
 
 
 def BrowseResults(request):
+  category = request.GET.get('category')
+  if not category:
+    return http.HttpResponse('You must pass category=something')
+  test_set = all_test_sets.GetTestSet(category)
+  test_keys = [t.key for t in test_set.VisibleTests()]
+
   ua = request.GET.get('ua')
   bookmark = request.GET.get('bookmark')
-  limit = int(request.GET.get('limit', 100))
+  fetch_limit = int(request.GET.get('limit', 20))
   order = request.GET.get('order', 'desc')
-  query = pager.PagerQuery(models.result.ResultParent, keys_only=True)
-  #query.filter()
+
+  query = pager.PagerQuery(models.result.ResultParent, keys_only=False)
+  query.filter('category =', category)
   if order == 'desc':
     query.order('-created')
   else:
     query.order('created')
 
   prev_bookmark, results, next_bookmark = query.fetch(fetch_limit, bookmark)
-
   params = {
     'prev_bookmark': prev_bookmark,
     'next_bookmark': next_bookmark,
-    'results': results
+    'results': results,
+    'test_set': test_set,
+    'test_keys': test_keys,
+    'category': category,
   }
-  return ''
+  return Render(request, 'browse.html', params)
 
 
 def Faq(request):
