@@ -36,6 +36,13 @@ indexes:
   properties:
   - name: category
   - name: created
+  - name: __key__
+    direction: desc
+
+- kind: ResultParent
+  properties:
+  - name: category
+  - name: created
     direction: desc
 
 - kind: Test
