@@ -117,9 +117,11 @@
               </td>
             {% endfor %}
             <td class="rt-tot">
-              {% if stats|by_key:user_agent|by_key:"total_runs" %}
-                <a href="/browse?category={{ category }}">
-              {% endif %}
+              {% ifequal category "summary" %}{% else %}
+                {% if stats|by_key:user_agent|by_key:"total_runs" %}
+                  <a href="/browse?category={{ category }}">
+                {% endif %}
+              {% endifequal %}
 
               {% if stats|by_key:user_agent|by_key:"current_results" %}
                 {{ stats|by_key:user_agent|by_key:"total_runs"|default:0|add:1 }}
@@ -127,9 +129,11 @@
                 {{ stats|by_key:user_agent|by_key:"total_runs"|default:0 }}
               {% endif %}
 
-              {% if stats|by_key:user_agent|by_key:"total_runs" %}
-                </a>
-              {% endif %}
+              {% ifequal category "summary" %}{% else %}
+                {% if stats|by_key:user_agent|by_key:"total_runs" %}
+                  </a>
+                {% endif %}
+              {% endifequal %}
             </td>
           </tr>
         {% endif %}
