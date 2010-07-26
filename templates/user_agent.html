@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h2>Test the UserAgent parser</h2>
+
+<form action="/ua" method="get">
+  <label for="ua-string">UserAgent string:</label>
+  <div>
+    <textarea name="ua_string" id="ua-string"
+      cols="50" rows="4">{{ ua_string }}</textarea>
+  </div>
+  <div>
+    <input type="submit">
+  </div>
+</form>
+
+{% if ua_parsed %}
+  <br><br>
+  <h3>Result for "{{ ua_string }}"</h3>
+  <div class="rt">
+    <table>
+      <thead>
+        <th>
+          Family
+        </th>
+        <th>
+          v1
+        </th>
+        <th>
+          v2
+        </th>
+        <th>
+          v3
+        </th>
+        <th>
+          Display
+        </th>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            {{ ua_parsed.family }}
+          </td>
+          <td>
+            {{ ua_parsed.v1 }}
+          </td>
+          <td>
+            {{ ua_parsed.v2 }}
+          </td>
+          <td>
+            {{ ua_parsed.v3 }}
+          </td>
+          <td>
+            {{ ua_parsed.pretty }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
+{% endblock %}
