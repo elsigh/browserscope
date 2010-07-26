@@ -216,8 +216,22 @@ def About(request, category, category_title=None, overview='',
 
 
 def UaParser(request):
-  output = request.REQUEST.get('o', 'js')
-  if output == 'js':
+  output = request.REQUEST.get('o', 'html')
+
+  # HTML form
+  if output == 'html':
+    ua_parsed = None
+    ua_string = request.GET.get('ua_string', '')
+    if ua_string:
+      ua_parsed = models.user_agent.UserAgent.factory(ua_string)
+    params = {
+      'ua_string': ua_string,
+      'ua_parsed': ua_parsed,
+    }
+    return Render(request, 'user_agent.html', params)
+
+  # JS snippet
+  elif output == 'js':
     params = {'mimetype': 'text/javascript'}
     return Render(request, 'user_agent_js.tpl', params)
   else:
