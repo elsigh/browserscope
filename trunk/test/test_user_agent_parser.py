@@ -64,7 +64,7 @@ TEST_STRINGS = (
       'Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727; .NET CLR 1.1.4322)',
       'js_document_mode': '9'}),
     (('Midori', '0', '2', None),
-     'Midori/0.2 (X11; Linux; U; en-us) WebKit/531.2 ,gzip(gfe),gzip(gfe)',
+      'Midori/0.2 (X11; Linux; U; en-us) WebKit/531.2 ,gzip(gfe),gzip(gfe)',
      {}),
     (('MozillaDeveloperPreview', '3', '7', 'a1'),
      'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.3a1) '
@@ -82,6 +82,8 @@ TEST_STRINGS = (
      'Desktop/1.0,gzip(gfe),gzip(gfe)', {}),
     (('iPad', '3', '2', None),
       'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) ' 'AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B367 ' 'Safari/531.21.10,gzip(gfe),gzip(gfe)', {}),
+    (('Dolfin', '2', '0', None),
+      'Mozilla/5.0 (SAMSUNG; SAMSUNG-GT-S8500/S8500XXJEE; U; Bada/1.0; nl-nl) AppleWebKit/533.1 (KHTML, like Gecko) Dolfin/2.0 Mobile WVGA SMM-MMS/1.2.0 OPN-B', {}),
 )
 
 
