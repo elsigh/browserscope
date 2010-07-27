@@ -408,9 +408,11 @@ html>body .goog-inline-block {
 }
 #bs-home-recent-tests {
   width: 100%;
+  background: #111;
 }
 #bs-home-recent-tests td {
   padding: 2px;
+  border: 0;
 }
 #bs-home-intro-c {
   padding: 0 5px;
