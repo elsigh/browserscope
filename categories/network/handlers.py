@@ -36,8 +36,8 @@ CATEGORY = 'network'
 
 TEST_PAGE = '/%s/frameset' % CATEGORY
 
-RESOURCE_CGI_BASE = 'cuzillion.com/bin/resource.cgi'
-#RESOURCE_CGI_BASE = 'cgi.browserscope.net/cgi-bin/resource.cgi'
+#RESOURCE_CGI_BASE = 'cuzillion.com/bin/resource.cgi'
+RESOURCE_CGI_BASE = 'cgi.browserscope.net/cgi-bin/resource.cgi'
 #RESOURCE_CGI_BASE = 'resource-cgi.appspot.com'
 
 RESOURCE_CGI = '1.%s' % RESOURCE_CGI_BASE
