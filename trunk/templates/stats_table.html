@@ -119,7 +119,7 @@
             <td class="rt-tot">
               {% ifequal category "summary" %}{% else %}
                 {% if stats|by_key:user_agent|by_key:"total_runs" %}
-                  <a href="/browse?category={{ category }}">
+                  <!-- <a href="/browse?category={{ category }}"> -->
                 {% endif %}
               {% endifequal %}
 
@@ -131,7 +131,7 @@
 
               {% ifequal category "summary" %}{% else %}
                 {% if stats|by_key:user_agent|by_key:"total_runs" %}
-                  </a>
+                  <!-- </a> -->
                 {% endif %}
               {% endifequal %}
             </td>

@@ -523,7 +523,8 @@ a.bs-l-p {
 .rt .rt-v form {
   padding: 3px 10px;
 }
-.rt table {
+.rt table,
+table {
   empty-cells: show;
   background: #fff;
   border-collapse: collapse;
@@ -532,9 +533,11 @@ a.bs-l-p {
 .rt thead th {
   cursor: pointer;
 }
+tbody td,
 .rt tbody td {
   padding: .4em;
 }
+td,
 .rt td {
   border: 1px solid #ddd;
   white-space: nowrap;
@@ -543,6 +546,9 @@ a.bs-l-p {
   white-space: normal;
 }
 
+thead td,
+th,
+tfoot,
 .rt thead td,
 .rt th,
 .rt tfoot,
@@ -559,6 +565,7 @@ a.bs-l-p {
   color: #fff;
   font-weight: bold;
 }
+th,
 .rt th {
   background: #eee url(/static/img/gradients.png) 0 -163px repeat-x;
   border-top: 1px solid #ccc;
