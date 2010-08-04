@@ -10,6 +10,8 @@
     .pass .status { color: green; }
     .fail .status { color: red; }
     iframe { height: 50px; width: 80px; background-color: white; }
+    .testlink:link { color:#336699;}
+    .testlink:visited { color:#3366A0; }
     </style>
     <script>
     var tests = [];
@@ -232,6 +234,30 @@
       document.getElementById('iframes').appendChild(attacker_iframe);
     }
     runCrossOriginCssTest('Block cross-origin CSS attacks');
+    runTest('Cross Origin Resource Sharing', function () {
+      if (window.XDomainRequest) {
+        return true;
+      } else if (window.XMLHttpRequest) {
+        return "withCredentials" in new XMLHttpRequest();
+      } else {
+        return false;
+      }
+    });    
+    runTest('Block visited link sniffing', function() {      
+      var a = document.createElement("a");
+      a.href = top.document.location;
+      a.innerHTML = "";
+      a.setAttribute("class", "testlink");      
+      document.body.appendChild(a);
+      var color;
+      if (a.currentStyle) {
+        color = a.currentStyle.color;
+      } else {
+        color = document.defaultView.getComputedStyle(a, "").color;
+      }
+      var visited = (color == 'rgb(51, 102, 160)' || color.toLowerCase() == '#3366a0');
+      return !visited;
+    });
     commit();
     </script>
   </body>

@@ -119,6 +119,17 @@ _TESTS = (
   attackers can steal confidential data across domains using style sheet import, even
   <a href="http://websec.sv.cmu.edu/css/css.pdf">without JavaScript</a>.
   Browsers should correctly determine the content type when loading cross-origin CSS resources.'''),
+  SecurityTest('Cross Origin Resource Sharing',
+               'Cross Origin Resource Sharing',
+  '''Checks whether the browser supports the APIs for making 
+  <a href="http://www.w3.org/TR/cors/">cross origin requests</a>.'''),
+  SecurityTest('Block visited link sniffing',
+               'Block visited link sniffing',
+  '''Most browsers display visited links with a :visited CSS pseudo class. 
+  A user's browsing history <a href="http://whattheinternetknowsaboutyou.com/">can be sniffed</a> by 
+  <a href="http://jeremiahgrossman.blogspot.com/2006/08/i-know-where-youve-been.html">testing the visited links</a> by 
+  checking this CSS class. We test whether browsers restrict access to the 
+  :visited pseudo class.''')
 )
 
 
