@@ -113,6 +113,12 @@ _TESTS = (
   '''Checks whether the browser supports
   <a href="http://lists.w3.org/Archives/Public/www-archive/2009Sep/att-0051/draft-hodges-strict-transport-sec-05.plain.html">Strict Transport Security</a>,
   which enables web sites to declare themselves accessible only via secure connections.'''),
+  SecurityTest('Block cross-origin CSS attacks',
+               'Block cross-origin CSS attacks',
+  '''By injecting CSS selectors into the target site, 
+  attackers can steal confidential data across domains using style sheet import, even
+  <a href="http://websec.sv.cmu.edu/css/css.pdf">without JavaScript</a>.
+  Browsers should correctly determine the content type when loading cross-origin CSS resources.'''),
 )
 
 
