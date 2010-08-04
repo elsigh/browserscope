@@ -129,3 +129,13 @@ def ReflectedXSSVictim(request):
 	</html>""" % attack_str
   return HttpResponse(html);
 
+def CrossOriginCSSTest(request):
+  response = HttpResponse()
+  if 'SECRET' in request.GET:
+   response.set_cookie('CrossOriginCssTestCookie', '1', max_age=10, path='/security/')
+  else:
+   if 'CrossOriginCssTestCookie' in request.COOKIES:
+     response.write('<html>FAIL</html>')
+   else:
+     response.write('<html>PASS</html>')
+  return response
