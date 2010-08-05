@@ -82,7 +82,7 @@ def Render(request, template, params={}, category=None):
   params['current_ua_string'] = request.META.get('HTTP_USER_AGENT')
   if params['current_ua_string']:
     js_user_agent_string = request.REQUEST.get('js_ua')
-    js_document_mode = request.REQUEST.get('doc_mode')
+    js_document_mode = request.REQUEST.get('js_doc_mode')
     ua = models.user_agent.UserAgent.factory(params['current_ua_string'],
         js_user_agent_string=js_user_agent_string,
         js_document_mode=js_document_mode)
@@ -218,16 +218,29 @@ def About(request, category, category_title=None, overview='',
 def UaParser(request):
   output = request.REQUEST.get('o', 'html')
 
+  ua_parsed = None
+  ua_string = request.REQUEST.get('ua')
+  js_user_agent_string = request.REQUEST.get('js_ua', '')
+  js_document_mode = request.REQUEST.get('js_doc_mode', '')
+  if js_document_mode == 'undefined':
+    js_document_mode = ''
+
+  if ua_string:
+    ua_parsed = models.user_agent.UserAgent.factory(ua_string,
+        js_user_agent_string=js_user_agent_string,
+        js_document_mode=js_document_mode)
+  else:
+    ua_string = request.META.get('HTTP_USER_AGENT')
+
+  params = {
+    'ua': ua_string,
+    'js_ua': js_user_agent_string,
+    'js_doc_mode': js_document_mode,
+    'ua_parsed': ua_parsed,
+  }
+
   # HTML form
   if output == 'html':
-    ua_parsed = None
-    ua_string = request.GET.get('ua_string', '')
-    if ua_string:
-      ua_parsed = models.user_agent.UserAgent.factory(ua_string)
-    params = {
-      'ua_string': ua_string,
-      'ua_parsed': ua_parsed,
-    }
     return Render(request, 'user_agent.html', params)
 
   # JS snippet
