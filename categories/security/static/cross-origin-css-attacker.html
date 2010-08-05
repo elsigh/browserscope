@@ -1,7 +1,21 @@
 <html>
 <head>
-<script src="config.js"></script>
-<script>document.write('<link rel="stylesheet" href="' + NON_APP_ENGINE_BASE_URL + 'cross-origin-css-victim.html"');</script>
+<script src="config.js"></script> 
+<script>
+document.write('<link rel="stylesheet" href="' + NON_APP_ENGINE_BASE_URL + 'cross-origin-css-victim.html">');
+function steal() {
+  if (window.getComputedStyle) {
+    var value = window.getComputedStyle(document.body, null).getPropertyValue('background-image');
+  } else {
+    var value = document.body.currentStyle.backgroundImage;
+  }
+  if(value.indexOf('SECRET') == -1) {
+    document.body.innerHTML = "PASS";
+  } else {
+    document.body.innerHTML = "FAIL";
+  }
+}
+</script>
 </head>
-<body>ATTACKER WEBSITE</body>
+<body onload="steal()"></body>
 </html>
