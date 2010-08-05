@@ -172,7 +172,6 @@ urlpatterns = patterns('',
   (r'^security/test/set-sts$', 'categories.security.handlers.SetSts'),
   (r'^security/test/test-sts$', 'categories.security.handlers.TestSts'),
   (r'^security/test/xss-frame-victim$', 'categories.security.handlers.ReflectedXSSVictim'),
-  (r'^security/test/crossorigincss$', 'categories.security.handlers.CrossOriginCSSTest'),
 
   # HTML5 urls
   (r'^html5/about$', 'categories.html5.handlers.About'),
