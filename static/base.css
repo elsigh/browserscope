@@ -61,6 +61,9 @@ sup {
   float: left;
 }
 
+.bs-btn-c {
+  margin-top: 16px;
+}
 .bs-btn,
 a.bs-btn,
 .bs-btn-disabled {
@@ -816,4 +819,26 @@ th,
 }
 #bs-usertest-dontforget {
   margin-bottom: 8px;
+}
+
+/** User Agent **/
+#bs-ua-parser th {
+  font-weight: bold;
+  text-align: left;
+}
+#bs-ua-parser label {
+  display: block;
+  margin-top: 16px;
+}
+#bs-ua-parser textarea {
+  display: block;
+}
+#bs-ua-parser form div em {
+  display: block;
+  font-size: 90%;
+  color: #ccc;
+}
+#bs-ua-parser td.wrap {
+  white-space: normal;
+  width: 20%;
 }

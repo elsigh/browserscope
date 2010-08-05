@@ -1,62 +1,143 @@
 {% extends "base.html" %}
 
 {% block body %}
-<h2>Test the UserAgent parser</h2>
+<div id="bs-ua-parser">
+  <h2>Test the UserAgent parser</h2>
 
-<form action="/ua" method="get">
-  <label for="ua-string">UserAgent string:</label>
-  <div>
-    <textarea name="ua_string" id="ua-string"
-      cols="50" rows="4">{{ ua_string }}</textarea>
-  </div>
-  <div>
-    <input type="submit">
-  </div>
-</form>
+  {% if ua_parsed %}
+    <h3>
+      Parsed result:
+    </h3>
+    <div class="rt">
+      <table>
+        <thead>
+          <tr>
+            <th>
+              Family
+            </th>
+            <th>
+              v1
+            </th>
+            <th>
+              v2
+            </th>
+            <th>
+              v3
+            </th>
+            <th>
+              Display
+            </th>
+            <th>
+              Browser UA string
+            </th>
+            {% if js_ua %}
+              <th>
+                JS UA string
+              </th>
+            {% endif %}
+            {% if js_doc_mode %}
+              <th>
+                JS documentMode
+              </th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              {{ ua_parsed.family }}
+            </td>
+            <td>
+              {{ ua_parsed.v1 }}
+            </td>
+            <td>
+              {{ ua_parsed.v2 }}
+            </td>
+            <td>
+              {{ ua_parsed.v3 }}
+            </td>
+            <td>
+              {{ ua_parsed.pretty }}
+            </td>
+            <td class="wrap">
+              {{ ua_parsed.string }}
+            </td>
+            {% if js_ua %}
+              <td class="wrap">
+                {{ js_ua }}
+              </td>
+            {% endif %}
+            {% if js_doc_mode %}
+              <td class="wrap">
+                {{ js_doc_mode }}
+              </td>
+            {% endif %}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <br><br>
+  {% endif %}
 
-{% if ua_parsed %}
-  <br><br>
-  <h3>Result for "{{ ua_string }}"</h3>
-  <div class="rt">
-    <table>
-      <thead>
-        <th>
-          Family
-        </th>
-        <th>
-          v1
-        </th>
-        <th>
-          v2
-        </th>
-        <th>
-          v3
-        </th>
-        <th>
-          Display
-        </th>
-      </thead>
-      <tbody>
-        <tr>
-          <td>
-            {{ ua_parsed.family }}
-          </td>
-          <td>
-            {{ ua_parsed.v1 }}
-          </td>
-          <td>
-            {{ ua_parsed.v2 }}
-          </td>
-          <td>
-            {{ ua_parsed.v3 }}
-          </td>
-          <td>
-            {{ ua_parsed.pretty }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-{% endif %}
+  <form action="/ua" method="post">
+    <label for="ua-string">Browser UserAgent string</label>
+    <div>
+      <textarea name="ua" id="ua-string"
+        cols="50" rows="4">{{ ua }}</textarea>
+      {% if ua_string %}
+        <em>Automatically filled in w/ your current browser info.</em>
+      {% endif %}
+    </div>
 
+    <label for="ua-string">Javascript UserAgent string (optional)</label>
+    <div>
+      <textarea name="js_ua" id="js-ua-string"
+        cols="50" rows="4">{{ js_ua }}</textarea>
+      <script>
+        var jsUaStringEl = document.getElementById('js-ua-string');
+        if (!jsUaStringEl.value) {
+          jsUaStringEl.value = navigator.userAgent;
+        }
+        var noteEl = document.createElement('em');
+        noteEl.innerHTML = 'Automatically filled in w/ your current browser ' +
+                           'info.';
+        jsUaStringEl.parentNode.insertBefore(noteEl, jsUaStringEl.nextSibling);
+      </script>
+    </div>
+
+    <label for="ua-string">Javascript documentMode (optional)</label>
+    <div>
+      <textarea name="js_doc_mode" id="js-doc-mode"
+        cols="50" rows="4">{{ js_doc_mode }}</textarea>
+      <script>
+        var jsDocModeEl = document.getElementById('js-doc-mode');
+        if (!jsDocModeEl.value) {
+          jsDocModeEl.value = document.documentMode;
+        }
+        var noteEl = document.createElement('em');
+        noteEl.innerHTML = 'Automatically filled in w/ your current browser ' +
+                           'info.';
+        jsDocModeEl.parentNode.insertBefore(noteEl, jsDocModeEl.nextSibling);
+      </script>
+    </div>
+
+    <script>
+    _isPP = false;
+    if (window.external == null) {
+        _isPP = true;
+        if (typeof Array.prototype.indexOf != 'undefined')
+            _isPP3 = true;
+        else if (typeof document.getElementsByClassName != 'undefined')
+            _isPP2 = true;
+        else
+            _isPP1 = true;
+    }
+    alert(_isPP + ', ' + typeof window.external);
+    </script>
+
+    <div class="bs-btn-c">
+      <input type="submit" class="bs-btn">
+    </div>
+  </form>
+</div>
 {% endblock %}

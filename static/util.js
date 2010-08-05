@@ -1068,7 +1068,7 @@ Util.TestDriver.prototype.sendScore = function(testResults,
     var reFormattedResults = [];
     for (var i = 0, test; test = testResults[i]; i++) {
       reFormattedResults.push(test['test'] + '=' +
-          (test['result'] === true ? '1' : 0));
+          (test['result'] == true ? '1' : 0));
     }
     testResults = reFormattedResults;
   }
@@ -1085,7 +1085,7 @@ Util.TestDriver.prototype.sendScore = function(testResults,
       '&js_ua=' + escape(uaString);
   if (document.documentMode) {
     // Needed to detect IE 9 preview
-    data += '&doc_mode=' + document.documentMode;
+    data += '&js_doc_mode=' + document.documentMode;
   }
 
   // Autorun always shares your score.
