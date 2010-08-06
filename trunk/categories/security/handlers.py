@@ -79,10 +79,13 @@ def XFrameOptionsTest(request):
 
 def XContentTypeOptionsTest(request):
   response = HttpResponse()
-  response.write('<html>LOADED <script>top.x_content_type_options_test_fail=true;</script></html>')
   if 'nosniff' in request.GET:
     response['X-Content-Type-Options'] = 'nosniff'
   response['Content-Type'] = 'text/plain'
+  if 'html' in request.GET:
+    response.write('<html><script>top.x_content_type_options_test_fail=true;</script></html>')
+  elif 'script' in request.GET:
+    response.write('top.x_content_type_options_test_fail=true;')
   return response
 
 def OriginHeaderTest(request):
