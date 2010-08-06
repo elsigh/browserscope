@@ -10,7 +10,7 @@
     .pass .status { color: green; }
     .fail .status { color: red; }
     iframe { height: 50px; width: 80px; background-color: white; }
-    .testlink:link { color:#336699;}
+    .testlink:link { color: #A00; }
     .testlink:visited { color:#3366A0; }
     </style>
     <script>
@@ -145,6 +145,7 @@
         }
         observe(nosniff_iframe, 'load', function () {
           runTestCallback(function() {
+           // alert(realTop.x_content_type_options_test_fail);
             return !realTop.x_content_type_options_test_fail;
           });
         });
@@ -229,20 +230,20 @@
         return false;
       }
     });    
-    runTest('Block visited link sniffing', function() {      
-      var a = document.createElement("a");
-      a.href = top.document.location;
-      a.innerHTML = "";
-      a.setAttribute("class", "testlink");      
-      document.body.appendChild(a);
+    var visitedLinkCallback = newTest('Block visited link sniffing');
+    var testLink = document.createElement("a");
+    testLink.href = top.location;
+    testLink.setAttribute("class", "testlink");
+    document.body.appendChild(testLink);
+    observe(window, 'load', function() {
       var color;
-      if (a.currentStyle) {
-        color = a.currentStyle.color;
+      if (testLink.currentStyle) {
+        color = testLink.currentStyle.color;
       } else {
-        color = document.defaultView.getComputedStyle(a, "").color;
+        color = document.defaultView.getComputedStyle(testLink, "").color;
       }
       var visited = (color == 'rgb(51, 102, 160)' || color.toLowerCase() == '#3366a0');
-      return !visited;
+      visitedLinkCallback(function () { return !visited; });
     });
     commit();
     </script>
