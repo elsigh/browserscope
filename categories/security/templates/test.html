@@ -2,6 +2,7 @@
 <html>
   <head>
     <script src="{{ "config.js"|resource_path:"security" }}"></script>
+    <script src="test/xcontenttype?script&nosniff"></script>
     <style>
     #results { background: #FFF; width: 600px; padding: 10px 40px; color: #000; font-size: 11px; line-height: 1.3em; }
     body.unfinished { background-color: orange; }
@@ -133,25 +134,34 @@
     });
     function runContentTypeTest(key) {
       var runTestCallback = newTest(key);
-      var sniff_iframe = document.createElement('iframe');
-      sniff_iframe.src = 'test/xcontenttype'; // text/plain MIME
-      observe(sniff_iframe, 'load', function () {
-        var nosniff_iframe = document.createElement('iframe');
-        if (realTop.x_content_type_options_test_fail) {
-          nosniff_iframe.src = 'test/xcontenttype?nosniff'; // text/plain MIME
-          realTop.x_content_type_options_test_fail = false;
-        } else {
-          nosniff_iframe.src = NON_APP_ENGINE_BASE_URL + 'x-content-type-options.html'; // missing MIME
-        }
-        observe(nosniff_iframe, 'load', function () {
-          runTestCallback(function() {
-           // alert(realTop.x_content_type_options_test_fail);
-            return !realTop.x_content_type_options_test_fail;
-          });
+      if(!realTop.x_content_type_options_test_fail) {
+        // script in text/plain with nosniff wasn't sniffed
+        runTestCallback(function() {
+          return true;
         });
-        document.getElementById('iframes').appendChild(nosniff_iframe);
-      });
-      document.getElementById('iframes').appendChild(sniff_iframe);
+      } else {
+        var sniff_iframe = document.createElement('iframe');
+        sniff_iframe.src = 'test/xcontenttype?html';
+        realTop.x_content_type_options_test_fail = false;
+        observe(sniff_iframe, 'load', function () {
+          var nosniff_iframe = document.createElement('iframe');
+          if (realTop.x_content_type_options_test_fail) {
+            // HTML in text/plain was sniffed, test text/plain with nosniff
+            nosniff_iframe.src = 'test/xcontenttype?html&nosniff';
+            realTop.x_content_type_options_test_fail = false;
+          } else {
+            // HTML in text/plain wasn't sniffed, test empty MIME with nosniff
+            nosniff_iframe.src = NON_APP_ENGINE_BASE_URL + 'x-content-type-options.html';
+          }
+          observe(nosniff_iframe, 'load', function () {
+            runTestCallback(function() {
+              return !realTop.x_content_type_options_test_fail;
+            });
+          });
+          document.getElementById('iframes').appendChild(nosniff_iframe);
+        });
+        document.getElementById('iframes').appendChild(sniff_iframe);
+      }
     }
     runContentTypeTest('X-Content-Type-Options');
     var attack = "<script>script_ran = true<\/script>";
