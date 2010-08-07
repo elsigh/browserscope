@@ -45,6 +45,48 @@ class UserAgentTest(unittest.TestCase):
     results = query.fetch(2)
     self.assertEqual(1, len(results))
 
+    # Adds on a None param, should still only have 1 entity.
+    ua3 = UserAgent.factory(ua_string, js_user_agent_string=None)
+    self.assertEqual(ua3.key(), ua2.key())
+
+    query = db.Query(UserAgent)
+    query.filter('string =', ua_string)
+    results = query.fetch(3)
+    self.assertEqual(1, len(results))
+
+  def test_factory_with_js_none_vals(self):
+    ua_string = ('Mozilla/5.0 (X11 U Linux armv6l de-DE rv:1.9a6pre) '
+                 'Gecko/20080606 '
+                 'Firefox/3.0a1 Tablet browser 0.3.7 '
+                 'RX-34+RX-44+RX-48_DIABLO_4.2008.23-14')
+    ua1 = UserAgent.factory(ua_string)
+    self.assertNotEqual(ua1, None)
+
+    ua2 = UserAgent.factory(ua_string, js_user_agent_string=None,
+        js_user_agent_family=None, js_user_agent_v1=None)
+    self.assertEqual(ua1.key(), ua2.key())
+
+    ua3 = UserAgent.factory(ua_string, js_user_agent_string=None,
+        js_user_agent_family='', js_user_agent_v1='')
+    self.assertEqual(ua3.key(), ua2.key())
+
+  def test_factory_with_js_vals(self):
+    ua_string = ('Mozilla/5.0 (X11 U Linux armv6l de-DE rv:1.9a6pre) '
+                 'Gecko/20080606 '
+                 'Firefox/3.0a1 Tablet browser 0.3.7 '
+                 'RX-34+RX-44+RX-48_DIABLO_4.2008.23-14')
+    ua1 = UserAgent.factory(ua_string,
+        js_user_agent_family='IE Platform Preview',
+        js_user_agent_v1='9',
+        js_user_agent_v2='0',
+        js_user_agent_v3='3')
+    self.assertNotEqual(ua1, None)
+    self.assertEqual(['IE Platform Preview', 'IE Platform Preview 9',
+                      'IE Platform Preview 9.0',
+                      'IE Platform Preview 9.0.3'],
+                     ua1.get_string_list())
+
+
   def test_parse_pretty(self):
     browsers = (
         ('Chrome Frame (IE 6) 4.0.223', ('Chrome Frame (IE 6)', '4', '0', '223')),

@@ -2,7 +2,6 @@
 
 {% block body %}
 <div id="bs-ua-parser">
-  <h2>Test the UserAgent parser</h2>
 
   {% if ua_parsed %}
     <h3>
@@ -35,9 +34,24 @@
                 JS UA string
               </th>
             {% endif %}
-            {% if js_doc_mode %}
+            {% if js_user_agent_family %}
               <th>
-                JS documentMode
+                JS Family Name
+              </th>
+            {% endif %}
+            {% if js_user_agent_v1 %}
+              <th>
+                JS v1
+              </th>
+            {% endif %}
+            {% if js_user_agent_v2 %}
+              <th>
+                JS v2
+              </th>
+            {% endif %}
+            {% if js_user_agent_v3 %}
+              <th>
+                JS v3
               </th>
             {% endif %}
           </tr>
@@ -67,18 +81,33 @@
                 {{ js_ua }}
               </td>
             {% endif %}
-            {% if js_doc_mode %}
-              <td class="wrap">
-                {{ js_doc_mode }}
+            {% if js_user_agent_family %}
+              <td>
+                {{ js_user_agent_family }}
+              </td>
+            {% endif %}
+            {% if js_user_agent_v1 %}
+              <td>
+                {{ js_user_agent_v1 }}
+              </td>
+            {% endif %}
+            {% if js_user_agent_v2 %}
+              <td>
+                {{ js_user_agent_v2 }}
+              </td>
+            {% endif %}
+            {% if js_user_agent_v3 %}
+              <td>
+                {{ js_user_agent_v3 }}
               </td>
             {% endif %}
           </tr>
         </tbody>
       </table>
     </div>
-    <br><br>
   {% endif %}
 
+  <h2>Test the UserAgent parser</h2>
   <form action="/ua" method="post">
     <label for="ua-string">Browser UserAgent string</label>
     <div>
@@ -92,52 +121,77 @@
     <label for="ua-string">Javascript UserAgent string (optional)</label>
     <div>
       <textarea name="js_ua" id="js-ua-string"
-        cols="50" rows="4">{{ js_ua }}</textarea>
-      <script>
-        var jsUaStringEl = document.getElementById('js-ua-string');
-        if (!jsUaStringEl.value) {
-          jsUaStringEl.value = navigator.userAgent;
-        }
-        var noteEl = document.createElement('em');
-        noteEl.innerHTML = 'Automatically filled in w/ your current browser ' +
-                           'info.';
-        jsUaStringEl.parentNode.insertBefore(noteEl, jsUaStringEl.nextSibling);
-      </script>
+        cols="50" rows="4">{% if js_ua %}{{ js_ua }}{% endif %}</textarea>
     </div>
 
-    <label for="ua-string">Javascript documentMode (optional)</label>
+    <label for="ua-string">Javascript UserAgent override (optional)</label>
+    <small>Really just for IE Platform Preview at this time</small>
     <div>
-      <textarea name="js_doc_mode" id="js-doc-mode"
-        cols="50" rows="4">{{ js_doc_mode }}</textarea>
-      <script>
-        var jsDocModeEl = document.getElementById('js-doc-mode');
-        if (!jsDocModeEl.value) {
-          jsDocModeEl.value = document.documentMode;
-        }
-        var noteEl = document.createElement('em');
-        noteEl.innerHTML = 'Automatically filled in w/ your current browser ' +
-                           'info.';
-        jsDocModeEl.parentNode.insertBefore(noteEl, jsDocModeEl.nextSibling);
-      </script>
+      <input name="js_user_agent_family" id="js-ua-family"
+        type="text" size="20"
+        value="{% if js_user_agent_family %}{{ js_user_agent_family }}{% endif %}">
+      <input name="js_user_agent_v1" id="js-ua-v1"
+        type="text" size="1"
+        value="{% if js_user_agent_v1 %}{{ js_user_agent_v1 }}{% endif %}"
+        >.<input
+      name="js_user_agent_v2" id="js-ua-v2"
+        type="text" size="1"
+        value="{% if js_user_agent_v2 %}{{ js_user_agent_v2 }}{% endif %}"
+        >.<input
+      name="js_user_agent_v3" id="js-ua-v3"
+        type="text" size="1"
+        value="{% if js_user_agent_v3 %}{{ js_user_agent_v3 }}{% endif %}">
     </div>
-
-    <script>
-    _isPP = false;
-    if (window.external == null) {
-        _isPP = true;
-        if (typeof Array.prototype.indexOf != 'undefined')
-            _isPP3 = true;
-        else if (typeof document.getElementsByClassName != 'undefined')
-            _isPP2 = true;
-        else
-            _isPP1 = true;
-    }
-    alert(_isPP + ', ' + typeof window.external);
-    </script>
 
     <div class="bs-btn-c">
       <input type="submit" class="bs-btn">
     </div>
   </form>
 </div>
+{% ifequal build "production" %}
+  <script src="{{ "browserscope.js"|resource_path }}"></script>
+{% else %}
+  <script>var CLOSURE_NO_DEPS = true;</script>
+  <script src="{{ "dev.js"|resource_path }}"></script>
+  <script src="{{ "util.js"|resource_path }}"></script>
+{% endifequal %}
+
+
+<script>
+  // JS UA string.
+  var jsUaStringEl = document.getElementById('js-ua-string');
+  if (!jsUaStringEl.value) {
+    jsUaStringEl.value = navigator.userAgent;
+  }
+  var noteEl = document.createElement('em');
+  noteEl.innerHTML = 'Automatically filled in w/ your current browser ' +
+                     'info.';
+  jsUaStringEl.parentNode.insertBefore(noteEl, jsUaStringEl.nextSibling);
+
+  // JS UA overrides.
+  var jsUa = Util.getJsUaOverrides();
+  if (jsUa) {
+    var jsUaFamilyEl = document.getElementById('js-ua-family');
+    var jsUaV1El = document.getElementById('js-ua-v1');
+    var jsUaV2El = document.getElementById('js-ua-v2');
+    var jsUaV3El = document.getElementById('js-ua-v3');
+    if (!jsUaFamilyEl.value) {
+      jsUaFamilyEl.value = jsUa['js_user_agent_family'];
+    }
+    if (!jsUaV1El.value) {
+      jsUaV1El.value = jsUa['js_user_agent_v1'];
+    }
+    if (!jsUaV2El.value) {
+      jsUaV2El.value = jsUa['js_user_agent_v2'];
+    }
+    if (!jsUaV3El.value) {
+      jsUaV3El.value = jsUa['js_user_agent_v3'];
+    }
+    var noteEl = document.createElement('em');
+    noteEl.innerHTML =
+        'Automatically filled in w/ your current browser info.';
+    jsUaV3El.parentNode.insertBefore(noteEl, jsUaV3El.nextSibling);
+  }
+</script>
+
 {% endblock %}
