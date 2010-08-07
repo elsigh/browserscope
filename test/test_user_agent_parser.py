@@ -57,12 +57,15 @@ TEST_STRINGS = (
       'Windows NT 5.1; Trident/4.0; chromeframe; .NET CLR 2.0.50727; '
       '.NET CLR 1.1.4322; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022; '
       '.NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)'}),
-    (('IE Platform Preview', '9', '0', None),
+    (('IE Platform Preview', '9', '0', '1'),
      'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; GTB6; '
      '.NET CLR 2.0.50727; .NET CLR 1.1.4322),gzip(gfe),gzip(gfe)',
      {'js_user_agent_string': 'Mozilla/4.0 (compatible; MSIE 8.0; '
       'Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727; .NET CLR 1.1.4322)',
-      'js_document_mode': '9'}),
+      'js_user_agent_family': 'IE Platform Preview',
+      'js_user_agent_v1': '9',
+      'js_user_agent_v2': '0',
+      'js_user_agent_v3': '1'}),
     (('Midori', '0', '2', None),
       'Midori/0.2 (X11; Linux; U; en-us) WebKit/531.2 ,gzip(gfe),gzip(gfe)',
      {}),
@@ -102,28 +105,21 @@ class GetFiltersTest(unittest.TestCase):
   def testGetFiltersNoMatchesGiveEmptyDict(self):
     user_agent_string = 'foo'
     filters = user_agent_parser.GetFilters(
-        user_agent_string, js_user_agent_string=None, js_document_mode=None)
+        user_agent_string, js_user_agent_string=None)
     self.assertEqual({}, filters)
 
   def testGetFiltersJsUaPassedThrough(self):
     user_agent_string = 'foo'
     filters = user_agent_parser.GetFilters(
-        user_agent_string, js_user_agent_string='bar', js_document_mode=None)
+        user_agent_string, js_user_agent_string='bar')
     self.assertEqual({'js_user_agent_string': 'bar'}, filters)
 
-  def testGetFiltersDocumentModeForIe8Ignored(self):
+  def testGetFiltersJsUserAgentFamilyAndVersions(self):
     user_agent_string = ('Mozilla/4.0 (compatible; MSIE 8.0; '
       'Windows NT 5.1; Trident/4.0; GTB6; .NET CLR 2.0.50727; '
       '.NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)')
     filters = user_agent_parser.GetFilters(
-        user_agent_string, js_user_agent_string='bar', js_document_mode='8')
-    self.assertEqual({'js_user_agent_string': 'bar'}, filters)
-
-  def testGetFiltersDocumentModeForIe9PlatformPreviewReturned(self):
-    user_agent_string = ('Mozilla/4.0 (compatible; MSIE 8.0; '
-      'Windows NT 5.1; Trident/4.0; GTB6; .NET CLR 2.0.50727; '
-      '.NET CLR 3.0.4506.2152; .NET CLR 3.5.30729)')
-    filters = user_agent_parser.GetFilters(
-        user_agent_string, js_user_agent_string='bar', js_document_mode='9')
+        user_agent_string, js_user_agent_string='bar',
+        js_user_agent_family='foo')
     self.assertEqual({'js_user_agent_string': 'bar',
-                      'js_document_mode': '9'}, filters)
+                      'js_user_agent_family': 'foo'}, filters)

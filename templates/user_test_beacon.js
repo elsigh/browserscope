@@ -1,4 +1,47 @@
 (function() {
+    Util.getJsUaOverrides = function() {
+      var jsUa, jsFamilyName, jsV1, jsV2, jsV3;
+      var isIE = navigator.userAgent.indexOf('MSIE') != -1;
+      if (isIE && typeof document.documentMode != 'undefined') {
+        if (window.external == null) {
+            jsFamilyName = 'IE Platform Preview';
+            jsV1 = '9';
+            jsV2 = '0';
+          // Based on the code at
+          // http://ie.microsoft.com/testdrive/HTML5/DOMCapabilities/demo.js
+          if (Object.getPrototypeOf(document.createElement('div')) ==
+              HTMLDivElement.prototype) {
+            jsV3 = '4';
+          } else if (typeof Array.prototype.indexOf != 'undefined') {
+            jsV3 = '3';
+          } else if (typeof document.getElementsByClassName != 'undefined') {
+            jsV3 = '2';
+          } else {
+            jsV3 = '1';
+          }
+        }
+        else if (document.documentMode == 9) {
+          if (window.navigator.appMinorVersion.indexOf("beta") > -1) {
+            jsFamilyName = 'IE Beta';
+            jsV1 = '9';
+            jsV2 = '0';
+            jsV3 = 'beta';
+          }
+        }
+      }
+      if (jsFamilyName) {
+        // Keys match the params that our server expects.
+        jsUa = {
+          'js_user_agent_family': jsFamilyName,
+          'js_user_agent_v1': jsV1,
+          'js_user_agent_v2': jsV2,
+          'js_user_agent_v3': jsV3
+        };
+      }
+
+      return jsUa;
+    };
+
     var test_key = '{{ test_key }}';
     var csrf_token = '{{ csrf_token }}';
     if (!_bTestResults) {
@@ -48,6 +91,19 @@
       input.name = key;
       input.value = inputs[key];
       form.appendChild(input);
+    }
+
+    // JS UA overrides
+    // Needed to detect IE 9 preview.
+    var jsUa = Util.getJsUaOverrides();
+    if (jsUa) {
+      for (var key in jsUa) {
+        var input = iframeDoc.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = jsUa[key];
+        form.appendChild(input);
+      }
     }
 
     iframeDoc.body.appendChild(form);

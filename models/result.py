@@ -69,7 +69,10 @@ class ResultParent(db.Expando):
   def AddResult(cls, test_set, ip, user_agent_string, results_str,
                 is_import=False, params_str=None,
                 js_user_agent_string=None,
-                js_document_mode=None,
+                js_user_agent_family=None,
+                js_user_agent_v1=None,
+                js_user_agent_v2=None,
+                js_user_agent_v3=None,
                 skip_dirty_update=False,
                 **kwds):
     """Create result models and stores them as one transaction.
@@ -82,7 +85,12 @@ class ResultParent(db.Expando):
       is_import: if True, skip checking test_keys and do not mark dirty.
       params_str: a string representation of test_set_params.Params.
       js_user_agent_string: chrome frame ua string from client-side JavaScript.
-      js_document_mode: js document.documentMode (e.g. '9' for IE 9 preview)
+      js_user_agent_family: This is an override for the family name to deal
+          with the fact that IE platform preview (for instance) cannot be
+          distinguished by user_agent_string, but only in javascript.
+      js_user_agent_v1: v1 override - see above.
+      js_user_agent_v2: v1 override - see above.
+      js_user_agent_v3: v1 override - see above.
       skip_dirty_update: For tests, allow skipping the update-dirty task.
       kwds: optional fields including 'loader_id'.
     Returns:
@@ -95,8 +103,11 @@ class ResultParent(db.Expando):
       raise ValueError
 
     user_agent = UserAgent.factory(user_agent_string,
-                                   js_user_agent_string=js_user_agent_string,
-                                   js_document_mode=js_document_mode)
+        js_user_agent_string=js_user_agent_string,
+        js_user_agent_family=js_user_agent_family,
+        js_user_agent_v1=js_user_agent_v1,
+        js_user_agent_v2=js_user_agent_v2,
+        js_user_agent_v3=js_user_agent_v3)
     parent = cls(category=test_set.category,
                  ip=ip,
                  user_agent=user_agent,

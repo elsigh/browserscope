@@ -176,6 +176,55 @@ Util.createChromeFrameCheckbox = function(serverUaString, opt_reloadOnChange) {
   }
 };
 
+/**
+ * Does some client side user agent detection.
+ * This is really in place to deal with the IE Platform Preview version
+ * conundrum, but could easily be extended for other such things.
+ * @return {?Array.<string>}
+ */
+Util.getJsUaOverrides = function() {
+  var jsUa, jsFamilyName, jsV1, jsV2, jsV3;
+  var isIE = navigator.userAgent.indexOf('MSIE') != -1;
+  if (isIE && typeof document.documentMode != 'undefined') {
+    if (window.external == null) {
+        jsFamilyName = 'IE Platform Preview';
+        jsV1 = '9';
+        jsV2 = '0';
+      // Based on the code at
+      // http://ie.microsoft.com/testdrive/HTML5/DOMCapabilities/demo.js
+      if (Object.getPrototypeOf(document.createElement('div')) ==
+          HTMLDivElement.prototype) {
+        jsV3 = '4';
+      } else if (typeof Array.prototype.indexOf != 'undefined') {
+        jsV3 = '3';
+      } else if (typeof document.getElementsByClassName != 'undefined') {
+        jsV3 = '2';
+      } else {
+        jsV3 = '1';
+      }
+    }
+    else if (document.documentMode == 9) {
+      if (window.navigator.appMinorVersion.indexOf("beta") > -1) {
+        jsFamilyName = 'IE Beta';
+        jsV1 = '9';
+        jsV2 = '0';
+        jsV3 = 'beta';
+      }
+    }
+  }
+  if (jsFamilyName) {
+    // Keys match the params that our server expects.
+    jsUa = {
+      'js_user_agent_family': jsFamilyName,
+      'js_user_agent_v1': jsV1,
+      'js_user_agent_v2': jsV2,
+      'js_user_agent_v3': jsV3
+    };
+  }
+
+  return jsUa;
+};
+
 
 /**
  * @param {string} httpUserAgent A full user agent string - HTTP_USER_AGENT
@@ -190,8 +239,13 @@ Util.reconcileClientServerUaPretty = function(httpUserAgent, userAgentPretty) {
   if (httpUserAgent.indexOf('chromeframe') != -1 &&
       ua.indexOf('chromeframe') == -1) {
     reconciledUa = 'Chrome Frame (' + userAgentPretty + ')';
-  } else if (userAgentPretty == 'IE 8.0' && document.documentMode == 9) {
-    reconciledUa = 'IE Platform Preview 9.0';
+  } else {
+    var jsUa = Util.getJsUaOverrides();
+    if (jsUa) {
+      reconciledUa = jsUa['js_user_agent_family'] + ' ' +
+          jsUa['js_user_agent_v1'] + '.' +
+          jsUa['js_user_agent_v2'] + '.' + jsUa['js_user_agent_v3'];
+    }
   }
   return reconciledUa;
 };
@@ -1083,9 +1137,12 @@ Util.TestDriver.prototype.sendScore = function(testResults,
   var data = 'category=' + this.category + '&results=' +
       testResults.join(',') + '&csrf_token=' + this.csrfToken +
       '&js_ua=' + escape(uaString);
-  if (document.documentMode) {
-    // Needed to detect IE 9 preview
-    data += '&js_doc_mode=' + document.documentMode;
+  // Needed to detect IE 9 preview.
+  var jsUa = Util.getJsUaOverrides();
+  if (jsUa) {
+    for (var key in jsUa) {
+      data += '&' + key + '=' + escape(jsUa[key]);
+    }
   }
 
   // Autorun always shares your score.
@@ -1245,3 +1302,5 @@ goog.exportSymbol('Util.TestDriver.prototype.runTest',
 goog.exportSymbol('Util.TestDriver.prototype.sendScore',
     Util.TestDriver.prototype.sendScore);
 goog.exportSymbol('goog.net.XhrIo.send', goog.net.XhrIo.send);
+goog.exportSymbol('Util.getJsUaOverrides', Util.getJsUaOverrides);
+

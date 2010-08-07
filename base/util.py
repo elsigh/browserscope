@@ -82,10 +82,16 @@ def Render(request, template, params={}, category=None):
   params['current_ua_string'] = request.META.get('HTTP_USER_AGENT')
   if params['current_ua_string']:
     js_user_agent_string = request.REQUEST.get('js_ua')
-    js_document_mode = request.REQUEST.get('js_doc_mode')
+    js_user_agent_family = request.REQUEST.get('js_user_agent_family')
+    js_user_agent_v1 = request.REQUEST.get('js_user_agent_v1')
+    js_user_agent_v2 = request.REQUEST.get('js_user_agent_v2')
+    js_user_agent_v3 = request.REQUEST.get('js_user_agent_v3')
     ua = models.user_agent.UserAgent.factory(params['current_ua_string'],
         js_user_agent_string=js_user_agent_string,
-        js_document_mode=js_document_mode)
+        js_user_agent_family=js_user_agent_family,
+        js_user_agent_v1=js_user_agent_v1,
+        js_user_agent_v2=js_user_agent_v2,
+        js_user_agent_v3=js_user_agent_v3)
     #params['current_ua'] = ua.pretty()
     params['current_ua'] = ua
   params['chromeframe_enabled'] = request.COOKIES.get(
@@ -220,23 +226,36 @@ def UaParser(request):
 
   ua_parsed = None
   ua_string = request.REQUEST.get('ua')
-  js_user_agent_string = request.REQUEST.get('js_ua', '')
-  js_document_mode = request.REQUEST.get('js_doc_mode', '')
-  if js_document_mode == 'undefined':
-    js_document_mode = ''
+  js_user_agent_string = request.REQUEST.get('js_ua')
+  js_user_agent_family = request.REQUEST.get('js_user_agent_family')
+  js_user_agent_v1 = request.REQUEST.get('js_user_agent_v1')
+  js_user_agent_v2 = request.REQUEST.get('js_user_agent_v2')
+  js_user_agent_v3 = request.REQUEST.get('js_user_agent_v3')
+  #logging.info('js_ua "%s"' % js_user_agent_string)
+  #logging.info('js_user_agent_family "%s"' % js_user_agent_family)
+  #logging.info('js_user_agent_v1 %s' % js_user_agent_v1)
+  #logging.info('js_user_agent_v2 %s' % js_user_agent_v2)
+  #logging.info('js_user_agent_v3 %s' % js_user_agent_v3)
 
   if ua_string:
     ua_parsed = models.user_agent.UserAgent.factory(ua_string,
         js_user_agent_string=js_user_agent_string,
-        js_document_mode=js_document_mode)
+        js_user_agent_family=js_user_agent_family,
+        js_user_agent_v1=js_user_agent_v1,
+        js_user_agent_v2=js_user_agent_v2,
+        js_user_agent_v3=js_user_agent_v3)
+    #logging.info('ua_string: %s, ua_parsed: %s' %(ua_string, ua_parsed.pretty()))
   else:
     ua_string = request.META.get('HTTP_USER_AGENT')
 
   params = {
     'ua': ua_string,
-    'js_ua': js_user_agent_string,
-    'js_doc_mode': js_document_mode,
     'ua_parsed': ua_parsed,
+    'js_ua': js_user_agent_string,
+    'js_user_agent_family': js_user_agent_family,
+    'js_user_agent_v1': js_user_agent_v1,
+    'js_user_agent_v2': js_user_agent_v2,
+    'js_user_agent_v3': js_user_agent_v3
   }
 
   # HTML form
@@ -558,7 +577,10 @@ def Beacon(request, category_id=None):
   category = request.REQUEST.get('category')
   user_agent_string = request.META.get('HTTP_USER_AGENT')
   js_user_agent_string = request.REQUEST.get('js_ua')
-  js_document_mode = request.REQUEST.get('doc_mode')
+  js_user_agent_family = request.REQUEST.get('js_user_agent_family')
+  js_user_agent_v1 = request.REQUEST.get('js_user_agent_v1')
+  js_user_agent_v2 = request.REQUEST.get('js_user_agent_v2')
+  js_user_agent_v3 = request.REQUEST.get('js_user_agent_v3')
   callback = request.REQUEST.get('callback')
   results_str = request.REQUEST.get('results')
   params_str = request.REQUEST.get('params')
@@ -605,7 +627,10 @@ def Beacon(request, category_id=None):
       test_set, ip_hash, user_agent_string, results_str,
       params_str=params_str,
       js_user_agent_string=js_user_agent_string,
-      js_document_mode=js_document_mode)
+      js_user_agent_family=js_user_agent_family,
+      js_user_agent_v1=js_user_agent_v1,
+      js_user_agent_v2=js_user_agent_v2,
+      js_user_agent_v3=js_user_agent_v3)
   if not result_parent:
     return http.HttpResponse(BAD_BEACON_MSG + 'ResultParent')
 
@@ -911,6 +936,8 @@ def UpdateDatastore(request):
   """Generic datastore munging routine."""
 
   query = db.Query(models.user_agent.UserAgent)
+  query.filter('family =', 'IE')
+  query.filter('v1 =', '9')
   key = request.GET.get('key')
   if key:
     query.filter('__key__ >', db.Key(key))
@@ -920,6 +947,8 @@ def UpdateDatastore(request):
     return http.HttpResponse('All Done!')
 
   # Do something with user_agent here.
+  user_agent.family = 'IE Platform Preview'
+  user_agent.save()
 
   params = {
     'next_url': '/update_datastore?key=%s' % user_agent.key(),
