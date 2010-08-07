@@ -39,7 +39,7 @@ TOP_BROWSERS = (
   'Android 2.2',
   'Chrome 5', 'Chrome 6',
   'Firefox 3.6', 'Firefox 4.0',
-  'IE 8', 'IE 9',
+  'IE 8', 'IE Platform Preview 9.0.4',
   'iPhone 3.1', 'iPhone 4.0',
   'Opera 10.60',
   'Safari 4.0', 'Safari 5.0'
