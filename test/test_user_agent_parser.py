@@ -84,11 +84,21 @@ TEST_STRINGS = (
      '(KHTML, like Gecko) Version/1.0 Safari/525.27.1 '
      'Desktop/1.0,gzip(gfe),gzip(gfe)', {}),
     (('iPad', '3', '2', None),
-      'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) ' 'AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B367 ' 'Safari/531.21.10,gzip(gfe),gzip(gfe)', {}),
+      'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) '
+      'AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B367 '
+      'Safari/531.21.10,gzip(gfe),gzip(gfe)', {}),
     (('Dolfin', '2', '0', None),
-      'Mozilla/5.0 (SAMSUNG; SAMSUNG-GT-S8500/S8500XXJEE; U; Bada/1.0; nl-nl) AppleWebKit/533.1 (KHTML, like Gecko) Dolfin/2.0 Mobile WVGA SMM-MMS/1.2.0 OPN-B', {}),
+      'Mozilla/5.0 (SAMSUNG; SAMSUNG-GT-S8500/S8500XXJEE; U; Bada/1.0; nl-nl) '
+      'AppleWebKit/533.1 (KHTML, like Gecko) Dolfin/2.0 Mobile WVGA '
+      'SMM-MMS/1.2.0 OPN-B', {}),
     (('BOLT', '2', '101', None),
-      'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; BOLT/2.101) ' 'AppleWebKit/530  (KHTML, like Gecko) Version/4.0 ' 'Safari/530.17,gzip(gfe),gzip(gfe)', {}),
+      'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; BOLT/2.101) '
+      'AppleWebKit/530  (KHTML, like Gecko) Version/4.0 '
+      'Safari/530.17,gzip(gfe),gzip(gfe)', {}),
+    (('Blackberry', '6', '0', '0'),
+      'Mozilla/5.0 (BlackBerry; U; BlackBerry 9800; en-GB) AppleWebKit/534.1+ '
+      '(KHTML, like Gecko) Version/6.0.0.141 Mobile '
+      'Safari/534.1+,gzip(gfe),gzip(gfe)', {}),
 )
 
 
