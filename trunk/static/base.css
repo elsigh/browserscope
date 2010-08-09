@@ -865,7 +865,7 @@ th,
   font-size: 90%;
   color: #ccc;
 }
-#bs-ua-parser td.wrap {
-  white-space: normal;
-  width: 20%;
+td.wrap {
+  white-space: normal !important;
+  width: 20% !important;
 }

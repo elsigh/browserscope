@@ -136,8 +136,8 @@ def ConfirmUa(request):
   """Confirm User-Agents"""
 
   search_browser = request.REQUEST.get('browser', '')
-  search_unconfirmed = request.REQUEST.get('unconfirmed', True)
-  search_confirmed = request.REQUEST.get('confirmed', False)
+  confirmed = request.REQUEST.get('confirmed')
+  search_confirmed = confirmed == 'on'
   search_changed = request.REQUEST.get('changed', False)
 
   if 'search' in request.REQUEST:
@@ -145,26 +145,40 @@ def ConfirmUa(request):
   elif 'submit' in request.REQUEST:
     return SubmitChanges(request)
 
-  user_agents = UserAgent.all().order('string').fetch(1000)
-  user_agents = user_agents[:10]
+  user_agents = db.Query(UserAgent)
 
-  for ua in user_agents:
-    match_spans = UserAgent.MatchSpans(ua.string)
-    ua.match_strings = []
-    last_pos = 0
-    for start, end in match_spans:
-      if start > last_pos:
-        ua.match_strings.append((False, ua.string[last_pos:start]))
-      ua.match_strings.append((True, ua.string[start:end]))
-      last_pos = end
-    if len(ua.string) > last_pos:
-      ua.match_strings.append((False, ua.string[last_pos:]))
+  if search_browser != '':
+    string_list = UserAgent.parse_to_string_list(search_browser)
+    logging.info('string_list: %s' % string_list)
+    ua_bits = ['family', 'v1', 'v2', 'v3']
+    for index, item in enumerate(string_list):
+      logging.info('adding %s=%s' % (ua_bits[index], item))
+      user_agents.filter('%s =' % ua_bits[index], item)
+
+  user_agents.filter('confirmed =', search_confirmed)
+
+  #user_agents.order('string')
+  user_agents.order('-created')
+  user_agents.fetch(1000)
+  user_agents = user_agents[:20]
+  logging.info('UA: %s' % user_agents)
+
+  # for ua in user_agents:
+  #   match_spans = UserAgent.MatchSpans(ua.string)
+  #   ua.match_strings = []
+  #   last_pos = 0
+  #   for start, end in match_spans:
+  #     if start > last_pos:
+  #       ua.match_strings.append((False, ua.string[last_pos:start]))
+  #     ua.match_strings.append((True, ua.string[start:end]))
+  #     last_pos = end
+  #   if len(ua.string) > last_pos:
+  #     ua.match_strings.append((False, ua.string[last_pos:]))
 
   params = {
     'page_title': 'Confirm User-Agents',
     'user_agents': user_agents,
     'search_browser': search_browser,
-    'search_unconfirmed': search_unconfirmed,
     'search_confirmed': search_confirmed,
     'search_changed': search_changed,
     'csrf_token': request.session['csrf_token'],
