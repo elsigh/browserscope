@@ -1,5 +1,5 @@
 (function() {
-    Util.getJsUaOverrides = function() {
+    var getJsUaOverrides = function() {
       var jsUa, jsFamilyName, jsV1, jsV2, jsV3;
       var isIE = navigator.userAgent.indexOf('MSIE') != -1;
       if (isIE && typeof document.documentMode != 'undefined') {
@@ -95,7 +95,7 @@
 
     // JS UA overrides
     // Needed to detect IE 9 preview.
-    var jsUa = Util.getJsUaOverrides();
+    var jsUa = getJsUaOverrides();
     if (jsUa) {
       for (var key in jsUa) {
         var input = iframeDoc.createElement('input');

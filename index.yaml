@@ -15,3 +15,9 @@ indexes:
   - name: category
   - name: created
     direction: desc
+
+- kind: UserAgent
+  properties:
+  - name: confirmed
+  - name: created
+    direction: desc
