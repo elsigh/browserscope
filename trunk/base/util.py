@@ -416,7 +416,7 @@ def Browsers(request):
        'getting_involved': 'http://www.chromium.org/getting-involved'},
       {'name': 'Firefox/Mozilla',
        'file_bug': 'https://bugzilla.mozilla.org/enter_bug.cgi?product=Core',
-       'latest_build': 'http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/',
+       'latest_build': 'http://nightly.mozilla.org/',
        'blog': 'http://hacks.mozilla.org',
        'getting_involved': 'http://www.mozilla.org/contribute/'},
       {'name': 'IE',
