@@ -19,5 +19,6 @@ indexes:
 - kind: UserAgent
   properties:
   - name: confirmed
+  - name: family
   - name: created
     direction: desc
