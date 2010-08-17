@@ -86,7 +86,8 @@ a.bs-btn,
 .bs-btn-disabled {
   background: #222;
 }
-.bs-btn:hover {
+.bs-btn:hover,
+.bs-btn:focus {
   text-decoration: underline;
   cursor: pointer;
 }
@@ -204,7 +205,8 @@ a.bs-admin {
   margin-right: .2em;
   white-space: nowrap;
 }
-#bs-nav a:hover {
+#bs-nav a:hover,
+#bs-nav a:focus {
   text-decoration: underline;
 }
 #bs-nav-sub a,
@@ -228,7 +230,8 @@ a.bs-admin {
   padding: 3px 5px;
   text-decoration: none;
 }
-#bs-nav-cats a:hover {
+#bs-nav-cats a:hover,
+#bs-nav-cats a:focus {
   text-decoration: none;
 }
 #bs-nav-cats li ul {
@@ -292,7 +295,8 @@ a.bs-admin {
   -webkit-border-top-right-radius: 0;
   -webkit-border-top-left-radius: 0;
 }
-#bs-nav-cats li:hover li a:hover {
+#bs-nav-cats li:hover li a:hover,
+#bs-nav-cats li:hover li a:focus {
   background: #eee;
 }
 #bs-nav-cats li li {
@@ -601,7 +605,8 @@ th,
   margin-left: .5em;
   text-decoration: none;
 }
-.rt-ua a:hover {
+.rt-ua a:hover,
+.rt-ua a:focus {
   text-decoration: underline;
 }
 .rt td.rt-ua,
