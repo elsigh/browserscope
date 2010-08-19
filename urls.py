@@ -162,6 +162,7 @@ urlpatterns = patterns('',
 
   # Rich text 2 urls
   (r'^richtext2/about$', 'categories.richtext2.handlers.About'),
+  (r'^richtext2/run$', 'categories.richtext2.handlers.RunRichText2Tests'),
 
   # Security urls
   (r'^security/about$', 'categories.security.handlers.About'),

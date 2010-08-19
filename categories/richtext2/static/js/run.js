@@ -2,7 +2,19 @@
  * @fileoverview 
  * Main functions used in running the RTE test suite.
  *
- * TODO: license! $$$
+ * Copyright 2010 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the 'License')
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * @version 0.1
  * @author rolandsteiner@google.com
@@ -35,48 +47,75 @@ function runSingleTest() {
     return RESULT_SETUP_EXCEPTION;
   }
 
-  // 2.) Run the test command or function.
-  var cmd = getTestParameter(PARAM_COMMAND);
-  if (cmd) {
-    try {
-      if (typeof cmd == 'string') {
-        // Note: "getTestParameter(PARAM_VALUE) || null" doesn't work, since
-        // value might be the empty string - e.g., for 'insertText'!
-        var value = getTestParameter(PARAM_VALUE);
-        if (value === undefined) {
-          value = null;
-        }
-        editorDoc.execCommand(cmd, false, value);
-      } else if (typeof cmd == 'function') {
-        cmd();
-      }
-    } catch (ex) {
-      var lvl = getTestParameter(PARAM_ALLOW_EXCEPTION)
-                    ? RESULT_EQUAL 
-                    : RESULT_EXECUTION_EXCEPTION;
-      outputSingleTestResult('Exception: ' + ex.toString(), lvl);
-      return lvl;
-    }
-  }
+  // 2.) Run the test command, general function or query function.
+  var cmd    = undefined;
+  var output = SETUP_NOCOMMAND_EXCEPTION;
+  var lvl    = RESULT_SETUP_EXCEPTION;
 
-  // 3.) Verify test result.
   try {
-    prepareTestResult();
-    var lvl = compareTestResult();
-    var output = canonicalizeElementsAndAttributes(currentResultHTML,
-                                                   {emitAttrs:         true,
-                                                    emitStyle:         true,
-                                                    emitClass:         true,
-                                                    emitID:            true,
-                                                    lowercase:         false,
-                                                    canonicalizeUnits: false});
-    outputSingleTestResult(output, lvl);
-    return lvl;
+    if (cmd = getTestParameter(PARAM_COMMAND)) {
+      // Note: "getTestParameter(PARAM_VALUE) || null" doesn't work, since
+      // value might be the empty string - e.g., for 'insertText'!
+      var value = getTestParameter(PARAM_VALUE);
+      if (value === undefined) {
+        value = null;
+      }
+      editorDoc.execCommand(cmd, false, value);
+    } else if (cmd = getTestParameter(PARAM_FUNCTION)) {
+      cmd();
+    } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDSUPPORTED)) {
+      output = editorDoc.queryCommandSupported(cmd);
+    } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDENABLED)) {
+      output = editorDoc.queryCommandEnabled(cmd);
+    } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDINDETERM)) {
+      output = editorDoc.queryCommandIndeterm(cmd);
+    } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDSTATE)) {
+      output = editorDoc.queryCommandState(cmd);
+    } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDVALUE)) {
+      output = editorDoc.queryCommandValue(cmd);
+    }
+
+    // 3.) Verify test result
+    if (cmd) {
+      if (getTestParameter(PARAM_COMMAND) || getTestParameter(PARAM_FUNCTION)) {
+        try {
+          prepareTestResult();
+          lvl = compareHTMLTestResult();
+          output = canonicalizeElementsAndAttributes(currentResultHTML,
+                                                     { emitAttrs:         true,
+                                                       emitStyle:         true,
+                                                       emitClass:         true,
+                                                       emitID:            true,
+                                                       lowercase:         false,
+                                                       canonicalizeUnits: false });
+        } catch (ex) {
+          output = 'Verification exception: ' + ex.toString();
+          lvl = RESULT_VERIFICATION_EXCEPTION;
+        }
+      } else {
+        if (output === false && getTestParameter(PARAM_QUERYCOMMANDVALUE)) {
+          // A return value of boolean 'false' for queryCommandValue means
+          // 'not supported'.
+          //
+          // TODO(rolandsteiner): Color such a result purple? 
+          // However, no exception was thrown...
+          lvl = RESULT_UNSUPPORTED;
+          output = '<i>false</i> (UNSUPPORTED)';
+        } else {
+          lvl = compareTextTestResult(output);
+        }
+      }
+    }
   } catch (ex) {
-    outputSingleTestResult('Verification exception: ' + ex.toString(),
-                           RESULT_VERIFICATION_EXCEPTION);
-    return RESULT_VERIFICATION_EXCEPTION;
+    output = ex.toString()
+    lvl = getTestParameter(PARAM_ALLOW_EXCEPTION)
+              ? RESULT_EQUAL 
+              : RESULT_EXECUTION_EXCEPTION;
   }
+  
+  // 4.) Output the result
+  outputSingleTestResult(output, lvl);
+  return lvl;
 }
 
 /**
@@ -86,6 +125,7 @@ function runSingleTest() {
  */
 function runTestSuite(suite) {
   currentSuite = suite;
+  currentSuiteScoreID = currentSuite.id + '-score';
 
   try {
     var classCount = testClassIDs.length;
@@ -101,24 +141,20 @@ function runTestSuite(suite) {
       scoresStrict[currentSuite.id][testClass]  = 0;
     }
     
-    outputTestSuiteHeader();
-  
     for (var cls = 0; cls < classCount; ++cls) {
       currentClassID = testClassIDs[cls];
+      currentClassScoreID = currentSuite.id + '-' + currentClassID + '-score';
 
       try {
-        currentClass = currentSuite['tests' + currentClassID];
+        currentClass = currentSuite[currentClassID];
         if (!currentClass) {
           continue;
         }
 
-        outputTestClassHeader();
-        outputTestTableHeader();
-
         currentBackgroundShade = 'Lo';
-        for (currentTestID in currentClass) {
-          currentTest = currentClass[currentTestID];
-          currentID = currentSuite.id + '-' + currentTestID;
+        for (testIdx = 0; testIdx < currentClass.length; ++testIdx) {
+          currentTest = currentClass[testIdx];
+          currentID = commonIDPrefix + '-' + currentSuite.id + '-' + currentTest.id;
           ++counts[currentSuite.id].total;
           ++counts[currentSuite.id][currentClassID];
           var result = runSingleTest();
@@ -156,32 +192,10 @@ function runTestSuite(suite) {
     }
 
     outputTestSuiteScores();
-
-  } catch (ex) {
-    // An exception shouldn't really happen here!
-    alert('Exception when running the suite "' + currentSuite.id +
+    } catch (ex) {
+      // An exception shouldn't really happen here!
+     alert('Exception when running the suite "' + currentSuite.id +
           '" ("' + currentSuite.caption + '"): ' + ex.toString());
   }
 }
 
-/**
- * Runs all tests in all suites.
- */
-function runTests() {
-  initEditorDoc();
-
-  // The test suites to be run.
-  runTestSuite(SELECTION_TESTS);
-  runTestSuite(APPLY_TESTS);
-  runTestSuite(APPLY_TESTS_CSS);
-  runTestSuite(UNAPPLY_TESTS);
-  runTestSuite(UNAPPLY_TESTS_CSS);
-  runTestSuite(CHANGE_TESTS);
-  runTestSuite(CHANGE_TESTS_CSS);
-  runTestSuite(DELETE_TESTS);
-  runTestSuite(FORWARDDELETE_TESTS);
-  runTestSuite(INSERT_TESTS);
-
-  // Remove testing IFrame once all tests have finished.
-  editorElem.parentNode.removeChild(editorElem);
-}

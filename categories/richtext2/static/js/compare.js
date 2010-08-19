@@ -2,7 +2,19 @@
  * @fileoverview 
  * Comparison functions used in the RTE test suite.
  *
- * TODO: license! $$$
+ * Copyright 2010 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the 'License')
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * @version 0.1
  * @author rolandsteiner@google.com
@@ -19,7 +31,7 @@
  * @return {Integer} one of the RESULT_... return values
  * @see variables.js for return values
  */
-function compareTestResultToSingleExpectation(expected, actual, checkSel) {
+function compareHTMLTestResultToSingleHTMLExpectation(expected, actual, checkSel) {
   // If the test checks the selection, then the actual string must match the
   // expectation exactly.
   if (checkSel && expected == actual) {
@@ -36,16 +48,16 @@ function compareTestResultToSingleExpectation(expected, actual, checkSel) {
     // as fully conformant. Flag selection differences otherwise.
     return checkSel ? RESULT_SELECTION_DIFFS : RESULT_EQUAL;
   }
-  return RESULT_HTML_DIFFS;
+  return RESULT_DIFFS;
 }
 
 /**
- * Compare the current test result to the expectation string(s).
+ * Compare the current HTMLtest result to the expectation string(s).
  *
  * @return {Integer} one of the RESULT_... return values
  * @see variables.js for return values
  */
-function compareTestResult() {
+function compareHTMLTestResult() {
   var checkSel = getTestParameter(PARAM_CHECK_SELECTION);
   var emitFlags = {emitAttrs:         getTestParameter(PARAM_CHECK_ATTRIBUTES),
                    emitStyle:         getTestParameter(PARAM_CHECK_STYLE),
@@ -59,7 +71,7 @@ function compareTestResult() {
   // Remove closing tags </hr>, </br> for comparison.
   actual = actual.replace(/<\/[hb]r>/g, '');
   // Remove text node markers for comparison.
-  actual = actual.replace(/[`´]/g, '');
+  actual = actual.replace(/[\x60\xb4]/g, '');
   // Canonicalize result.
   actual = canonicalizeElementsAndAttributes(actual, emitFlags);
 
@@ -74,13 +86,13 @@ function compareTestResult() {
   
   // Find the most favorable result among the possible expectation strings.
   var count = expectedArr.length;
-  var best = RESULT_HTML_DIFFS;
+  var best = RESULT_DIFFS;
   for (var idx = 0; idx < count; ++idx) {
     var expected = canonicalizeSpaces(expectedArr[idx]);
     expected = canonicalizeElementsAndAttributes(expected, emitFlags);
     // FIXME: The RegExp below is probably too simple and
     // may trigger on attribute values, etc.
-    var result = compareTestResultToSingleExpectation(
+    var result = compareHTMLTestResultToSingleHTMLExpectation(
                      expected,
                      actual,
                      checkSel != false &&
@@ -94,6 +106,61 @@ function compareTestResult() {
     }
   }
   return best;
+}
+
+/**
+ * Compare the passed-in text test result to the expectation string(s).
+ *
+ * @param {String/Boolean} actual value
+ * @return {Integer} one of the RESULT_... return values
+ * @see variables.js for return values
+ */
+function compareTextTestResult(actual) {
+  // Treat a single test expectation string as an array of 1 expectation.
+  var expectedSpec = getTestParameter(PARAM_EXPECTED);
+  var expectedArr;
+  switch (typeof expectedSpec) {
+    case 'string':
+    case 'boolean':
+      expectedArr = [expectedSpec];
+      break;
+      
+    default:
+      expectedArr = expectedSpec;
+      break;
+  }
+  
+  // Find the most favorable result among the possible expectation strings.
+  var count = expectedArr.length;
+  switch (getTestParameter(PARAM_QUERYCOMMANDVALUE)) {
+    case 'backcolor':
+    case 'forecolor':
+    case 'hilitecolor':
+      for (var idx = 0; idx < count; ++idx) {
+        if (Color(actual) == Color(expectedArr[idx])) {
+          return RESULT_EQUAL;
+        }
+      }
+      return RESULT_DIFFS;
+    
+    case 'fontsize':
+      for (var idx = 0; idx < count; ++idx) {
+        if (Size(actual) == Size(expectedArr[idx])) {
+          return RESULT_EQUAL;
+        }
+      }
+      return RESULT_DIFFS;
+    
+    default:
+      for (var idx = 0; idx < count; ++idx) {
+        if (actual === expectedArr[idx]) {
+          return RESULT_EQUAL;
+        }
+      }
+     return RESULT_DIFFS;
+  }
+  
+  return RESULT_DIFFS;
 }
 
 /**

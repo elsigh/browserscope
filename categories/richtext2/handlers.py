@@ -36,8 +36,21 @@ from categories import all_test_sets
 from base import decorators
 from base import util
 
+# common to the RichText2 suite
+from categories.richtext2 import common
 
-CATEGORY = 'richtext2'
+# tests
+from categories.richtext2.tests.apply         import APPLY_TESTS
+from categories.richtext2.tests.applyCSS      import APPLY_TESTS_CSS
+from categories.richtext2.tests.change        import CHANGE_TESTS
+from categories.richtext2.tests.changeCSS     import CHANGE_TESTS_CSS
+from categories.richtext2.tests.delete        import DELETE_TESTS
+from categories.richtext2.tests.forwarddelete import FORWARDDELETE_TESTS
+from categories.richtext2.tests.insert        import INSERT_TESTS
+from categories.richtext2.tests.query         import QUERY_TESTS
+from categories.richtext2.tests.selection     import SELECTION_TESTS
+from categories.richtext2.tests.unapply       import UNAPPLY_TESTS
+from categories.richtext2.tests.unapplyCSS    import UNAPPLY_TESTS_CSS
 
 
 def About(request):
@@ -53,10 +66,35 @@ def About(request):
   contenteditable region, which is even harder for browsers to properly
   format. These tests check how well the execCommand, queryCommandState,
   and queryCommandValue functions work with different types of HTML."""
-  return util.About(request, CATEGORY, category_title='Rich Text 2',
+  return util.About(request, common.CATEGORY, category_title='Rich Text 2',
                     overview=overview, show_hidden=False)
 
 
-def EditableIframe(request):
-  params = {}
-  return shortcuts.render_to_response('richtext2/templates/editable.html', params)
+#def EditableIframe(request):
+#  params = {}
+#  return shortcuts.render_to_response('richtext2/templates/editable.html', params)
+
+
+def RunRichText2Tests(request):
+  params = {
+    'classes': common.CLASSES,
+    'commonIDPrefix': common.TEST_ID_PREFIX,
+    'strict': False,
+    'suites': [
+      SELECTION_TESTS,
+      APPLY_TESTS,
+      APPLY_TESTS_CSS,
+      CHANGE_TESTS,
+      CHANGE_TESTS_CSS,
+      UNAPPLY_TESTS,
+      UNAPPLY_TESTS_CSS,
+      DELETE_TESTS,
+      FORWARDDELETE_TESTS,
+      INSERT_TESTS,
+      QUERY_TESTS
+    ]
+  }
+  return shortcuts.render_to_response('%s/templates/richtext2.html' % common.CATEGORY, params)
+
+
+

@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html> 
+<html lang="en"> 
+
+<head> 
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
+  <title>New Rich Text Tests</title>
+
+  <link rel="stylesheet" href="static/common.css" type="text/css">
+
+  <!-- utility scripts -->
+  <script src="static/js/variables.js"></script> 
+
+  <script src="static/js/canonicalize.js"></script> 
+  <script src="static/js/compare.js"></script> 
+  <script src="static/js/output.js"></script> 
+  <script src="static/js/pad.js"></script> 
+  <script src="static/js/range.js"></script> 
+  <script src="static/js/units.js"></script> 
+
+  <script src="static/js/run.js"></script> 
+
+  <!-- new tests -->
+  <script type="text/javascript">
+    {% autoescape off %}
+    var True = true;
+    var False = false;
+    var commonIDPrefix = '{{ commonIDPrefix }}';
+    {% for s in suites %}
+    var {{ s.id }}_TESTS = {{ s }};
+    {% endfor %} 
+    
+    /**
+     * Runs all tests in all suites.
+     */
+    function runTests() {
+      initEditorDoc();
+
+      // The test suites to be run.
+      {% for s in suites %}
+      runTestSuite({{ s.id }}_TESTS);
+      {% endfor %}
+
+      // Remove testing IFrame once all tests have finished.
+      var e = document.getElementById('editor');
+      e.parentNode.removeChild(e);
+
+      var continueParams = [
+        'selection='     + scores{{ strict|yesno:'Strict,Partial' }}['S'].total,
+        'apply='         + scores{{ strict|yesno:'Strict,Partial' }}['A'].total,
+        'applyCSS='      + scores{{ strict|yesno:'Strict,Partial' }}['AC'].total,
+        'unapply='       + scores{{ strict|yesno:'Strict,Partial' }}['U'].total,
+        'unapplyCSS='    + scores{{ strict|yesno:'Strict,Partial' }}['UC'].total,
+        'change='        + scores{{ strict|yesno:'Strict,Partial' }}['C'].total,
+        'changeCSS='     + scores{{ strict|yesno:'Strict,Partial' }}['CC'].total,
+        'delete='        + scores{{ strict|yesno:'Strict,Partial' }}['D'].total,
+        'forwarddelete=' + scores{{ strict|yesno:'Strict,Partial' }}['FD'].total,
+        'insert='        + scores{{ strict|yesno:'Strict,Partial' }}['I'].total,
+        'query='         + scores{{ strict|yesno:'Strict,Partial' }}['Q'].total
+      ];
+      parent.sendScore(beaconPartial, continueParams);
+    }
+    {% endautoescape %}
+  </script>  
+</head> 
+
+<body onload="runTests()">
+  {% include "richtext2/templates/output.html" %}
+  <hr>
+  <iframe name="editor" id="editor" src="static/editable.html"></iframe>
+  <!--<div id="editor" contentEditable="true"></div>-->
+</body> 
+</html> 
