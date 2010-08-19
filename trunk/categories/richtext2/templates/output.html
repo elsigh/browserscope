@@ -1,0 +1,49 @@
+﻿{% for s in suites %}
+  <H1 ID="{{ s.id }}"><A NAME="{{ s.id }}" HREF="#{{ s.id }}">{{ s.id }}</A> - {{ s.caption }}: <SPAN ID="{{ s.id }}-score">?/?/?</SPAN></H1>
+  {% if s.comment %}
+  <DIV CLASS="comment">{{ s.comment|safe }}</DIV>
+  {% endif %}
+  {% for c in classes %}{% for pn, pv in s.items %}{% ifequal pn c %}
+  <H2 ID="{{ s.id }}-{{ c }}"><A NAME="{{ s.id }}-{{ c }}" HREF="#{{ s.id }}-{{ c }}">{{ c }} Tests</A>: <SPAN ID="{{ s.id }}-{{ c }}-score">?/?/?</SPAN></H2>
+  <TABLE WIDTH=100%>
+    <THEAD>
+      <TR>
+        <TH>ID</TH>
+        <TH>Command</TH>
+        <TH>Value</TH>
+        <TH TITLE="styleWithCSS set?">C</TH>
+        <TH TITLE="check Atributes?">A</TH>
+        <TH TITLE="check Style">S</TH>
+        <TH TITLE="check Selection?">^</TH>
+        <TH>Status</TH>
+        <TH>Initial</TH>
+        <TH>Expected</TH>
+        <TH>Actual (lower case, canonicalized, selection marks)</TH>
+        <TH>Description</TH>
+      </TR>
+    </THEAD>
+    <TBODY>
+      {% for t in pv %}
+      <TR ID="{{ commonIDPrefix }}-{{ s.id }}-{{ t.id }}" CLASS="greyBk{% cycle 'Lo' 'Hi' %}">
+        <TD><A CLASS="idLabel" NAME="{{ commonIDPrefix }}-{{ s.id }}-{{ t.id }}" HREF="#{{ commonIDPrefix }}-{{ s.id }}-{{ t.id }}">{{ commonIDPrefix }}-{{ s.id }}-{{ t.id }}</A></TD>
+        <TD>&nbsp;</TD>
+        <TD>&nbsp;</TD>
+        <TD>&nbsp;</TD>
+        <TD>&nbsp;</TD>
+        <TD>&nbsp;</TD>
+        <TD>&nbsp;</TD>
+        <TD>NONE</TD>
+        <TD>&nbsp;</TD>
+        <TD>&nbsp;</TD>
+        <TD><I>Processing...</I></TD>
+        <TD>{{ t.desc|default:"&nbsp;" }}</TD>
+      </TR>
+      {% endfor %}
+    </TBODY>
+  </TABLE>
+  {% endifequal %}{% endfor %}{% endfor %} 
+{% endfor %} 
+
+
+
+

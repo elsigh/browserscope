@@ -15,6 +15,9 @@
   background-color: #f0b0ff;
 }
 
+.greyBkLo {
+  background-color: #dddddd;
+}
 .successBkLo {
   background-color: #d4ffc0;
 }
@@ -28,6 +31,9 @@
   background-color: #fadcff;
 }
 
+.greyBkHi {
+  background-color: #eeeeee;
+}
 .successBkHi {
   background-color: #e0ffdc;
 }
@@ -50,10 +56,14 @@
   margin: 1px;
   border: 1px solid #b0b0b0;
 }
+
+.idLabel {
+  font-size: small;
+}
+
 .fade {
   color: grey;
 }
-
 .comment {
   color: grey;
 }
