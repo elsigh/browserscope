@@ -72,7 +72,7 @@ class TestModels(unittest.TestCase):
     self.assertEqual('test_2', test_set.tests[1].key)
 
 
-class TestHandlers(unittest.TestCase):
+class TestBasics(unittest.TestCase):
 
   def setUp(self):
     self.client = Client()
@@ -114,18 +114,32 @@ class TestHandlers(unittest.TestCase):
     tests = db.Query(models.user_test.Test)
     self.assertEquals(1, tests.count())
 
-  def testUserBeacon(self):
+
+class TestWithData(unittest.TestCase):
+
+  def setUp(self):
+    self.client = Client()
     current_user = users.get_current_user()
     u = models.user_test.User.get_or_insert(current_user.user_id())
     u.email = current_user.email()
     u.save()
-
-    test = models.user_test.Test(user=u, name='Fake Test',
+    self.test = models.user_test.Test(user=u, name='Fake Test',
                                  url='http://fakeurl.com/test.html',
                                  description='stuff')
-    test.save()
+    self.test.save()
 
-    response = self.client.get('/user/beacon/%s' % test.key())
+  def saveData(self):
+    params = {
+      'category': self.test.get_memcache_keyname(),
+      'results': 'apple=1,banana=2,coconut=4',
+    }
+    csrf_token = self.client.get('/get_csrf').content
+    params['csrf_token'] = csrf_token
+    response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
+    self.assertEqual(204, response.status_code)
+
+  def testUserBeaconJsReturn(self):
+    response = self.client.get('/user/beacon/%s' % self.test.key())
     self.assertEquals('text/javascript', response['Content-type'])
 
     # There should be no callback setTimeout in the page.
@@ -137,28 +151,63 @@ class TestHandlers(unittest.TestCase):
     # Now test a beacon with a callback specified.
     # This is a regex test ensuring it's there in a setTimeout.
     params = {'callback': 'MyFunction', 'sandboxid': 'foobar'}
-    response = self.client.get('/user/beacon/%s' % test.key(), params)
+    response = self.client.get('/user/beacon/%s' % self.test.key(), params)
     self.assertEquals('text/javascript', response['Content-type'])
     self.assertTrue(re.search('window.setTimeout\(%s' % params['callback'],
         response.content))
     self.assertTrue(re.search("'sandboxid': '%s'" % params['sandboxid'],
         response.content))
 
+  def testBeaconResultsTable(self):
+    self.saveData()
+    response = self.client.get('/user/tests/table/%s' % self.test.key(),
+        {'v': '3'},
+        **mock_data.UNIT_TEST_UA)
+    self.assertEqual(200, response.status_code)
+    self.assertEqual('text/html', response['Content-type'])
+    strings_to_test_for = [
+      # test.name
+      '<h3>Fake Test</h3>',
+      # test.description
+      '<p>stuff</p>',
+      # Hidden form field in the browser v select.
+      ('<input type="hidden" name="category" '
+       'value="usertest_agt1YS1wcm9maWxlcnIKCxIEVGVzdBgBDA">'),
+      # Ensures that 1 test was saved and that full category update worked.
+      '1\s+test\s+from\s+1\s+browser',
+      # test_keys are there as headers
+      'apple', 'banana', 'coconut',
+    ]
+    for string_value in strings_to_test_for:
+      self.assertTrue(re.search(string_value, response.content), string_value)
+
+
+  def testBeaconResultsTableJSON(self):
+    self.saveData()
+    response = self.client.get('/user/tests/table/%s' % self.test.key(),
+        {'v': '3', 'o': 'json'},
+        **mock_data.UNIT_TEST_UA)
+    self.assertEqual(200, response.status_code)
+    self.assertEqual('application/json', response['Content-type'])
+    self.assertTrue(re.search(
+        '"category": "usertest_agt1YS1wcm9maWxlcnIKCxIEVGVzdBgBDA"',
+        response.content))
+
+    # callback test
+    response = self.client.get('/user/tests/table/%s' % self.test.key(),
+        {'v': '3', 'o': 'json', 'callback': 'myFn'},
+        **mock_data.UNIT_TEST_UA)
+    self.assertEqual(200, response.status_code)
+    self.assertEqual('application/json', response['Content-type'])
+    self.assertTrue(re.search(
+        '"category": "usertest_agt1YS1wcm9maWxlcnIKCxIEVGVzdBgBDA"',
+        response.content))
+    self.assertTrue(re.search('^myFn\(\{', response.content))
+
 
   def testBeaconWithSandboxId(self):
-    current_user = users.get_current_user()
-    u = models.user_test.User.get_or_insert(current_user.user_id())
-    u.email = current_user.email()
-    u.save()
-
-    test = models.user_test.Test(user=u, name='Fake Test SandboxID',
-                                 url='http://fakeurl.com/test.html',
-                                 description='stuff',
-                                 sandboxid='sandbox-id')
-    test.save()
-
     params = {
-      'category': test.get_memcache_keyname(),
+      'category': self.test.get_memcache_keyname(),
       'results': 'apple=1,banana=2,coconut=4',
     }
     # Run 10 times.
@@ -175,13 +224,14 @@ class TestHandlers(unittest.TestCase):
     self.assertEqual(util.BAD_BEACON_MSG + 'IP', response.content)
 
     # But we should be able to run 11 beacons (i.e. 10 + 1) with a sandboxid.
-    params['sandboxid'] = test.sandboxid
+    params['sandboxid'] = self.test.sandboxid
     # Run 11 times
     for i in range(12):
       csrf_token = self.client.get('/get_csrf').content
       params['csrf_token'] = csrf_token
       response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
       self.assertEqual(204, response.status_code)
+
 
 
 class TestAliasedUserTest(unittest.TestCase):

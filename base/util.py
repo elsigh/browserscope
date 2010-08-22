@@ -65,7 +65,7 @@ TEST_DRIVER_TPL = 'test_driver.html'
 MULTI_TEST_FRAMESET_TPL = 'multi_test_frameset.html'
 MULTI_TEST_DRIVER_TPL = 'multi_test_driver.html'
 
-VALID_STATS_OUTPUTS = ('html', 'pickle', 'xhr', 'csv', 'json',
+VALID_STATS_OUTPUTS = ('html', 'pickle', 'xhr', 'csv', 'json', 'jsonp',
                        'gviz', 'gviz_data', 'gviz_timeline_data')
 
 def Render(request, template, params={}, category=None):
@@ -773,12 +773,13 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
     'current_user_agent': current_browser,
     'stats': stats_data,
     'params': test_set.default_params,
-    'results_uri_string': results_str
+    'results_uri_string': results_str,
+    'callback': request.REQUEST.get('callback', ''),
   }
   #logging.info("GetStats got params: %s", str(params))
   if output in ['html', 'xhr']:
     return GetStatsDataTemplatized(params, 'table')
-  elif output in ['csv', 'gviz', 'json']:
+  elif output in ['csv', 'gviz', 'json', 'jsonp']:
     return GetStatsDataTemplatized(params, output)
   elif output == 'gviz_data':
     return FormatStatsDataAsGviz(params, request.GET.get('tqx', ''))

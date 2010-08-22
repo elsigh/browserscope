@@ -44,6 +44,7 @@ class ResultTime(db.Model):
     parent = self.parent()
     test_set = all_test_sets.GetTestSet(parent.category)
     test = test_set.GetTest(self.test)
+    #logging.info('GetOrCreateRankers %s' % test.get_memcache_keyname())
     if test:
       params_str = parent.params_str or None
       return test.GetOrCreateRankers(parent.GetBrowsers(), params_str)
