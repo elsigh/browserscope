@@ -215,8 +215,7 @@ def TestStatsTable(request, key):
     return http.HttpResponseServerError(msg)
 
   output = request.GET.get('o', 'html')
-  if output not in ['html', 'pickle', 'xhr', 'csv', 'json',
-                    'gviz', 'gviz_data', 'gviz_timeline_data']:
+  if output not in util.VALID_STATS_OUTPUTS:
     return http.HttpResponse('Invalid output specified')
 
   fields = request.GET.get('f')
@@ -230,7 +229,10 @@ def TestStatsTable(request, key):
 
   if output in ('xhr', 'pickle', 'csv', 'json',
                 'gviz', 'gviz_data', 'gviz_timeline_data'):
-    return http.HttpResponse(stats_table)
+    mimetype = None
+    if output == 'json':
+      mimetype = 'application/json'
+    return http.HttpResponse(stats_table, mimetype)
 
   simple_layout = request.GET.get('layout') == 'simple'
   params = {

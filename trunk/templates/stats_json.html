@@ -1,4 +1,4 @@
-{
+{% if callback %}{{ callback }}({% endif %}{
   "category": "{{ category }}",
   "category_name": "{{ category_name }}",
   "v": "{{ v }}",
@@ -19,4 +19,4 @@
     }{% if forloop.last %}{% else %}, {% endif %}
     {% endfor %}
   ]
-}
+}{% if callback %});({% endif %}

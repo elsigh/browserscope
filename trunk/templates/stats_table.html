@@ -158,7 +158,19 @@
       <a href="/clear_memcache?v={{ v }}&category={{ category }}&continue={{ request_path }}" class="bs-admin">clear {{ category }} {{ v }} memcache</a>
     {% endif %}
     {% if stats|by_key:"total_runs" %}
-      {{ stats|by_key:"total_runs" }} tests from {{ stats|length|add:"-1"}} browsers
+      {{ stats|by_key:"total_runs" }}
+      {% ifequal stats|by_key:"total_runs" 1 %}
+        test
+      {% else %}
+        tests
+      {% endifequal %}
+      from
+      {{ stats|length|add:"-1"}}
+      {% ifequal stats|length|add:"-1" 1 %}
+        browser
+      {% else %}
+        browsers
+      {% endifequal %}
     {% endif %}
 
     <span class="bs-results-dl">
