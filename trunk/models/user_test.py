@@ -32,6 +32,7 @@ from categories import test_set_base
 # sure that aliased test sets use it when defining their tests.
 MAX_VALUE = 10000
 
+
 class User(db.Model):
   email = db.StringProperty()
   created = db.DateTimeProperty(auto_now_add=True)

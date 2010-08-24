@@ -51,8 +51,8 @@ def TestHowto(request):
   return util.Render(request, 'user_test_howto.html', params)
 
 @decorators.login_required
+@decorators.provide_check_csrf
 def Settings(request):
-  logging.info('Settings start.')
   if request.POST:
     current_user = users.get_current_user()
     u = models.user_test.User.get_or_insert(current_user.user_id())
@@ -62,24 +62,24 @@ def Settings(request):
 
   # Regular GET.
   current_user = users.get_current_user()
-  u = models.user_test.User.get_or_insert(current_user.user_id(),
+  user = models.user_test.User.get_or_insert(
+      current_user.user_id(),
       email=current_user.email())
   tests = db.Query(models.user_test.Test)
-  tests.filter('user', u)
+  tests.filter('user', user)
   tests.order('created')
   if tests.count() == 0:
     tests = None
 
   params = {
-    'api_key': current_user.user_id(),
+    'api_key': user.key().name(),
     'tests': tests,
     'csrf_token': request.session.get('csrf_token')
   }
   return util.Render(request, 'user_settings.html', params)
 
 
-@decorators.login_required
-@decorators.provide_check_csrf
+# Decorators are inherited by TestEdit
 def TestCreate(request):
   return TestEdit(request, None)
 
@@ -97,55 +97,83 @@ def _get_random_sandboxid():
   return sanboxid
 
 
+@decorators.api_key_override
 @decorators.login_required
 @decorators.provide_check_csrf
+@decorators.api_key_override_tidy
 def TestEdit(request, key):
   test = None
   error_msg = None
   current_user = users.get_current_user()
+  api_key = request.REQUEST.get('api_key')
 
-  # Key means this is an edit.
+  # If a key was provided in the endpoint that means this is an edit.
   if key:
     test = models.user_test.Test.get_mem(key)
     if (test.user.key().name() != current_user.user_id() and not
         users.is_current_user_admin()):
-      return http.HttpResponse('You cannot mess with this test duder.')
+      return http.HttpResponse('You can\'t play with tests you don\'t own')
 
-  if request.POST:
-    user = models.user_test.User.get_by_key_name(current_user.user_id())
+  if api_key or request.POST:
+    # api_key should map to a User.key()
+    if api_key:
+      user = models.user_test.User.get_by_key_name(api_key)
+      if not user:
+        return http.HttpResponse('No user was found with an api_key=%s' %
+                                 api_key)
+    else:
+      user = models.user_test.User.get_by_key_name(current_user.user_id())
 
     try:
+      # edit
       if test:
-        test.name = request.POST.get('name')
-        test.url = request.POST.get('url')
-        test.description = request.POST.get('description')
-        test.sandboxid = request.POST.get('sandboxid')
+        test.name = request.REQUEST.get('name')
+        test.url = request.REQUEST.get('url')
+        test.description = request.REQUEST.get('description')
+        if request.REQUEST.get('sandboxid'):
+          test.sandboxid = request.REQUEST.get('sandboxid')
+      # create
       else:
-        test = models.user_test.Test(user=user, name=request.POST.get('name'),
-                                     url=request.POST.get('url'),
-                                     description=request.POST.get('description'),
-                                     sandboxid=request.POST.get('sandboxid'))
+        test = models.user_test.Test(
+                   user=user,
+                   name=request.REQUEST.get('name'),
+                   url=request.REQUEST.get('url'),
+                   description=request.REQUEST.get('description'),
+                   sandboxid=request.REQUEST.get('sandboxid',
+                                                 _get_random_sandboxid()))
       test.save()
       test.add_memcache()
-      return http.HttpResponseRedirect('/user/settings')
 
-    # Note: that syntax totally didn't work in prod app engine.
-    #except datastore_errors.BadValueError as strerror:
-    except datastore_errors.BadValueError, e:
-      error_msg = e
+      if api_key:
+        return http.HttpResponse('{"test_key": "%s"}' % test.key(),
+                                 mimetype='application/json')
+      else:
+        return http.HttpResponseRedirect('/user/settings')
+
+    # App Engine model caught a validation exception.
+    except datastore_errors.BadValueError, error_msg:
+      if api_key:
+        msg = 'Validation error: %s' % error_msg
+        return http.HttpResponseServerError(msg)
+
+      request = decorators.add_csrf_to_request(request)
       test = {
-        'name': request.POST.get('name'),
-        'url': request.POST.get('url'),
-        'description': request.POST.get('description'),
-        'sandboxid': request.POST.get('sandboxid')
+        'name': request.REQUEST.get('name'),
+        'url': request.REQUEST.get('url'),
+        'description': request.REQUEST.get('description'),
+        'sandboxid': request.REQUEST.get('sandboxid')
       }
     except:
-      error_msg = 'Something did not quite work there, very sorry'
+      error_msg = 'Something did not quite work there, very sorry.'
+      if api_key:
+        return http.HttpResponseServerError(error_msg)
+
+      request = decorators.add_csrf_to_request(request)
       test = {
-        'name': request.POST.get('name'),
-        'url': request.POST.get('url'),
-        'description': request.POST.get('description'),
-        'sandboxid': request.POST.get('sandboxid')
+        'name': request.REQUEST.get('name'),
+        'url': request.REQUEST.get('url'),
+        'description': request.REQUEST.get('description'),
+        'sandboxid': request.REQUEST.get('sandboxid')
       }
 
   params = {
@@ -211,7 +239,6 @@ def TestStatsTable(request, key):
   test = models.user_test.Test.get_mem(key)
   if not test:
     msg = 'No test was found with test_key %s.' % key
-    logging.info(msg)
     return http.HttpResponseServerError(msg)
 
   output = request.GET.get('o', 'html')

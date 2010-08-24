@@ -32,9 +32,28 @@ from django.http import HttpResponseForbidden
 import settings
 
 
+def api_key_override(func):
+  """If an API key is passed in we'll ignore login and csrf checking."""
+  def _wrapper(request, *args, **kw):
+    request.session['api_key_override'] = request.REQUEST.get('api_key', False)
+    return func(request, *args, **kw)
+  return _wrapper
+
+
+def api_key_override_tidy(func):
+  """I am so sure there's a better way than using session."""
+  def _wrapper(request, *args, **kw):
+    request.session['api_key_override'] = False
+    return func(request, *args, **kw)
+  return _wrapper
+
+
 def login_required(func):
   """Tests to make sure the current user is an admin."""
   def _wrapper(request, *args, **kw):
+    if request.session.get('api_key_override'):
+      return func(request, *args, **kw)
+
     user = users.get_current_user()
     if user:
       return func(request, *args, **kw)
@@ -68,6 +87,50 @@ def dev_appserver_only(func):
   return _wrapper
 
 
+## CSRF related decorators and functions.
+
+
+def provide_csrf(func):
+  """Inserts a csrf_token into request.session's list of valid tokens."""
+  def _wrapper(request, *args, **kw):
+    if request.session.get('api_key_override'):
+      return func(request, *args, **kw)
+    return _provide_csrf(func, request, *args, **kw)
+  return _wrapper
+
+
+def check_csrf(func):
+  def _wrapper(request, *args, **kw):
+    if request.session.get('api_key_override'):
+      return func(request, *args, **kw)
+    return _check_csrf(func, request, *args, **kw)
+  return _wrapper
+
+
+def provide_check_csrf(func):
+  def _wrapper(request, *args, **kw):
+    if request.session.get('api_key_override'):
+      return func(request, *args, **kw)
+
+    if request.POST:
+      return _check_csrf(func, request, *args, **kw)
+    else:
+      return _provide_csrf(func, request, *args, **kw)
+  return _wrapper
+
+
+# Leave this public so that folks can re-get csrf on bad forms.
+def add_csrf_to_request(request):
+  csrf_token = _make_csrf_key()
+  try:
+    request.session['csrf_tokens'].append(csrf_token)
+  except:
+    request.session['csrf_tokens'] = [csrf_token]
+  # Expose a single token for session handlers.
+  request.session['csrf_token'] = csrf_token
+  return request
+
+
 _MAX_CSRF_KEY = 18446744073709551616L
 def _make_csrf_key():
   # Use the system (hardware-based) random number generator if it exists.
@@ -81,60 +144,36 @@ def _make_csrf_key():
   return csrf_key
 
 
-def provide_csrf(func):
-  """Inserts a csrf_token into request.session's list of valid tokens."""
-  def _wrapper(request, *args, **kw):
-    csrf_token = _make_csrf_key()
-    try:
-      request.session['csrf_tokens'].append(csrf_token)
-    except:
-      request.session['csrf_tokens'] = [csrf_token]
-
-    # Expose a single token for session handlers.
-    request.session['csrf_token'] = csrf_token
-
-    return func(request, *args, **kw)
-  return _wrapper
+def _provide_csrf(func, request, *args, **kw):
+  return func(add_csrf_to_request(request), *args, **kw)
 
 
-def check_csrf(func):
+def _check_csrf(func, request, *args, **kw):
   """Checks/removes a csrf_token from request.session's list of valid tokens."""
-  def _wrapper(request, *args, **kw):
-    valid_csrf_tokens = request.session.get('csrf_tokens')
-    request_csrf_token = request.REQUEST.get('csrf_token')
+  valid_csrf_tokens = request.session.get('csrf_tokens')
+  request_csrf_token = request.REQUEST.get('csrf_token')
 
-    # Special exemption for Safari usertest results.
-    # TODO(elsigh): Maybe there's a better way to handle the fact that
-    # Safari won't accept third-party cookies?
-    if valid_csrf_tokens is None and isSafariAndUserTest(request):
-      logging.info('SAFARI USER-TEST EXCEPTION for check_csrf')
-      return func(request, *args, **kw)
-
-    if request_csrf_token is None:
-      msg = 'CSRF Error - Need csrf_token in request.'
-      logging.info(msg)
-      return HttpResponseForbidden(msg)
-    if valid_csrf_tokens is None or request_csrf_token not in valid_csrf_tokens:
-      msg = 'CSRF Error - Invalid csrf_token.'
-      logging.info(msg)
-      return HttpResponseForbidden(msg)
-
-    request.session['csrf_token'] = None
-    request.session['csrf_tokens'].remove(request_csrf_token)
-
+  # Special exemption for Safari usertest results.
+  # TODO(elsigh): Maybe there's a better way to handle the fact that
+  # Safari won't accept third-party cookies?
+  if valid_csrf_tokens is None and isSafariAndUserTest(request):
+    logging.info('SAFARI USER-TEST EXCEPTION for check_csrf')
     return func(request, *args, **kw)
-  return _wrapper
 
+  if request_csrf_token is None:
+    msg = 'CSRF Error - Need csrf_token in request.'
+    logging.info(msg)
+    return HttpResponseForbidden(msg)
+  if valid_csrf_tokens is None or request_csrf_token not in valid_csrf_tokens:
+    msg = 'CSRF Error - Invalid csrf_token.'
+    request.session['csrf_tokens'] = None
+    logging.info(msg)
+    return HttpResponseForbidden(msg)
 
-def provide_check_csrf(func):
-  def _wrapper(request, *args, **kw):
-    if request.POST:
-      #return check_csrf._wrapper(request, *args, **kw)
-      return func(request, *args, **kw)
-    else:
-      #return provide_csrf._wrapper(request, *args, **kw)
-      return func(request, *args, **kw)
-  return _wrapper
+  request.session['csrf_token'] = None
+  request.session['csrf_tokens'].remove(request_csrf_token)
+
+  return func(request, *args, **kw)
 
 
 def isSafariAndUserTest(request):
@@ -146,3 +185,4 @@ def isSafariAndUserTest(request):
     if re.search('Safari|iPhone', user_agent_string):
       is_safari = True
   return is_safari
+
