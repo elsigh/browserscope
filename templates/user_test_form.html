@@ -9,6 +9,7 @@
   <h2 style="color:darkred">{{ error_msg }}</h2>
 {% endif %}
 <form id="bs-user-test-form" action="{{ request_path }}" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
   <p>
     <label for="name">Test Name:</label>
       <input type="text" id="name" name="name" size="30"
@@ -44,7 +45,7 @@
       max="{{ max_sandboxid_len }}"
       value="{% if test %}{{ test.sandboxid }}{% else %}{{ sandboxid }}{% endif %}">
     &nbsp;<span style="font-size:90%; color: #aaa;"
-      >used for testing to bypass IP throttling</span>
+      >can be used when testing to bypass IP throttling</span>
   </p>
 
   <label for="description">Description:</label>

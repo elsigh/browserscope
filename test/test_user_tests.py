@@ -124,8 +124,8 @@ class TestWithData(unittest.TestCase):
     u.email = current_user.email()
     u.save()
     self.test = models.user_test.Test(user=u, name='Fake Test',
-                                 url='http://fakeurl.com/test.html',
-                                 description='stuff')
+                                      url='http://fakeurl.com/test.html',
+                                      description='stuff', sandboxid='sand')
     self.test.save()
 
   def saveData(self):
@@ -230,7 +230,8 @@ class TestWithData(unittest.TestCase):
       csrf_token = self.client.get('/get_csrf').content
       params['csrf_token'] = csrf_token
       response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
-      self.assertEqual(204, response.status_code)
+      self.assertEqual(204, response.status_code,
+          'Failed on run %s with sandboxid %s' % (i, params['sandboxid']))
 
 
 
@@ -310,3 +311,39 @@ class TestAliasedUserTest(unittest.TestCase):
         self.test_set, browsers=('Other',),
         test_keys=['apple', 'banana', 'coconut'], use_memcache=False)
     self.assertEqual(stats, results)
+
+
+class TestAPI(unittest.TestCase):
+
+  def setUp(self):
+    self.client = Client()
+
+  def testCreateTestFailsWithInvalidApiKey(self):
+    data = {
+      'name': 'Test test',
+      'url': 'http://fakeurl.com/test.html',
+      'description': 'whatever',
+      'api_key': 'invalid key'
+    }
+    response = self.client.post('/user/tests/create', data)
+    self.assertEqual(200, response.status_code)
+
+    tests = db.Query(models.user_test.Test)
+    self.assertEquals(0, tests.count())
+    self.assertTrue(re.search('No user was found', response.content))
+
+  def testCreateTestOk(self):
+    current_user = users.get_current_user()
+    user = models.user_test.User.get_or_insert(current_user.user_id())
+    data = {
+      'name': 'Test test',
+      'url': 'http://fakeurl.com/test.html',
+      'description': 'whatever',
+      'api_key': user.key().name()
+    }
+    response = self.client.get('/user/tests/create', data)
+    self.assertEqual(200, response.status_code)
+    tests = db.Query(models.user_test.Test)
+    self.assertEquals(1, tests.count())
+    self.assertEquals('{"test_key": "%s"}' % tests[0].key(), response.content)
+

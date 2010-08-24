@@ -58,7 +58,7 @@ var _bTestResults = {
 
 // Beacon the results to Browserscope.
 (function() {
-  var _bTestKey = 'CHANGE-THIS-TO-YOUR-TEST-ID';
+  var _bTestKey = 'CHANGE-THIS-TO-YOUR-TEST-KEY';
   var _bScript = document.createElement('script');
   _bScript.src = 'http://www.browserscope.org/user/beacon/' + _bTestKey;
   _bScript.setAttribute('async', 'true');
@@ -127,13 +127,32 @@ Parameters:
   callback=yourFnnName: When o=json, wraps json output in "yourFnName()"
   layout=full: Includes links and headers we use in Browserscope (o=HTML, DEFAULT).
   layout=simple: Hides a variety of things, good for embedding (o=HTML).
-  f=test_key_1,test_key_2: Limit results to these test_keys.</pre></code>
-    </li>
-    <li>
-      <a href="http://groups.google.com/group/browserscope"
-        >Please send any feedback and ideas about this feature to
-        our Google Group</a>.
+  f=test_key_1,test_key_2: Limit results to these test_keys.</code></pre>
     </li>
   </ol>
+
+
+  <h2>Create a test record with the API</h2>
+  <ol>
+    <li>
+      Grab your API key from the <a href="/user/settings">settings</a> page.
+      You should then be able to create tests programmatically
+      with a GET or a POST request, like:
+<pre><code>/user/tests/create?api_key=YOUR-API-KEY&amp;name=Some test name&amp;description=A longer description&amp;url=http://yourtest.com/page.html</code></pre>
+    </li>
+    <li>
+      The response, if everything is successful, is a JSON string with the
+      newly created test_key.
+<pre><code>{"test_key": "thetestkeyforthenewtest"}</code></pre>
+    </li>
+  </ol>
+
+  <h3>We want your feedback!</h3>
+  <p>
+    <a href="http://groups.google.com/group/browserscope"
+      >Please send any feedback and ideas about these features to
+      the Google Group</a>
+  </p>
+
 </div>
 {% endblock %}
