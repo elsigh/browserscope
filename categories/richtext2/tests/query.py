@@ -608,6 +608,18 @@ QUERY_TESTS = {
       'pad':         '<span style="background-color: #aabbcc">foo[bar]baz</span>',
       'expected':    '#aabbcc' },
 
+    { 'id':          'VALUE-BC-FONT-STYLE-BC-SPAN',
+      'desc':        'query the value of the "backcolor" command, where the color was set on an ancestor',
+      'qcvalue':     'backcolor',
+      'pad':         '<font style="background-color: #008844"><span>foo[bar]baz</span></font>',
+      'expected':    '#008844' },
+
+    { 'id':          'VALUE-BC-SPAN-STYLE-BC-SPAN',
+      'desc':        'query the value of the "backcolor" command, where the color was set on an ancestor',
+      'qcvalue':     'backcolor',
+      'pad':         '<span style="background-color: #ccddee"><span>foo[bar]baz</span></span>',
+      'expected':    '#ccddee' },
+
     { 'id':          'VALUE-FN-FONT-FACE-Arial',
       'desc':        'query the value of the "fontname" command',
       'qcvalue':     'fontname',
@@ -674,6 +686,18 @@ QUERY_TESTS = {
       'pad':         '<font color="#333333" style="color: #999999">foo[bar]baz</font>',
       'expected':    '#999999' },
 
+    { 'id':          'VALUE-FC-FONT-C-SPAN',
+      'desc':        'query the value of the "forecolor" command, where the color was set on an ancestor',
+      'qcvalue':     'forecolor',
+      'pad':         '<font color="#664411"><span>foo[bar]baz</span></font>',
+      'expected':    '#664411' },
+
+    { 'id':          'VALUE-FC-STYLE-C-SPAN',
+      'desc':        'query the value of the "forecolor" command, where the color was set on an ancestor',
+      'qcvalue':     'forecolor',
+      'pad':         '<span style="color: #dd9955"><span>foo[bar]baz</span></span>',
+      'expected':    '#dd9955' },
+
     { 'id':          'VALUE-HC-FONT-STYLE-BC',
       'desc':        'query the value of the "hilitecolor" command',
       'qcvalue':     'hilitecolor',
@@ -684,7 +708,19 @@ QUERY_TESTS = {
       'desc':        'query the value of the "hilitecolor" command',
       'qcvalue':     'hilitecolor',
       'pad':         '<span style="background-color: #aa00cc">foo[bar]baz</span>',
-      'expected':    '#aa00cc' }
+      'expected':    '#aa00cc' },
+
+    { 'id':          'VALUE-HC-FONT-STYLE-BC-SPAN',
+      'desc':        'query the value of the "hilitecolor" command, where the color was set on an ancestor',
+      'qcvalue':     'hilitecolor',
+      'pad':         '<font style="background-color: #8833ee"><span>foo[bar]baz</span></font>',
+      'expected':    '#8833ee' },
+
+    { 'id':          'VALUE-HC-SPAN-STYLE-BC-SPAN',
+      'desc':        'query the value of the "hilitecolor" command, where the color was set on an ancestor',
+      'qcvalue':     'hilitecolor',
+      'pad':         '<span style="background-color: #bb1122"><span>foo[bar]baz</span></span>',
+      'expected':    '#bb1122' }
   ]
 };
 

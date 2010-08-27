@@ -187,6 +187,7 @@ function Color(value) {
     if (!this.valid || !other.valid) {
       return false;
     }
+    // TODO(rolandsteiner): handle alpha and hsl/hsla values
     return this.red == other.red && this.green == other.green && this.blue == other.blue;
   }
   this.parse = function(value) {
@@ -211,11 +212,22 @@ function Color(value) {
       this.blue = parseInt(hex6Match[1].substring(2, 3), 16) * 16;
       return true;
     }
+    // TODO(rolandsteiner): handle % and decimal values
     var rgbMatch = String(value).match(/rgb\(([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*\)/i);
     if (rgbMatch) {
       this.red = Number(rgbMatch[1]);
       this.green = Number(rgbMatch[2]);
       this.blue = Number(rgbMatch[3]);
+      return true;
+    }
+    // TODO(rolandsteiner): handle % and decimal values
+    var rgbaMatch = String(value).match(/rgba\(([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*\)/i);
+    if (rgbaMatch) {
+      this.red = Number(rgbaMatch[1]);
+      this.green = Number(rgbaMatch[2]);
+      this.blue = Number(rgbaMatch[3]);
+// TODO(rolandsteiner): handle alpha values
+//      this.alpha = Number(rgbaMatch[4]);
       return true;
     }
     if (Number(value)) {
@@ -224,6 +236,7 @@ function Color(value) {
       this.blue = (value & 0xFF0000) >> 16;
       return true;
     }
+    // TODO(rolandsteiner): handle "hsl(h, s, l)" and "hsla(h, s, l, a)" notation
     return false;
   }
   this.toString = function() {

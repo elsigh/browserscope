@@ -142,28 +142,34 @@ function outputSingleTestResult(actual, successLevel) {
 
   var hasSelMarker = /[\[\]\^{}\|]/;
   var backgroundColorClass;
-  var resultString;
+  var resultString = '';
+  var resultTitle = '';
   
   switch (successLevel) {
     case RESULT_UNSUPPORTED:
       backgroundColorClass = 'exception';
       resultString = 'UNS.';
+      resultTitle  = 'Unsupported command or value';
       break;
     case RESULT_DIFFS:
       backgroundColorClass = 'fail';
       resultString = 'FAIL';
+      resultTitle  = 'Test failed';
       break;
     case RESULT_SELECTION_DIFFS:
       backgroundColorClass = 'seldiff';
       resultString = 'SEL.';
+      resultTitle  = 'Test passed, but had selection differences';
       break;
     case RESULT_EQUAL:
       backgroundColorClass = 'success';
       resultString = 'PASS';
+      resultTitle  = 'Test passed';
       break;
     default:
       backgroundColorClass = 'exception';
       resultString = 'EXC.';
+      resultTitle  = 'Exception was thrown';
       break;
   }
 
@@ -288,6 +294,7 @@ function outputSingleTestResult(actual, successLevel) {
   // Column 8: pass/fail
   td = tr.cells[7];
   td.innerHTML = resultString;
+  td.title = resultTitle;
   td.className = backgroundColorClass;
   
   // Column 9: original pad specification

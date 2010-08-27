@@ -137,7 +137,7 @@ function compareTextTestResult(actual) {
     case 'forecolor':
     case 'hilitecolor':
       for (var idx = 0; idx < count; ++idx) {
-        if (Color(actual) == Color(expectedArr[idx])) {
+        if (new Color(actual).compare(new Color(expectedArr[idx]))) {
           return RESULT_EQUAL;
         }
       }
@@ -145,7 +145,7 @@ function compareTextTestResult(actual) {
     
     case 'fontsize':
       for (var idx = 0; idx < count; ++idx) {
-        if (Size(actual) == Size(expectedArr[idx])) {
+        if (new Size(actual).compare(new Size(expectedArr[idx]))) {
           return RESULT_EQUAL;
         }
       }
