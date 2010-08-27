@@ -19,8 +19,8 @@
  * global <code>CLOSURE_NO_DEPS</code> is set to true.  This allows projects to
  * include their own deps file(s) from different locations.
  *
-*
-*
+ *
+ *
  */
 
 /**
@@ -301,7 +301,7 @@ goog.global.CLOSURE_NO_DEPS;
 
 /**
  * Null function used for default values of callbacks, etc.
- * @return {void}
+ * @return {void} Nothing.
  */
 goog.nullFunction = function() {};
 
@@ -608,12 +608,12 @@ goog.typeOf = function(value) {
       return 'null';
     }
 
-  // In Safari typeof nodeList returns 'function', and on Firefox
-  // typeof behaves similarly for HTML{Applet,Embed,Object}Elements
-  // and RegExps.  We would like to return object for those and we can
-  // detect an invalid function by making sure that the function
-  // object has a call method.
   } else if (s == 'function' && typeof value.call == 'undefined') {
+    // In Safari typeof nodeList returns 'function', and on Firefox
+    // typeof behaves similarly for HTML{Applet,Embed,Object}Elements
+    // and RegExps.  We would like to return object for those and we can
+    // detect an invalid function by making sure that the function
+    // object has a call method.
     return 'object';
   }
   return s;
@@ -791,7 +791,8 @@ goog.isObject = function(val) {
  * calls with the same object as a parameter returns the same value. The unique
  * ID is guaranteed to be unique across the current session amongst objects that
  * are passed into {@code getUid}. There is no guarantee that the ID is unique
- * or consistent across sessions.
+ * or consistent across sessions. It is unsafe to generate unique ID for
+ * function prototypes.
  *
  * @param {Object} obj The object to get the unique ID for.
  * @return {number} The unique ID for the object.
@@ -799,15 +800,11 @@ goog.isObject = function(val) {
 goog.getUid = function(obj) {
   // TODO(user): Make the type stricter, do not accept null.
 
-  // In IE, DOM nodes do not extend Object so they do not have this method.
-  // we need to check hasOwnProperty because the proto might have this set.
-  if (obj.hasOwnProperty && obj.hasOwnProperty(goog.UID_PROPERTY_)) {
-    return obj[goog.UID_PROPERTY_];
-  }
-  if (!obj[goog.UID_PROPERTY_]) {
-    obj[goog.UID_PROPERTY_] = ++goog.uidCounter_;
-  }
-  return obj[goog.UID_PROPERTY_];
+  // In Opera window.hasOwnProperty exists but always returns false so we avoid
+  // using it. As a consequence the unique ID generated for BaseClass.prototype
+  // and SubClass.prototype will be the same.
+  return obj[goog.UID_PROPERTY_] ||
+      (obj[goog.UID_PROPERTY_] = ++goog.uidCounter_);
 };
 
 
@@ -1338,7 +1335,7 @@ goog.scope = function(fn) {
  * @fileoverview Provides a base class for custom Error objects such that the
  * stack is corectly maintained.
  *
-*
+ *
  */
 
 goog.provide('goog.debug.Error');
@@ -1381,8 +1378,8 @@ goog.debug.Error.prototype.name = 'CustomError';
 
 /**
  * @fileoverview Utilities for string manipulation.
-*
-*
+ *
+ *
  */
 
 
@@ -2537,7 +2534,7 @@ goog.string.toNumber = function(str) {
  * for type-inference. For example, <code>goog.asserts.assert(foo)</code>
  * will restrict <code>foo</code> to a truthy value.
  *
-*
+ *
  * @author agrieve@google.com (Andrew Grieve)
  */
 
@@ -2668,7 +2665,7 @@ goog.asserts.fail = function(opt_message, var_args) {
 goog.asserts.assertNumber = function(value, opt_message, var_args) {
   if (goog.asserts.ENABLE_ASSERTS && !goog.isNumber(value)) {
     goog.asserts.doAssertFailure_('Expected number but got %s.', [value],
-         opt_message, Array.prototype.slice.call(arguments, 2));
+        opt_message, Array.prototype.slice.call(arguments, 2));
   }
   return /** @type {number} */ (value);
 };
@@ -2685,7 +2682,7 @@ goog.asserts.assertNumber = function(value, opt_message, var_args) {
 goog.asserts.assertString = function(value, opt_message, var_args) {
   if (goog.asserts.ENABLE_ASSERTS && !goog.isString(value)) {
     goog.asserts.doAssertFailure_('Expected string but got %s.', [value],
-         opt_message, Array.prototype.slice.call(arguments, 2));
+        opt_message, Array.prototype.slice.call(arguments, 2));
   }
   return /** @type {string} */ (value);
 };
@@ -2703,7 +2700,7 @@ goog.asserts.assertString = function(value, opt_message, var_args) {
 goog.asserts.assertFunction = function(value, opt_message, var_args) {
   if (goog.asserts.ENABLE_ASSERTS && !goog.isFunction(value)) {
     goog.asserts.doAssertFailure_('Expected function but got %s.', [value],
-         opt_message, Array.prototype.slice.call(arguments, 2));
+        opt_message, Array.prototype.slice.call(arguments, 2));
   }
   return /** @type {!Function} */ (value);
 };
@@ -2720,7 +2717,7 @@ goog.asserts.assertFunction = function(value, opt_message, var_args) {
 goog.asserts.assertObject = function(value, opt_message, var_args) {
   if (goog.asserts.ENABLE_ASSERTS && !goog.isObject(value)) {
     goog.asserts.doAssertFailure_('Expected object but got %s.', [value],
-         opt_message, Array.prototype.slice.call(arguments, 2));
+        opt_message, Array.prototype.slice.call(arguments, 2));
   }
   return /** @type {!Object} */ (value);
 };
@@ -2737,9 +2734,27 @@ goog.asserts.assertObject = function(value, opt_message, var_args) {
 goog.asserts.assertArray = function(value, opt_message, var_args) {
   if (goog.asserts.ENABLE_ASSERTS && !goog.isArray(value)) {
     goog.asserts.doAssertFailure_('Expected array but got %s.', [value],
-         opt_message, Array.prototype.slice.call(arguments, 2));
+        opt_message, Array.prototype.slice.call(arguments, 2));
   }
   return /** @type {!Array} */ (value);
+};
+
+
+/**
+ * Checks if the value is a boolean if goog.asserts.ENABLE_ASSERTS is true.
+ * @param {*} value The value to check.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @return {boolean} The value, guaranteed to be a boolean when asserts are
+ *     enabled.
+ * @throws {goog.asserts.AssertionError} When the value is not a boolean.
+ */
+goog.asserts.assertBoolean = function(value, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !goog.isBoolean(value)) {
+    goog.asserts.doAssertFailure_('Expected boolean but got %s.', [value],
+        opt_message, Array.prototype.slice.call(arguments, 2));
+  }
+  return /** @type {boolean} */ (value);
 };
 
 
@@ -2756,7 +2771,7 @@ goog.asserts.assertArray = function(value, opt_message, var_args) {
 goog.asserts.assertInstanceof = function(value, type, opt_message, var_args) {
   if (goog.asserts.ENABLE_ASSERTS && !(value instanceof type)) {
     goog.asserts.doAssertFailure_('instanceof check failed.', null,
-         opt_message, Array.prototype.slice.call(arguments, 3));
+        opt_message, Array.prototype.slice.call(arguments, 3));
   }
 };
 
@@ -2777,9 +2792,9 @@ goog.asserts.assertInstanceof = function(value, type, opt_message, var_args) {
 /**
  * @fileoverview Utilities for manipulating arrays.
  *
-*
-*
-*
+ *
+ *
+ *
  */
 
 
@@ -3496,8 +3511,8 @@ goog.array.extend = function(arr1, var_args) {
             arr2.hasOwnProperty('callee')) {
       arr1.push.apply(arr1, arr2);
 
-    // Otherwise loop over arr2 to prevent copying the object.
     } else if (isArrayLike) {
+      // Otherwise loop over arr2 to prevent copying the object.
       var len1 = arr1.length;
       var len2 = arr2.length;
       for (var j = 0; j < len2; j++) {
@@ -4028,7 +4043,7 @@ goog.array.zip = function(var_args) {
  * @fileoverview Defines the goog.dom.TagName enum.  This enumerates
  * all html tag names specified by the W3C HTML 4.01 Specification.
  * Reference http://www.w3.org/TR/html401/index/elements.html.
-*
+ *
  */
 goog.provide('goog.dom.TagName');
 
@@ -4147,8 +4162,8 @@ goog.dom.TagName = {
 /**
  * @fileoverview Utilities for adding, removing and setting classes.
  *
-*
-*
+ *
+ *
  */
 
 
@@ -4381,7 +4396,7 @@ goog.dom.classes.toggle = function(element, className) {
 
 /**
  * @fileoverview A utility class for representing two-dimensional positions.
-*
+ *
  */
 
 
@@ -4517,8 +4532,8 @@ goog.math.Coordinate.sum = function(a, b) {
 
 /**
  * @fileoverview A utility class for representing two-dimensional sizes.
-*
-*
+ *
+ *
  */
 
 
@@ -4712,9 +4727,9 @@ goog.math.Size.prototype.scaleToFit = function(target) {
 
 /**
  * @fileoverview Utilities for manipulating objects/maps/hashes.
-*
-*
-*
+ *
+ *
+ *
  */
 
 goog.provide('goog.object');
@@ -5245,8 +5260,8 @@ goog.object.createSet = function(var_args) {
  * @see <a href="http://www.useragentstring.com/">User agent strings</a>
  * For information on the browser brand (such as Safari versus Chrome), see
  * goog.userAgent.product.
-*
-*
+ *
+ *
  * @see ../demos/useragent.html
  */
 
@@ -5692,8 +5707,8 @@ goog.userAgent.isVersion = function(version) {
  * to a different document object.  This is useful if you are working with
  * frames or multiple windows.
  *
-*
-*
+ *
+ *
  */
 
 
@@ -8081,8 +8096,27 @@ goog.debug.EntryPointMonitor.prototype.wrap;
 
 
 /**
+ * Try to remove an instrumentation wrapper created by this monitor.
+ * If the function passed to unwrap is not a wrapper created by this
+ * monitor, then we will do nothing.
+ *
+ * Notice that some wrappers may not be unwrappable. For example, if other
+ * monitors have applied their own wrappers, then it will be impossible to
+ * unwrap them because their wrappers will have captured our wrapper.
+ *
+ * So it is important that entry points are unwrapped in the reverse
+ * order that they were wrapped.
+ *
+ * @param {!Function} fn A function to unwrap.
+ * @return {!Function} The unwrapped function, or {@code fn} if it was not
+ *     a wrapped function created by this monitor.
+ */
+goog.debug.EntryPointMonitor.prototype.unwrap;
+
+
+/**
  * An array of entry point callbacks.
- * @type {!Array.<function(goog.debug.EntryPointMonitor)>}
+ * @type {!Array.<function(!Function)>}
  * @private
  */
 goog.debug.entryPointRegistry.refList_ = [];
@@ -8090,10 +8124,10 @@ goog.debug.entryPointRegistry.refList_ = [];
 
 /**
  * Register an entry point with this module.
- * @param {function(goog.debug.EntryPointMonitor)} callback A callback function.
+ * @param {function(!Function)} callback A callback function.
  *     When a client requests instrumentation, this callback will be called
- *     with an EntryPointMonitor. The callback is responsible for wrapping
- *     the relevant entry point.
+ *     with a trnasforming function. The callback is responsible for wrapping
+ *     the relevant entry point with the transforming function.
  */
 goog.debug.entryPointRegistry.register = function(callback) {
   // Don't use push(), so that this can be compiled out.
@@ -8107,8 +8141,27 @@ goog.debug.entryPointRegistry.register = function(callback) {
  * @param {goog.debug.EntryPointMonitor} monitor An entry point monitor.
  */
 goog.debug.entryPointRegistry.monitorAll = function(monitor) {
+  var transformer = goog.bind(monitor.wrap, monitor);
   for (var i = 0; i < goog.debug.entryPointRegistry.refList_.length; i++) {
-    goog.debug.entryPointRegistry.refList_[i](monitor);
+    goog.debug.entryPointRegistry.refList_[i](transformer);
+  }
+};
+
+
+/**
+ * Try to unmonitor all the registered entry points.
+ *
+ * Note that this may fail if the entry points have additional wrapping.
+ * See the comment on {@code EntryPointMonitor}'s {@code setInvertedMode}
+ * method.
+ *
+ * @param {goog.debug.EntryPointMonitor} monitor The last monitor to wrap
+ *     the entry points.
+ */
+goog.debug.entryPointRegistry.unmonitorAllIfPossible = function(monitor) {
+  var transformer = goog.bind(monitor.unwrap, monitor);
+  for (var i = 0; i < goog.debug.entryPointRegistry.refList_.length; i++) {
+    goog.debug.entryPointRegistry.refList_[i](transformer);
   }
 };
 // Copyright 2008 The Closure Library Authors. All Rights Reserved.
@@ -8130,7 +8183,7 @@ goog.debug.entryPointRegistry.monitorAll = function(monitor) {
  * properties compiler warning for weak dependencies on
  * {@link goog.debug.ErrorHandler#protectEntryPoint}.
  *
-*
+ *
  */
 
 goog.provide('goog.debug.errorHandlerWeakDep');
@@ -8166,7 +8219,7 @@ goog.debug.errorHandlerWeakDep = {
 /**
  * @fileoverview Implements the disposable interface. The dispose method is used
  * to clean up references and resources.
-*
+ *
  */
 
 
@@ -8275,7 +8328,7 @@ goog.dispose = function(obj) {
 /**
  * @fileoverview A base class for event objects.
  *
-*
+ *
  */
 
 
@@ -8422,8 +8475,8 @@ goog.events.Event.preventDefault = function(e) {
  * key and character code use {@link goog.events.KeyHandler}.
  * </pre>
  *
-*
-*
+ *
+ *
  */
 
 goog.provide('goog.events.BrowserEvent');
@@ -8445,9 +8498,9 @@ goog.require('goog.userAgent');
  * @extends {goog.events.Event}
  */
 goog.events.BrowserEvent = function(opt_e, opt_currentTarget) {
- if (opt_e) {
-   this.init(opt_e, opt_currentTarget);
- }
+  if (opt_e) {
+    this.init(opt_e, opt_currentTarget);
+  }
 };
 goog.inherits(goog.events.BrowserEvent, goog.events.Event);
 
@@ -8785,7 +8838,7 @@ goog.events.BrowserEvent.prototype.disposeInternal = function() {
 /**
  * @fileoverview Definition of the goog.events.EventWrapper interface.
  *
-*
+ *
  */
 
 goog.provide('goog.events.EventWrapper');
@@ -8851,7 +8904,7 @@ goog.events.EventWrapper.prototype.unlisten = function(src, listener, opt_capt,
 
 /**
  * @fileoverview Listener object.
-*
+ *
  * @see ../demos/events.html
  */
 
@@ -9010,8 +9063,8 @@ goog.events.Listener.prototype.handleEvent = function(eventObject) {
 /**
  * @fileoverview Datastructure: Pool.
  *
-*
-*
+ *
+ *
  *
  * A generic class for handling pools of objects that is more efficient than
  * goog.structs.Pool because it doesn't maintain a list of objects that are in
@@ -9214,7 +9267,7 @@ goog.structs.SimplePool.prototype.disposeInternal = function() {
 /**
  * @fileoverview Detection of JScript version.
  *
-*
+ *
  */
 
 
@@ -9313,8 +9366,8 @@ goog.userAgent.jscript.isVersion = function(version) {
  * JScript 5.6 has some serious issues with GC so we use object pools to reduce
  * the number of object allocations.
  *
-*
-*
+ *
+ *
  */
 
 goog.provide('goog.events.pools');
@@ -9671,10 +9724,10 @@ goog.events.pools.releaseEvent;
  * goog.events.removeAll();
  * </pre>
  *
-*
-*
+ *
+ *
  *                                            in IE and event object patching]
-*
+ *
  *
  * @supported IE6+, FF1.5+, WebKit, Opera.
  * @see ../demos/events.html
@@ -10331,6 +10384,7 @@ goog.events.EventType = {
   SELECT: 'select',
   SUBMIT: 'submit',
   INPUT: 'input',
+  PROPERTYCHANGE: 'propertychange', // IE only
 
   // Drag and drop
   DRAGSTART: 'dragstart',
@@ -10792,10 +10846,11 @@ goog.events.synthesizeEventPropagation_ = function() {
 // it can be monitored for exception handling, etc.
 goog.debug.entryPointRegistry.register(
     /**
-     * @param {goog.debug.EntryPointMonitor} monitor The monitor.
+     * @param {function(!Function): !Function} transformer The transforming
+     *     function.
      */
-    function(monitor) {
-      goog.events.handleBrowserEvent_ = monitor.wrap(
+    function(transformer) {
+      goog.events.handleBrowserEvent_ = transformer(
           goog.events.handleBrowserEvent_);
       goog.events.pools.setProxyCallbackFunction(
           goog.events.handleBrowserEvent_);
@@ -10817,8 +10872,8 @@ goog.debug.entryPointRegistry.register(
 /**
  * @fileoverview Implementation of EventTarget as defined by W3C DOM 2/3.
  *
-*
-*
+ *
+ *
  * @see ../demos/eventtarget.html
  */
 
@@ -11015,7 +11070,7 @@ goog.events.EventTarget.prototype.disposeInternal = function() {
  * @fileoverview A timer class to which other classes and objects can
  * listen on.  This is only an abstraction above setInterval.
  *
-*
+ *
  * @see ../demos/timers.html
  */
 
@@ -11300,7 +11355,7 @@ goog.Timer.clear = function(timerId) {
 /**
  * @fileoverview Generics method for collection-like classes and objects.
  *
-*
+ *
  *
  * This file contains functions to work with collections. It supports using
  * Map, Set, Array and Object and other classes that implement collection-like
@@ -11641,7 +11696,7 @@ goog.structs.every = function(col, f, opt_obj) {
 
 /**
  * @fileoverview Python style iteration utilities.
-*
+ *
  */
 
 
@@ -11777,7 +11832,7 @@ goog.iter.forEach = function(iterable, f, opt_obj) {
                          opt_obj);
     } catch (ex) {
       if (ex !== goog.iter.StopIteration) {
-       throw ex;
+        throw ex;
       }
     }
   } else {
@@ -12203,8 +12258,8 @@ goog.iter.nextOrValue = function(iterable, defaultValue) {
 /**
  * @fileoverview Datastructure: Hash Map.
  *
-*
-*
+ *
+ *
  *
  * This file contains an implementation of a Map structure. It implements a lot
  * of the methods used in goog.structs so those functions work on hashes.  For
@@ -12648,8 +12703,8 @@ goog.structs.Map.hasKey_ = function(obj, key) {
 /**
  * @fileoverview Datastructure: Set.
  *
-*
-*
+ *
+ *
  *
  * This class implements a set data structure. Adding and removing is O(1). It
  * supports both object and primitive values. Be careful because you can add
@@ -12921,10 +12976,9 @@ goog.debug.catchErrors = function(logFunc, opt_cancel, opt_target) {
     if (oldErrorHandler) {
       oldErrorHandler(message, url, line);
     }
-    var file = String(url).split(/[\/\\]/).pop();
     logFunc({
       message: message,
-      fileName: file,
+      fileName: url,
       line: line
     });
     return Boolean(opt_cancel);
@@ -13296,10 +13350,10 @@ goog.debug.getFunctionName = function(fn) {
  */
 goog.debug.makeWhitespaceVisible = function(string) {
   return string.replace(/ /g, '[_]')
-               .replace(/\f/g, '[f]')
-               .replace(/\n/g, '[n]\n')
-               .replace(/\r/g, '[r]')
-               .replace(/\t/g, '[t]');
+      .replace(/\f/g, '[f]')
+      .replace(/\n/g, '[n]\n')
+      .replace(/\r/g, '[r]')
+      .replace(/\t/g, '[t]');
 };
 
 
@@ -13328,7 +13382,7 @@ goog.debug.fnNameCache_ = {};
  * dependencies this file has on other closure classes as any dependency it
  * takes won't be able to use the logging infrastructure.
  *
-*
+ *
  */
 
 goog.provide('goog.debug.LogRecord');
@@ -13346,7 +13400,7 @@ goog.provide('goog.debug.LogRecord');
  *     should only be passed in when restoring a log record from persistence.
  */
 goog.debug.LogRecord = function(level, msg, loggerName,
-      opt_time, opt_sequenceNumber) {
+    opt_time, opt_sequenceNumber) {
   this.reset(level, msg, loggerName, opt_time, opt_sequenceNumber);
 };
 
@@ -13435,7 +13489,7 @@ goog.debug.LogRecord.nextSequenceNumber_ = 0;
  *     should only be passed in when restoring a log record from persistence.
  */
 goog.debug.LogRecord.prototype.reset = function(level, msg, loggerName,
-      opt_time, opt_sequenceNumber) {
+    opt_time, opt_sequenceNumber) {
   if (goog.debug.LogRecord.ENABLE_SEQUENCE_NUMBERS) {
     this.sequenceNumber_ = typeof opt_sequenceNumber == 'number' ?
         opt_sequenceNumber : goog.debug.LogRecord.nextSequenceNumber_++;
@@ -13628,9 +13682,9 @@ goog.debug.LogBuffer = function() {
  */
 goog.debug.LogBuffer.getInstance = function() {
   if (!goog.debug.LogBuffer.instance_) {
-  // This function is written with the return statement after the assignment to
-  // avoid the jscompiler StripCode bug described in http://b/issue?id=2608064
-  // After that bug is fixed this can be refactored.
+    // This function is written with the return statement after the assignment
+    // to avoid the jscompiler StripCode bug described in http://b/2608064.
+    // After that bug is fixed this can be refactored.
     goog.debug.LogBuffer.instance_ = new goog.debug.LogBuffer();
   }
   return goog.debug.LogBuffer.instance_;
@@ -13744,7 +13798,7 @@ goog.debug.LogBuffer.prototype.forEachRecord = function(func) {
  * this file has on other closure classes as any dependency it takes won't be
  * able to use the logging infrastructure.
  *
-*
+ *
  * @see ../demos/debug.html
  */
 
@@ -14525,7 +14579,7 @@ goog.debug.LogManager.createLogger_ = function(name) {
 
 /**
  * @fileoverview JSON utility functions.
-*
+ *
  */
 
 
@@ -14779,7 +14833,7 @@ goog.json.Serializer.prototype.serializeArray_ = function(arr, sb) {
   sb.push('[');
   var sep = '';
   for (var i = 0; i < l; i++) {
-    sb.push(sep)
+    sb.push(sep);
     this.serialize_(arr[i], sb);
     sep = ',';
   }
@@ -14996,7 +15050,7 @@ goog.net.EventType = {
 /**
  * @fileoverview Interface for a factory for creating XMLHttpRequest objects
  * and metadata about them.
-*
+ *
  */
 
 goog.provide('goog.net.XmlHttpFactory');
@@ -15060,7 +15114,7 @@ goog.net.XmlHttpFactory.prototype.internalGetOptions = goog.abstractMethod;
 /**
  * @fileoverview Implementation of XmlHttpFactory which allows construction from
  * simple factory methods.
-*
+ *
  */
 
 goog.provide('goog.net.WrapperXmlHttpFactory');
@@ -15127,8 +15181,8 @@ goog.net.WrapperXmlHttpFactory.prototype.getOptions = function() {
 
 /**
  * @fileoverview Low level handling of XMLHttpRequest.
-*
-*
+ *
+ *
  */
 
 goog.provide('goog.net.DefaultXmlHttpFactory');
@@ -15359,7 +15413,7 @@ goog.net.XmlHttp.setGlobalFactory(new goog.net.DefaultXmlHttpFactory());
  *
  * This class's methods are no-ops for non-Gecko browsers.
  *
-*
+ *
  */
 
 goog.provide('goog.net.xhrMonitor');
@@ -15618,7 +15672,7 @@ goog.net.xhrMonitor = new goog.net.XhrMonitor_();
  *
  * TODO(user): Error cases aren't playing nicely in Safari.
  *
-*
+ *
  */
 
 
@@ -16097,7 +16151,7 @@ goog.net.XhrIo.prototype.error_ = function(errorCode, err) {
   this.lastError_ = err;
   this.lastErrorCode_ = errorCode;
   this.dispatchErrors_();
-  this.cleanUpXhr_()
+  this.cleanUpXhr_();
 };
 
 
@@ -16492,11 +16546,12 @@ goog.net.XhrIo.prototype.formatMsg_ = function(msg) {
 // it can be monitored for exception handling, etc.
 goog.debug.entryPointRegistry.register(
     /**
-     * @param {goog.debug.EntryPointMonitor} monitor The monitor.
+     * @param {function(!Function): !Function} transformer The transforming
+     *     function.
      */
-    function(monitor) {
+    function(transformer) {
       goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_ =
-          monitor.wrap(goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_);
+          transformer(goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_);
     });
 // Copyright 2006 The Closure Library Authors. All Rights Reserved.
 //
@@ -16515,7 +16570,7 @@ goog.debug.entryPointRegistry.register(
 /**
  * @fileoverview Functions for setting, getting and deleting cookies.
  *
-*
+ *
  */
 
 
@@ -16877,7 +16932,7 @@ goog.net.cookies.getKeyValues_ = function() {
  * }
  * </pre>
  *
-*
+ *
  */
 
 goog.provide('goog.events.EventHandler');
@@ -17175,7 +17230,7 @@ goog.events.EventHandler.prototype.handleEvent = function(e) {
 
 /**
  * @fileoverview A utility class for representing a numeric box.
-*
+ *
  */
 
 
@@ -17348,7 +17403,7 @@ goog.math.Box.contains = function(box, other) {
 
   if (other instanceof goog.math.Box) {
     return other.left >= box.left && other.right <= box.right &&
-      other.top >= box.top && other.bottom <= box.bottom;
+        other.top >= box.top && other.bottom <= box.bottom;
   }
 
   // other is a Coordinate.
@@ -17412,7 +17467,7 @@ goog.math.Box.intersects = function(a, b) {
 
 /**
  * @fileoverview A utility class for representing rectangles.
-*
+ *
  */
 
 
@@ -17751,10 +17806,10 @@ goog.math.Rect.prototype.getSize = function() {
 /**
  * @fileoverview Utilities for element styles.
  *
-*
-*
-*
-*
+ *
+ *
+ *
+ *
  * @see ../demos/inline_block_quirks.html
  * @see ../demos/inline_block_standards.html
  * @see ../demos/style_viewport.html
@@ -17984,10 +18039,10 @@ goog.style.setPosition = function(el, arg1, opt_arg2) {
   }
 
   // Round to the nearest pixel for buggy sub-pixel support.
-  goog.style.setPixelStyleProperty_('left', buggyGeckoSubPixelPos, el,
-                                    /** @type {number|string} */ (x));
-  goog.style.setPixelStyleProperty_('top', buggyGeckoSubPixelPos, el,
-                                    /** @type {number|string} */ (y));
+  el.style.left = goog.style.getPixelStyleValue_(
+      /** @type {number|string} */ (x), buggyGeckoSubPixelPos);
+  el.style.top = goog.style.getPixelStyleValue_(
+      /** @type {number|string} */ (y), buggyGeckoSubPixelPos);
 };
 
 
@@ -18324,7 +18379,7 @@ goog.style.getPageOffset = function(el) {
         break;
       }
       parent = parent.offsetParent;
-    } while (parent && parent != el)
+    } while (parent && parent != el);
 
     // Opera & (safari absolute) incorrectly account for body offsetTop.
     if (goog.userAgent.OPERA || (goog.userAgent.WEBKIT &&
@@ -18538,24 +18593,22 @@ goog.style.setSize = function(element, w, opt_h) {
 
 
 /**
- * Helper function to sets a dimension or position style property of an element.
- * Parameter order is to allow the first two parameters to be bound.
+ * Helper function to create a string to be set into a pixel-value style
+ * property of an element. Can round to the nearest integer value.
  *
- * @param {string} property Property name of style to modify ('width', 'height',
- *     'left', 'top', etc).
+ * @param {string|number} value The style value to be used. If a number,
+ *     'px' will be appended, otherwise the value will be applied directly.
  * @param {boolean} round Whether to round the nearest integer (if property
  *     is a number).
- * @param {Element} element Element to set the size of.
- * @param {string|number} value The value to set.  If a number, 'px' will be
- *     appended, otherwise the value will be applied directly.
+ * @return {string} The string value for the property.
  * @private
  */
-goog.style.setPixelStyleProperty_ = function(property, round, element, value) {
+goog.style.getPixelStyleValue_ = function(value, round) {
   if (typeof value == 'number') {
     value = (round ? Math.round(value) : value) + 'px';
   }
 
-  element.style[property] = /** @type {string} */(value);
+  return value;
 };
 
 
@@ -18565,18 +18618,21 @@ goog.style.setPixelStyleProperty_ = function(property, round, element, value) {
  * @param {string|number} height The height value to set.  If a number, 'px'
  *     will be appended, otherwise the value will be applied directly.
  */
-goog.style.setHeight = goog.partial(
-    goog.style.setPixelStyleProperty_, 'height', true);
+goog.style.setHeight = function(element, height) {
+  element.style.height = goog.style.getPixelStyleValue_(height, true);
+};
 
 
 /**
  * Set the width of an element.  Sets the element's style property.
  * @param {Element} element Element to set the height of.
- * @param {string|number} height The height value to set.  If a number, 'px'
+ * @param {string|number} width The width value to set.  If a number, 'px'
  *     will be appended, otherwise the value will be applied directly.
  */
-goog.style.setWidth = goog.partial(
-    goog.style.setPixelStyleProperty_, 'width', true);
+goog.style.setWidth = function(element, width) {
+  element.style.width = goog.style.getPixelStyleValue_(width, true);
+};
+
 
 
 /**
@@ -19551,7 +19607,7 @@ goog.style.getScrollbarWidth = function() {
 /**
  * @fileoverview Generator for unique element IDs.
  *
-*
+ *
  */
 
 goog.provide('goog.ui.IdGenerator');
@@ -19607,10 +19663,10 @@ goog.ui.IdGenerator.instance = goog.ui.IdGenerator.getInstance();
  * @fileoverview Abstract class for all UI components. This defines the standard
  * design pattern that all UI components should follow.
  *
-*
-*
-*
-*
+ *
+ *
+ *
+ *
  * @see ../demos/samplecomponent.html
  */
 
@@ -19925,11 +19981,11 @@ goog.ui.Component.prototype.id_ = null;
 /**
  * DomHelper used to interact with the document, allowing components to be
  * created in a different window.
- * @type {goog.dom.DomHelper?}
+ * @type {!goog.dom.DomHelper}
  * @protected
  * @suppress {underscore}
  */
-goog.ui.Component.prototype.dom_ = null;
+goog.ui.Component.prototype.dom_;
 
 
 /**
@@ -20138,7 +20194,7 @@ goog.ui.Component.prototype.setParentEventTarget = function(parent) {
 
 /**
  * Returns the dom helper that is being used on this component.
- * @return {goog.dom.DomHelper} The dom helper used on this component.
+ * @return {!goog.dom.DomHelper} The dom helper used on this component.
  */
 goog.ui.Component.prototype.getDomHelper = function() {
   return this.dom_;
@@ -20371,6 +20427,7 @@ goog.ui.Component.prototype.disposeInternal = function() {
   this.element_ = null;
   this.model_ = null;
   this.parent_ = null;
+  // TODO(user): delete this.dom_ breaks many unit tests.
 };
 
 
@@ -21061,8 +21118,8 @@ goog.ui.TableSorter.createReverseSort = function(sortFunction) {
 /**
  * @fileoverview Common positioning code.
  *
-*
-*
+ *
+ *
  */
 
 goog.provide('goog.positioning');
@@ -21540,7 +21597,7 @@ goog.positioning.flipCorner = function(corner) {
 /**
  * @fileoverview Abstract base class for positioning implementations.
  *
-*
+ *
  */
 
 goog.provide('goog.positioning.AbstractPosition');
@@ -21588,8 +21645,8 @@ goog.positioning.AbstractPosition.prototype.reposition =
 /**
  * @fileoverview Client positioning class.
  *
-*
-*
+ *
+ *
  */
 
 goog.provide('goog.positioning.AnchoredPosition');
@@ -21667,8 +21724,8 @@ goog.positioning.AnchoredPosition.prototype.reposition = function(
 /**
  * @fileoverview Client positioning class.
  *
-*
-*
+ *
+ *
  */
 
 goog.provide('goog.positioning.ViewportPosition');
@@ -21732,8 +21789,8 @@ goog.positioning.ViewportPosition.prototype.reposition = function(
 /**
  * @fileoverview Client viewport positioning class.
  *
-*
-*
+ *
+ *
  */
 
 goog.provide('goog.positioning.AbsolutePosition');
@@ -21807,7 +21864,7 @@ goog.positioning.AbsolutePosition.prototype.reposition = function(
 /**
  * @fileoverview Anchored viewport positioning class.
  *
-*
+ *
  */
 
 goog.provide('goog.positioning.AnchoredViewportPosition');
@@ -21933,8 +21990,8 @@ goog.positioning.AnchoredViewportPosition.prototype.reposition = function(
 /**
  * @fileoverview Client positioning class.
  *
-*
-*
+ *
+ *
  */
 
 goog.provide('goog.positioning.ClientPosition');
@@ -22011,7 +22068,7 @@ goog.positioning.ClientPosition.prototype.reposition = function(
  * @fileoverview Client viewport positioning class.
  *
  * @author robbyw@google.com (Robert Walker)
-*
+ *
  */
 
 goog.provide('goog.positioning.ViewportClientPosition');
@@ -22112,7 +22169,7 @@ goog.positioning.ViewportClientPosition.prototype.reposition = function(
 /**
  * @fileoverview Constant declarations for common key codes.
  *
-*
+ *
  * @see ../demos/keyhandler.html
  */
 
@@ -22133,7 +22190,7 @@ goog.events.KeyCodes = {
   MAC_ENTER: 3,
   BACKSPACE: 8,
   TAB: 9,
-  NUM_CENTER: 12,
+  NUM_CENTER: 12,  // NUMLOCK on FF/Safari Mac
   ENTER: 13,
   SHIFT: 16,
   CTRL: 17,
@@ -22255,23 +22312,27 @@ goog.events.KeyCodes.isTextModifyingKeyEvent = function(e) {
   // CTRL, ALT or SHIFT.
   switch (e.keyCode) {
     case goog.events.KeyCodes.ALT:
-    case goog.events.KeyCodes.SHIFT:
-    case goog.events.KeyCodes.CTRL:
-    case goog.events.KeyCodes.PAUSE:
     case goog.events.KeyCodes.CAPS_LOCK:
-    case goog.events.KeyCodes.ESC:
-    case goog.events.KeyCodes.PAGE_UP:
-    case goog.events.KeyCodes.PAGE_DOWN:
-    case goog.events.KeyCodes.HOME:
-    case goog.events.KeyCodes.END:
-    case goog.events.KeyCodes.LEFT:
-    case goog.events.KeyCodes.RIGHT:
-    case goog.events.KeyCodes.UP:
-    case goog.events.KeyCodes.DOWN:
-    case goog.events.KeyCodes.INSERT:
-    case goog.events.KeyCodes.NUMLOCK:
     case goog.events.KeyCodes.CONTEXT_MENU:
+    case goog.events.KeyCodes.CTRL:
+    case goog.events.KeyCodes.DOWN:
+    case goog.events.KeyCodes.END:
+    case goog.events.KeyCodes.ESC:
+    case goog.events.KeyCodes.HOME:
+    case goog.events.KeyCodes.INSERT:
+    case goog.events.KeyCodes.LEFT:
+    case goog.events.KeyCodes.MAC_FF_META:
+    case goog.events.KeyCodes.META:
+    case goog.events.KeyCodes.NUMLOCK:
+    case goog.events.KeyCodes.NUM_CENTER:
+    case goog.events.KeyCodes.PAGE_DOWN:
+    case goog.events.KeyCodes.PAGE_UP:
+    case goog.events.KeyCodes.PAUSE:
     case goog.events.KeyCodes.PRINT_SCREEN:
+    case goog.events.KeyCodes.RIGHT:
+    case goog.events.KeyCodes.SHIFT:
+    case goog.events.KeyCodes.UP:
+    case goog.events.KeyCodes.WIN_KEY:
       return false;
     default:
       return true;
@@ -22415,8 +22476,8 @@ goog.events.KeyCodes.isCharacterKey = function(keyCode) {
 /**
  * @fileoverview Definition of the PopupBase class.
  *
-*
-*
+ *
+ *
  */
 
 goog.provide('goog.ui.PopupBase');
@@ -23123,8 +23184,8 @@ goog.ui.PopupBase.prototype.disposeInternal = function() {
 /**
  * @fileoverview Definition of the Popup class.
  *
-*
-*
+ *
+ *
  * @see ../demos/popup.html
  */
 
@@ -23531,7 +23592,7 @@ goog.ui.Popup.ViewPortClientPosition = goog.positioning.ViewportClientPosition;
 /**
  * @fileoverview Tooltip widget implementation.
  *
-*
+ *
  * @see ../demos/tooltip.html
  */
 
@@ -23744,6 +23805,15 @@ goog.ui.Tooltip.prototype.parentTooltip_;
  */
 goog.ui.Tooltip.prototype.getDomHelper = function() {
   return this.dom_;
+};
+
+
+/**
+ * @return {goog.ui.Tooltip} Active tooltip in a child element, or null if none.
+ * @protected
+ */
+goog.ui.Tooltip.prototype.getChildTooltip = function() {
+  return this.childTooltip_;
 };
 
 
@@ -23972,7 +24042,7 @@ goog.ui.Tooltip.prototype.onBeforeShow = function() {
 
   var element = this.getElement();
   element.className = this.className;
-  this.clearHideTimer_();
+  this.clearHideTimer();
 
   // Register event handlers for tooltip. Used to prevent the tooltip from
   // closing if the cursor is over the tooltip rather then the element that
@@ -24048,6 +24118,33 @@ goog.ui.Tooltip.prototype.maybeShow = function(el, opt_pos) {
     }
   }
   this.showTimer = undefined;
+};
+
+
+/**
+ * @return {goog.structs.Set} Elements this widget is attached to.
+ * @protected
+ */
+goog.ui.Tooltip.prototype.getElements = function() {
+  return this.elements_;
+};
+
+
+/**
+ * @return {Element} Active element reference.
+ * @protected
+ */
+goog.ui.Tooltip.prototype.getActiveElement = function() {
+  return this.activeEl_;
+};
+
+
+/**
+ * @param {Element} activeEl Active element reference.
+ * @protected
+ */
+goog.ui.Tooltip.prototype.setActiveElement = function(activeEl) {
+  this.activeEl_ = activeEl;
 };
 
 
@@ -24138,7 +24235,7 @@ goog.ui.Tooltip.prototype.saveCursorPosition_ = function(event) {
 goog.ui.Tooltip.prototype.handleMouseOver = function(event) {
   var el = this.getAnchorFromElement(/** @type {Element} */ (event.target));
   this.activeEl_ = /** @type {Element} */ (el);
-  this.clearHideTimer_();
+  this.clearHideTimer();
   if (el != this.anchor) {
     this.anchor = el;
     this.startShowTimer(/** @type {Element} */ (el));
@@ -24201,7 +24298,7 @@ goog.ui.Tooltip.prototype.handleFocus = function(event) {
   if (this.anchor != el) {
     this.anchor = el;
     var pos = new goog.ui.Tooltip.ElementTooltipPosition(this.activeEl_);
-    this.clearHideTimer_();
+    this.clearHideTimer();
     this.startShowTimer(/** @type {Element} */ (el), pos);
 
     this.checkForParentTooltip_();
@@ -24267,7 +24364,7 @@ goog.ui.Tooltip.prototype.handleMouseOutAndBlur = function(event) {
 goog.ui.Tooltip.prototype.handleTooltipMouseOver = function(event) {
   var element = this.getElement();
   if (this.activeEl_ != element) {
-    this.clearHideTimer_();
+    this.clearHideTimer();
     this.activeEl_ = element;
   }
 };
@@ -24334,15 +24431,15 @@ goog.ui.Tooltip.prototype.startHideTimer_ = function() {
 
 /**
  * Helper method called to clear the close timer.
- *
- * @private
+ * @protected
  */
-goog.ui.Tooltip.prototype.clearHideTimer_ = function() {
+goog.ui.Tooltip.prototype.clearHideTimer = function() {
   if (this.hideTimer) {
     goog.Timer.clear(this.hideTimer);
     this.hideTimer = undefined;
   }
 };
+
 
 /**
  * Destroys widget and removes all event listeners.
@@ -24496,8 +24593,8 @@ goog.ui.Tooltip.ElementTooltipPosition.prototype.reposition = function(
  * Uses features of RFC 3986 for parsing/formatting URIs:
  *   http://gbiv.com/protocols/uri/rfc/rfc3986.html
  *
-*
-*
+ *
+ *
  */
 
 goog.provide('goog.uri.utils');
