@@ -647,7 +647,7 @@ Util.ResultTablesController.prototype.loadStatsTableCallback = function(e) {
     link.category = this.category;
     goog.events.listen(link, 'click', this.xhrCategoryResults, false,
         this);
-    link.href = this.url;
+    link.href = this.url.replace('&o=xhr', '');
     link.innerHTML = 'Feel free to try again.';
     this.tables[this.url].appendChild(link);
   }
