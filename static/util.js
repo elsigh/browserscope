@@ -177,15 +177,15 @@ Util.createChromeFrameCheckbox = function(serverUaString, opt_reloadOnChange) {
 };
 
 /**
- * Does some client side user agent detection.
- * This is really in place to deal with the IE Platform Preview version
- * conundrum, but could easily be extended for other such things.
+ * Performs additional client side user agent detection for overriding
+ * the server-side UA detection.
  * @return {?Array.<string>}
  */
 Util.getJsUaOverrides = function() {
   var jsUa, jsFamilyName, jsV1, jsV2, jsV3;
   var isIE = navigator.userAgent.indexOf('MSIE') != -1;
   if (isIE && typeof document.documentMode != 'undefined') {
+    var matches = /MSIE (\d+)\.(\d+)/.exec(navigator.userAgent); // MSIE x.x;
     if (window.external == null) {
         jsFamilyName = 'IE Platform Preview';
         jsV1 = '9';
@@ -210,10 +210,17 @@ Util.getJsUaOverrides = function() {
         jsV2 = '0';
         jsV3 = 'beta';
       }
+
+    // IE 8 in "compatibility" mode.
+    } else if (Number(matches[1]) == 7 && document.documentMode == 8) {
+      jsFamilyName = 'IE 8 Compatibility Mode'
+      jsV1 = matches[1];
+      jsV2 = matches[2];
+      jsV3 = '0';
     }
   }
+  // Keys match the params that our server expects.
   if (jsFamilyName) {
-    // Keys match the params that our server expects.
     jsUa = {
       'js_user_agent_family': jsFamilyName,
       'js_user_agent_v1': jsV1,
