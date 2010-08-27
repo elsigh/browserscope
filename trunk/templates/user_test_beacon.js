@@ -3,6 +3,7 @@
       var jsUa, jsFamilyName, jsV1, jsV2, jsV3;
       var isIE = navigator.userAgent.indexOf('MSIE') != -1;
       if (isIE && typeof document.documentMode != 'undefined') {
+        var matches = /MSIE (\d+)\.(\d+)/.exec(navigator.userAgent);
         if (window.external == null) {
             jsFamilyName = 'IE Platform Preview';
             jsV1 = '9';
@@ -27,6 +28,14 @@
             jsV2 = '0';
             jsV3 = 'beta';
           }
+        }
+
+        // IE 8 in "compatibility" mode.
+        } else if (Number(matches[1]) == 7 && document.documentMode == 8) {
+          jsFamilyName = 'IE 8 Compatibility Mode'
+          jsV1 = matches[1];
+          jsV2 = matches[2];
+          jsV3 = '0';
         }
       }
       if (jsFamilyName) {
