@@ -28,7 +28,6 @@
             jsV2 = '0';
             jsV3 = 'beta';
           }
-        }
 
         // IE 8 in "compatibility" mode.
         } else if (Number(matches[1]) == 7 && document.documentMode == 8) {
