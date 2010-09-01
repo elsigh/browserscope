@@ -115,7 +115,7 @@ function canonicalizeSingleAttribute(attrName, attrValue, emitFlags) {
     case 'colspan':
     case 'rowspan':
     case 'span':
-      return attrValue == '1' ? null : attrValue;
+      return (attrValue == '1') ? null : attrValue;
       
     // Remove empty style attributes, canonicalize the contents otherwise,
     // provided the test cares for styles.

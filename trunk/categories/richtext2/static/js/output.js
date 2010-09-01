@@ -311,8 +311,8 @@ function outputSingleTestResult(actual, successLevel) {
         if (idx > 0) {
           expectedOutput = expectedOutput + '\xA0\xA0\xA0<i>or</i><br>';
         }
-        expectedOutput = expectedOutput + usesHTML ? highlightSelectionMarkers(escapeOutput(expectedSpec[idx]))
-                                                   : formatValueOrString(expectedSpec[idx]);
+        expectedOutput = expectedOutput + (usesHTML ? highlightSelectionMarkers(escapeOutput(expectedSpec[idx]))
+                                                    : formatValueOrString(expectedSpec[idx]));
       }
       td.innerHTML = expectedOutput;
       break;
