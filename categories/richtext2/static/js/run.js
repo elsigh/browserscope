@@ -27,8 +27,8 @@
  * @return {Any} the effective value of the parameter (can be undefined)
  */
 function getTestParameter(param) {
-  return currentTest[param] === undefined ? currentSuite[param]
-                                          : currentTest[param];
+  return (currentTest[param] === undefined) ? currentSuite[param]
+                                            : currentTest[param];
 }
 
 /**
