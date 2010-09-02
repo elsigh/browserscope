@@ -55,7 +55,8 @@
         'delete='        + scores{{ strict|yesno:'Strict,Partial' }}['D'].total,
         'forwarddelete=' + scores{{ strict|yesno:'Strict,Partial' }}['FD'].total,
         'insert='        + scores{{ strict|yesno:'Strict,Partial' }}['I'].total,
-        'query='         + scores{{ strict|yesno:'Strict,Partial' }}['Q'].total
+        'query='         + scores{{ strict|yesno:'Strict,Partial' }}['Q'].total,
+        'queryCSS='      + scores{{ strict|yesno:'Strict,Partial' }}['QC'].total
       ];
       parent.sendScore(beaconPartial, continueParams);
     }

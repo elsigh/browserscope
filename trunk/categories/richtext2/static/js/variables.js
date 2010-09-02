@@ -100,5 +100,27 @@ var scoresStrict  = {};
 var scoresPartial = {};
 
 // Beacon results (seed, or the beacon will fail).
-var beaconStrict  = ['selection=0', 'apply=0', 'applyCSS=0', 'change=0', 'changeCSS=0', 'unapply=0', 'unapplyCSS=0', 'delete=0', 'forwarddelete=0', 'insert=0', 'query=0'];
-var beaconPartial = ['selection=0', 'apply=0', 'applyCSS=0', 'change=0', 'changeCSS=0', 'unapply=0', 'unapplyCSS=0', 'delete=0', 'forwarddelete=0', 'insert=0', 'query=0'];
+var beaconStrict  = ['selection=0',
+                     'apply=0',
+                     'applyCSS=0',
+                     'change=0',
+                     'changeCSS=0',
+                     'unapply=0',
+                     'unapplyCSS=0',
+                     'delete=0',
+                     'forwarddelete=0',
+                     'insert=0',
+                     'query=0',
+                     'queryCSS=0'];
+var beaconPartial = ['selection=0',
+                     'apply=0',
+                     'applyCSS=0',
+                     'change=0',
+                     'changeCSS=0',
+                     'unapply=0',
+                     'unapplyCSS=0',
+                     'delete=0',
+                     'forwarddelete=0',
+                     'insert=0',
+                     'query=0',
+                     'queryCSS=0'];
