@@ -48,6 +48,7 @@ from categories.richtext2.tests.delete        import DELETE_TESTS
 from categories.richtext2.tests.forwarddelete import FORWARDDELETE_TESTS
 from categories.richtext2.tests.insert        import INSERT_TESTS
 from categories.richtext2.tests.query         import QUERY_TESTS
+from categories.richtext2.tests.queryCSS      import QUERY_TESTS_CSS
 from categories.richtext2.tests.selection     import SELECTION_TESTS
 from categories.richtext2.tests.unapply       import UNAPPLY_TESTS
 from categories.richtext2.tests.unapplyCSS    import UNAPPLY_TESTS_CSS
@@ -91,7 +92,8 @@ def RunRichText2Tests(request):
       DELETE_TESTS,
       FORWARDDELETE_TESTS,
       INSERT_TESTS,
-      QUERY_TESTS
+      QUERY_TESTS,
+      QUERY_TESTS_CSS
     ]
   }
   return shortcuts.render_to_response('%s/templates/richtext2.html' % common.CATEGORY, params)

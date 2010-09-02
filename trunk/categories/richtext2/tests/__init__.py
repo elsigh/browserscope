@@ -7,6 +7,7 @@ __all__ = [
   'forwarddelete',
   'insert',
   'query',
+  'queryCSS',
   'selection',
   'unapply',
   'unapplyCSS'

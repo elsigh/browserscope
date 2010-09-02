@@ -168,7 +168,9 @@ var colorChart = {
   'white': {red: 0xFF, green: 0xFF, blue: 0xFF},
   'whitesmoke': {red: 0xF5, green: 0xF5, blue: 0xF5},
   'yellow': {red: 0xFF, green: 0xFF, blue: 0x00},
-  'yellowgreen': {red: 0x9A, green: 0xCD, blue: 0x32}
+  'yellowgreen': {red: 0x9A, green: 0xCD, blue: 0x32},
+  
+  'transparent': {red: 0x00, green: 0x00, blue: 0x00, alpha: 0.0}
 };
 
 /**
@@ -177,7 +179,11 @@ var colorChart = {
  *   #ff00ff
  *   #f0f
  *   rgb(255, 0, 0)
- *   Number containing the hex value
+ *   rgb(100%, 0%, 28%)        // disabled for the time being (see below)
+ *   rgba(127, 0, 64, 0.25)
+ *   rgba(50%, 0%, 10%, 0.65)  // disabled for the time being (see below)
+ *   palegoldenrod
+ *   transparent
  *
  * @constructor
  * @param value {String} original value
@@ -187,55 +193,89 @@ function Color(value) {
     if (!this.valid || !other.valid) {
       return false;
     }
-    // TODO(rolandsteiner): handle alpha and hsl/hsla values
+    if (this.alpha != other.alpha) {
+      return false;
+    }
+    if (this.alpha == 0.0) {
+      // fully transparent -> ignore the specific color information
+      return true;
+    }
+    // TODO(rolandsteiner): handle hsl/hsla values
     return this.red == other.red && this.green == other.green && this.blue == other.blue;
   }
   this.parse = function(value) {
-    var hex6Match = String(value).match(/#([0-9a-f]{6})/i);
-    if (hex6Match) {
-      this.red = parseInt(hex6Match[1].substring(0, 2), 16);
-      this.green = parseInt(hex6Match[1].substring(2, 4), 16);
-      this.blue = parseInt(hex6Match[1].substring(4, 6), 16);
+    value = String(value).toLowerCase();
+    var match;
+    // '#' + 6 hex digits, e.g., #ff3300
+    match = value.match(/#([0-9a-f]{6})/i);
+    if (match) {
+      this.red = parseInt(match[1].substring(0, 2), 16);
+      this.green = parseInt(match[1].substring(2, 4), 16);
+      this.blue = parseInt(match[1].substring(4, 6), 16);
+      this.alpha = 1.0;
       return true;
     }
-    var colorMatch = colorChart[value];
-    if (colorMatch) {
-      this.red = colorMatch.red;
-      this.green = colorMatch.green;
-      this.blue = colorMatch.blue;
+    // '#' + 3 hex digits, e.g., #f30
+    match = value.match(/#([0-9a-f]{3})/i);
+    if (match) {
+      this.red = parseInt(match[1].substring(0, 1), 16) * 16;
+      this.green = parseInt(match[1].substring(1, 2), 16) * 16;
+      this.blue = parseInt(match[1].substring(2, 3), 16) * 16;
+      this.alpha = 1.0;
       return true;
     }
-    var hex3Match = String(value).match(/#([0-9a-f]{3})/i);
-    if (hex3Match) {
-      this.red = parseInt(hex6Match[1].substring(0, 1), 16) * 16;
-      this.green = parseInt(hex6Match[1].substring(1, 2), 16) * 16;
-      this.blue = parseInt(hex6Match[1].substring(2, 3), 16) * 16;
+    // a color name, e.g., springgreen
+    match = colorChart[value];
+    if (match) {
+      this.red = match.red;
+      this.green = match.green;
+      this.blue = match.blue;
+      this.alpha = (match.alpha === undefined) ? 1.0 : match.alpha;
       return true;
     }
-    // TODO(rolandsteiner): handle % and decimal values
-    var rgbMatch = String(value).match(/rgb\(([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*\)/i);
-    if (rgbMatch) {
-      this.red = Number(rgbMatch[1]);
-      this.green = Number(rgbMatch[2]);
-      this.blue = Number(rgbMatch[3]);
+    // rgb(r, g, b), e.g., rgb(128, 12, 217)
+    match = value.match(/rgb\(([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*\)/i);
+    if (match) {
+      this.red = Number(match[1]);
+      this.green = Number(match[2]);
+      this.blue = Number(match[3]);
+      this.alpha = 1.0;
       return true;
     }
-    // TODO(rolandsteiner): handle % and decimal values
-    var rgbaMatch = String(value).match(/rgba\(([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*\)/i);
-    if (rgbaMatch) {
-      this.red = Number(rgbaMatch[1]);
-      this.green = Number(rgbaMatch[2]);
-      this.blue = Number(rgbaMatch[3]);
-// TODO(rolandsteiner): handle alpha values
-//      this.alpha = Number(rgbaMatch[4]);
+    // rgb(r%, g%, b%), e.g., rgb(100%, 0%, 50%)
+// Commented out for the time being, since it seems likely that the resulting
+// decimal values will create false negatives when compared with non-% values.
+//
+// => store as separate percent values and do exact matching when compared with % values
+// and fuzzy matching when compared with non-% values?
+//
+//    match = value.match(/rgb\(([0-9]{0,3}(?:\.[0-9]+)?)%\s*,\s*([0-9]{0,3}(?:\.[0-9]+)?)%\s*,\s*([0-9]{0,3}(?:\.[0-9]+)?)%\s*\)/i);
+//    if (match) {
+//      this.red = Number(match[1]) * 255 / 100;
+//      this.green = Number(match[2]) * 255 / 100;
+//      this.blue = Number(match[3]) * 255 / 100;
+//      this.alpha = 1.0;
+//      return true;
+//    }
+    // rgba(r, g, b, a), e.g., rgb(128, 12, 217, 0.2)
+    match = value.match(/rgba\(([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]?(?:\.[0-9]+)?)\s*\)/i);
+    if (match) {
+      this.red = Number(match[1]);
+      this.green = Number(match[2]);
+      this.blue = Number(match[3]);
+      this.alpha = Number(match[4]);
       return true;
     }
-    if (Number(value)) {
-      this.red = value & 0xFF;
-      this.green = (value & 0xFF00) >> 8;
-      this.blue = (value & 0xFF0000) >> 16;
-      return true;
-    }
+    // rgba(r%, g%, b%, a), e.g., rgb(100%, 0%, 50%, 0.3)
+// Commented out for the time being (cf. rgb() matching above)
+//    match = value.match(/rgba\(([0-9]{0,3}(?:\.[0-9]+)?)%\s*,\s*([0-9]{0,3}(?:\.[0-9]+)?)%\s*,\s*([0-9]{0,3}(?:\.[0-9]+)?)%,\s*([0-9]?(?:\.[0-9]+)?)\s*\)/i);
+//    if (match) {
+//      this.red = Number(match[1]) * 255 / 100;
+//      this.green = Number(match[2]) * 255 / 100;
+//      this.blue = Number(match[3]) * 255 / 100;
+//      this.alpha = Number(match[4]);
+//      return true;
+//    }
     // TODO(rolandsteiner): handle "hsl(h, s, l)" and "hsla(h, s, l, a)" notation
     return false;
   }

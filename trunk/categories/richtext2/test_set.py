@@ -34,6 +34,7 @@ from categories.richtext2.tests.delete        import DELETE_TESTS
 from categories.richtext2.tests.forwarddelete import FORWARDDELETE_TESTS
 from categories.richtext2.tests.insert        import INSERT_TESTS
 from categories.richtext2.tests.query         import QUERY_TESTS
+from categories.richtext2.tests.queryCSS      import QUERY_TESTS_CSS
 from categories.richtext2.tests.selection     import SELECTION_TESTS
 from categories.richtext2.tests.unapply       import UNAPPLY_TESTS
 from categories.richtext2.tests.unapplyCSS    import UNAPPLY_TESTS_CSS
@@ -116,7 +117,21 @@ class InsertRichText2Test(IndividualRichText2Test):
 class QueryRichText2Test(IndividualRichText2Test):
   CATEGORY = 'query'
 
-CATEGORIES = sorted(['selection', 'apply', 'applyCSS', 'change', 'changeCSS', 'unapply', 'unapplyCSS', 'delete', 'forwarddelete', 'insert', 'query'])
+class QueryCSSRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'queryCSS'
+
+CATEGORIES = sorted(['selection',
+                     'apply',
+                     'applyCSS',
+                     'change',
+                     'changeCSS',
+                     'unapply',
+                     'unapplyCSS',
+                     'delete',
+                     'forwarddelete',
+                     'insert',
+                     'query',
+                     'queryCSS'])
 
 # Category tests:
 # key, name, doc
@@ -197,7 +212,12 @@ _CATEGORIES_TEST_SET = [
 
   CategoryRichText2Test('query', 'Query Functions',
   '''These tests verify that the various 'queryCommand...()' functions return
-  a correct result given a certain set-up.
+  a correct result given a certain set-up. styleWithCSS is being set to false.
+  The expected and actual results are shown.'''),
+
+  CategoryRichText2Test('queryCSS', 'Query Functions, styleWithCSS',
+  '''These tests verify that the various 'queryCommand...()' functions return
+  a correct result given a certain set-up. styleWithCSS is being set to true.
   The expected and actual results are shown.''')
 ]
 
@@ -263,6 +283,12 @@ _QUERY_TEST_SET = [
             for t in QUERY_TESTS.get(c, {})
 ]
 
+_QUERY_CSS_TEST_SET = [
+    QueryCSSRichText2Test(createID(QUERY_TESTS_CSS, t['id']), t['desc'])
+        for c in common.CLASSES
+            for t in QUERY_TESTS_CSS.get(c, {})
+]
+
 _FULL_TEST_SET = _CATEGORIES_TEST_SET + \
                  _SELECTION_TEST_SET + \
                  _APPLY_TEST_SET + \
@@ -274,7 +300,8 @@ _FULL_TEST_SET = _CATEGORIES_TEST_SET + \
                  _DELETE_TEST_SET + \
                  _FORWARDDELETE_TEST_SET + \
                  _INSERT_TEST_SET + \
-                 _QUERY_TEST_SET
+                 _QUERY_TEST_SET + \
+                 _QUERY_CSS_TEST_SET
 
 class RichText2TestSet(test_set_base.TestSet):
 

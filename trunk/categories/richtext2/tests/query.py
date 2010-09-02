@@ -26,7 +26,7 @@ QUERY_TESTS = {
   'checkSel':      False,
   'styleWithCSS':  False,
 
-  'RFC': [
+  'Proposed': [
     ### queryCommandSupported
     { 'id':          'SUPP-BOLD-TEXT',
       'desc':        'check whether the "bold" command is supported',
