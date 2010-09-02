@@ -14,17 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Query tests"""
+"""Query with CSS tests"""
 
 __author__ = 'rolandsteiner@google.com (Roland Steiner)'
 
-QUERY_TESTS = {
-  'id':            'Q',
-  'caption':       'Query Tests',
+QUERY_TESTS_CSS = {
+  'id':            'QC',
+  'caption':       'Query Tests, using styleWithCSS',
   'checkAttrs':    False,
   'checkStyle':    False,
   'checkSel':      False,
-  'styleWithCSS':  False,
+  'styleWithCSS':  True,
 
   'Proposed': [
     ### queryCommandSupported
