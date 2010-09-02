@@ -34,7 +34,7 @@ urlpatterns = patterns('',
   (r'^user/beacon/(.+)$', 'base.user_tests.BeaconJs'),  # beta
   (r'^user/tests/edit/(.+)$', 'base.user_tests.TestEdit'),  # beta
   (r'^user/tests/view/(.+)$', 'base.user_tests.TestView'),  # beta
-  (r'^user/tests/table/(.+)$', 'base.user_tests.TestStatsTable'),  # beta
+  (r'^user/tests/table/(.+)$', 'base.user_tests.Table'),  # beta
   (r'^user/tests/howto$', 'base.user_tests.TestHowto'),  # beta
   (r'^user/tests/raw/(.+)$', 'base.user_tests.RawTestData'),  # beta
   (r'^user/tests/(.+)$', 'base.user_tests.Test'),  # beta

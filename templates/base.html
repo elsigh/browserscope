@@ -21,6 +21,10 @@
     rel="stylesheet"
     href="{{ "base.css"|resource_path }}"
     type="text/css">
+  <link
+    rel="stylesheet"
+    href="{{ "results_table.css"|resource_path }}"
+    type="text/css">
   {% block style %}{% endblock %}
   {% block head %}{% endblock %}
 </head>
@@ -87,6 +91,7 @@
     <div id="bs-foot">
       <a href="/" target="_top">Home</a> |
       <a href="/faq" target="_top">FAQ</a> |
+      <a href="/ua" target="_top">UA Parser</a> |
       <a href="/news" target="_top">News</a> |
       <a href="/browsers" target="_top">Browser Resources</a> |
       <a href="http://code.google.com/p/browserscope/source/checkout" target="_top">Code</a> |

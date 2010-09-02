@@ -18,42 +18,40 @@
   </p>
 
   {% if tests %}
-    <div class="rt">
-      <table>
-        <thead>
+    <table class="bs-table">
+      <thead>
+        <tr>
+          <th>_bTestKey</th>
+          <th>Name</th>
+          <th>URL</th>
+          <th>Sandbox ID</th>
+          <th>Description</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for test in tests %}
           <tr>
-            <th>_bTestKey</th>
-            <th>Name</th>
-            <th>URL</th>
-            <th>Sandbox ID</th>
-            <th>Description</th>
-            <th></th>
+            <td>{{ test.key }}</td>
+            <td>{{ test.name }}</td>
+            <td>
+              <a href="{{ test.url }}" target="_blank">{{ test.url }}</a>
+            </td>
+            <td>{{ test.sandboxid }}</td>
+            <td>{{ test.description }}</td>
+            <td>
+              <a href="/user/tests/edit/{{ test.key }}">edit</a>
+              <a href="/browse?category=usertest_{{ test.key }}"
+                >Results</a>
+              <a href="/user/tests/table/{{ test.key }}?v=3&layout=simple"
+                >Table</a>
+              <a href="/user/tests/table/{{ test.key }}?v=3&o=csv">CSV</a>
+              <a href="/user/tests/table/{{ test.key }}?v=3&o=json">JSON</a>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          {% for test in tests %}
-            <tr>
-              <td>{{ test.key }}</td>
-              <td>{{ test.name }}</td>
-              <td>
-                <a href="{{ test.url }}" target="_blank">{{ test.url }}</a>
-              </td>
-              <td>{{ test.sandboxid }}</td>
-              <td>{{ test.description }}</td>
-              <td>
-                <a href="/user/tests/edit/{{ test.key }}">edit</a>
-                <a href="/browse?category=usertest_{{ test.key }}"
-                  >Results</a>
-                <a href="/user/tests/table/{{ test.key }}?v=3&layout=simple"
-                  >Table</a>
-                <a href="/user/tests/table/{{ test.key }}?v=3&o=csv">CSV</a>
-                <a href="/user/tests/table/{{ test.key }}?v=3&o=json">JSON</a>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+        {% endfor %}
+      </tbody>
+    </table>
   {% else %}
     <p>
       You don't have any tests configured yet.
