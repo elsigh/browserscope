@@ -238,6 +238,18 @@ def RawTestData(request, key):
   return http.HttpResponse(out, mimetype='text/csv')
 
 
+def Button(request):
+  """Draws a Run the test button on the page for a user."""
+  params = {
+    'mimetype': 'text/javascript',
+    'fn': request.GET.get('fn', '_bRunTest'),
+    'btn_text': request.GET.get('btn_text', 'Run the test'),
+    'cb_text': request.GET.get('cb_text',
+        'and send my results to Browserscope (anonymously)'),
+  }
+  return util.Render(request, 'user_test_button.js', params)
+
+
 def Table(request, key):
   """The User Test results table."""
   test = models.user_test.Test.get_mem(key)
@@ -280,7 +292,8 @@ def Table(request, key):
 
   template = 'user_test_table.html'
   if js_embed:
-    params['mimetype'] = 'text/plain'
+    #params['mimetype'] = 'text/plain'
+    params['mimetype'] = 'text/javascript'
     template = 'user_test_table.js'
   return util.Render(request, template, params)
 
