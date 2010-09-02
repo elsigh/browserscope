@@ -121,16 +121,16 @@ Parameters:
   v=1: Shows the browser families.
   v=2: Shows the minor browser versions.
   v=3: Shows all browser versions.
-  o=html: The browserscope HTML table (DEFAULT)
+  o=html: The browserscope HTML table (DEFAULT, good for iframe src)
+  o=js: Good as a script src value, renders the table on your page.
   o=gviz_data: Preformatted gviz output, suitable for gviz widgets.
   o=json: A JSON encoded response with all the data.
   callback=yourFnnName: When o=json, wraps json output in "yourFnName()"
-  layout=full: Includes links and headers we use in Browserscope (o=HTML, DEFAULT).
-  layout=simple: Hides a variety of things, good for embedding (o=HTML).
+  layout=full: Includes links and headers we use in Browserscope (o=html, DEFAULT).
+  layout=simple: Hides a variety of things, good for embedding (o=html).
   f=test_key_1,test_key_2: Limit results to these test_keys.</code></pre>
     </li>
   </ol>
-
 
   <h2>Create a test record with the API</h2>
   <ol>

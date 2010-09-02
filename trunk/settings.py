@@ -71,7 +71,8 @@ CATEGORIES_BETA = ['reflow', 'cookies', 'html5', 'richtext2']
 STATIC_CATEGORIES = []
 # Where we'll read the static files from (can be a local path or a url).
 #STATIC_SOURCE_FORMAT = 'static_mode/%(category)s_%(version_level)s.py'
-STATIC_SOURCE_FORMAT = 'http://static.latest.ua-profiler.appspot.com/static_mode/%(category)s_%(version_level)s.py'
+STATIC_SOURCE_FORMAT = ('http://static.latest.ua-profiler.appspot.com/'
+                        'static_mode/%(category)s_%(version_level)s.py')
 SYSTEM_COOKIES = [SESSION_COOKIE_NAME]
 
 STATS_MEMCACHE_TIMEOUT = 0
@@ -91,3 +92,4 @@ if (SERVER_SOFTWARE is not None and 'Dev' in SERVER_SOFTWARE):
 if users.is_current_user_admin():
   DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+

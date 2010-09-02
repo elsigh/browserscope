@@ -26,6 +26,9 @@ import re
 
 from google.appengine.api import users
 from google.appengine.api import datastore_errors
+from google.appengine.api import memcache
+from google.appengine.api import urlfetch
+
 from google.appengine.ext import deferred
 from google.appengine.ext import db
 
@@ -235,15 +238,21 @@ def RawTestData(request, key):
   return http.HttpResponse(out, mimetype='text/csv')
 
 
-def TestStatsTable(request, key):
+def Table(request, key):
+  """The User Test results table."""
   test = models.user_test.Test.get_mem(key)
   if not test:
     msg = 'No test was found with test_key %s.' % key
     return http.HttpResponseServerError(msg)
 
   output = request.GET.get('o', 'html')
+  js_embed = False
+  if output == 'js':
+    output = 'html'
+    js_embed = True
   if output not in util.VALID_STATS_OUTPUTS:
     return http.HttpResponse('Invalid output specified')
+
 
   fields = request.GET.get('f')
   if fields:
@@ -268,8 +277,48 @@ def TestStatsTable(request, key):
     'test': test,
     'stats_table': stats_table
   }
-  return util.Render(request, 'user_test_table.html', params)
 
+  template = 'user_test_table.html'
+  if js_embed:
+    params['mimetype'] = 'text/plain'
+    template = 'user_test_table.js'
+  return util.Render(request, template, params)
+
+# # Fetch the inline js
+# memcache_key = 'inline_javascript_%s' % settings.BUILD
+# inline_javascript = memcache.get(memcache_key)
+# if not inline_javascript:
+#   if settings.BUILD == 'production':
+#     server = 'http://%s' % util.GetServer(request)
+#     response = urlfetch.fetch(url='%s%s' % (server,
+#                                             '/static/browserscope.js'))
+#     inline_javascript = response.content
+#   else:
+#     server = 'http://%s:8085' % request.META['SERVER_NAME']
+#     dev_response = urlfetch.fetch(url='%s%s' % (server,
+#                                                 '/static/dev.js'))
+#     util_response = urlfetch.fetch(url='%s%s' % (server,
+#                                                  '/static/util.js'))
+#     inline_javascript = '%s%s%s' % ('var CLOSURE_NO_DEPS = true;\n',
+#                                     dev_response.content,
+#                                     util_response.content)
+#   #memcache.add(memcache_key, inline_javascript, 30)
+# params['inline_javascript'] = inline_javascript
+
+# Fetch the inline CSS
+# memcache_key = 'inline_css_%s' % settings.BUILD
+# inline_css = memcache.get(memcache_key)
+# if not inline_css:
+#   if settings.BUILD == 'production':
+#     server = 'http://%s' % util.GetServer(request)
+#   else:
+#     server = 'http://%s:8085' % request.META['SERVER_NAME']
+
+#   response = urlfetch.fetch(url='%s%s' % (server,
+#                                           '/static/results_table.css'))
+#   inline_css = response.content
+#   #memcache.add(memcache_key, inline_css, 30)
+# params['inline_css'] = inline_css
 
 @decorators.admin_required
 def UpdateSchema(request):
@@ -371,3 +420,4 @@ def BeaconJs(request, key):
                      'NAV INT STA"')
 
   return response
+

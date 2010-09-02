@@ -79,6 +79,7 @@ def Render(request, template, params={}, category=None):
   params['request_path'] = request.get_full_path().replace('&o=xhr', '')
   params['request_path_lastbit'] = re.sub('^.+\/([^\/]+$)', '\\1', request.path)
   params['request_path_noparams'] = request.path
+  params['server'] = GetServer(request)
   params['current_ua_string'] = request.META.get('HTTP_USER_AGENT')
   if params['current_ua_string']:
     js_user_agent_string = request.REQUEST.get('js_ua')
@@ -767,6 +768,7 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
     'tests': opt_tests or test_set.VisibleTests(),
     'v': version_level,
     'output': output,
+    'server': GetServer(request),
     'ua_by_param': browser_param,
     'user_agents': browsers,
     'request_path': request.get_full_path(),

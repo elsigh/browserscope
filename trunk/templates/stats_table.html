@@ -176,19 +176,19 @@
     <span class="bs-results-dl">
       <span>Downloads:</span>
       <a class="bs-dl-json"
-        href="{{ request_path_noparams }}?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}&o=json"
+        href="http://{{ server }}/?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}&o=json"
         >json</a>
       <a class="bs-dl-py"
-        href="{{ request_path_noparams }}?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}&o=pickle"
+        href="http://{{ server }}/?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}&o=pickle"
         >pickle</a>
       <a class="bs-dl-csv"
-        href="{{ request_path_noparams }}?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}&o=csv"
+        href="http://{{ server }}/?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}&o=csv"
         >csv</a>
     </span>
 
     <a
       class="bs-l-p"
-      href="{{ request_path_noparams }}?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}"
+      href="http://{{ server }}/?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}"
       >Link to this page</a>
   </div>
 
