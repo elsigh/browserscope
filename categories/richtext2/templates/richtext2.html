@@ -45,20 +45,29 @@
       e.parentNode.removeChild(e);
 
       var continueParams = [
-        'selection='     + scores{{ strict|yesno:'Strict,Partial' }}['S'].total,
-        'apply='         + scores{{ strict|yesno:'Strict,Partial' }}['A'].total,
-        'applyCSS='      + scores{{ strict|yesno:'Strict,Partial' }}['AC'].total,
-        'unapply='       + scores{{ strict|yesno:'Strict,Partial' }}['U'].total,
-        'unapplyCSS='    + scores{{ strict|yesno:'Strict,Partial' }}['UC'].total,
-        'change='        + scores{{ strict|yesno:'Strict,Partial' }}['C'].total,
-        'changeCSS='     + scores{{ strict|yesno:'Strict,Partial' }}['CC'].total,
-        'delete='        + scores{{ strict|yesno:'Strict,Partial' }}['D'].total,
-        'forwarddelete=' + scores{{ strict|yesno:'Strict,Partial' }}['FD'].total,
-        'insert='        + scores{{ strict|yesno:'Strict,Partial' }}['I'].total,
-        'query='         + scores{{ strict|yesno:'Strict,Partial' }}['Q'].total,
-        'queryCSS='      + scores{{ strict|yesno:'Strict,Partial' }}['QC'].total
+        'selection='        + scoresStrict['S'].total,
+        'apply='            + scoresPartial['A'].total,
+        'applySel='         + scoresStrict['A'].total,
+        'applyCSS='         + scoresPartial['AC'].total,
+        'applyCSSSel='      + scoresStrict['AC'].total,
+        'unapply='          + scoresPartial['U'].total,
+        'unapplySel='       + scoresStrict['U'].total,
+        'unapplyCSS='       + scoresPartial['UC'].total,
+        'unapplyCSSSel='    + scoresStrict['UC'].total,
+        'change='           + scoresPartial['C'].total,
+        'changeSel='        + scoresStrict['C'].total,
+        'changeCSS='        + scoresPartial['CC'].total,
+        'changeCSSSel='     + scoresStrict['CC'].total,
+        'delete='           + scoresPartial['D'].total,
+        'deleteSel='        + scoresStrict['D'].total,
+        'forwarddelete='    + scoresPartial['FD'].total,
+        'forwarddeleteSel=' + scoresStrict['FD'].total,
+        'insert='           + scoresPartial['I'].total,
+        'insertSel='        + scoresStrict['I'].total,
+        'query='            + scoresPartial['Q'].total,
+        'queryCSS='         + scoresPartial['QC'].total
       ];
-      parent.sendScore(beaconPartial, continueParams);
+      parent.sendScore(beacon, continueParams);
     }
     {% endautoescape %}
   </script>  

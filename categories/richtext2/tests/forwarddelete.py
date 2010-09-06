@@ -24,10 +24,10 @@ __author__ = 'rolandsteiner@google.com (Roland Steiner)'
 
 FORWARDDELETE_TESTS = {
   'id':          'FD',
-  'caption':       'Forward-Delete Tests',
-  'command':       'forwardDelete',
-  'checkAttrs':    False,
-  'checkStyle':    False,
+  'caption':     'Forward-Delete Tests',
+  'command':     'forwardDelete',
+  'checkAttrs':  False,
+  'checkStyle':  False,
 
   'Proposed': [
     # backward delete
@@ -87,24 +87,24 @@ FORWARDDELETE_TESTS = {
       'expected':    'foo^baz' },
       
     { 'id':          'SPAN-1',
-      'desc':        'Delete at end of span',
+      'desc':        'Forward-delete at end of span',
       'pad':         'foo<b>bar^</b>baz',
-      'expected':    'foo<b>bar</b>az' },
+      'expected':    'foo<b>bar^</b>az' },
 
     { 'id':          'SPAN-2',
-      'desc':        'Delete from position before span',
+      'desc':        'Forward-delete from position before span',
       'pad':         'foo^<b>bar</b>baz',
-      'expected':    'foo<b>ar</b>baz' },
+      'expected':    'foo^<b>ar</b>baz' },
 
     { 'id':          'SPAN-3',
       'desc':        'Delete oblique selection that starts before span',
       'pad':         'foo[bar<b>baz]quoz</b>quuz',
-      'expected':    'foo<b>quoz</b>quuz' },
+      'expected':    'foo^<b>quoz</b>quuz' },
 
     { 'id':          'SPAN-4',
       'desc':        'Delete oblique selection that ends after span',
       'pad':         'foo<b>bar[baz</b>quoz]quuz',
-      'expected':    'foo<b>bar</b>quuz' },
+      'expected':    'foo<b>bar^</b>quuz' },
 
     { 'id':          'SPAN-5',
       'desc':        'Delete selection that wraps the whole span content',
@@ -119,17 +119,17 @@ FORWARDDELETE_TESTS = {
     { 'id':          'SPAN-7',
       'desc':        'Delete oblique selection that starts and ends in different spans',
       'pad':         'foo<b>bar[baz</b><i>qoz]quuz</i>quuuz',
-      'expected':    'foo<b>bar</b><i>quuz</i>quuuz' },
+      'expected':    'foo<b>bar^</b><i>quuz</i>quuuz' },
 
     { 'id':          'GEN-1',
       'desc':        'Delete at end of span with generated content',
       'pad':         'foo<gen>bar^</gen>baz',
-      'expected':    'foo<gen>bar</gen>az' },
+      'expected':    'foo<gen>bar^</gen>az' },
 
     { 'id':          'DEL-GEN-2',
       'desc':        'Delete from position before span with generated content',
       'pad':         'foo^<gen>bar</gen>baz',
-      'expected':    'foo<gen>ar</gen>baz' },
+      'expected':    'foo^<gen>ar</gen>baz' },
 
     { 'id':          'P-1',
       'desc':        'Delete at end of paragraph - should merge with next',
@@ -139,7 +139,8 @@ FORWARDDELETE_TESTS = {
     { 'id':          'LI-1',
       'desc':        'Delete fully wrapped list item',
       'pad':         'foo<ol>{<li>bar</li>}<li>baz</li></ol>qoz', 
-      'expected':    'foo<ol><li>baz</li></ol>qoz' },
+      'expected':    ['foo<ol>|<li>baz</li></ol>qoz',
+                      'foo<ol><li>^baz</li></ol>qoz'] },
 
     { 'id':          'LI-2',
       'desc':        'Delete oblique range between list items within same list',
@@ -149,7 +150,8 @@ FORWARDDELETE_TESTS = {
     { 'id':           'LI-3',
       'desc':        'Delete contents of last list item (list should remain)',
       'pad':         'foo<ol><li>[foo]</li></ol>qoz',
-      'expected':    'foo<ol><li></li></ol>qoz' },
+      'expected':    ['foo<ol><li>|</li></ol>qoz',
+                      'foo<ol><li>^</li></ol>qoz'] },
 
     { 'id':          'LI-4',
       'desc':        'Delete last list item of list (should remove entire list)',

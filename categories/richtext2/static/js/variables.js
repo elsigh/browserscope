@@ -77,6 +77,7 @@ var PARAM_ALLOW_EXCEPTION       = 'allowException';
 var editorElem = null;
 var editorWin  = null;
 var editorDoc  = null;
+var editorSel  = null;
 var contentEditableElem = null;
 
 // Variables holding the current suite and test for simplicity.
@@ -86,7 +87,8 @@ var currentClass           = null;  // sub-object of currentSuite, specifying th
 var currentClassID         = '';    // ID string of the current class - one of testClasses, below
 var currentClassScoreID    = '';    // ID of the element showing the final scores for the class
 var currentTest            = null;  // sub-object of currentClass, specifying the current test
-var currentID              = '';    // totally unique ID, concatenated '<suite ID>-<test ID>'
+var currentIDpartial       = '';    // totally unique ID for non-strict tests
+var currentIDStrict        = '';    // totally unique ID for strict tests
 var currentResultHTML      = '';    // HTML string after executing the/all command(s)
 var currentOutputTable     = null;  // HTML table for the current suite + class
 var currentBackgroundShade = 'Lo';  // to facilitate alternating table row shading
@@ -100,27 +102,24 @@ var scoresStrict  = {};
 var scoresPartial = {};
 
 // Beacon results (seed, or the beacon will fail).
-var beaconStrict  = ['selection=0',
-                     'apply=0',
-                     'applyCSS=0',
-                     'change=0',
-                     'changeCSS=0',
-                     'unapply=0',
-                     'unapplyCSS=0',
-                     'delete=0',
-                     'forwarddelete=0',
-                     'insert=0',
-                     'query=0',
-                     'queryCSS=0'];
-var beaconPartial = ['selection=0',
-                     'apply=0',
-                     'applyCSS=0',
-                     'change=0',
-                     'changeCSS=0',
-                     'unapply=0',
-                     'unapplyCSS=0',
-                     'delete=0',
-                     'forwarddelete=0',
-                     'insert=0',
-                     'query=0',
-                     'queryCSS=0'];
+var beacon = ['selection=0',
+              'apply=0',
+              'applySel=0',
+              'applyCSS=0',
+              'applyCSSSel=0',
+              'change=0',
+              'changeSel=0',
+              'changeCSS=0',
+              'changeCSSSel=0',
+              'unapply=0',
+              'unapplySel=0',
+              'unapplyCSS=0',
+              'unapplyCSSSel=0',
+              'delete=0',
+              'deleteSel=0',
+              'forwarddelete=0',
+              'forwarddeleteSel=0',
+              'insert=0',
+              'insertSel=0',
+              'query=0',
+              'queryCSS=0'];

@@ -62,7 +62,7 @@ function runSingleTest() {
       }
       editorDoc.execCommand(cmd, false, value);
     } else if (cmd = getTestParameter(PARAM_FUNCTION)) {
-      cmd();
+      eval(cmd);
     } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDSUPPORTED)) {
       output = editorDoc.queryCommandSupported(cmd);
     } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDENABLED)) {
@@ -114,7 +114,13 @@ function runSingleTest() {
   }
   
   // 4.) Output the result
-  outputSingleTestResult(output, lvl);
+  try {
+    outputSingleTestResult(output, lvl);
+  } catch (ex) {
+    // An exception shouldn't really happen here!
+    alert('Exception on output when running ' + currentClassID + ' tests of the suite "' +
+          currentSuite.id + '" ("' + currentSuite.caption + '"): ' + ex.toString());
+  }
   return lvl;
 }
 
@@ -154,30 +160,47 @@ function runTestSuite(suite) {
         currentBackgroundShade = 'Lo';
         for (testIdx = 0; testIdx < currentClass.length; ++testIdx) {
           currentTest = currentClass[testIdx];
-          currentID = commonIDPrefix + '-' + currentSuite.id + '-' + currentTest.id;
+          switch (currentSuite.id[0]) {
+            case 'S':  // Selection tests - strict per definitonem (leave out 'S' in id) 
+              currentIDPartial = '';
+              currentIDStrict = commonIDPrefix + '-' + currentSuite.id + '-' + currentTest.id;
+              break;
+
+            case 'Q':  // Query tests
+              currentIDPartial = commonIDPrefix + '-' + currentSuite.id + '-' + currentTest.id;
+              currentIDStrict = '';
+              break;
+              
+            default:
+              currentIDPartial = commonIDPrefix + '-' + currentSuite.id + '-' + currentTest.id;
+              currentIDStrict = commonIDPrefix + '-' + currentSuite.id + 'S-' + currentTest.id;
+          }
           ++counts[currentSuite.id].total;
           ++counts[currentSuite.id][currentClassID];
           var result = runSingleTest();
+          var scorePartial = 0;
+          var scoreStrict = 0;
           switch (result) {
             case RESULT_EQUAL:
               ++scoresStrict[currentSuite.id].total;
               ++scoresStrict[currentSuite.id][currentClassID];
               ++scoresPartial[currentSuite.id].total;
               ++scoresPartial[currentSuite.id][currentClassID];
-              beaconStrict.push(currentID + '=1');
-              beaconPartial.push(currentID + '=1');
+              scorePartial = 1;
+              scoreStrict = 1;
               break;
 
             case RESULT_SELECTION_DIFFS:
               ++scoresPartial[currentSuite.id].total;
               ++scoresPartial[currentSuite.id][currentClassID];
-              beaconStrict.push(currentID + '=0');
-              beaconPartial.push(currentID + '=1');
+              scorePartial = 1;
               break;
-              
-            default:
-              beaconStrict.push(currentID + '=0');
-              beaconPartial.push(currentID + '=0');
+          }
+          if (currentIDPartial) {
+              beacon.push(currentIDpartial + '=' + scorePartial);
+          }
+          if (currentIDStrict) {
+              beacon.push(currentIDStrict + '=' + scoreStrict);
           }
           resetEditorElement();
           currentBackgroundShade = (currentBackgroundShade == 'Lo') ? 'Hi' : 'Lo';

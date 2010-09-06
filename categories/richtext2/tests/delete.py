@@ -88,22 +88,22 @@ DELETE_TESTS = {
     { 'id':          'SPAN-1',
       'desc':        'Delete at start of span',
       'pad':         'foo<b>^bar</b>baz',
-      'expected':    'fo<b>bar</b>baz' },
+      'expected':    'fo^<b>bar</b>baz' },
 
     { 'id':          'SPAN-2',
       'desc':        'Delete from position after span',
       'pad':         'foo<b>bar</b>^baz',
-      'expected':    'foo<b>ba</b>baz' },
+      'expected':    'foo<b>ba^</b>baz' },
 
     { 'id':          'SPAN-3',
       'desc':        'Delete oblique selection that starts before span',
       'pad':         'foo[bar<b>baz]quoz</b>quuz',
-      'expected':    'foo<b>quoz</b>quuz' },
+      'expected':    'foo^<b>quoz</b>quuz' },
 
     { 'id':          'SPAN-4',
       'desc':        'Delete oblique selection that ends after span',
       'pad':         'foo<b>bar[baz</b>quoz]quuz',
-      'expected':    'foo<b>bar</b>quuz' },
+      'expected':    'foo<b>bar^</b>quuz' },
 
     { 'id':          'SPAN-5',
       'desc':        'Delete selection that wraps the whole span content',
@@ -118,17 +118,17 @@ DELETE_TESTS = {
     { 'id':          'SPAN-7',
       'desc':        'Delete oblique selection that starts and ends in different spans',
       'pad':         'foo<b>bar[baz</b><i>qoz]quuz</i>quuuz',
-      'expected':    'foo<b>bar</b><i>quuz</i>quuuz' },
+      'expected':    'foo<b>bar^</b><i>quuz</i>quuuz' },
 
     { 'id':          'GEN-1',
       'desc':        'Delete at start of span with generated content',
       'pad':         'foo<gen>^bar</gen>baz',
-      'expected':    'fo<gen>bar</gen>baz' },
+      'expected':    'fo^<gen>bar</gen>baz' },
 
     { 'id':          'GEN-2',
       'desc':        'Delete from position after span with generated content',
       'pad':         'foo<gen>bar</gen>^baz',
-      'expected':    'foo<gen>ba</gen>baz' },
+      'expected':    'foo<gen>ba^</gen>baz' },
 
     { 'id':          'P-1',
       'desc':        'Delete at start of paragraph - should merge with previous',
@@ -138,7 +138,8 @@ DELETE_TESTS = {
     { 'id':          'LI-1',
       'desc':        'Delete fully wrapped list item',
       'pad':         'foo<ol>{<li>bar</li>}<li>baz</li></ol>qoz', 
-      'expected':    'foo<ol><li>baz</li></ol>qoz' },
+      'expected':    ['foo<ol>|<li>baz</li></ol>qoz',
+                      'foo<ol><li>^baz</li></ol>qoz'] },
 
     { 'id':          'LI-2',
       'desc':        'Delete oblique range between list items within same list',
@@ -148,7 +149,8 @@ DELETE_TESTS = {
     { 'id':          'LI-3',
       'desc':        'Delete contents of last list item (list should remain)',
       'pad':         'foo<ol><li>[foo]</li></ol>qoz',
-      'expected':    'foo<ol><li></li></ol>qoz' },
+      'expected':    ['foo<ol><li>|</li></ol>qoz',
+                      'foo<ol><li>^</li></ol>qoz'] },
 
     { 'id':          'LI-4',
       'desc':        'Delete last list item of list (should remove entire list)',
@@ -163,42 +165,50 @@ DELETE_TESTS = {
     { 'id':          'TR-1',
       'desc':        'Delete first table row',
       'pad':         '<table><tbody>{<tr><td>A</td></tr>}<tr><td>B</td></tr><tr><td>C</td></tr></tbody></table>',
-      'expected':    '<table><tbody><tr><td>B</td></tr><tr><td>C</td></tr></tbody></table>' },
+      'expected':    ['<table><tbody>|<tr><td>B</td></tr><tr><td>C</td></tr></tbody></table>',
+                      '<table><tbody><tr><td>^B</td></tr><tr><td>C</td></tr></tbody></table>'] },
 
     { 'id':          'TR-2',
       'desc':        'Delete middle table row',
       'pad':         '<table><tbody><tr><td>A</td></tr>{<tr><td>B</td></tr>}<tr><td>C</td></tr></tbody></table>',
-      'expected':    '<table><tbody><tr><td>A</td></tr><tr><td>C</td></tr></tbody></table>' },
+      'expected':    ['<table><tbody><tr><td>A</td></tr>|<tr><td>C</td></tr></tbody></table>',
+                      '<table><tbody><tr><td>A</td></tr><tr><td>^C</td></tr></tbody></table>'] },
 
     { 'id':          'TR-3',
       'desc':        'Delete last table row',
       'pad':         '<table><tbody><tr><td>A</td></tr><tr><td>B</td></tr>{<tr><td>C</td></tr>}</tbody></table>',
-      'expected':    '<table><tbody><tr><td>A</td></tr><tr><td>B</td></tr></tbody></table>' },
+      'expected':    ['<table><tbody><tr><td>A</td></tr><tr><td>B</td></tr>|</tbody></table>',
+                      '<table><tbody><tr><td>A</td></tr><tr><td>B^</td></tr></tbody></table>'] },
 
     { 'id':          'TR-ROWSPAN2-1',
       'desc':        'Delete first table row where a cell has rowspan 2',
       'pad':         '<table><tbody>{<tr><td>A</td><td rowspan=2>R</td></tr>}<tr><td>B</td></tr></tbody></table>',
-      'expected':    '<table><tbody><tr><td>B</td><td>R</td></tr></tbody></table>' },
+      'expected':    ['<table><tbody>|<tr><td>B</td><td>R</td></tr></tbody></table>',
+                      '<table><tbody><tr><td>^B</td><td>R</td></tr></tbody></table>'] },
 
     { 'id':          'TR-ROWSPAN2-2',
       'desc':        'Delete second table row where a cell has rowspan 2',
       'pad':         '<table><tbody><tr><td>A</td><td rowspan=2>R</td></tr>{<tr><td>B</td></tr>}</tbody></table>',
-      'expected':    '<table><tbody><tr><td>A</td><td>R</td></tr></tbody></table>' },
+      'expected':    ['<table><tbody><tr><td>A</td><td>R</td></tr>|</tbody></table>',
+                      '<table><tbody><tr><td>A</td><td>R^</td></tr></tbody></table>'] },
 
     { 'id':          'TR-ROWSPAN3-1',
       'desc':        'Delete first table row where a cell has rowspan 3',
       'pad':         '<table><tbody>{<tr><td>A</td><td rowspan=3>R</td></tr>}<tr><td>B</td></tr><tr><td>C</td></tr></tbody></table>',
-      'expected':    '<table><tbody><tr><td>A</td><td rowspan="2">R</td></tr><tr><td>C</td></tr></tbody></table>' },
+      'expected':    ['<table><tbody>|<tr><td>A</td><td rowspan="2">R</td></tr><tr><td>C</td></tr></tbody></table>',
+                      '<table><tbody><tr><td>^A</td><td rowspan="2">R</td></tr><tr><td>C</td></tr></tbody></table>'] },
 
     { 'id':          'TR-ROWSPAN3-2',
       'desc':        'Delete middle table row where a cell has rowspan 3',
       'pad':         '<table><tbody><tr><td>A</td><td rowspan=3>R</td></tr>{<tr><td>B</td></tr>}<tr><td>C</td></tr></tbody></table>',
-      'expected':    '<table><tbody><tr><td>B</td><td rowspan="2">R</td></tr><tr><td>C</td></tr></tbody></table>' },
+      'expected':    ['<table><tbody><tr><td>B</td><td rowspan="2">R</td></tr>|<tr><td>C</td></tr></tbody></table>',
+                      '<table><tbody><tr><td>B</td><td rowspan="2">R</td></tr><tr><td>^C</td></tr></tbody></table>'] },
 
     { 'id':          'TR-ROWSPAN3-3',
       'desc':        'Delete last table row where a cell has rowspan 3',
       'pad':         '<table><tbody><tr><td>A</td><td rowspan=3>R</td></tr><tr><td>B</td></tr>{<tr><td>C</td></tr>}</tbody></table>',
-      'expected':    '<table><tbody><tr><td>A</td><td rowspan="2">R</td></tr><tr><td>B</td></tr></tbody></table>' }
+      'expected':    ['<table><tbody><tr><td>A</td><td rowspan="2">R</td></tr><tr><td>B</td></tr>|</tbody></table>',
+                      '<table><tbody><tr><td>A</td><td rowspan="2">R</td></tr><tr><td>B^</td></tr></tbody></table>'] }
   ]
 };
 
