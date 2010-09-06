@@ -68,11 +68,12 @@ function formatActualResult(actual) {
   if (!getTestParameter(PARAM_CHECK_ATTRIBUTES)) {
     actual = actual.replace(/([^ =]+)=\x22([^\x22]*)\x22/g, '<span class="fade">$1="$2"</span>');
   } else {
-    if (!getTestParameter(PARAM_CHECK_STYLE)) {
-      actual = actual.replace(/style=\x22([^\x22]*)\x22/g, '<span class="fade">style="$1"</span>');
-    }
+    // NOTE: convert 'class="..."' first, before adding other <span class="fade">...</span> !!!
     if (!getTestParameter(PARAM_CHECK_CLASS)) {
       actual = actual.replace(/class=\x22([^\x22]*)\x22/g, '<span class="fade">class="$1"</span>');
+    }
+    if (!getTestParameter(PARAM_CHECK_STYLE)) {
+      actual = actual.replace(/style=\x22([^\x22]*)\x22/g, '<span class="fade">style="$1"</span>');
     }
     if (!getTestParameter(PARAM_CHECK_ID)) {
       actual = actual.replace(/id=\x22([^\x22]*)\x22/g, '<span class="fade">id="$1"</span>');
@@ -129,7 +130,7 @@ function escapeOutput(str) {
  * @see variables.js for success levels
  */
 function outputSingleTestResult(actual, successLevel) {
-  var tr = document.getElementById(currentID);
+  var tr = currentIDPartial ? document.getElementById(currentIDPartial) : document.getElementById(currentIDStrict);
   var td;
 
   if (!tr || !tr.cells || tr.cells.length < 12) {
@@ -186,8 +187,8 @@ function outputSingleTestResult(actual, successLevel) {
   if (cmd = getTestParameter(PARAM_COMMAND)) {
     td.innerHTML = escapeOutput(cmd);
     usesHTML = true;
-  } else if (getTestParameter(PARAM_FUNCTION)) {
-    td.innerHTML = '<i>function()</i>';
+  } else if (cmd = getTestParameter(PARAM_FUNCTION)) {
+    td.innerHTML = '<i>' + escapeOutput(cmd) + '</i>';
     usesHTML = true;
   } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDSUPPORTED)) {
     td.innerHTML = '<i>queryCommandSupported</i>';

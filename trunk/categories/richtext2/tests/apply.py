@@ -199,6 +199,6 @@ APPLY_TESTS = {
       'command':     'createlink',
       'value':       '#C-CL-1',
       'pad':         'foo[bar]baz',
-      'expected':    'foo<a href="#C-CL-1">bar</a>baz' }
+      'expected':    'foo<a href="#C-CL-1">[bar]</a>baz' }
   ]
 };

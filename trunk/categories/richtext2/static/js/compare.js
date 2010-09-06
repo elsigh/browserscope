@@ -181,7 +181,7 @@ function insertSelectionIndicator(node, offs, textInd, elemInd) {
       
     case DOM_NODE_TYPE_ELEMENT:
       var child = node.firstChild;
-      if (child) {
+      try {
         // node has other children: insert marker as comment node
         var comment = document.createComment(elemInd);
         while (child && offs) {
@@ -193,8 +193,8 @@ function insertSelectionIndicator(node, offs, textInd, elemInd) {
         } else {
           node.appendChild(comment);
         }
-      } else {
-        // node has no other children: insert as special attribute(s)
+      } catch (ex) {
+        // can't append child comment -> insert as special attribute(s)
         switch (elemInd) {
           case '|':
             node.setAttribute(ATTRNAME_SEL_START, '1');

@@ -41,12 +41,10 @@ from categories.richtext2.tests.unapplyCSS    import UNAPPLY_TESTS_CSS
 
 class RichText2Test(test_set_base.TestBase):
   TESTS_URL_PATH = '/%s/test' % common.CATEGORY
-  # Categories: None, 'apply', 'applyCSS', 'change', 'changeCSS', 'delete',
-  # 'forwarddelete', 'insert', 'query', 'selection', unapply', 'unapplyCSS'
   CATEGORY = None
 
 class CategoryRichText2Test(RichText2Test):
-  def __init__(self, key, name, doc):
+  def __init__(self, key, desc, strict, doc):
     """Initialze a test.
 
     Args:
@@ -57,16 +55,17 @@ class CategoryRichText2Test(RichText2Test):
     # This way we can assign tests to a test group, i.e. apply, unapply, etc..
     test_set_base.TestBase.__init__(
         self,
-        key=key,
-        name=name,
-        url=self.TESTS_URL_PATH,
-        doc=doc,
-        min_value=0,
-        max_value=100,
-        cell_align='center')
+        key = key,
+        name = desc,
+        url = self.TESTS_URL_PATH,
+        doc = doc,
+        min_value = 0,
+        max_value = 100,
+        cell_align = 'center')
+    self.strict = strict
 
 class IndividualRichText2Test(RichText2Test):
-  def __init__(self, key, name):
+  def __init__(self, suite_id, test_name, desc, strict):
     """Initialze a test.
 
     Args:
@@ -75,13 +74,14 @@ class IndividualRichText2Test(RichText2Test):
     """
     test_set_base.TestBase.__init__(
         self,
-        key=key,
-        name=name,
-        url=self.TESTS_URL_PATH,
-        doc=None,
-        min_value=0,
-        max_value=1,
-        is_hidden_stat=True)
+        key = common.TEST_ID_PREFIX + suite_id + '-' + test_name,
+        name = desc,
+        url = self.TESTS_URL_PATH,
+        doc = None,
+        min_value = 0,
+        max_value = 1,
+        is_hidden_stat = True)
+    self.strict = strict
 
 
 class SelectionRichText2Test(IndividualRichText2Test):
@@ -90,29 +90,56 @@ class SelectionRichText2Test(IndividualRichText2Test):
 class ApplyRichText2Test(IndividualRichText2Test):
   CATEGORY = 'apply'
 
+class ApplyStrictRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'applySel'
+
 class ApplyCSSRichText2Test(IndividualRichText2Test):
   CATEGORY = 'applyCSS'
+
+class ApplyCSSStrictRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'applyCSSSel'
 
 class ChangeRichText2Test(IndividualRichText2Test):
   CATEGORY = 'change'
 
+class ChangeStrictRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'changeSel'
+
 class ChangeCSSRichText2Test(IndividualRichText2Test):
   CATEGORY = 'changeCSS'
+
+class ChangeCSSStrictRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'changeCSSSel'
 
 class UnapplyRichText2Test(IndividualRichText2Test):
   CATEGORY = 'unapply'
 
+class UnapplyStrictRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'unapplySel'
+
 class UnapplyCSSRichText2Test(IndividualRichText2Test):
   CATEGORY = 'unapplyCSS'
+
+class UnapplyCSSStrictRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'unapplyCSSSel'
 
 class DeleteRichText2Test(IndividualRichText2Test):
   CATEGORY = 'delete'
 
+class DeleteStrictRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'deleteSel'
+
 class ForwardDeleteRichText2Test(IndividualRichText2Test):
   CATEGORY = 'forwarddelete'
 
+class ForwardDeleteStrictRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'forwarddeleteSel'
+
 class InsertRichText2Test(IndividualRichText2Test):
   CATEGORY = 'insert'
+
+class InsertStrictRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'insertSel'
 
 class QueryRichText2Test(IndividualRichText2Test):
   CATEGORY = 'query'
@@ -122,14 +149,23 @@ class QueryCSSRichText2Test(IndividualRichText2Test):
 
 CATEGORIES = sorted(['selection',
                      'apply',
+                     'applySel',
                      'applyCSS',
+                     'applyCSSSel',
                      'change',
+                     'changeSel',
                      'changeCSS',
+                     'changeCSSSel',
                      'unapply',
+                     'unapplySel',
                      'unapplyCSS',
+                     'unapplyCSSSel',
                      'delete',
+                     'deleteSel',
                      'forwarddelete',
+                     'forwarddeleteSel',
                      'insert',
+                     'insertSel',
                      'query',
                      'queryCSS'])
 
@@ -137,35 +173,63 @@ CATEGORIES = sorted(['selection',
 # key, name, doc
 
 _CATEGORIES_TEST_SET = [
-  CategoryRichText2Test('selection', 'Selection',
+  CategoryRichText2Test('selection', 'Selection', True,
   '''These tests verify that selection commands are honored correctly.
   The expected and actual outputs are shown.'''),
 
-  CategoryRichText2Test('apply', 'Apply Format',
+  CategoryRichText2Test('apply', 'Apply Format', False,
   '''These tests use execCommand to apply formatting to plain text,
   with styleWithCSS being set to false.
   The expected and actual outputs are shown.'''),
 
-  CategoryRichText2Test('applyCSS', 'Apply Format, styleWithCSS',
+  CategoryRichText2Test('applySel', 'Apply Format (strict)', True,
+  '''These tests use execCommand to apply formatting to plain text,
+  with styleWithCSS being set to false.
+  These tests also require the final selection to be correct (i.e., as expected).
+  The expected and actual outputs are shown.'''),
+
+  CategoryRichText2Test('applyCSS', 'Apply Format, styleWithCSS', False,
   '''These tests use execCommand to apply formatting to plain text,
   with styleWithCSS being set to true.
   The expected and actual outputs are shown.'''),
 
-  CategoryRichText2Test('change', 'Change Existing Format',
+  CategoryRichText2Test('applyCSSSel', 'Apply Format, styleWithCSS (strict)', True,
+  '''These tests use execCommand to apply formatting to plain text,
+  with styleWithCSS being set to true.
+  These tests also require the final selection to be correct (i.e., as expected).
+  The expected and actual outputs are shown.'''),
+
+  CategoryRichText2Test('change', 'Change Format', False,
   '''These tests are similar to the unapply tests, except that they're for
   execCommands which take an argument (fontname, fontsize, etc.). They apply
   the execCommand to text which already has some formatting, in order to change
   it. styleWithCSS is being set to false.
   The expected and actual outputs are shown.'''),
 
-  CategoryRichText2Test('changeCSS', 'Change Existing Format, styleWithCSS',
+  CategoryRichText2Test('changeSel', 'Change Format (strict)', True,
+  '''These tests are similar to the unapply tests, except that they're for
+  execCommands which take an argument (fontname, fontsize, etc.). They apply
+  the execCommand to text which already has some formatting, in order to change
+  it. styleWithCSS is being set to false.
+  These tests also require the final selection to be correct (i.e., as expected).
+  The expected and actual outputs are shown.'''),
+
+  CategoryRichText2Test('changeCSS', 'Change Format, styleWithCSS', False,
   '''These tests are similar to the unapply tests, except that they're for
   execCommands which take an argument (fontname, fontsize, etc.). They apply
   the execCommand to text which already has some formatting, in order to change
   it. styleWithCSS is being set to true.
   The expected and actual outputs are shown.'''),
 
-  CategoryRichText2Test('unapply', 'Unapply Format',
+  CategoryRichText2Test('changeCSSSel', 'Change Format, styleWithCSS (strict)', True,
+  '''These tests are similar to the unapply tests, except that they're for
+  execCommands which take an argument (fontname, fontsize, etc.). They apply
+  the execCommand to text which already has some formatting, in order to change
+  it. styleWithCSS is being set to true.
+  These tests also require the final selection to be correct (i.e., as expected).
+  The expected and actual outputs are shown.'''),
+
+  CategoryRichText2Test('unapply', 'Unapply Format', False,
   '''These tests put different combinations of HTML into a contenteditable
   iframe, and then run an execCommand to attempt to remove the formatting the
   HTML applies. For example, there are tests to check if
@@ -178,7 +242,21 @@ _CATEGORIES_TEST_SET = [
   For these tests, styleWithCSS is set to false.
   The expected and actual outputs are shown.'''),
 
-  CategoryRichText2Test('unapplyCSS', 'Unapply Format, styleWithCSS',
+  CategoryRichText2Test('unapplySel', 'Unapply Format (strict)', True,
+  '''These tests put different combinations of HTML into a contenteditable
+  iframe, and then run an execCommand to attempt to remove the formatting the
+  HTML applies. For example, there are tests to check if
+  bold styling from &lt;b&gt;, &lt;strong&gt;, and &lt;span
+  style="font-weight:normal"&gt; are all removed by the bold execCommand.
+  It is important that browsers can remove all variations of a style, not just
+  the variation the browser applies on its own, because it's quite possible
+  that a web application could allow editing with multiple browsers, or that
+  users could paste content into the contenteditable region.
+  For these tests, styleWithCSS is set to false.
+  These tests also require the final selection to be correct (i.e., as expected).
+  The expected and actual outputs are shown.'''),
+
+  CategoryRichText2Test('unapplyCSS', 'Unapply Format, styleWithCSS', False,
   '''These tests put different combinations of HTML into a contenteditable
   iframe, and then run an execCommand to attempt to remove the formatting the
   HTML applies. For example, there are tests to check if
@@ -191,100 +269,181 @@ _CATEGORIES_TEST_SET = [
   For these tests, styleWithCSS is set to true.
   The expected and actual outputs are shown.'''),
 
-  CategoryRichText2Test('delete', 'Delete Content',
+  CategoryRichText2Test('unapplyCSSSel', 'Unapply Format, styleWithCSS (strict)', True,
+  '''These tests put different combinations of HTML into a contenteditable
+  iframe, and then run an execCommand to attempt to remove the formatting the
+  HTML applies. For example, there are tests to check if
+  bold styling from &lt;b&gt;, &lt;strong&gt;, and &lt;span
+  style="font-weight:normal"&gt; are all removed by the bold execCommand.
+  It is important that browsers can remove all variations of a style, not just
+  the variation the browser applies on its own, because it's quite possible
+  that a web application could allow editing with multiple browsers, or that
+  users could paste content into the contenteditable region.
+  For these tests, styleWithCSS is set to true.
+  These tests also require the final selection to be correct (i.e., as expected).
+  The expected and actual outputs are shown.'''),
+
+  CategoryRichText2Test('delete', 'Delete Content', False,
   '''These tests verify that 'delete' commands are executed correctly.
   Note that 'delete' commands are supposed to have the same result as if the
   user had hit the 'BackSpace' (NOT 'Delete'!) key.
   The expected and actual outputs are shown.'''),
 
-  CategoryRichText2Test('forwarddelete', 'Forward-Delete Content',
+  CategoryRichText2Test('deleteSel', 'Delete Content (strict)', True,
+  '''These tests verify that 'delete' commands are executed correctly.
+  Note that 'delete' commands are supposed to have the same result as if the
+  user had hit the 'BackSpace' (NOT 'Delete'!) key.
+  These tests also require the final selection to be correct (i.e., as expected).
+  The expected and actual outputs are shown.'''),
+
+  CategoryRichText2Test('forwarddelete', 'Forward-Delete Content', False,
   '''These tests verify that 'forwarddelete' commands are executed correctly.
   Note that 'forwarddelete' commands are supposed to have the same result as if
   the user had hit the 'Delete' key.
   The expected and actual outputs are shown.'''),
 
-  CategoryRichText2Test('insert', 'Insert Content',
+  CategoryRichText2Test('forwarddeleteSel', 'Forward-Delete Content (strict)', True,
+  '''These tests verify that 'forwarddelete' commands are executed correctly.
+  Note that 'forwarddelete' commands are supposed to have the same result as if
+  the user had hit the 'Delete' key.
+  These tests also require the final selection to be correct (i.e., as expected).
+  The expected and actual outputs are shown.'''),
+
+  CategoryRichText2Test('insert', 'Insert Content', False,
   '''These tests verify that the various 'insert' and 'create' commands, that
   create a single HTML element, rather than wrapping existing content, are
   executed correctly. (Commands that wrap existing HTML are part of the 'apply'
   and 'applyCSS' categories.)
   The expected and actual outputs are shown.'''),
 
-  CategoryRichText2Test('query', 'Query Functions',
+  CategoryRichText2Test('insertSel', 'Insert Content (strict)', True,
+  '''These tests verify that the various 'insert' and 'create' commands, that
+  create a single HTML element, rather than wrapping existing content, are
+  executed correctly. (Commands that wrap existing HTML are part of the 'apply'
+  and 'applyCSS' categories.)
+  These tests also require the final selection to be correct (i.e., as expected).
+  The expected and actual outputs are shown.'''),
+
+  CategoryRichText2Test('query', 'Query Functions', False,
   '''These tests verify that the various 'queryCommand...()' functions return
   a correct result given a certain set-up. styleWithCSS is being set to false.
   The expected and actual results are shown.'''),
 
-  CategoryRichText2Test('queryCSS', 'Query Functions, styleWithCSS',
+  CategoryRichText2Test('queryCSS', 'Query Functions, styleWithCSS', False,
   '''These tests verify that the various 'queryCommand...()' functions return
   a correct result given a certain set-up. styleWithCSS is being set to true.
   The expected and actual results are shown.''')
 ]
 
-def createID(suite, testname):
-  return common.TEST_ID_PREFIX + '-' + suite['id'] + '-' + testname;
+def createID(suiteID, testname):
+  return common.TEST_ID_PREFIX + suiteID + '-' + testname;
   
 # Individual tests:
 # key, name
 
 _SELECTION_TEST_SET = [
-    SelectionRichText2Test(createID(SELECTION_TESTS, t['id']), t['desc'])
+    SelectionRichText2Test(SELECTION_TESTS['id'], t['id'], t['desc'], True)
         for c in common.CLASSES
             for t in SELECTION_TESTS.get(c, {})
 ]
 _APPLY_TEST_SET = [
-    ApplyRichText2Test(createID(APPLY_TESTS, t['id']), t['desc'])
+    ApplyRichText2Test(APPLY_TESTS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in APPLY_TESTS.get(c, {})
+]
+_APPLY_TEST_SET_SEL = [
+    ApplyStrictRichText2Test(APPLY_TESTS['id'] + 'S', t['id'], t['desc'], True)
         for c in common.CLASSES
             for t in APPLY_TESTS.get(c, {})
 ]
 _APPLY_CSS_TEST_SET = [
-    ApplyCSSRichText2Test(createID(APPLY_TESTS_CSS, t['id']), t['desc'])
+    ApplyCSSRichText2Test(APPLY_TESTS_CSS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in APPLY_TESTS_CSS.get(c, {})
+]
+_APPLY_CSS_TEST_SET_SEL = [
+    ApplyCSSStrictRichText2Test(APPLY_TESTS_CSS['id'] + 'S', t['id'], t['desc'], True)
         for c in common.CLASSES
             for t in APPLY_TESTS_CSS.get(c, {})
 ]
 _CHANGE_TEST_SET = [
-    ChangeRichText2Test(createID(CHANGE_TESTS, t['id']), t['desc'])
+    ChangeRichText2Test(CHANGE_TESTS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in CHANGE_TESTS.get(c, {})
+]
+_CHANGE_TEST_SET_SEL = [
+    ChangeStrictRichText2Test(CHANGE_TESTS['id'] + 'S', t['id'], t['desc'], True)
         for c in common.CLASSES
             for t in CHANGE_TESTS.get(c, {})
 ]
 _CHANGE_CSS_TEST_SET = [
-    ChangeCSSRichText2Test(createID(CHANGE_TESTS_CSS, t['id']), t['desc'])
+    ChangeCSSRichText2Test(CHANGE_TESTS_CSS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in CHANGE_TESTS_CSS.get(c, {})
+]
+_CHANGE_CSS_TEST_SET_SEL = [
+    ChangeCSSStrictRichText2Test(CHANGE_TESTS_CSS['id'] + 'S', t['id'], t['desc'], True)
         for c in common.CLASSES
             for t in CHANGE_TESTS_CSS.get(c, {})
 ]
 _UNAPPLY_TEST_SET = [
-    UnapplyRichText2Test(createID(UNAPPLY_TESTS, t['id']), t['desc'])
+    UnapplyRichText2Test(UNAPPLY_TESTS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in UNAPPLY_TESTS.get(c, {})
+]
+_UNAPPLY_TEST_SET_SEL = [
+    UnapplyStrictRichText2Test(UNAPPLY_TESTS['id'] + 'S', t['id'], t['desc'], True)
         for c in common.CLASSES
             for t in UNAPPLY_TESTS.get(c, {})
 ]
 _UNAPPLY_CSS_TEST_SET = [
-    UnapplyCSSRichText2Test(createID(UNAPPLY_TESTS_CSS, t['id']), t['desc'])
+    UnapplyCSSRichText2Test(UNAPPLY_TESTS_CSS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in UNAPPLY_TESTS_CSS.get(c, {})
+]
+_UNAPPLY_CSS_TEST_SET_SEL = [
+    UnapplyCSSStrictRichText2Test(UNAPPLY_TESTS_CSS['id'] + 'S', t['id'], t['desc'], True)
         for c in common.CLASSES
             for t in UNAPPLY_TESTS_CSS.get(c, {})
 ]
 _DELETE_TEST_SET = [
-    DeleteRichText2Test(createID(DELETE_TESTS, t['id']), t['desc'])
+    DeleteRichText2Test(DELETE_TESTS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in DELETE_TESTS.get(c, {})
+]
+_DELETE_TEST_SET_SEL = [
+    DeleteStrictRichText2Test(DELETE_TESTS['id'] + 'S', t['id'], t['desc'], True)
         for c in common.CLASSES
             for t in DELETE_TESTS.get(c, {})
 ]
 _FORWARDDELETE_TEST_SET = [
-    ForwardDeleteRichText2Test(createID(FORWARDDELETE_TESTS, t['id']), t['desc'])
+    ForwardDeleteRichText2Test(FORWARDDELETE_TESTS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES 
+            for t in FORWARDDELETE_TESTS.get(c, {})
+]
+_FORWARDDELETE_TEST_SET_SEL = [
+    ForwardDeleteStrictRichText2Test(FORWARDDELETE_TESTS['id'] + 'S', t['id'], t['desc'], True)
         for c in common.CLASSES 
             for t in FORWARDDELETE_TESTS.get(c, {})
 ]
 _INSERT_TEST_SET = [
-    InsertRichText2Test(createID(INSERT_TESTS, t['id']), t['desc'])
+    InsertRichText2Test(INSERT_TESTS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in INSERT_TESTS.get(c, {})
+]
+_INSERT_TEST_SET_SEL = [
+    InsertStrictRichText2Test(INSERT_TESTS['id'] + 'S', t['id'], t['desc'], True)
         for c in common.CLASSES
             for t in INSERT_TESTS.get(c, {})
 ]
 _QUERY_TEST_SET = [
-    QueryRichText2Test(createID(QUERY_TESTS, t['id']), t['desc'])
+    QueryRichText2Test(QUERY_TESTS['id'], t['id'], t['desc'], False)
         for c in common.CLASSES
             for t in QUERY_TESTS.get(c, {})
 ]
 
 _QUERY_CSS_TEST_SET = [
-    QueryCSSRichText2Test(createID(QUERY_TESTS_CSS, t['id']), t['desc'])
+    QueryCSSRichText2Test(QUERY_TESTS_CSS['id'], t['id'], t['desc'], False)
         for c in common.CLASSES
             for t in QUERY_TESTS_CSS.get(c, {})
 ]
@@ -292,14 +451,23 @@ _QUERY_CSS_TEST_SET = [
 _FULL_TEST_SET = _CATEGORIES_TEST_SET + \
                  _SELECTION_TEST_SET + \
                  _APPLY_TEST_SET + \
+                 _APPLY_TEST_SET_SEL + \
                  _APPLY_CSS_TEST_SET + \
+                 _APPLY_CSS_TEST_SET_SEL + \
                  _CHANGE_TEST_SET + \
+                 _CHANGE_TEST_SET_SEL + \
                  _CHANGE_CSS_TEST_SET + \
+                 _CHANGE_CSS_TEST_SET_SEL + \
                  _UNAPPLY_TEST_SET + \
+                 _UNAPPLY_TEST_SET_SEL + \
                  _UNAPPLY_CSS_TEST_SET + \
+                 _UNAPPLY_CSS_TEST_SET_SEL + \
                  _DELETE_TEST_SET + \
+                 _DELETE_TEST_SET_SEL + \
                  _FORWARDDELETE_TEST_SET + \
+                 _FORWARDDELETE_TEST_SET_SEL + \
                  _INSERT_TEST_SET + \
+                 _INSERT_TEST_SET_SEL + \
                  _QUERY_TEST_SET + \
                  _QUERY_CSS_TEST_SET
 
