@@ -77,7 +77,6 @@ var PARAM_ALLOW_EXCEPTION       = 'allowException';
 var editorElem = null;
 var editorWin  = null;
 var editorDoc  = null;
-var editorSel  = null;
 var contentEditableElem = null;
 
 // Variables holding the current suite and test for simplicity.

@@ -232,7 +232,6 @@ function initEditorDoc() {
     editorElem = document.getElementById('editor');
     editorWin = editorElem.contentWindow;
     editorDoc = editorWin.document;
-    editorSel = editorWin.getSelection();
     contentEditableElem = editorDoc.body;
 /*
     // version using a simple DIV

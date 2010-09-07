@@ -177,7 +177,9 @@ function runTestSuite(suite) {
           }
           ++counts[currentSuite.id].total;
           ++counts[currentSuite.id][currentClassID];
+
           var result = runSingleTest();
+
           var scorePartial = 0;
           var scoreStrict = 0;
           switch (result) {
