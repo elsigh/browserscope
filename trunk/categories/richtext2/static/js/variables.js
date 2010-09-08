@@ -120,5 +120,13 @@ var beacon = ['selection=0',
               'forwarddeleteSel=0',
               'insert=0',
               'insertSel=0',
-              'query=0',
-              'queryCSS=0'];
+
+              'querySupported=0',
+              'queryEnabled=0',
+              'queryEnabledCSS=0',
+              'queryInd=0',
+              'queryIndCSS=0',
+              'queryState=0',
+              'queryStateCSS=0',
+              'queryValue=0',
+              'queryValueCSS=0'];

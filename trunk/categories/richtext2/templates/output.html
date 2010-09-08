@@ -24,8 +24,8 @@
     </THEAD>
     <TBODY>
       {% for t in pv %}
-      <TR ID="{{ commonIDPrefix }}-{{ s.id }}-{{ t.id }}" CLASS="greyBk{% cycle 'Lo' 'Hi' %}">
-        <TD><A CLASS="idLabel" NAME="{{ commonIDPrefix }}-{{ s.id }}-{{ t.id }}" HREF="#{{ commonIDPrefix }}-{{ s.id }}-{{ t.id }}">{{ commonIDPrefix }}-{{ s.id }}-{{ t.id }}</A></TD>
+      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}" CLASS="greyBk{% cycle 'Lo' 'Hi' %}">
+        <TD><A CLASS="idLabel" NAME="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}" HREF="#{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}">{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}</A></TD>
         <TD>&nbsp;</TD>
         <TD>&nbsp;</TD>
         <TD>&nbsp;</TD>

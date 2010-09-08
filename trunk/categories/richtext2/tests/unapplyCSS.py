@@ -23,6 +23,30 @@ __author__ = 'rolandsteiner@google.com (Roland Steiner)'
 # A selection that started as a text selection should remain a text selection.
 # Elements that are not or only partially selected should retain their name and attributes.
 
+# Selection specifications used in 'id':
+#
+# Caret/collapsed selections:
+#
+# SC: 'caret'    caret/collapsed selection
+# SB: 'before'   caret/collapsed selection before element
+# SA: 'after'    caret/collapsed selection after element
+# SS: 'start'    caret/collapsed selection at the start of the element (before first child/at text pos. 0)
+# SE: 'end'      caret/collapsed selection at the end of the element (after last child/at text pos. n)
+# SX: 'betwixt'  collapsed selection between elements
+#
+# Range selections:
+#
+# SO: 'outside'  selection wraps element in question
+# SI: 'inside'   selection is inside of element in question
+# SW: 'wrap'     as SI, but also wraps all children of element
+# SL: 'left'     oblique selection - starts outside element and ends inside
+# SR: 'right'    oblique selection - starts inside element and ends outside
+# SM: 'mixed'    selection starts and ends in different elements
+#
+# SxR: selection is reversed
+#
+# Sxn or SxRn    selection applies to element #n of several identical
+
 # Non-"styleWithCSS" tests: "styleWithCSS" should have no bearing on the unapply operation.
 
 UNAPPLY_TESTS_CSS = {
@@ -35,228 +59,228 @@ UNAPPLY_TESTS_CSS = {
 
   'Proposed': [
     # bold
-    { 'id':          'B-B-1-SI',
+    { 'id':          'B:B-1_SW',
       'desc':        'Selection within tags; remove <b> tags',
       'command':     'bold',
       'pad':         'foo<b>[bar]</b>baz' },
 
-    { 'id':          'B-B-1-SO',
+    { 'id':          'B:B-1_SO',
       'desc':        'Selection outside of tags; remove <b> tags',
       'command':     'bold',
       'pad':         'foo[<b>bar</b>]baz' },
 
-    { 'id':          'B-B-1-SL',
-      'desc':        'Selection mixed; remove <b> tags',
+    { 'id':          'B:B-1_SL',
+      'desc':        'Selection oblique left; remove <b> tags',
       'command':     'bold',
       'pad':         'foo[<b>bar]</b>baz' },
 
-    { 'id':          'B-B-1-SR',
-      'desc':        'Selection mixed; remove <b> tags',
+    { 'id':          'B:B-1_SR',
+      'desc':        'Selection oblique right; remove <b> tags',
       'command':     'bold',
       'pad':         'foo<b>[bar</b>]baz' },
 
-    { 'id':          'B-STRONG-1-SI',
+    { 'id':          'B:STRONG-1_SW',
       'desc':        'Selection within tags; remove <strong> tags',
       'command':     'bold',
       'pad':         'foo<strong>[bar]</strong>baz' },
 
-    { 'id':          'B-STRONG-1-SO',
+    { 'id':          'B:STRONG-1_SO',
       'desc':        'Selection outside of tags; remove <strong> tags',
       'command':     'bold',
       'pad':         'foo[<strong>bar</strong>]baz' },
 
-    { 'id':          'B-STRONG-1-SL',
-      'desc':        'Selection mixed; remove <strong> tags',
+    { 'id':          'B:STRONG-1_SL',
+      'desc':        'Selection oblique left; remove <strong> tags',
       'command':     'bold',
       'pad':         'foo[<strong>bar]</strong>baz' },
 
-    { 'id':          'B-STRONG-1-SR',
-      'desc':        'Selection mixed; remove <strong> tags',
+    { 'id':          'B:STRONG-1_SR',
+      'desc':        'Selection oblique right; remove <strong> tags',
       'command':     'bold',
       'pad':         'foo<strong>[bar</strong>]baz' },
 
-    { 'id':          'B-STYLE-FW-1-SI',
+    { 'id':          'B:SPANs:fw:b-1_SW',
       'desc':        'Selection within tags; remove "font-weight: bold"',
       'command':     'bold',
       'pad':         'foo<span style="font-weight: bold">[bar]</span>baz' },
 
-    { 'id':          'B-STYLE-FW-1-SO',
+    { 'id':          'B:SPANs:fw:b-1_SO',
       'desc':        'Selection outside of tags; remove "font-weight: bold"',
       'command':     'bold',
       'pad':         'foo[<span style="font-weight: bold">bar</span>]baz' },
 
-    { 'id':          'B-STYLE-FW-1-SL',
-      'desc':        'Selection mixed; remove "font-weight: bold"',
+    { 'id':          'B:SPANs:fw:b-1_SL',
+      'desc':        'Selection oblique left; remove "font-weight: bold"',
       'command':     'bold',
       'pad':         'foo[<span style="font-weight: bold">bar]</span>baz' },
 
-    { 'id':          'B-STYLE-FW-1-SR',
-      'desc':        'Selection mixed; remove "font-weight: bold"',
+    { 'id':          'B:SPANs:fw:b-1_SR',
+      'desc':        'Selection oblique right; remove "font-weight: bold"',
       'command':     'bold',
       'pad':         'foo<span style="font-weight: bold">[bar</span>]baz' },
 
     # italic
-    { 'id':          'I-I-1-SI',
+    { 'id':          'I:I-1_SW',
       'desc':        'Selection within tags; remove <i> tags',
       'command':     'italic',
       'pad':         'foo<i>[bar]</i>baz' },
 
-    { 'id':          'I-I-1-SO',
+    { 'id':          'I:I-1_SO',
       'desc':        'Selection outside of tags; remove <i> tags',
       'command':     'italic',
       'pad':         'foo[<i>bar</i>]baz' },
 
-    { 'id':          'I-I-1-SL',
-      'desc':        'Selection mixed; remove <i> tags',
+    { 'id':          'I:I-1_SL',
+      'desc':        'Selection oblique left; remove <i> tags',
       'command':     'italic',
       'pad':         'foo[<i>bar]</i>baz' },
 
-    { 'id':          'I-I-1-SR',
-      'desc':        'Selection mixed; remove <i> tags',
+    { 'id':          'I:I-1_SR',
+      'desc':        'Selection oblique right; remove <i> tags',
       'command':     'italic',
       'pad':         'foo<i>[bar</i>]baz' },
 
-    { 'id':          'I-EM-1-SI',
+    { 'id':          'I:EM-1_SW',
       'desc':        'Selection within tags; remove <em> tags',
       'command':     'italic',
       'pad':         'foo<em>[bar]</em>baz' },
 
-    { 'id':          'I-EM-1-SO',
+    { 'id':          'I:EM-1_SO',
       'desc':        'Selection outside of tags; remove <em> tags',
       'command':     'italic',
       'pad':         'foo[<em>bar</em>]baz' },
 
-    { 'id':          'I-EM-1-SL',
-      'desc':        'Selection mixed; remove <em> tags',
+    { 'id':          'I:EM-1_SL',
+      'desc':        'Selection oblique left; remove <em> tags',
       'command':     'italic',
       'pad':         'foo[<em>bar]</em>baz' },
 
-    { 'id':          'I-EM-1-SR',
-      'desc':        'Selection mixed; remove <em> tags',
+    { 'id':          'I:EM-1_SR',
+      'desc':        'Selection oblique right; remove <em> tags',
       'command':     'italic',
       'pad':         'foo<em>[bar</em>]baz' },
 
-    { 'id':          'I-STYLE-FS-1-SI',
+    { 'id':          'I:SPANs:fs:i-1_SW',
       'desc':        'Selection within tags; remove "font-style: italic"',
       'command':     'italic',
       'pad':         'foo<span style="font-style: italic">[bar]</span>baz' },
 
-    { 'id':          'I-STYLE-FS-1-SO',
+    { 'id':          'I:SPANs:fs:i-1_SO',
       'desc':        'Selection outside of tags; Italicize "font-style: italic"',
       'command':     'italic',
       'pad':         'foo[<span style="font-style: italic">bar</span>]baz' },
 
-    { 'id':          'I-STYLE-FS-1-SL',
-      'desc':        'Selection mixed; Italicize "font-style: italic"',
+    { 'id':          'I:SPANs:fs:i-1_SL',
+      'desc':        'Selection oblique left; Italicize "font-style: italic"',
       'command':     'italic',
       'pad':         'foo[<span style="font-style: italic">bar]</span>baz' },
 
-    { 'id':          'I-STYLE-FS-1-SR',
-      'desc':        'Selection mixed; Italicize "font-style: italic"',
+    { 'id':          'I:SPANs:fs:i-1_SR',
+      'desc':        'Selection oblique right; Italicize "font-style: italic"',
       'command':     'italic',
       'pad':         'foo<span style="font-style: italic">[bar</span>]baz' },
 
     # underline
-    { 'id':          'U-U-1-SI',
+    { 'id':          'U:U-1_SW',
       'desc':        'Selection within tags; remove <u> tags',
       'command':     'underline',
       'pad':         'foo<u>[bar]</u>baz' },
 
-    { 'id':          'U-U-1-SO',
+    { 'id':          'U:U-1_SO',
       'desc':        'Selection outside of tags; remove <u> tags',
       'command':     'underline',
       'pad':         'foo[<u>bar</u>]baz' },
 
-    { 'id':          'U-U-1-SL',
-      'desc':        'Selection mixed; remove <u> tags',
+    { 'id':          'U:U-1_SL',
+      'desc':        'Selection oblique left; remove <u> tags',
       'command':     'underline',
       'pad':         'foo[<u>bar]</u>baz' },
 
-    { 'id':          'U-U-1-SR',
-      'desc':        'Selection mixed; remove <u> tags',
+    { 'id':          'U:U-1_SR',
+      'desc':        'Selection oblique right; remove <u> tags',
       'command':     'underline',
       'pad':         'foo<u>[bar</u>]baz' },
 
-    { 'id':          'U-STYLE-TD-1-SI',
+    { 'id':          'U:SPANs:td:u-1_SW',
       'desc':        'Selection within tags; remove "text-decoration: underline"',
       'command':     'underline',
       'pad':         'foo<span style="text-decoration: underline">[bar]</span>baz' },
 
-    { 'id':          'U-STYLE-TD-1-SO',
+    { 'id':          'U:SPANs:td:u-1_SO',
       'desc':        'Selection outside of tags; remove "text-decoration: underline"',
       'command':     'underline',
       'pad':         'foo[<span style="text-decoration: underline">bar</span>]baz' },
 
-    { 'id':          'U-STYLE-TD-1-SL',
-      'desc':        'Selection mixed; remove "text-decoration: underline"',
+    { 'id':          'U:SPANs:td:u-1_SL',
+      'desc':        'Selection oblique left; remove "text-decoration: underline"',
       'command':     'underline',
       'pad':         'foo[<span style="text-decoration: underline">bar]</span>baz' },
 
-    { 'id':          'U-STYLE-TD-1-SR',
-      'desc':        'Selection mixed; remove "text-decoration: underline"',
+    { 'id':          'U:SPANs:td:u-1_SR',
+      'desc':        'Selection oblique right; remove "text-decoration: underline"',
       'command':     'underline',
       'pad':         'foo<span style="text-decoration: underline">[bar</span>]baz' },
       
     # strikethrough
-    { 'id':          'S-S-1-SI',
+    { 'id':          'S:S-1_SW',
       'desc':        'Selection within tags; remove <s> tags',
       'command':     'strikethrough',
       'pad':         'foo<s>[bar]</s>baz' },
 
-    { 'id':          'S-S-1-SO',
+    { 'id':          'S:S-1_SO',
       'desc':        'Selection outside of tags; remove <s> tags',
       'command':     'strikethrough',
       'pad':         'foo[<s>bar</s>]baz' },
 
-    { 'id':          'S-S-1-SL',
-      'desc':        'Selection mixed; remove <s> tags',
+    { 'id':          'S:S-1_SL',
+      'desc':        'Selection oblique left; remove <s> tags',
       'command':     'strikethrough',
       'pad':         'foo[<s>bar]</s>baz' },
 
-    { 'id':          'S-S-1-SR',
-      'desc':        'Selection mixed; remove <s> tags',
+    { 'id':          'S:S-1_SR',
+      'desc':        'Selection oblique right; remove <s> tags',
       'command':     'strikethrough',
       'pad':         'foo<s>[bar</s>]baz' },
 
-    { 'id':          'S-STRIKE-1-SI',
+    { 'id':          'S:STRIKE-1_SW',
       'desc':        'Selection within tags; remove <strike> tags',
       'command':     'strikethrough',
       'pad':         'foo<strike>[bar]</strike>baz' },
 
-    { 'id':          'S-STRIKE-1-SO',
+    { 'id':          'S:STRIKE-1_SO',
       'desc':        'Selection outside of tags; remove <strike> tags',
       'command':     'strikethrough',
       'pad':         'foo[<strike>bar</strike>]baz' },
 
-    { 'id':          'S-STRIKE-1-SL',
-      'desc':        'Selection mixed; remove <strike> tags',
+    { 'id':          'S:STRIKE-1_SL',
+      'desc':        'Selection oblique left; remove <strike> tags',
       'command':     'strikethrough',
       'pad':         'foo[<strike>bar]</strike>baz' },
 
-    { 'id':          'S-STRIKE-1-SR',
-      'desc':        'Selection mixed; remove <strike> tags',
+    { 'id':          'S:STRIKE-1_SR',
+      'desc':        'Selection oblique right; remove <strike> tags',
       'command':     'strikethrough',
       'pad':         'foo<strike>[bar</strike>]baz' },
 
-    { 'id':          'S-STYLE-TD-LT-1-SI',
+    { 'id':          'S:SPANs:td:lt-1_SW',
       'desc':        'Selection within tags; remove "text-decoration:line-through"',
       'command':     'strikethrough',
       'pad':         'foo<span style="text-decoration:line-through">[bar]</span>baz' },
 
-    { 'id':          'S-STYLE-TD-LT-1-SO',
+    { 'id':          'S:SPANs:td:lt-1_SO',
       'desc':        'Selection outside of tags; Italicize "text-decoration:line-through"',
       'command':     'strikethrough',
       'pad':         'foo[<span style="text-decoration:line-through">bar</span>]baz' },
 
-    { 'id':          'S-STYLE-TD-LT-1-SL',
-      'desc':        'Selection mixed; Italicize "text-decoration:line-through"',
+    { 'id':          'S:SPANs:td:lt-1_SL',
+      'desc':        'Selection oblique left; Italicize "text-decoration:line-through"',
       'command':     'strikethrough',
       'pad':         'foo[<span style="text-decoration:line-through">bar]</span>baz' },
 
-    { 'id':          'S-STYLE-TD-LT-1-SR',
-      'desc':        'Selection mixed; Italicize "text-decoration:line-through"',
+    { 'id':          'S:SPANs:td:lt-1_SR',
+      'desc':        'Selection oblique right; Italicize "text-decoration:line-through"',
       'command':     'strikethrough',
       'pad':         'foo<span style="text-decoration:line-through">[bar</span>]baz' }
   ]
-};
+}
 

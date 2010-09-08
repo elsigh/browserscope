@@ -23,6 +23,30 @@ __author__ = 'rolandsteiner@google.com (Roland Steiner)'
 # A selection that started as a text selection should remain a text selection.
 # Elements that are not or only partially selected should retain their name and attributes.
 
+# Selection specifications used in 'id':
+#
+# Caret/collapsed selections:
+#
+# SC: 'caret'    caret/collapsed selection
+# SB: 'before'   caret/collapsed selection before element
+# SA: 'after'    caret/collapsed selection after element
+# SS: 'start'    caret/collapsed selection at the start of the element (before first child/at text pos. 0)
+# SE: 'end'      caret/collapsed selection at the end of the element (after last child/at text pos. n)
+# SX: 'betwixt'  collapsed selection between elements
+#
+# Range selections:
+#
+# SO: 'outside'  selection wraps element in question
+# SI: 'inside'   selection is inside of element in question
+# SW: 'wrap'     as SI, but also wraps all children of element
+# SL: 'left'     oblique selection - starts outside element and ends inside
+# SR: 'right'    oblique selection - starts inside element and ends outside
+# SM: 'mixed'    selection starts and ends in different elements
+#
+# SxR: selection is reversed
+#
+# Sxn or SxRn    selection applies to element #n of several identical
+
 # Non-"styleWithCSS" tests: Newly created elements should NOT create a "style" attribute unless necessary.
 
 APPLY_TESTS = {
@@ -34,21 +58,21 @@ APPLY_TESTS = {
 
   'Proposed': [
     # bold
-    { 'id':          'B-TEXT-1',
+    { 'id':          'B:TEXT-1_SI',
       'desc':        'Bold selection',
       'command':     'bold',
       'pad':         'foo[bar]baz',
       'expected':    [ 'foo<b>[bar]</b>baz',
                        'foo<strong>[bar]</strong>baz' ] },
 
-    { 'id':          'B-TEXT-1-SR',
+    { 'id':          'B:TEXT-1_SIR',
       'desc':        'Bold reversed selection',
       'command':     'bold',
       'pad':         'foo]bar[baz',
       'expected':    [ 'foo<b>[bar]</b>baz',
                        'foo<strong>[bar]</strong>baz' ] },
 
-    { 'id':          'B-MIXED-1',
+    { 'id':          'B:I-1_SL',
       'desc':        'Bold selection, partially including italic',
       'command':     'bold',
       'pad':         'foo[bar<i>baz]qoz</i>quz',
@@ -58,7 +82,7 @@ APPLY_TESTS = {
                        'foo<strong>[bar<i>baz]</i></strong><i>qoz</i>quz' ] },
 
     # italic
-    { 'id':          'I-TEXT-1',
+    { 'id':          'I:TEXT-1_SI',
       'desc':        'Italicize selection',
       'command':     'italic',
       'pad':         'foo[bar]baz',
@@ -66,14 +90,14 @@ APPLY_TESTS = {
                        'foo<em>[bar]</em>baz' ] },
 
     # underline
-    { 'id':          'U-TEXT-1',
+    { 'id':          'U:TEXT-1_SI',
       'desc':        'Underline selection',
       'command':     'underline',
       'pad':         'foo[bar]baz',
       'expected':    'foo<u>[bar]</u>baz' },
       
     # strikethrough
-    { 'id':          'S-TEXT-1',
+    { 'id':          'S:TEXT-1_SI',
       'desc':        'Strike-through selection',
       'command':     'strikethrough',
       'pad':         'foo[bar]baz',
@@ -81,21 +105,21 @@ APPLY_TESTS = {
                        'foo<strike>[bar]</strike>baz' ] },
       
     # subscript
-    { 'id':          'SUB-TEXT-1',
+    { 'id':          'SUB:TEXT-1_SI',
       'desc':        'Change selection to subscript',
       'command':     'subscript',
       'pad':         'foo[bar]baz',
       'expected':    'foo<sub>[bar]</sub>baz' },
 
     # superscript
-    { 'id':          'SUP-TEXT-1',
+    { 'id':          'SUP:TEXT-1_SI',
       'desc':        'Change selection to superscript',
       'command':     'superscript',
       'pad':         'foo[bar]baz',
       'expected':    'foo<sup>[bar]</sup>baz' },
 
     # backcolor (noteno non-CSS variant available)
-    { 'id':          'BC-TEXT-1',
+    { 'id':          'BC-blue:TEXT-1_SI',
       'desc':        'Change background color (no non-CSS variant available)',
       'command':     'backcolor',
       'value':       'blue',
@@ -103,16 +127,16 @@ APPLY_TESTS = {
       'expected':    [ 'foo<span style="background-color: blue">[bar]</span>baz',
                        'foo<font style="background-color: blue">[bar]</font>baz' ] },
 
-    # fontcolor
-    { 'id':          'FC-TEXT-1',
+    # forecolor
+    { 'id':          'FC-blue:TEXT-1_SI',
       'desc':        'Change the text color',
-      'command':     'fontcolor',
+      'command':     'forecolor',
       'value':       'blue',
       'pad':         'foo[bar]baz',
       'expected':    'foo<font color="blue">[bar]</font>baz' },
 
     # fontname
-    { 'id':          'FN-TEXT-1',
+    { 'id':          'FN-a:TEXT-1_SI',
       'desc':        'Change the font name',
       'command':     'fontname',
       'value':       'arial',
@@ -120,21 +144,21 @@ APPLY_TESTS = {
       'expected':    'foo<font face="arial">[bar]</font>baz' },
 
     # fontsize
-    { 'id':          'FS-TEXT-2',
+    { 'id':          'FS-2:TEXT-1_SI',
       'desc':        'Change the font size to "2"',
       'command':     'fontsize',
       'value':       '2',
       'pad':         'foo[bar]baz',
       'expected':    'foo<font size="2">[bar]</font>baz' },
 
-    { 'id':          'FS-TEXT-18px',
+    { 'id':          'FS-18px:TEXT-1_SI',
       'desc':        'Change the font size to "18px"',
       'command':     'fontsize',
       'value':       '18px',
       'pad':         'foo[bar]baz',
       'expected':    'foo<font size="18px">[bar]</font>baz' },
 
-    { 'id':          'FS-TEXT-large',
+    { 'id':          'FS-l:TEXT-1_SI',
       'desc':        'Change the font size to "large"',
       'command':     'fontsize',
       'value':       'large',
@@ -142,15 +166,15 @@ APPLY_TESTS = {
       'expected':    'foo<font size="large">[bar]</font>baz' },
 
     # indent
-#    { 'id':          'IND-TEXT-1',
+#    { 'id':          'IND:TEXT-1_SI',
 #      'desc':        'Indent the text',
 #      'command':     'indent',
-#      'pad':         'foo^bar',
+#      'pad':         'foo[bar]baz',
 #      'checkAttrs':  False,  # FIXME: determine generic way to check indent.
-#      'expected':    '<blockquote>foo^bar</blockquote>' },
+#      'expected':    '<blockquote>foo[bar]baz</blockquote>' },
 
     # outdent
-    { 'id':          'OUTD-TEXT-1',
+    { 'id':          'OUTD:BQ-1_SC',
       'desc':        'Outdent the text',
       'command':     'outdent',
       'pad':         '<blockquote>foo^bar</blockquote>',
@@ -159,7 +183,7 @@ APPLY_TESTS = {
                       '<div>foo^bar</div>'] },
 
     # justifycenter
-   { 'id':           'JC-TEXT-1',
+   { 'id':           'JC:TEXT-1_SC',
       'desc':        'justify the text centrally',
       'command':     'justifycenter',
       'pad':         'foo^bar',
@@ -170,7 +194,7 @@ APPLY_TESTS = {
                        '<div align="middle">foo^bar</div>' ] },
 
     # justifyfull
-    { 'id':          'JF-TEXT-1',
+    { 'id':          'JF:TEXT-1_SC',
       'desc':        'justify the text fully',
       'command':     'justifyfull',
       'pad':         'foo^bar',
@@ -178,7 +202,7 @@ APPLY_TESTS = {
                        '<div align="justify">foo^bar</div>' ] },
 
     # justifyleft
-    { 'id':          'JL-TEXT-1',
+    { 'id':          'JL:TEXT-1_SC',
       'desc':        'justify the text left',
       'command':     'justifyleft',
       'pad':         'foo^bar',
@@ -186,7 +210,7 @@ APPLY_TESTS = {
                        '<div align="left">foo^bar</div>' ] },
 
     # justifyright
-    { 'id':          'JR-TEXT-1',
+    { 'id':          'JR:TEXT-1_SC',
       'desc':        'justify the text right',
       'command':     'justifyright',
       'pad':         'foo^bar',
@@ -194,11 +218,11 @@ APPLY_TESTS = {
                        '<div align="right">foo^bar</div>' ] },
 
     # createlink
-    { 'id':          'CL-1',
+    { 'id':          'CL:TEXT-1_SC',
       'desc':        'create a link around the selection',
       'command':     'createlink',
       'value':       '#C-CL-1',
       'pad':         'foo[bar]baz',
       'expected':    'foo<a href="#C-CL-1">[bar]</a>baz' }
   ]
-};
+}

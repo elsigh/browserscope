@@ -47,11 +47,15 @@ from categories.richtext2.tests.changeCSS     import CHANGE_TESTS_CSS
 from categories.richtext2.tests.delete        import DELETE_TESTS
 from categories.richtext2.tests.forwarddelete import FORWARDDELETE_TESTS
 from categories.richtext2.tests.insert        import INSERT_TESTS
-from categories.richtext2.tests.query         import QUERY_TESTS
-from categories.richtext2.tests.queryCSS      import QUERY_TESTS_CSS
 from categories.richtext2.tests.selection     import SELECTION_TESTS
 from categories.richtext2.tests.unapply       import UNAPPLY_TESTS
 from categories.richtext2.tests.unapplyCSS    import UNAPPLY_TESTS_CSS
+
+from categories.richtext2.tests.querySupported      import QUERYSUPPORTED_TESTS
+from categories.richtext2.tests.queryEnabled        import QUERYENABLED_TESTS, QUERYENABLED_TESTS_CSS
+from categories.richtext2.tests.queryIndeterminate  import QUERYINDETERMINATE_TESTS, QUERYINDETERMINATE_TESTS_CSS
+from categories.richtext2.tests.queryState          import QUERYSTATE_TESTS, QUERYSTATE_TESTS_CSS
+from categories.richtext2.tests.queryValue          import QUERYVALUE_TESTS, QUERYVALUE_TESTS_CSS
 
 
 def About(request):
@@ -92,8 +96,16 @@ def RunRichText2Tests(request):
       DELETE_TESTS,
       FORWARDDELETE_TESTS,
       INSERT_TESTS,
-      QUERY_TESTS,
-      QUERY_TESTS_CSS
+
+      QUERYSUPPORTED_TESTS,
+      QUERYENABLED_TESTS,
+      QUERYENABLED_TESTS_CSS,
+      QUERYINDETERMINATE_TESTS,
+      QUERYINDETERMINATE_TESTS_CSS,
+      QUERYSTATE_TESTS,
+      QUERYSTATE_TESTS_CSS,
+      QUERYVALUE_TESTS,
+      QUERYVALUE_TESTS_CSS
     ]
   }
   return shortcuts.render_to_response('%s/templates/richtext2.html' % common.CATEGORY, params)

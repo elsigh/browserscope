@@ -64,8 +64,15 @@
         'forwarddeleteSel=' + scoresStrict['FD'].total,
         'insert='           + scoresPartial['I'].total,
         'insertSel='        + scoresStrict['I'].total,
-        'query='            + scoresPartial['Q'].total,
-        'queryCSS='         + scoresPartial['QC'].total
+        'querySupported='   + scoresPartial['Q'].total,
+        'queryEnabled='     + scoresPartial['QE'].total,
+        'queryEnabledCSS='  + scoresPartial['QEC'].total,
+        'queryInd='         + scoresPartial['QI'].total,
+        'queryIndCSS='      + scoresPartial['QIC'].total,
+        'queryState='       + scoresPartial['QS'].total,
+        'queryStateCSS='    + scoresPartial['QSC'].total,
+        'queryValue='       + scoresPartial['QV'].total,
+        'queryValueCSS='    + scoresPartial['QVC'].total
       ];
       parent.sendScore(beacon, continueParams);
     }

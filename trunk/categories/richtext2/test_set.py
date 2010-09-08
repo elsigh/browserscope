@@ -33,11 +33,15 @@ from categories.richtext2.tests.changeCSS     import CHANGE_TESTS_CSS
 from categories.richtext2.tests.delete        import DELETE_TESTS
 from categories.richtext2.tests.forwarddelete import FORWARDDELETE_TESTS
 from categories.richtext2.tests.insert        import INSERT_TESTS
-from categories.richtext2.tests.query         import QUERY_TESTS
-from categories.richtext2.tests.queryCSS      import QUERY_TESTS_CSS
 from categories.richtext2.tests.selection     import SELECTION_TESTS
 from categories.richtext2.tests.unapply       import UNAPPLY_TESTS
 from categories.richtext2.tests.unapplyCSS    import UNAPPLY_TESTS_CSS
+
+from categories.richtext2.tests.querySupported      import QUERYSUPPORTED_TESTS
+from categories.richtext2.tests.queryEnabled        import QUERYENABLED_TESTS, QUERYENABLED_TESTS_CSS
+from categories.richtext2.tests.queryIndeterminate  import QUERYINDETERMINATE_TESTS, QUERYINDETERMINATE_TESTS_CSS
+from categories.richtext2.tests.queryState          import QUERYSTATE_TESTS, QUERYSTATE_TESTS_CSS
+from categories.richtext2.tests.queryValue          import QUERYVALUE_TESTS, QUERYVALUE_TESTS_CSS
 
 class RichText2Test(test_set_base.TestBase):
   TESTS_URL_PATH = '/%s/test' % common.CATEGORY
@@ -74,7 +78,7 @@ class IndividualRichText2Test(RichText2Test):
     """
     test_set_base.TestBase.__init__(
         self,
-        key = common.TEST_ID_PREFIX + suite_id + '-' + test_name,
+        key = common.TEST_ID_PREFIX + '-' + suite_id + '_' + test_name,
         name = desc,
         url = self.TESTS_URL_PATH,
         doc = None,
@@ -141,11 +145,34 @@ class InsertRichText2Test(IndividualRichText2Test):
 class InsertStrictRichText2Test(IndividualRichText2Test):
   CATEGORY = 'insertSel'
 
-class QueryRichText2Test(IndividualRichText2Test):
-  CATEGORY = 'query'
 
-class QueryCSSRichText2Test(IndividualRichText2Test):
-  CATEGORY = 'queryCSS'
+class QuerySupportedRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'querySupported'
+
+class QueryEnabledRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'queryEnabled'
+
+class QueryEnabledCSSRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'queryEnabledCSS'
+
+class QueryIndeterminateRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'queryInd'
+
+class QueryIndeterminateCSSRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'queryIndCSS'
+
+class QueryStateRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'queryState'
+
+class QueryStateCSSRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'queryStateCSS'
+
+class QueryValueRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'queryValue'
+
+class QueryValueCSSRichText2Test(IndividualRichText2Test):
+  CATEGORY = 'queryValueCSS'
+
 
 CATEGORIES = sorted(['selection',
                      'apply',
@@ -166,8 +193,16 @@ CATEGORIES = sorted(['selection',
                      'forwarddeleteSel',
                      'insert',
                      'insertSel',
-                     'query',
-                     'queryCSS'])
+                     'querySupported',
+                     'queryEnabled',
+                     'queryEnabledCSS',
+                     'queryInd',
+                     'queryIndCSS',
+                     'queryState',
+                     'queryStateCSS',
+                     'queryValue',
+                     'queryValueCSS'
+                     ])
 
 # Category tests:
 # key, name, doc
@@ -324,20 +359,53 @@ _CATEGORIES_TEST_SET = [
   These tests also require the final selection to be correct (i.e., as expected).
   The expected and actual outputs are shown.'''),
 
-  CategoryRichText2Test('query', 'Query Functions', False,
-  '''These tests verify that the various 'queryCommand...()' functions return
+
+  CategoryRichText2Test('querySupported', 'q.C.Supported Function', False,
+  '''These tests verify that the 'queryCommandSupported()' function return
   a correct result given a certain set-up. styleWithCSS is being set to false.
   The expected and actual results are shown.'''),
 
-  CategoryRichText2Test('queryCSS', 'Query Functions, styleWithCSS', False,
-  '''These tests verify that the various 'queryCommand...()' functions return
+  CategoryRichText2Test('queryEnabled', 'q.C.Enabled Function', False,
+  '''These tests verify that the 'queryCommandEnabled()' function return
+  a correct result given a certain set-up. styleWithCSS is being set to false.
+  The expected and actual results are shown.'''),
+
+  CategoryRichText2Test('queryEnabledCSS', 'q.C.Enabled Function, styleWithCSS', False,
+  '''These tests verify that the 'queryCommandEnabled()' function return
+  a correct result given a certain set-up. styleWithCSS is being set to true.
+  The expected and actual results are shown.'''),
+
+  CategoryRichText2Test('queryInd', 'q.C.Indeterminate Function', False,
+  '''These tests verify that the 'queryCommandIndeterminate()' function return
+  a correct result given a certain set-up. styleWithCSS is being set to false.
+  The expected and actual results are shown.'''),
+
+  CategoryRichText2Test('queryIndCSS', 'q.C.Indeterminate Function, styleWithCSS', False,
+  '''These tests verify that the 'queryCommandIndeterminate()' function return
+  a correct result given a certain set-up. styleWithCSS is being set to true.
+  The expected and actual results are shown.'''),
+
+  CategoryRichText2Test('queryState', 'q.C.State Function', False,
+  '''These tests verify that the 'queryCommandState()' function return
+  a correct result given a certain set-up. styleWithCSS is being set to false.
+  The expected and actual results are shown.'''),
+
+  CategoryRichText2Test('queryStateCSS', 'q.C.State Function, styleWithCSS', False,
+  '''These tests verify that the 'queryCommandState()' function return
+  a correct result given a certain set-up. styleWithCSS is being set to true.
+  The expected and actual results are shown.'''),
+
+  CategoryRichText2Test('queryValue', 'q.C.Value Function', False,
+  '''These tests verify that the 'queryCommandValue()' function return
+  a correct result given a certain set-up. styleWithCSS is being set to false.
+  The expected and actual results are shown.'''),
+
+  CategoryRichText2Test('queryValueCSS', 'q.C.Value Function, styleWithCSS', False,
+  '''These tests verify that the 'queryCommandValue()' function return
   a correct result given a certain set-up. styleWithCSS is being set to true.
   The expected and actual results are shown.''')
 ]
 
-def createID(suiteID, testname):
-  return common.TEST_ID_PREFIX + suiteID + '-' + testname;
-  
 # Individual tests:
 # key, name
 
@@ -436,16 +504,51 @@ _INSERT_TEST_SET_SEL = [
         for c in common.CLASSES
             for t in INSERT_TESTS.get(c, {})
 ]
-_QUERY_TEST_SET = [
-    QueryRichText2Test(QUERY_TESTS['id'], t['id'], t['desc'], False)
-        for c in common.CLASSES
-            for t in QUERY_TESTS.get(c, {})
-]
 
-_QUERY_CSS_TEST_SET = [
-    QueryCSSRichText2Test(QUERY_TESTS_CSS['id'], t['id'], t['desc'], False)
+_QUERYSUPPORTED_TEST_SET = [
+    QuerySupportedRichText2Test(QUERYSUPPORTED_TESTS['id'], t['id'], t['desc'], False)
         for c in common.CLASSES
-            for t in QUERY_TESTS_CSS.get(c, {})
+            for t in QUERYSUPPORTED_TESTS.get(c, {})
+]
+_QUERYENABLED_TEST_SET = [
+    QueryEnabledRichText2Test(QUERYENABLED_TESTS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in QUERYENABLED_TESTS.get(c, {})
+]
+_QUERYENABLED_CSS_TEST_SET = [
+    QueryEnabledCSSRichText2Test(QUERYENABLED_TESTS_CSS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in QUERYENABLED_TESTS_CSS.get(c, {})
+]
+_QUERYINDETERMINATE_TEST_SET = [
+    QueryIndeterminateRichText2Test(QUERYINDETERMINATE_TESTS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in QUERYINDETERMINATE_TESTS.get(c, {})
+]
+_QUERYINDETERMINATE_CSS_TEST_SET = [
+    QueryIndeterminateCSSRichText2Test(QUERYINDETERMINATE_TESTS_CSS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in QUERYINDETERMINATE_TESTS_CSS.get(c, {})
+]
+_QUERYSTATE_TEST_SET = [
+    QueryStateRichText2Test(QUERYSTATE_TESTS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in QUERYSTATE_TESTS.get(c, {})
+]
+_QUERYSTATE_CSS_TEST_SET = [
+    QueryStateCSSRichText2Test(QUERYSTATE_TESTS_CSS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in QUERYSTATE_TESTS_CSS.get(c, {})
+]
+_QUERYVALUE_TEST_SET = [
+    QueryValueRichText2Test(QUERYVALUE_TESTS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in QUERYVALUE_TESTS.get(c, {})
+]
+_QUERYVALUE_CSS_TEST_SET = [
+    QueryValueCSSRichText2Test(QUERYVALUE_TESTS_CSS['id'], t['id'], t['desc'], False)
+        for c in common.CLASSES
+            for t in QUERYVALUE_TESTS_CSS.get(c, {})
 ]
 
 _FULL_TEST_SET = _CATEGORIES_TEST_SET + \
@@ -468,8 +571,15 @@ _FULL_TEST_SET = _CATEGORIES_TEST_SET + \
                  _FORWARDDELETE_TEST_SET_SEL + \
                  _INSERT_TEST_SET + \
                  _INSERT_TEST_SET_SEL + \
-                 _QUERY_TEST_SET + \
-                 _QUERY_CSS_TEST_SET
+                 _QUERYSUPPORTED_TEST_SET + \
+                 _QUERYENABLED_TEST_SET + \
+                 _QUERYENABLED_CSS_TEST_SET + \
+                 _QUERYINDETERMINATE_TEST_SET + \
+                 _QUERYINDETERMINATE_CSS_TEST_SET + \
+                 _QUERYSTATE_TEST_SET + \
+                 _QUERYSTATE_CSS_TEST_SET + \
+                 _QUERYVALUE_TEST_SET + \
+                 _QUERYVALUE_CSS_TEST_SET
 
 class RichText2TestSet(test_set_base.TestSet):
 
