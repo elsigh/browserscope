@@ -163,17 +163,17 @@ function runTestSuite(suite) {
           switch (currentSuite.id[0]) {
             case 'S':  // Selection tests - strict per definitonem (leave out 'S' in id) 
               currentIDPartial = '';
-              currentIDStrict = commonIDPrefix + '-' + currentSuite.id + '-' + currentTest.id;
+              currentIDStrict  = generateTestID(currentSuite.id, currentTest.id);
               break;
 
             case 'Q':  // Query tests
-              currentIDPartial = commonIDPrefix + '-' + currentSuite.id + '-' + currentTest.id;
-              currentIDStrict = '';
+              currentIDPartial = generateTestID(currentSuite.id, currentTest.id);
+              currentIDStrict  = '';
               break;
               
             default:
-              currentIDPartial = commonIDPrefix + '-' + currentSuite.id + '-' + currentTest.id;
-              currentIDStrict = commonIDPrefix + '-' + currentSuite.id + 'S-' + currentTest.id;
+              currentIDPartial = generateTestID(currentSuite.id, currentTest.id);
+              currentIDStrict  = generateTestID(currentSuite.id + 'S', currentTest.id);
           }
           ++counts[currentSuite.id].total;
           ++counts[currentSuite.id][currentClassID];

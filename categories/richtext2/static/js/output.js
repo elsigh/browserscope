@@ -21,6 +21,18 @@
  */
 
 /**
+ * Generates a unique ID for a given single test out of the suite ID and
+ * test ID.
+ *
+ * @param suiteID {string}
+ * @param testID {string}
+ * @return {string} globally unique ID
+ */
+function generateTestID(suiteID, testID) {
+  return commonIDPrefix + '-' + suiteID + '_' + testID;
+}
+
+/**
  * Adds quotes around all text nodes to show cases with non-normalized
  * text nodes. Those are not a bug, but may still be usefil in helping to
  * debug erroneous cases.
@@ -300,7 +312,7 @@ function outputSingleTestResult(actual, successLevel) {
   
   // Column 9: original pad specification
   td = tr.cells[8];
-  td.innerHTML = highlightSelectionMarkers(escapeOutput(currentTest.pad));
+  td.innerHTML = highlightSelectionMarkers(escapeOutput(getTestParameter(PARAM_PAD)));
   
   // Column 10: expected result(s)
   td = tr.cells[9];

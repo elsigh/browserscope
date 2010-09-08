@@ -18,6 +18,30 @@
 
 __author__ = 'rolandsteiner@google.com (Roland Steiner)'
 
+# Selection specifications used in 'id':
+#
+# Caret/collapsed selections:
+#
+# SC: 'caret'    caret/collapsed selection
+# SB: 'before'   caret/collapsed selection before element
+# SA: 'after'    caret/collapsed selection after element
+# SS: 'start'    caret/collapsed selection at the start of the element (before first child/at text pos. 0)
+# SE: 'end'      caret/collapsed selection at the end of the element (after last child/at text pos. n)
+# SX: 'betwixt'  collapsed selection between elements
+#
+# Range selections:
+#
+# SO: 'outside'  selection wraps element in question
+# SI: 'inside'   selection is inside of element in question
+# SW: 'wrap'     as SI, but also wraps all children of element
+# SL: 'left'     oblique selection - starts outside element and ends inside
+# SR: 'right'    oblique selection - starts inside element and ends outside
+# SM: 'mixed'    selection starts and ends in different elements
+#
+# SxR: selection is reversed
+#
+# Sxn or SxRn    selection applies to element #n of several identical
+
 SELECTION_TESTS = {
   'id':            'S',
   'caption':       'Selection Tests',
@@ -28,21 +52,21 @@ SELECTION_TESTS = {
 
   'RFC': [
     # selectall
-    { 'id':          'SELALL-TEXT',
+    { 'id':          'ALL:TEXT-1_SI',
       'desc':        'select all, text only',
       'command':     'selectall',
       'pad':         'foo[bar]baz',
       'expected':    [ '[foobarbaz]',
                        '{foobarbaz}' ] },
 
-    { 'id':          'SELALL-I',
+    { 'id':          'ALL:I-1_SI',
       'desc':        'select all, with outer tags',
       'command':     'selectall',
       'pad':         '<i>foo[bar]baz</i>',
       'expected':    '{<i>foobarbaz</i>}' },
 
     # unselect
-    { 'id':          'UNSEL-TEXT',
+    { 'id':          'UNS:TEXT-1_SI',
       'desc':        'unselect',
       'command':     'unselect',
       'pad':         'foo[bar]baz',
@@ -55,5 +79,5 @@ SELECTION_TESTS = {
 #      'pad':         'foo<div id="test">bar <span>baz</span></div>qoz',
 #      'expected':    'foo<div id="test">[bar <span>baz</span>]</div>qoz' }
   ]
-};
+}
 

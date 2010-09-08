@@ -14,14 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Change with CSS tests"""
+"""queryCommandEnabled tests"""
 
 __author__ = 'rolandsteiner@google.com (Roland Steiner)'
-
-# Result selection should continue to wrap the originally selected HTML (if any).
-# Result selection should be inside any newly created element.
-# A selection that started as a text selection should remain a text selection.
-# Elements that are not or only partially selected should retain their name and attributes.
 
 # Selection specifications used in 'id':
 #
@@ -47,30 +42,49 @@ __author__ = 'rolandsteiner@google.com (Roland Steiner)'
 #
 # Sxn or SxRn    selection applies to element #n of several identical
 
-# "styleWithCSS" tests: Newly created elements should ALWAYS create a "style" attribute.
-
-CHANGE_TESTS_CSS = {
-  'id':            'CC',
-  'caption':       'Change Existing Format to Different Format Tests, using styleWithCSS',
-  'checkAttrs':    True,
-  'checkStyle':    True,
-  'styleWithCSS':  True,
+QUERYENABLED_TESTS = {
+  'id':           'QE',
+  'caption':      'queryCommandEnabled Tests',
+  'checkAttrs':   False,
+  'checkStyle':   False,
+  'checkSel':     False,
+  'styleWithCSS': False,
 
   'Proposed': [
-    # font name
-    { 'id':          'FN-c:SPANs:ff:a-1_SW',
-      'desc':        'Change existing font name to new font name, using CSS styling',
-      'command':     'fontname',
-      'value':       'courier',
-      'pad':         '<span style="font-family: arial">[foo bar baz]</span>',
-      'expected':    '<span style="font-family: courier">[foo bar baz]</span>' },
+    { 'id':         'B:TEXT-1_SI',
+      'desc':       'check whether the "bold" command is enabled',
+      'qcenabled':  'bold',
+      'pad':        'foo[bar]baz',
+      'expected':   True },
 
-    # font size
-    { 'id':          'FS-1:SPANs:fs:l-1_SW',
-      'desc':        'Change existing font size to new size, using CSS styling',
-      'command':     'fontsize',
-      'value':       '1',
-      'pad':         '<span style="font-size: large">[foo bar baz]</span>',
-      'expected':    '<span style="font-size: x-small">[foo bar baz]</span>' }
+    { 'id':         'B:B-1_SI',
+      'desc':       'check whether the "bold" command is enabled',
+      'qcenabled':  'bold',
+      'pad':        '<b>foo[bar]baz</b>',
+      'expected':   True },
+
+    { 'id':         'I:TEXT-1_SI',
+      'desc':       'check whether the "bold" command is enabled',
+      'qcenabled':  'italic',
+      'pad':        'foo[bar]baz',
+      'expected':   True },
+
+    { 'id':         'I:I-1_SI',
+      'desc':       'check whether the "bold" command is enabled',
+      'qcenabled':  'italic',
+      'pad':        '<i>foo[bar]baz</i>',
+      'expected':   True }
   ]
 }
+
+QUERYENABLED_TESTS_CSS = {
+  'id':           'QEC',
+  'caption':      'queryCommandEnabled Tests, using styleWithCSS',
+  'checkAttrs':   False,
+  'checkStyle':   False,
+  'checkSel':     False,
+  'styleWithCSS': True,
+  
+  'Proposed':     QUERYENABLED_TESTS['Proposed']
+}
+

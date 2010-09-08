@@ -23,6 +23,30 @@ __author__ = 'rolandsteiner@google.com (Roland Steiner)'
 # A selection that started as a text selection should remain a text selection.
 # Elements that are not or only partially selected should retain their name and attributes.
 
+# Selection specifications used in 'id':
+#
+# Caret/collapsed selections:
+#
+# SC: 'caret'    caret/collapsed selection
+# SB: 'before'   caret/collapsed selection before element
+# SA: 'after'    caret/collapsed selection after element
+# SS: 'start'    caret/collapsed selection at the start of the element (before first child/at text pos. 0)
+# SE: 'end'      caret/collapsed selection at the end of the element (after last child/at text pos. n)
+# SX: 'betwixt'  collapsed selection between elements
+#
+# Range selections:
+#
+# SO: 'outside'  selection wraps element in question
+# SI: 'inside'   selection is inside of element in question
+# SW: 'wrap'     as SI, but also wraps all children of element
+# SL: 'left'     oblique selection - starts outside element and ends inside
+# SR: 'right'    oblique selection - starts inside element and ends outside
+# SM: 'mixed'    selection starts and ends in different elements
+#
+# SxR: selection is reversed
+#
+# Sxn or SxRn    selection applies to element #n of several identical
+
 # Non-"styleWithCSS" tests: Newly created elements should not create a "style" attribute unless necessary.
 
 CHANGE_TESTS = {
@@ -34,19 +58,68 @@ CHANGE_TESTS = {
 
   'Proposed': [
     # font name
-    { 'id':          'FN-TEXT-1',
-      'desc':        'Change existing font name to new font name, not using CSS styling',
-      'command':     'fontname',
-      'value':       'courier',
-      'pad':         '<font face="arial">[foo bar baz]</font>',
-      'expected':    '<font face="courier">[foo bar baz]</font>' },
+    { 'id':         'FN-c:FONTf:a-1_SW',
+      'desc':       'Change existing font name to new font name, not using CSS styling',
+      'command':    'fontname',
+      'value':      'courier',
+      'pad':        '<font face="arial">[foo bar baz]</font>',
+      'expected':   '<font face="courier">[foo bar baz]</font>' },
 
     # font size
-    { 'id':          'FS-TEXT-1',
-      'desc':        'Change existing font size to new size, not using CSS styling',
-      'command':     'fontsize',
-      'value':       '1',
-      'pad':         '<font size="4">[foo bar baz]</font>',
-      'expected':    '<font size="1">[foo bar baz]</font>' }
+    { 'id':         'FS-1:FONTsz:4-1_SW',
+      'desc':       'Change existing font size to new size, not using CSS styling',
+      'command':    'fontsize',
+      'value':      '1',
+      'pad':        '<font size="4">[foo bar baz]</font>',
+      'expected':   '<font size="1">[foo bar baz]</font>' },
+                    
+    { 'id':         'FS-2:FONTc:b.sz:6-1_SI',
+      'desc':       'Change the font size in content with a different font size and font color',
+      'command':    'fontsize',
+      'value':      '2',
+      'pad':        '<font color="blue" size="6">foo[bar]baz</font>',
+      'expected':   [ '<font color="blue" size="6">foo<font size="2">[bar]</font>baz</font>',
+                      '<font color="blue"><font size="6">foo</font><font size="2">[bar]</font><font size="6">baz</font></font>' ] },
+
+    # forecolor
+    { 'id':         'FC-g:FONTc:b.sz:6-1_SI',
+      'desc':       'Change the font color in content with a different font size and font color',
+      'command':    'forecolor',
+      'value':      'green',
+      'pad':        '<font color="blue" size="6">foo[bar]baz</font>',
+      'expected':   [ '<font color="blue" size="6">foo<font color="green">[bar]</font>baz</font>',
+                      '<font size="6"><font color="blue">foo<font color="green">[bar]</font><font color="blue">baz</font></font>' ] },
+
+    # italic
+    { 'id':         'I:I-1_SL',
+      'desc':       'Italicize partially italicized text',
+      'command':    'italic',
+      'pad':        'foo[bar<i>baz]</i>qoz',
+      'expected':   'foo<i>[barbaz]</i>qoz' },
+
+    { 'id':         'I:B-I-1_SO',
+      'desc':       'Italicize partially italicized text in bold context',
+      'command':    'italic',
+      'pad':        '<b>foo[bar<i>baz</i>}</b>',
+      'expected':   '<b>foo<i>[barbaz]</i></b>' },
+
+    # underline
+    { 'id':         'U:U-1_SO',
+      'desc':       'Underline partially underlined text',
+      'command':    'underline',
+      'pad':        'foo[bar<u>baz</u>qoz]quz', 
+      'expected':   'foo<u>[barbazqoz]</u>quz' },
+
+    { 'id':         'U:U-1_SL',
+      'desc':       'Underline partially underlined text',
+      'command':    'underline',
+      'pad':        'foo[bar<u>baz]qoz</u>quz', 
+      'expected':   'foo<u>[barbaz]qoz</u>quz' },
+
+    { 'id':         'U:S-U-1_SO',
+      'desc':       'Underline partially underlined text in striked context',
+      'command':    'underline',
+      'pad':        '<s>foo[bar<u>baz</u>}</s>', 
+      'expected':   '<s>foo<u>[barbaz]</u></s>' }
   ]
-};
+}

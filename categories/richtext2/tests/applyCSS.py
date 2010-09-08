@@ -23,6 +23,30 @@ __author__ = 'rolandsteiner@google.com (Roland Steiner)'
 # A selection that started as a text selection should remain a text selection.
 # Elements that are not or only partially selected should retain their name and attributes.
 
+# Selection specifications used in 'id':
+#
+# Caret/collapsed selections:
+#
+# SC: 'caret'    caret/collapsed selection
+# SB: 'before'   caret/collapsed selection before element
+# SA: 'after'    caret/collapsed selection after element
+# SS: 'start'    caret/collapsed selection at the start of the element (before first child/at text pos. 0)
+# SE: 'end'      caret/collapsed selection at the end of the element (after last child/at text pos. n)
+# SX: 'betwixt'  collapsed selection between elements
+#
+# Range selections:
+#
+# SO: 'outside'  selection wraps element in question
+# SI: 'inside'   selection is inside of element in question
+# SW: 'wrap'     as SI, but also wraps all children of element
+# SL: 'left'     oblique selection - starts outside element and ends inside
+# SR: 'right'    oblique selection - starts inside element and ends outside
+# SM: 'mixed'    selection starts and ends in different elements
+#
+# SxR: selection is reversed
+#
+# Sxn or SxRn    selection applies to element #n of several identical
+
 # "styleWithCSS" tests: Newly created elements should always create a "style" attribute.
 
 APPLY_TESTS_CSS = {
@@ -34,35 +58,35 @@ APPLY_TESTS_CSS = {
 
   'Proposed': [
     # bold
-    { 'id':          'B-TEXT-1',
+    { 'id':          'B:TEXT-1_SI',
       'desc':        'Bold selection',
       'command':     'bold',
       'pad':         'foo[bar]baz',
       'expected':    'foo<span style="font-weight: bold">[bar]</span>baz' },
 
     # italic
-    { 'id':          'I-TEXT-1',
+    { 'id':          'I:TEXT-1_SI',
       'desc':        'Italicize selection',
       'command':     'italic',
       'pad':         'foo[bar]baz',
       'expected':    'foo<span style="font-style: italic">[bar]</span>baz' },
 
     # underline
-    { 'id':          'U-TEXT-1',
+    { 'id':          'U:TEXT-1_SI',
       'desc':        'Underline selection',
       'command':     'underline',
       'pad':         'foo[bar]baz',
       'expected':    'foo<span style="text-decoration: underline">[bar]</span>baz' },
 
     # strikethrough
-    { 'id':          'S-TEXT-1',
+    { 'id':          'S:TEXT-1_SI',
       'desc':        'Strike-through selection',
       'command':     'strikethrough',
       'pad':         'foo[bar]baz',
       'expected':    'foo<span style="text-decoration: line-through">[bar]</span>baz' },
       
     # backcolor
-    { 'id':          'BC-TEXT-1',
+    { 'id':          'BC-blue:TEXT-1_SI',
       'desc':        'Change background color',
       'command':     'backcolor',
       'value':       'blue',
@@ -70,17 +94,17 @@ APPLY_TESTS_CSS = {
       'expected':    [ 'foo<span style="background-color: blue">[bar]</span>baz',
                        'foo<font style="background-color: blue">[bar]</font>baz' ] },
 
-    # fontcolor
-    { 'id':          'FC-TEXT-1',
+    # forecolor
+    { 'id':          'FC-blue:TEXT-1_SI',
       'desc':        'Change the text color',
-      'command':     'fontcolor',
+      'command':     'forecolor',
       'value':       'blue',
       'pad':         'foo[bar]baz',
       'expected':    [ 'foo<span style="color: blue">[bar]</span>baz',
                        'foo<font style="color: blue">[bar]</font>baz' ] },
 
     # fontname
-    { 'id':          'FN-TEXT-1',
+    { 'id':          'FN-a:TEXT-1_SI',
       'desc':        'Change the font name',
       'command':     'fontname',
       'value':       'arial',
@@ -89,7 +113,7 @@ APPLY_TESTS_CSS = {
                        'foo<font style="font-family: blue">[bar]</font>baz' ] },
 
     # fontsize
-    { 'id':          'FS-TEXT-2',
+    { 'id':          'FS-2:TEXT-1_SI',
       'desc':        'Change the font size to "2"',
       'command':     'fontsize',
       'value':       '2',
@@ -97,7 +121,7 @@ APPLY_TESTS_CSS = {
       'expected':    [ 'foo<span style="font-size: small">[bar]</span>baz',
                        'foo<font style="font-size: small">[bar]</font>baz' ] },
 
-    { 'id':          'FS-TEXT-18px',
+    { 'id':          'FS-18px:TEXT-1_SI',
       'desc':        'Change the font size to "18px"',
       'command':     'fontsize',
       'value':       '18px',
@@ -105,7 +129,7 @@ APPLY_TESTS_CSS = {
       'expected':    [ 'foo<span style="font-size: 18px">[bar]</span>baz',
                        'foo<font style="font-size: 18px">[bar]</font>baz' ] },
 
-    { 'id':          'FS-TEXT-large',
+    { 'id':          'FS-l:TEXT-1_SI',
       'desc':        'Change the font size to "large"',
       'command':     'fontsize',
       'value':       'large',
@@ -114,7 +138,7 @@ APPLY_TESTS_CSS = {
                        'foo<font style="font-size: large">[bar]</font>baz' ] },
 
     # justifycenter
-    { 'id':          'JC-TEXT-1',
+    { 'id':          'JC:TEXT-1_SC',
       'desc':        'justify the text centrally',
       'command':     'justifycenter',
       'pad':         'foo^bar',
@@ -122,7 +146,7 @@ APPLY_TESTS_CSS = {
                        '<div style="text-align: center">foo^bar</div>' ] },
 
     # justifyfull
-    { 'id':          'JF-TEXT-1',
+    { 'id':          'JF:TEXT-1_SC',
       'desc':        'justify the text fully',
       'command':     'justifyfull',
       'pad':         'foo^bar',
@@ -130,7 +154,7 @@ APPLY_TESTS_CSS = {
                        '<div style="text-align: justify">foo^bar</div>' ] },
 
     # justifyleft
-    { 'id':          'JL-TEXT-1',
+    { 'id':          'JL:TEXT-1_SC',
       'desc':        'justify the text left',
       'command':     'justifyleft',
       'pad':         'foo^bar',
@@ -138,14 +162,14 @@ APPLY_TESTS_CSS = {
                        '<div style="text-align: left">foo^bar</div>' ] },
 
     # justifyright
-    { 'id':          'JR-TEXT-1',
+    { 'id':          'JR:TEXT-1_SC',
       'desc':        'justify the text right',
       'command':     'justifyright',
       'pad':         'foo^bar',
       'expected':    [ '<p style="text-align: right">foo^bar</p>',
                        '<div style="text-align: right">foo^bar</div>' ] }
   ]
-};
+}
 
 
 
