@@ -59,6 +59,59 @@ CHANGE_TESTS_CSS = {
   'Proposed': [
     # --- MIDAS spec ---
 
+    # backcolor
+    { 'id':         'BC-gray:SPANs:bc:g-1_SW',
+      'desc':       'Change background color from blue to gray',
+      'command':    'backcolor',
+      'value':      'gray',
+      'pad':        '<span style="background-color: blue">[foobarbaz]</span>',
+      'expected':   '<span style="background-color: gray">[foobarbaz]</span>' },
+
+    { 'id':         'BC-gray:SPANs:bc:g-1_SO',
+      'desc':       'Change background color from blue to gray',
+      'command':    'backcolor',
+      'value':      'gray',
+      'pad':        '{<span style="background-color: blue">foobarbaz</span>}',
+      'expected':   [ '{<span style="background-color: gray">foobarbaz</span>}',
+                      '<span style="background-color: gray">[foobarbaz]</span>' ] },
+
+    { 'id':         'BC-gray:SPANs:bc:g-1_SI',
+      'desc':       'Change background color from blue to gray',
+      'command':    'backcolor',
+      'value':      'gray',
+      'pad':        '<span style="background-color: blue">foo[bar]baz</span>',
+      'expected':   '<span style="background-color: blue">foo</span><span style="background-color: gray">[bar]</span><span style="background-color: blue">baz</span>',
+      'accept':     '<span style="background-color: blue">foo<span style="background-color: gray">[bar]</span>baz</span>' },
+
+    { 'id':         'BC-gray:P-SPANs:bc:g-1_SW',
+      'desc':       'Change background color within a paragraph from blue to gray',
+      'command':    'backcolor',
+      'value':      'gray',
+      'pad':        '<p><span style="background-color: blue">[foobarbaz]</span></p>',
+      'expected':   [ '<p><span style="background-color: gray">[foobarbaz]</span></p>',
+                      '<p style="background-color: gray">[foobarbaz]</p>' ] },
+
+    { 'id':         'BC-gray:P-SPANs:bc:g-2_SW',
+      'desc':       'Change background color within a paragraph from blue to gray',
+      'command':    'backcolor',
+      'value':      'gray',
+      'pad':        '<p>foo<span style="background-color: blue">[bar]</span>baz</p>',
+      'expected':   '<p>foo<span style="background-color: gray">[bar]</span>baz</p>' },
+
+    { 'id':         'BC-gray:P-SPANs:bc:g-3_SO',
+      'desc':       'Change background color within a paragraph from blue to gray (selection encloses more than previous span)',
+      'command':    'backcolor',
+      'value':      'gray',
+      'pad':        '<p>[foo<span style="background-color: blue">barbaz</span>qoz]quz</p>',
+      'expected':   '<p><span style="background-color: gray">[foobarbazqoz]</span>quz</p>' },
+
+    { 'id':         'BC-gray:P-SPANs:bc:g-3_SL',
+      'desc':       'Change background color within a paragraph from blue to gray (previous span partially selected)',
+      'command':    'backcolor',
+      'value':      'gray',
+      'pad':        '<p>[foo<span style="background-color: blue">bar]baz</span>qozquz</p>',
+      'expected':   '<p><span style="background-color: gray">[foobar]</span><span style="background-color: blue">baz</span>qozquz</p>' },
+
     # font name
     { 'id':         'FN-c:SPANs:ff:a-1_SW',
       'desc':       'Change existing font name to new font name, using CSS styling',
@@ -165,7 +218,8 @@ CHANGE_TESTS_CSS = {
       'value':      'larger',
       'pad':        '<span style="font-size: large">foo[bar]baz</span>',
       'expected':   [ '<span style="font-size: large">foo<span style="font-size: x-large">[bar]</span>baz</span>',
-                      '<span style="font-size: large">foo</span><span style="font-size: x-large">[bar]</span><span style="font-size: large">baz</span>' ] },
+                      '<span style="font-size: large">foo</span><span style="font-size: x-large">[bar]</span><span style="font-size: large">baz</span>' ],
+      'accept':     '<span style="font-size: large">foo<font size="larger">[bar]</font>baz</span>' },
                     
     { 'id':         'FS-smaller:SPANs:fs:l-1_SI',
       'desc':       'Change selection to use next smaller font',
@@ -173,6 +227,7 @@ CHANGE_TESTS_CSS = {
       'value':      'smaller',
       'pad':        '<span style="font-size: large">foo[bar]baz</span>',
       'expected':   [ '<span style="font-size: large">foo<span style="font-size: medium">[bar]</span>baz</span>',
-                      '<span style="font-size: large">foo</span><span style="font-size: medium">[bar]</span><span style="font-size: large">baz</span>' ] }
+                      '<span style="font-size: large">foo</span><span style="font-size: medium">[bar]</span><span style="font-size: large">baz</span>' ],
+      'accept':     '<span style="font-size: large">foo<font size="smaller">[bar]</font>baz</span>' }
   ]
 }

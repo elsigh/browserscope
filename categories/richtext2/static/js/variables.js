@@ -41,7 +41,8 @@ var RESULT_VERIFICATION_EXCEPTION = 2;
 var RESULT_UNSUPPORTED            = 3;
 var RESULT_DIFFS                  = 4;
 var RESULT_SELECTION_DIFFS        = 5;
-var RESULT_EQUAL                  = 6;
+var RESULT_ACCEPT                 = 6;  // HTML technically correct, but not ideal. Counts as FAIL in strict tests
+var RESULT_EQUAL                  = 7;
 
 // Special attributes used to mark selections within elements that otherwise
 // have no children. Important: attribute name MUST be lower case!
@@ -65,6 +66,7 @@ var PARAM_QUERYCOMMANDSTATE     = 'qcstate';
 var PARAM_QUERYCOMMANDVALUE     = 'qcvalue';
 var PARAM_VALUE                 = 'value';
 var PARAM_EXPECTED              = 'expected';
+var PARAM_ACCEPT                = 'accept';
 var PARAM_CHECK_ATTRIBUTES      = 'checkAttrs';
 var PARAM_CHECK_STYLE           = 'checkStyle';
 var PARAM_CHECK_CLASS           = 'checkClass';
@@ -78,6 +80,9 @@ var editorElem = null;
 var editorWin  = null;
 var editorDoc  = null;
 var contentEditableElem = null;
+
+// Selection markers used for pad and expectation specifications
+var hasSelMarkers = /[\[\]\^{}\|]/;
 
 // Variables holding the current suite and test for simplicity.
 var currentSuite           = null;  // object specifiying the current test suite

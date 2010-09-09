@@ -174,10 +174,15 @@ function outputSingleTestResult(actual, successLevel) {
       resultString = 'SEL.';
       resultTitle  = 'Test passed, but had selection differences';
       break;
+    case RESULT_ACCEPT:
+      backgroundColorClass = 'accept';
+      resultString = 'ACC.';
+      resultTitle  = 'Test passed with acceptable result';
+      break;
     case RESULT_EQUAL:
       backgroundColorClass = 'success';
       resultString = 'PASS';
-      resultTitle  = 'Test passed';
+      resultTitle  = 'Test passed with ideal result';
       break;
     default:
       backgroundColorClass = 'exception';
@@ -316,24 +321,26 @@ function outputSingleTestResult(actual, successLevel) {
   
   // Column 10: expected result(s)
   td = tr.cells[9];
-  switch (typeof expectedSpec) {
-    case 'object':
-      var expectedOutput = '';
-      var count = expectedSpec.length;
-      for (var idx = 0; idx < count; ++idx) {
-        if (idx > 0) {
-          expectedOutput = expectedOutput + '\xA0\xA0\xA0<i>or</i><br>';
-        }
-        expectedOutput = expectedOutput + (usesHTML ? highlightSelectionMarkers(escapeOutput(expectedSpec[idx]))
-                                                    : formatValueOrString(expectedSpec[idx]));
-      }
-      td.innerHTML = expectedOutput;
-      break;
-      
-    default:
-      td.innerHTML = usesHTML ? highlightSelectionMarkers(escapeOutput(expectedSpec))
-                              : formatValueOrString(expectedSpec);
+  var expectedOutput = '';
+  var expectedArr = getExpectationArray(expectedSpec);
+  for (var idx = 0; idx < expectedArr.length; ++idx) {
+    if (expectedOutput) {
+      expectedOutput = expectedOutput + '\xA0\xA0\xA0<i>or</i><br>';
+    }
+    expectedOutput = expectedOutput + (usesHTML ? highlightSelectionMarkers(escapeOutput(expectedArr[idx]))
+                                                : formatValueOrString(expectedArr[idx]));
   }
+  var acceptedSpec = getTestParameter(PARAM_ACCEPT);
+  if (acceptedSpec) {
+    var acceptedArr = getExpectationArray(acceptedSpec);    
+    for (var idx = 0; idx < acceptedArr.length; ++idx) {
+      expectedOutput = expectedOutput + '<span class="accexp">\xA0\xA0\xA0<i>or</i></span><br><span class="accexp">';
+      expectedOutput = expectedOutput + (usesHTML ? highlightSelectionMarkers(escapeOutput(acceptedArr[idx]))
+                                                  : formatValueOrString(acceptedArr[idx]))
+                                      + '</span>';
+    }
+  }
+  td.innerHTML = expectedOutput;
   
   // Column 11: actual result
   td = tr.cells[10];
@@ -354,6 +361,7 @@ function outputSingleTestResult(actual, successLevel) {
       break;
     case RESULT_DIFFS:
     case RESULT_SELECTION_DIFFS:
+    case RESULT_ACCEPT:
     case RESULT_EQUAL:
       td.innerHTML = usesHTML ? formatActualResult(escapeOutput(actual)) : formatValueOrString(actual);
       break;

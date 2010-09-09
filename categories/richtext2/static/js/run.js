@@ -192,6 +192,7 @@ function runTestSuite(suite) {
               scoreStrict = 1;
               break;
 
+            case RESULT_ACCEPT:
             case RESULT_SELECTION_DIFFS:
               ++scoresPartial[currentSuite.id].total;
               ++scoresPartial[currentSuite.id][currentClassID];
