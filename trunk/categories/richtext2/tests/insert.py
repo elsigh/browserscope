@@ -283,7 +283,36 @@ INSERT_TESTS = {
       'desc':        'Insert unordered list on selected text',
       'command':     'insertunorderedlist',
       'pad':         'foo[bar]baz',
-      'expected':    '<ul><li>foo[bar]baz</li></ul>' }
+      'expected':    '<ul><li>foo[bar]baz</li></ul>' },
+
+    # inserthtml
+    { 'id':          'HTML-text:TEXT-1_SI',
+      'desc':        'InsertHTML: "NEW"',
+      'command':     'inserthtml',
+      'value':       'NEW',
+      'pad':         'foo[bar]baz',
+      'expected':    'fooNEW^baz' },
+
+    { 'id':          'HTML-S:TEXT-1_SI',
+      'desc':        'InsertHTML: "<span>NEW<span>"',
+      'command':     'inserthtml',
+      'value':       '<span>NEW</span>',
+      'pad':         'foo[bar]baz',
+      'expected':    'foo<span>NEW</span>^baz' },
+
+    { 'id':          'HTML-H1.H2:TEXT-1_SI',
+      'desc':        'InsertHTML: "<h1>NEW</h1><h2>HTML</h2>"',
+      'command':     'inserthtml',
+      'value':       '<h1>NEW</h1><h2>HTML</h2>',
+      'pad':         'foo[bar]baz',
+      'expected':    'foo<h1>NEW</h1><h2>HTML</h2>^baz' },
+
+    { 'id':          'HTML-P-B:TEXT-1_SI',
+      'desc':        'InsertHTML: "<p>NEW</b>HTML</b>!</p>"',
+      'command':     'inserthtml',
+      'value':       '<p>NEW</b>HTML</b>!</p>',
+      'pad':         'foo[bar]baz',
+      'expected':    'foo<p>NEW</b>HTML</b>!</p>^baz' }
   ]
 }
 

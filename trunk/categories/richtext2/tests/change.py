@@ -57,38 +57,7 @@ CHANGE_TESTS = {
   'styleWithCSS':  False,
 
   'Proposed': [
-    # font name
-    { 'id':         'FN-c:FONTf:a-1_SW',
-      'desc':       'Change existing font name to new font name, not using CSS styling',
-      'command':    'fontname',
-      'value':      'courier',
-      'pad':        '<font face="arial">[foo bar baz]</font>',
-      'expected':   '<font face="courier">[foo bar baz]</font>' },
-
-    # font size
-    { 'id':         'FS-1:FONTsz:4-1_SW',
-      'desc':       'Change existing font size to new size, not using CSS styling',
-      'command':    'fontsize',
-      'value':      '1',
-      'pad':        '<font size="4">[foo bar baz]</font>',
-      'expected':   '<font size="1">[foo bar baz]</font>' },
-                    
-    { 'id':         'FS-2:FONTc:b.sz:6-1_SI',
-      'desc':       'Change the font size in content with a different font size and font color',
-      'command':    'fontsize',
-      'value':      '2',
-      'pad':        '<font color="blue" size="6">foo[bar]baz</font>',
-      'expected':   [ '<font color="blue" size="6">foo<font size="2">[bar]</font>baz</font>',
-                      '<font color="blue"><font size="6">foo</font><font size="2">[bar]</font><font size="6">baz</font></font>' ] },
-
-    # forecolor
-    { 'id':         'FC-g:FONTc:b.sz:6-1_SI',
-      'desc':       'Change the font color in content with a different font size and font color',
-      'command':    'forecolor',
-      'value':      'green',
-      'pad':        '<font color="blue" size="6">foo[bar]baz</font>',
-      'expected':   [ '<font color="blue" size="6">foo<font color="green">[bar]</font>baz</font>',
-                      '<font size="6"><font color="blue">foo<font color="green">[bar]</font><font color="blue">baz</font></font>' ] },
+    # --- HTML5 spec ---
 
     # italic
     { 'id':         'I:I-1_SL',
@@ -120,6 +89,55 @@ CHANGE_TESTS = {
       'desc':       'Underline partially underlined text in striked context',
       'command':    'underline',
       'pad':        '<s>foo[bar<u>baz</u>}</s>', 
-      'expected':   '<s>foo<u>[barbaz]</u></s>' }
+      'expected':   '<s>foo<u>[barbaz]</u></s>' },
+
+    # --- MIDAS spec ---
+
+    # font name
+    { 'id':         'FN-c:FONTf:a-1_SW',
+      'desc':       'Change existing font name to new font name, not using CSS styling',
+      'command':    'fontname',
+      'value':      'courier',
+      'pad':        '<font face="arial">[foobarbaz]</font>',
+      'expected':   '<font face="courier">[foobarbaz]</font>' },
+
+    { 'id':          'FN-c:FONTf:a-1_SI',
+      'desc':        'Change existing font name to new font name, using CSS styling',
+      'command':     'fontname',
+      'value':       'courier',
+      'pad':         '<font face="arial">foo[bar]baz</font>',
+      'expected':    '<font face="arial">foo</font><font face="courier">[bar]</font><font face="arial">baz</font>' },
+
+    { 'id':          'FN-c:FONTf:a-2_SL',
+      'desc':        'Change existing font name to new font name, using CSS styling',
+      'command':     'fontname',
+      'value':       'courier',
+      'pad':         'foo[bar<font face="arial">baz]qoz</font>',
+      'expected':    'foo<font face="courier">[barbaz]</font><font face="arial">qoz</font>' },
+
+    # font size
+    { 'id':         'FS-1:FONTsz:4-1_SW',
+      'desc':       'Change existing font size to new size, not using CSS styling',
+      'command':    'fontsize',
+      'value':      '1',
+      'pad':        '<font size="4">[foobarbaz]</font>',
+      'expected':   '<font size="1">[foobarbaz]</font>' },
+                    
+    { 'id':         'FS-2:FONTc:b.sz:6-1_SI',
+      'desc':       'Change the font size in content with a different font size and font color',
+      'command':    'fontsize',
+      'value':      '2',
+      'pad':        '<font color="blue" size="6">foo[bar]baz</font>',
+      'expected':   [ '<font color="blue" size="6">foo<font size="2">[bar]</font>baz</font>',
+                      '<font color="blue"><font size="6">foo</font><font size="2">[bar]</font><font size="6">baz</font></font>' ] },
+
+    # forecolor
+    { 'id':         'FC-g:FONTc:b.sz:6-1_SI',
+      'desc':       'Change the font color in content with a different font size and font color',
+      'command':    'forecolor',
+      'value':      'green',
+      'pad':        '<font color="blue" size="6">foo[bar]baz</font>',
+      'expected':   [ '<font color="blue" size="6">foo<font color="green">[bar]</font>baz</font>',
+                      '<font size="6"><font color="blue">foo<font color="green">[bar]</font><font color="blue">baz</font></font>' ] }
   ]
 }

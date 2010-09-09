@@ -276,6 +276,12 @@ UNAPPLY_TESTS = {
       'pad':        '<u>foo[bar<s>baz</s>quoz]</u>',
       'expected':   '<u>foo</u>[bar<s>baz</s>quoz]' },
 
+    { 'id':         'U:U-S-2_SI',
+      'desc':       'Removing underline from striked content inside underlined content',
+      'command':    'underline',
+      'pad':        '<u><s>foo[bar]baz</s>quoz</u>',
+      'expected':   '<s><u>foo</u>[bar]<u>baz</u>quoz</s>' },
+
     { 'id':         'U:U-P3-1_SO',
       'desc':       'Removing underline from underlined content with content-model violation',
       'command':    'underline',

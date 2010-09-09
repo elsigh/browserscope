@@ -57,6 +57,8 @@ APPLY_TESTS_CSS = {
   'styleWithCSS':  True,
 
   'Proposed': [
+    # --- HTML5 spec ---
+
     # bold
     { 'id':          'B:TEXT-1_SI',
       'desc':        'Bold selection',
@@ -85,6 +87,8 @@ APPLY_TESTS_CSS = {
       'pad':         'foo[bar]baz',
       'expected':    'foo<span style="text-decoration: line-through">[bar]</span>baz' },
       
+    # --- MIDAS spec ---
+
     # backcolor
     { 'id':          'BC-blue:TEXT-1_SI',
       'desc':        'Change background color',
