@@ -2,19 +2,6 @@
     text-align: left;
 }
 
-.success {
-  background-color: #b0ffa0;
-}
-.fail {
-  background-color: #ffb0b0;
-}
-.seldiff {
-  background-color: #ffffa0;
-}
-.exception {
-  background-color: #f0b0ff;
-}
-
 .greyBkLo {
   background-color: #dddddd;
 }
@@ -24,11 +11,11 @@
 .failBkLo {
   background-color: #ffcccc;
 }
-.seldiffBkLo {
+.seldiffBkLo, .acceptBkLo {
   background-color: #ffffc0;
 }
 .exceptionBkLo {
-  background-color: #fadcff;
+  background-color: #f0d0f4;
 }
 
 .greyBkHi {
@@ -40,11 +27,11 @@
 .failBkHi {
   background-color: #ffdcdc;
 }
-.seldiffBkHi {
-  background-color: #ffffdc;
+.seldiffBkHi, .acceptBkHi {
+  background-color: #ffffd8;
 }
 .exceptionBkHi {
-  background-color: #fae8ff;
+  background-color: #f4dcf8;
 }
 
 .sel {
@@ -63,6 +50,9 @@
 
 .fade {
   color: grey;
+}
+.accexp {
+  color: #606070;
 }
 .comment {
   color: grey;

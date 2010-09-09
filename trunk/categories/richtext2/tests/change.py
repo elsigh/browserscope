@@ -130,6 +130,22 @@ CHANGE_TESTS = {
       'pad':        '<font color="blue" size="6">foo[bar]baz</font>',
       'expected':   [ '<font color="blue" size="6">foo<font size="2">[bar]</font>baz</font>',
                       '<font color="blue"><font size="6">foo</font><font size="2">[bar]</font><font size="6">baz</font></font>' ] },
+      
+    { 'id':         'FS-larger:FONTsz:4',
+      'desc':       'Change selection to use next larger font',
+      'command':    'fontsize',
+      'value':      'larger',
+      'pad':        '<font size="4">foo[bar]baz</font>',
+      'expected':   '<font size="4">foo<font size="larger">[bar]</font>baz</font>',
+      'accept':     '<font size="4">foo</font><font size="5">[bar]</font><font size="4">baz</font>' },
+                    
+    { 'id':         'FS-smaller:FONTsz:4',
+      'desc':       'Change selection to use next smaller font',
+      'command':    'fontsize',
+      'value':      'smaller',
+      'pad':        '<font size="4">foo[bar]baz</font>',
+      'expected':   '<font size="4">foo<font size="smaller">[bar]</font>baz</font>',
+      'accept':     '<font size="4">foo</font><font size="3">[bar]</font><font size="4">baz</font>' },
 
     # forecolor
     { 'id':         'FC-g:FONTc:b.sz:6-1_SI',

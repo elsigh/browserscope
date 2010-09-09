@@ -52,39 +52,34 @@ function compareHTMLTestResultToSingleHTMLExpectation(expected, actual, checkSel
 }
 
 /**
+ * Gets the test expectations as an array from the passed-in field.
+ *
+ * @param {Array|String} the test expectation(s) as string or array.
+ * @return {Array} test expectations as an array.
+ */
+function getExpectationArray(expected) {
+  // Treat a single test expectation string or bool as an array of 1 expectation.
+  switch (typeof expected) {
+    case 'string':
+    case 'boolean':
+      return [expected];
+  }
+  return expected;
+}
+
+/**
  * Compare the current HTMLtest result to the expectation string(s).
  *
+ * @param {String/Boolean} actual value
+ * @param {String/Array} expectation(s)
+ * @param {Object} flags to use for canonicalization
+ * @param {Boolean} whether to check the result selection
  * @return {Integer} one of the RESULT_... return values
  * @see variables.js for return values
  */
-function compareHTMLTestResult() {
-  var checkSel = getTestParameter(PARAM_CHECK_SELECTION);
-  var emitFlags = {emitAttrs:         getTestParameter(PARAM_CHECK_ATTRIBUTES),
-                   emitStyle:         getTestParameter(PARAM_CHECK_STYLE),
-                   emitClass:         getTestParameter(PARAM_CHECK_CLASS),
-                   emitID:            getTestParameter(PARAM_CHECK_ID),
-                   lowercase:         true,
-                   canonicalizeUnits: true};
-  var hasSelMarkers = /[\[\]\^{}\|]/;
-  
-  var actual = currentResultHTML;
-  // Remove closing tags </hr>, </br> for comparison.
-  actual = actual.replace(/<\/[hb]r>/g, '');
-  // Remove text node markers for comparison.
-  actual = actual.replace(/[\x60\xb4]/g, '');
-  // Canonicalize result.
-  actual = canonicalizeElementsAndAttributes(actual, emitFlags);
-
-  // Treat a single test expectation string as an array of 1 expectation.
-  var expectedSpec = getTestParameter(PARAM_EXPECTED);
-  var expectedArr;
-  if (typeof expectedSpec == 'string') {
-    expectedArr = [expectedSpec];
-  } else {
-    expectedArr = expectedSpec;
-  }
-  
+function compareHTMLTestResultWith(actual, expected, emitFlags, checkSel) {
   // Find the most favorable result among the possible expectation strings.
+  var expectedArr  = getExpectationArray(expected);
   var count = expectedArr.length;
   var best = RESULT_DIFFS;
   for (var idx = 0; idx < count; ++idx) {
@@ -109,6 +104,93 @@ function compareHTMLTestResult() {
 }
 
 /**
+ * Compare the current HTMLtest result to the expectation string(s).
+ *
+ * @return {Integer} one of the RESULT_... return values
+ * @see variables.js for return values
+ */
+function compareHTMLTestResult() {
+  var checkSel = getTestParameter(PARAM_CHECK_SELECTION);
+  var emitFlags = {emitAttrs:         getTestParameter(PARAM_CHECK_ATTRIBUTES),
+                   emitStyle:         getTestParameter(PARAM_CHECK_STYLE),
+                   emitClass:         getTestParameter(PARAM_CHECK_CLASS),
+                   emitID:            getTestParameter(PARAM_CHECK_ID),
+                   lowercase:         true,
+                   canonicalizeUnits: true};
+  
+  var actual = currentResultHTML;
+  // Remove closing tags </hr>, </br> for comparison.
+  actual = actual.replace(/<\/[hb]r>/g, '');
+  // Remove text node markers for comparison.
+  actual = actual.replace(/[\x60\xb4]/g, '');
+  // Canonicalize result.
+  actual = canonicalizeElementsAndAttributes(actual, emitFlags);
+
+  var expected = getTestParameter(PARAM_EXPECTED);
+  var bestExpected = compareHTMLTestResultWith(actual, expected, emitFlags, checkSel);
+  if (bestExpected == RESULT_EQUAL) {
+    return RESULT_EQUAL;
+  }
+  var accepted = getTestParameter(PARAM_ACCEPT);
+  if (!accepted) {
+    return bestExpected;
+  }
+  var bestAccepted = compareHTMLTestResultWith(actual, accepted, emitFlags, checkSel);
+  if (bestAccepted == RESULT_EQUAL) {
+    return RESULT_ACCEPT;
+  }
+  return bestExpected > bestAccepted ? bestExpected : bestAccepted;
+}
+
+/**
+ * Compare a text test result to the expectation string(s).
+ *
+ * @param {String/Boolean} actual value
+ * @param {String/Array} expectation(s)
+ * @return {Boolean} whether we found a match
+ */
+function compareTextTestResultWith(actual, expected) {
+  var expectedArr = getExpectationArray(expected);
+  // Find the most favorable result among the possible expectation strings.
+  var count = expectedArr.length;
+  
+  // We only need to look at Color and Size units if the originating test
+  // was for queryCommandValue. If queryCommandValue is not for a color/size
+  // specific state, or it it wasn't a queryCommandValue test at all, then
+  // just compare directly.
+  //
+  // TODO(rolandsteiner): This is ugly! Refactor!
+  switch (getTestParameter(PARAM_QUERYCOMMANDVALUE)) {
+    case 'backcolor':
+    case 'forecolor':
+    case 'hilitecolor':
+      for (var idx = 0; idx < count; ++idx) {
+        if (new Color(actual).compare(new Color(expectedArr[idx]))) {
+          return true;
+        }
+      }
+      return false;
+    
+    case 'fontsize':
+      for (var idx = 0; idx < count; ++idx) {
+        if (new Size(actual).compare(new Size(expectedArr[idx]))) {
+          return true;
+        }
+      }
+      return false;
+    
+    default:
+      for (var idx = 0; idx < count; ++idx) {
+        if (actual === expectedArr[idx]) {
+          return true;
+        }
+      }
+  }
+  
+  return false;
+}
+
+/**
  * Compare the passed-in text test result to the expectation string(s).
  *
  * @param {String/Boolean} actual value
@@ -116,50 +198,14 @@ function compareHTMLTestResult() {
  * @see variables.js for return values
  */
 function compareTextTestResult(actual) {
-  // Treat a single test expectation string as an array of 1 expectation.
-  var expectedSpec = getTestParameter(PARAM_EXPECTED);
-  var expectedArr;
-  switch (typeof expectedSpec) {
-    case 'string':
-    case 'boolean':
-      expectedArr = [expectedSpec];
-      break;
-      
-    default:
-      expectedArr = expectedSpec;
-      break;
+  var expected = getTestParameter(PARAM_EXPECTED);
+  if (compareTextTestResultWith(actual, expected)) {
+    return RESULT_EQUAL;
   }
-  
-  // Find the most favorable result among the possible expectation strings.
-  var count = expectedArr.length;
-  switch (getTestParameter(PARAM_QUERYCOMMANDVALUE)) {
-    case 'backcolor':
-    case 'forecolor':
-    case 'hilitecolor':
-      for (var idx = 0; idx < count; ++idx) {
-        if (new Color(actual).compare(new Color(expectedArr[idx]))) {
-          return RESULT_EQUAL;
-        }
-      }
-      return RESULT_DIFFS;
-    
-    case 'fontsize':
-      for (var idx = 0; idx < count; ++idx) {
-        if (new Size(actual).compare(new Size(expectedArr[idx]))) {
-          return RESULT_EQUAL;
-        }
-      }
-      return RESULT_DIFFS;
-    
-    default:
-      for (var idx = 0; idx < count; ++idx) {
-        if (actual === expectedArr[idx]) {
-          return RESULT_EQUAL;
-        }
-      }
-     return RESULT_DIFFS;
+  var accepted = getTestParameter(PARAM_ACCEPT);
+  if (accepted && compareTextTestResultWith(actual, accepted)) {
+    return RESULT_ACCEPT;
   }
-  
   return RESULT_DIFFS;
 }
 
