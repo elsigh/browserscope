@@ -57,6 +57,8 @@ APPLY_TESTS = {
   'styleWithCSS':  False,
 
   'Proposed': [
+    # --- HTML5 spec ---
+
     # bold
     { 'id':          'B:TEXT-1_SI',
       'desc':        'Bold selection',
@@ -118,7 +120,57 @@ APPLY_TESTS = {
       'pad':         'foo[bar]baz',
       'expected':    'foo<sup>[bar]</sup>baz' },
 
-    # backcolor (noteno non-CSS variant available)
+    # createlink
+    { 'id':          'CL:TEXT-1_SC',
+      'desc':        'create a link around the selection',
+      'command':     'createlink',
+      'value':       '#C-CL-1',
+      'pad':         'foo[bar]baz',
+      'expected':    'foo<a href="#C-CL-1">[bar]</a>baz' },
+
+    # formatBlock
+    { 'id':          'FB-h1:TEXT-1_SC',
+      'desc':        'format the selection into a block: use <h1>',
+      'command':     'formatblock',
+      'value':       'h1',
+      'pad':         'foo[bar]baz',
+      'expected':    'foo<h1>[bar]</h1>baz' },
+
+    # formatBlock
+    { 'id':          'FB-p:TEXT-1_SC',
+      'desc':        'format the selection into a block: use <p>',
+      'command':     'formatblock',
+      'value':       'p',
+      'pad':         'foo[bar]baz',
+      'expected':    'foo<p>[bar]</p>baz' },
+
+    # formatBlock
+    { 'id':          'FB-pre:TEXT-1_SC',
+      'desc':        'format the selection into a block: use <pre>',
+      'command':     'formatblock',
+      'value':       'hpre',
+      'pad':         'foo[bar]baz',
+      'expected':    'foo<pre>[bar]</pre>baz' },
+
+    # formatBlock
+    { 'id':          'FB-address:TEXT-1_SC',
+      'desc':        'format the selection into a block: use <address>',
+      'command':     'formatblock',
+      'value':       'address',
+      'pad':         'foo[bar]baz',
+      'expected':    'foo<address>[bar]</address>baz' },
+
+    # formatBlock
+    { 'id':          'FB-bq:TEXT-1_SC',
+      'desc':        'format the selection into a block: use <blockquote>',
+      'command':     'formatblock',
+      'value':       'blockquote',
+      'pad':         'foo[bar]baz',
+      'expected':    'foo<blockquote>[bar]</blockquote>baz' },
+
+    # --- MIDAS spec ---
+
+    # backcolor (note: no non-CSS variant available)
     { 'id':          'BC-blue:TEXT-1_SI',
       'desc':        'Change background color (no non-CSS variant available)',
       'command':     'backcolor',
@@ -217,12 +269,12 @@ APPLY_TESTS = {
       'expected':    [ '<p align="right">foo^bar</p>',
                        '<div align="right">foo^bar</div>' ] },
 
-    # createlink
-    { 'id':          'CL:TEXT-1_SC',
-      'desc':        'create a link around the selection',
-      'command':     'createlink',
-      'value':       '#C-CL-1',
+    # heading
+    { 'id':          'H-h1:TEXT-1_SC',
+      'desc':        'create a heading from the selection',
+      'command':     'heading',
+      'value':       'h1',
       'pad':         'foo[bar]baz',
-      'expected':    'foo<a href="#C-CL-1">[bar]</a>baz' }
+      'expected':    'foo<h1>[bar]</h1>baz' }
   ]
 }
