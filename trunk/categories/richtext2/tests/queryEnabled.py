@@ -51,25 +51,25 @@ QUERYENABLED_TESTS = {
   'styleWithCSS': False,
 
   'Proposed': [
-    { 'id':         'B:TEXT-1_SI',
+    { 'id':         'B_TEXT-1_SI',
       'desc':       'check whether the "bold" command is enabled',
       'qcenabled':  'bold',
       'pad':        'foo[bar]baz',
       'expected':   True },
 
-    { 'id':         'B:B-1_SI',
+    { 'id':         'B_B-1_SI',
       'desc':       'check whether the "bold" command is enabled',
       'qcenabled':  'bold',
       'pad':        '<b>foo[bar]baz</b>',
       'expected':   True },
 
-    { 'id':         'I:TEXT-1_SI',
+    { 'id':         'I_TEXT-1_SI',
       'desc':       'check whether the "bold" command is enabled',
       'qcenabled':  'italic',
       'pad':        'foo[bar]baz',
       'expected':   True },
 
-    { 'id':         'I:I-1_SI',
+    { 'id':         'I_I-1_SI',
       'desc':       'check whether the "bold" command is enabled',
       'qcenabled':  'italic',
       'pad':        '<i>foo[bar]baz</i>',
@@ -77,14 +77,13 @@ QUERYENABLED_TESTS = {
   ]
 }
 
-QUERYENABLED_TESTS_CSS = {
-  'id':           'QEC',
-  'caption':      'queryCommandEnabled Tests, using styleWithCSS',
-  'checkAttrs':   False,
-  'checkStyle':   False,
-  'checkSel':     False,
-  'styleWithCSS': True,
-  
-  'Proposed':     QUERYENABLED_TESTS['Proposed']
-}
+# QUERYENABLED_TESTS_CSS = {
+#   'id':           'QEC',
+#   'caption':      'queryCommandEnabled Tests, using styleWithCSS',
+#   'checkAttrs':   False,
+#   'checkStyle':   False,
+#   'checkSel':     False,
+#   'styleWithCSS': True,
+#   'Proposed':     QUERYENABLED_TESTS['Proposed']
+# }
 

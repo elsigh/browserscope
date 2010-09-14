@@ -60,14 +60,14 @@ CHANGE_TESTS_CSS = {
     # --- MIDAS spec ---
 
     # backcolor
-    { 'id':         'BC-gray:SPANs:bc:g-1_SW',
+    { 'id':         'BC:gray_SPANs:bc:g-1_SW',
       'desc':       'Change background color from blue to gray',
       'command':    'backcolor',
       'value':      'gray',
       'pad':        '<span style="background-color: blue">[foobarbaz]</span>',
       'expected':   '<span style="background-color: gray">[foobarbaz]</span>' },
 
-    { 'id':         'BC-gray:SPANs:bc:g-1_SO',
+    { 'id':         'BC:gray_SPANs:bc:g-1_SO',
       'desc':       'Change background color from blue to gray',
       'command':    'backcolor',
       'value':      'gray',
@@ -75,7 +75,7 @@ CHANGE_TESTS_CSS = {
       'expected':   [ '{<span style="background-color: gray">foobarbaz</span>}',
                       '<span style="background-color: gray">[foobarbaz]</span>' ] },
 
-    { 'id':         'BC-gray:SPANs:bc:g-1_SI',
+    { 'id':         'BC:gray_SPANs:bc:g-1_SI',
       'desc':       'Change background color from blue to gray',
       'command':    'backcolor',
       'value':      'gray',
@@ -83,7 +83,7 @@ CHANGE_TESTS_CSS = {
       'expected':   '<span style="background-color: blue">foo</span><span style="background-color: gray">[bar]</span><span style="background-color: blue">baz</span>',
       'accept':     '<span style="background-color: blue">foo<span style="background-color: gray">[bar]</span>baz</span>' },
 
-    { 'id':         'BC-gray:P-SPANs:bc:g-1_SW',
+    { 'id':         'BC:gray_P-SPANs:bc:g-1_SW',
       'desc':       'Change background color within a paragraph from blue to gray',
       'command':    'backcolor',
       'value':      'gray',
@@ -91,21 +91,21 @@ CHANGE_TESTS_CSS = {
       'expected':   [ '<p><span style="background-color: gray">[foobarbaz]</span></p>',
                       '<p style="background-color: gray">[foobarbaz]</p>' ] },
 
-    { 'id':         'BC-gray:P-SPANs:bc:g-2_SW',
+    { 'id':         'BC:gray_P-SPANs:bc:g-2_SW',
       'desc':       'Change background color within a paragraph from blue to gray',
       'command':    'backcolor',
       'value':      'gray',
       'pad':        '<p>foo<span style="background-color: blue">[bar]</span>baz</p>',
       'expected':   '<p>foo<span style="background-color: gray">[bar]</span>baz</p>' },
 
-    { 'id':         'BC-gray:P-SPANs:bc:g-3_SO',
+    { 'id':         'BC:gray_P-SPANs:bc:g-3_SO',
       'desc':       'Change background color within a paragraph from blue to gray (selection encloses more than previous span)',
       'command':    'backcolor',
       'value':      'gray',
       'pad':        '<p>[foo<span style="background-color: blue">barbaz</span>qoz]quz</p>',
       'expected':   '<p><span style="background-color: gray">[foobarbazqoz]</span>quz</p>' },
 
-    { 'id':         'BC-gray:P-SPANs:bc:g-3_SL',
+    { 'id':         'BC:gray_P-SPANs:bc:g-3_SL',
       'desc':       'Change background color within a paragraph from blue to gray (previous span partially selected)',
       'command':    'backcolor',
       'value':      'gray',
@@ -113,14 +113,14 @@ CHANGE_TESTS_CSS = {
       'expected':   '<p><span style="background-color: gray">[foobar]</span><span style="background-color: blue">baz</span>qozquz</p>' },
 
     # font name
-    { 'id':         'FN-c:SPANs:ff:a-1_SW',
+    { 'id':         'FN:c_SPANs:ff:a-1_SW',
       'desc':       'Change existing font name to new font name, using CSS styling',
       'command':    'fontname',
       'value':      'courier',
       'pad':        '<span style="font-family: arial">[foobarbaz]</span>',
       'expected':   '<span style="font-family: courier">[foobarbaz]</span>' },
 
-    { 'id':         'FN-c:FONTf:a-1_SW',
+    { 'id':         'FN:c_FONTf:a-1_SW',
       'desc':       'Change existing font name to new font name, using CSS styling',
       'command':    'fontname',
       'value':      'courier',
@@ -128,21 +128,21 @@ CHANGE_TESTS_CSS = {
       'expected':   [ '<font style="font-family: courier">[foobarbaz]</font>',
                       '<span style="font-family: courier">[foobarbaz]</span>' ] },
 
-    { 'id':         'FN-c:FONTf:a-1_SI',
+    { 'id':         'FN:c_FONTf:a-1_SI',
       'desc':       'Change existing font name to new font name, using CSS styling',
       'command':    'fontname',
       'value':      'courier',
       'pad':        '<font face="arial">foo[bar]baz</font>',
       'expected':   '<font face="arial">foo</font><span style="font-family: courier">[bar]</span><font face="arial">baz</font>' },
 
-    { 'id':         'FN-a:FONTf:a-1_SI',
+    { 'id':         'FN:a_FONTf:a-1_SI',
       'desc':       'Change existing font name to same font name, using CSS styling (should be noop)',
       'command':    'fontname',
       'value':      'courier',
       'pad':        '<font face="arial">foo[bar]baz</font>',
       'expected':   '<font face="arial">foo[bar]baz</font>' },
 
-    { 'id':         'FN-a:FONTf:a-1_SW',
+    { 'id':         'FN:a_FONTf:a-1_SW',
       'desc':       'Change existing font name to same font name, using CSS styling (should be noop or perhaps change tag)',
       'command':    'fontname',
       'value':      'courier',
@@ -150,7 +150,7 @@ CHANGE_TESTS_CSS = {
       'expected':   [ '<font face="arial">[foobarbaz]</font>',
                       '<span style="font-family: arial">[foobarbaz]</span>' ] },
 
-    { 'id':         'FN-a:FONTf:a-1_SO',
+    { 'id':         'FN:a_FONTf:a-1_SO',
       'desc':       'Change existing font name to same font name, using CSS styling (should be noop or perhaps change tag)',
       'command':    'fontname',
       'value':      'courier',
@@ -160,14 +160,14 @@ CHANGE_TESTS_CSS = {
                       '{<span style="font-family: arial">foobarbaz</span>}',
                       '<span style="font-family: arial">[foobarbaz]</span>' ] },
 
-    { 'id':         'FN-a:SPANs:ff:a-1_SI',
+    { 'id':         'FN:a_SPANs:ff:a-1_SI',
       'desc':       'Change existing font name to same font name, using CSS styling (should be noop)',
       'command':    'fontname',
       'value':      'courier',
       'pad':        '<span style="font-family: arial">[foobarbaz]</span>',
       'expected':   '<span style="font-family: arial">[foobarbaz]</span>' },
 
-    { 'id':         'FN-c:FONTf:a-2_SL',
+    { 'id':         'FN:c_FONTf:a-2_SL',
       'desc':       'Change existing font name to new font name, using CSS styling',
       'command':    'fontname',
       'value':      'courier',
@@ -175,21 +175,21 @@ CHANGE_TESTS_CSS = {
       'expected':   'foo<span style="font-family: courier">[barbaz]</span><font face="arial">qoz</font>' },
 
     # font size
-    { 'id':         'FS-1:SPANs:fs:l-1_SW',
+    { 'id':         'FS:1_SPANs:fs:l-1_SW',
       'desc':       'Change existing font size to new size, using CSS styling',
       'command':    'fontsize',
       'value':      '1',
       'pad':        '<span style="font-size: large">[foobarbaz]</span>',
       'expected':   '<span style="font-size: x-small">[foobarbaz]</span>' },
 
-    { 'id':         'FS-large:SPANs:fs:l-1_SW',
+    { 'id':         'FS:large_SPANs:fs:l-1_SW',
       'desc':       'Change existing font size to same size (should be noop)',
       'command':    'fontsize',
       'value':      'large',
       'pad':        '<span style="font-size: large">[foobarbaz]</span>',
       'expected':   '<span style="font-size: large">[foobarbaz]</span>' },
 
-    { 'id':         'FS-18px:SPANs:fs:l-1_SW',
+    { 'id':         'FS:18px_SPANs:fs:l-1_SW',
       'desc':       'Change existing font size to equivalent px size (should be noop, or change unit)',
       'command':    'fontsize',
       'value':      '18px',
@@ -198,21 +198,21 @@ CHANGE_TESTS_CSS = {
       'expected':   [ '<span style="font-size: large">[foobarbaz]</span>',
                       '<span style="font-size: large">[foobarbaz]</span>' ] },
 
-    { 'id':         'FS-4:SPANs:fs:l-1_SW',
+    { 'id':         'FS:4_SPANs:fs:l-1_SW',
       'desc':       'Change existing font size to equivalent numeric size (should be noop)',
       'command':    'fontsize',
       'value':      '4',
       'pad':        '<span style="font-size: large">[foobarbaz]</span>',
       'expected':   '<span style="font-size: large">[foobarbaz]</span>' },
 
-    { 'id':         'FS-4:SPANs:fs:18px-1_SW',
+    { 'id':         'FS:4_SPANs:fs:18px-1_SW',
       'desc':       'Change existing font size to equivalent numeric size (should be noop)',
       'command':    'fontsize',
       'value':      '4',
       'pad':        '<span style="font-size: 18px">[foobarbaz]</span>',
       'expected':   '<span style="font-size: 18px">[foobarbaz]</span>' },
       
-    { 'id':         'FS-larger:SPANs:fs:l-1_SI',
+    { 'id':         'FS:larger_SPANs:fs:l-1_SI',
       'desc':       'Change selection to use next larger font',
       'command':    'fontsize',
       'value':      'larger',
@@ -221,7 +221,7 @@ CHANGE_TESTS_CSS = {
                       '<span style="font-size: large">foo</span><span style="font-size: x-large">[bar]</span><span style="font-size: large">baz</span>' ],
       'accept':     '<span style="font-size: large">foo<font size="larger">[bar]</font>baz</span>' },
                     
-    { 'id':         'FS-smaller:SPANs:fs:l-1_SI',
+    { 'id':         'FS:smaller_SPANs:fs:l-1_SI',
       'desc':       'Change selection to use next smaller font',
       'command':    'fontsize',
       'value':      'smaller',

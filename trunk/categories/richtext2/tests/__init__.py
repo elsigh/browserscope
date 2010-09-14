@@ -6,8 +6,11 @@ __all__ = [
   'delete',
   'forwarddelete',
   'insert',
-  'query',
-  'queryCSS',
+  'queryEnabled',
+  'queryIndeterminate',
+  'queryState',
+  'querySupported',
+  'queryValue',
   'selection',
   'unapply',
   'unapplyCSS'

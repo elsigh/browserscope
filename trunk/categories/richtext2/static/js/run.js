@@ -119,7 +119,7 @@ function runSingleTest() {
   } catch (ex) {
     // An exception shouldn't really happen here!
     alert('Exception on output when running ' + currentClassID + ' tests of the suite "' +
-          currentSuite.id + '" ("' + currentSuite.caption + '"): ' + ex.toString());
+          currentSuiteID + '" ("' + currentSuite.caption + '"): ' + ex.toString());
   }
   return lvl;
 }
@@ -131,25 +131,26 @@ function runSingleTest() {
  */
 function runTestSuite(suite) {
   currentSuite = suite;
-  currentSuiteScoreID = currentSuite.id + '-score';
+  currentSuiteID = suite.id;
+  currentSuiteScoreID = currentSuiteID + '-score';
 
   try {
     var classCount = testClassIDs.length;
 
     // Reset count and score for this suite - set count to 0 for all (!) classes.
-    counts[currentSuite.id]        = {total: 0};
-    scoresPartial[currentSuite.id] = {total: 0};
-    scoresStrict[currentSuite.id]  = {total: 0};
+    counts[currentSuiteID]        = {total: 0};
+    scoresPartial[currentSuiteID] = {total: 0};
+    scoresStrict[currentSuiteID]  = {total: 0};
     for (var cls = 0; cls < classCount; ++cls) {
       var testClass = testClassIDs[cls];
-      counts[currentSuite.id][testClass]        = 0;
-      scoresPartial[currentSuite.id][testClass] = 0;
-      scoresStrict[currentSuite.id][testClass]  = 0;
+      counts[currentSuiteID][testClass]        = 0;
+      scoresPartial[currentSuiteID][testClass] = 0;
+      scoresStrict[currentSuiteID][testClass]  = 0;
     }
     
     for (var cls = 0; cls < classCount; ++cls) {
       currentClassID = testClassIDs[cls];
-      currentClassScoreID = currentSuite.id + '-' + currentClassID + '-score';
+      currentClassScoreID = currentSuiteID + '-' + currentClassID + '-score';
 
       try {
         currentClass = currentSuite[currentClassID];
@@ -160,23 +161,23 @@ function runTestSuite(suite) {
         currentBackgroundShade = 'Lo';
         for (testIdx = 0; testIdx < currentClass.length; ++testIdx) {
           currentTest = currentClass[testIdx];
-          switch (currentSuite.id[0]) {
+          switch (currentSuiteID[0]) {
             case 'S':  // Selection tests - strict per definitonem (leave out 'S' in id) 
               currentIDPartial = '';
-              currentIDStrict  = generateTestID(currentSuite.id, currentTest.id);
+              currentIDStrict  = generateTestID(currentSuiteID, currentTest.id);
               break;
 
             case 'Q':  // Query tests
-              currentIDPartial = generateTestID(currentSuite.id, currentTest.id);
+              currentIDPartial = generateTestID(currentSuiteID, currentTest.id);
               currentIDStrict  = '';
               break;
               
             default:
-              currentIDPartial = generateTestID(currentSuite.id, currentTest.id);
-              currentIDStrict  = generateTestID(currentSuite.id + 'S', currentTest.id);
+              currentIDPartial = generateTestID(currentSuiteID, currentTest.id);
+              currentIDStrict  = generateTestID(currentSuiteID + 'S', currentTest.id);
           }
-          ++counts[currentSuite.id].total;
-          ++counts[currentSuite.id][currentClassID];
+          ++counts[currentSuiteID].total;
+          ++counts[currentSuiteID][currentClassID];
 
           var result = runSingleTest();
 
@@ -184,18 +185,18 @@ function runTestSuite(suite) {
           var scoreStrict = 0;
           switch (result) {
             case RESULT_EQUAL:
-              ++scoresStrict[currentSuite.id].total;
-              ++scoresStrict[currentSuite.id][currentClassID];
-              ++scoresPartial[currentSuite.id].total;
-              ++scoresPartial[currentSuite.id][currentClassID];
+              ++scoresStrict[currentSuiteID].total;
+              ++scoresStrict[currentSuiteID][currentClassID];
+              ++scoresPartial[currentSuiteID].total;
+              ++scoresPartial[currentSuiteID][currentClassID];
               scorePartial = 1;
               scoreStrict = 1;
               break;
 
             case RESULT_ACCEPT:
             case RESULT_SELECTION_DIFFS:
-              ++scoresPartial[currentSuite.id].total;
-              ++scoresPartial[currentSuite.id][currentClassID];
+              ++scoresPartial[currentSuiteID].total;
+              ++scoresPartial[currentSuiteID][currentClassID];
               scorePartial = 1;
               break;
           }
@@ -213,14 +214,14 @@ function runTestSuite(suite) {
       } catch (ex) {
         // An exception shouldn't really happen here!
         alert('Exception when running ' + currentClassID + ' tests of the suite "' +
-              currentSuite.id + '" ("' + currentSuite.caption + '"): ' + ex.toString());
+              currentSuiteID + '" ("' + currentSuite.caption + '"): ' + ex.toString());
       }
     }
 
     outputTestSuiteScores();
     } catch (ex) {
       // An exception shouldn't really happen here!
-     alert('Exception when running the suite "' + currentSuite.id +
+     alert('Exception when running the suite "' + currentSuiteID +
           '" ("' + currentSuite.caption + '"): ' + ex.toString());
   }
 }

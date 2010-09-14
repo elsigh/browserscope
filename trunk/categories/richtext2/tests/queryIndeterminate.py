@@ -51,25 +51,25 @@ QUERYINDETERMINATE_TESTS = {
   'styleWithCSS':  False,
 
   'Proposed': [
-    { 'id':          'B:TEXT-1_SI',
+    { 'id':          'B_TEXT-1_SI',
       'desc':        'check whether the "bold" command is indeterminate',
       'qcindeterm':  'bold',
       'pad':         'foo[bar]baz',
       'expected':    False },
 
-    { 'id':          'B:B-1_SI',
+    { 'id':          'B_B-1_SI',
       'desc':        'check whether the "bold" command is indeterminate',
       'qcindeterm':  'bold',
       'pad':         '<b>foo[bar]baz</b>',
       'expected':    False },
 
-    { 'id':          'I:TEXT-1_SI',
+    { 'id':          'I_TEXT-1_SI',
       'desc':        'check whether the "bold" command is indeterminate',
       'qcindeterm':  'italic',
       'pad':         'foo[bar]baz',
       'expected':    False },
 
-    { 'id':          'I:I-1_SI',
+    { 'id':          'I_I-1_SI',
       'desc':        'check whether the "bold" command is indeterminate',
       'qcindeterm':  'italic',
       'pad':         '<i>foo[bar]baz</i>',
@@ -77,14 +77,13 @@ QUERYINDETERMINATE_TESTS = {
   ]
 }
 
-QUERYINDETERMINATE_TESTS_CSS = {
-  'id':           'QIC',
-  'caption':      'queryCommandIndeterminate Tests, using styleWithCSS',
-  'checkAttrs':   False,
-  'checkStyle':   False,
-  'checkSel':     False,
-  'styleWithCSS': True,
-  
-  'Proposed':     QUERYINDETERMINATE_TESTS['Proposed']
-}
+# QUERYINDETERMINATE_TESTS_CSS = {
+#   'id':           'QIC',
+#   'caption':      'queryCommandIndeterminate Tests, using styleWithCSS',
+#   'checkAttrs':   False,
+#   'checkStyle':   False,
+#   'checkSel':     False,
+#   'styleWithCSS': True,  
+#   'Proposed':     QUERYINDETERMINATE_TESTS['Proposed']
+# }
 

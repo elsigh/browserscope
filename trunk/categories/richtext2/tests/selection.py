@@ -52,28 +52,28 @@ SELECTION_TESTS = {
 
   'RFC': [
     # selectall
-    { 'id':          'ALL:TEXT-1_SI',
+    { 'id':          'SELALL_TEXT-1_SI',
       'desc':        'select all, text only',
       'command':     'selectall',
       'pad':         'foo[bar]baz',
       'expected':    [ '[foobarbaz]',
                        '{foobarbaz}' ] },
 
-    { 'id':          'ALL:I-1_SI',
+    { 'id':          'SELALL_I-1_SI',
       'desc':        'select all, with outer tags',
       'command':     'selectall',
       'pad':         '<i>foo[bar]baz</i>',
       'expected':    '{<i>foobarbaz</i>}' },
 
     # unselect
-    { 'id':          'UNS:TEXT-1_SI',
+    { 'id':          'UNSEL_TEXT-1_SI',
       'desc':        'unselect',
       'command':     'unselect',
       'pad':         'foo[bar]baz',
       'expected':    'foobarbaz' },
 
 #    # window.getSelection().selectAllChildren(<element>)
-#    { 'id':          'SELALLCHILDREN-DIV',
+#    { 'id':          'SELALLCHILDREN_DIV-1_SW',
 #      'desc':        'selectAllChildren(<element>) on div',
 #      'function':    'window.getSelection().selectAllChildren(document.getElementById("test"));',
 #      'pad':         'foo<div id="test">bar <span>baz</span></div>qoz',

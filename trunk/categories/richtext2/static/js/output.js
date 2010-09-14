@@ -366,7 +366,7 @@ function outputSingleTestResult(actual, successLevel) {
       td.innerHTML = usesHTML ? formatActualResult(escapeOutput(actual)) : formatValueOrString(actual);
       break;
   }
-  
+
   // Column 12: test description
   // Already filled in
 }
@@ -381,9 +381,9 @@ function outputTestClassScores() {
     throw SCORE_EXCEPTION;
   }
 
-  scoreSpan.innerHTML = scoresStrict[currentSuite.id][currentClassID] + '/' + 
-                        scoresPartial[currentSuite.id][currentClassID] + '/' + 
-                        counts[currentSuite.id][currentClassID];
+  scoreSpan.innerHTML = scoresStrict[currentSuiteID][currentClassID] + '/' + 
+                        scoresPartial[currentSuiteID][currentClassID] + '/' + 
+                        counts[currentSuiteID][currentClassID];
 }
 
 /**
@@ -395,7 +395,7 @@ function outputTestSuiteScores() {
     throw SCORE_EXCEPTION;
   }
 
-  scoreSpan.innerHTML = scoresStrict[currentSuite.id].total + '/' + 
-                        scoresPartial[currentSuite.id].total + '/' + 
-                        counts[currentSuite.id].total;
+  scoreSpan.innerHTML = scoresStrict[currentSuiteID].total + '/' + 
+                        scoresPartial[currentSuiteID].total + '/' + 
+                        counts[currentSuiteID].total;
 }
