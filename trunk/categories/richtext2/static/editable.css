@@ -1,44 +1,60 @@
-.b {
+.b, myb {
   font-weight: bold;
 }
 
-.i {
+.i, myi {
   font-style: italic;
 }
 
-.s {
+.s, mys {
   text-decoration: line-through;
 }
 
-.u {
+.u, myu {
   text-decoration: underline;
 }
 
-.sub {
+.sub, mysub {
   vertical-align: sub;
 }
 
-.sup {
+.sup, mysup {
   vertical-align: super;
 }
 
-.red {
+.jc, myjc {
+  text-align: center;
+}
+
+.jf, myjf {
+  text-align: justify;
+}
+
+.jl, myjl {
+  text-align: left;
+}
+
+.jr, myjr {
+  text-align: right;
+}
+
+.red, myred {
   color: red;
 }
 
-.bcred {
+.bcred, mybcred {
   background-color: red;
 }
 
-.large {
+.large, mylarge {
   font-size: large;
 }
 
-.fs18px {
+.fs18px, myfs18px {
   font-size: 18px;
 }
 
-.courier {
+.courier, mycourier {
   font-family: courier;
 }
 
