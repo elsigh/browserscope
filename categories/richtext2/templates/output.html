@@ -3,7 +3,7 @@
   {% if s.comment %}
   <DIV CLASS="comment">{{ s.comment|safe }}</DIV>
   {% endif %}
-  {% for c in classes %}{% for pn, pv in s.items %}{% ifequal pn c %}
+  {% for c in classes %}{% for pk, pv in s.items %}{% ifequal pk c %}
   <H2 ID="{{ s.id }}-{{ c }}"><A NAME="{{ s.id }}-{{ c }}" HREF="#{{ s.id }}-{{ c }}">{{ c }} Tests</A>: <SPAN ID="{{ s.id }}-{{ c }}-score">?/?/?</SPAN></H2>
   <TABLE WIDTH=100%>
     <THEAD>

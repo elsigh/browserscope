@@ -52,8 +52,8 @@ from categories.richtext2.tests.unapply       import UNAPPLY_TESTS
 from categories.richtext2.tests.unapplyCSS    import UNAPPLY_TESTS_CSS
 
 from categories.richtext2.tests.querySupported      import QUERYSUPPORTED_TESTS
-from categories.richtext2.tests.queryEnabled        import QUERYENABLED_TESTS, QUERYENABLED_TESTS_CSS
-from categories.richtext2.tests.queryIndeterminate  import QUERYINDETERMINATE_TESTS, QUERYINDETERMINATE_TESTS_CSS
+from categories.richtext2.tests.queryEnabled        import QUERYENABLED_TESTS       # , QUERYENABLED_TESTS_CSS
+from categories.richtext2.tests.queryIndeterminate  import QUERYINDETERMINATE_TESTS # , QUERYINDETERMINATE_TESTS_CSS
 from categories.richtext2.tests.queryState          import QUERYSTATE_TESTS, QUERYSTATE_TESTS_CSS
 from categories.richtext2.tests.queryValue          import QUERYVALUE_TESTS, QUERYVALUE_TESTS_CSS
 
@@ -99,14 +99,15 @@ def RunRichText2Tests(request):
 
       QUERYSUPPORTED_TESTS,
       QUERYENABLED_TESTS,
-      QUERYENABLED_TESTS_CSS,
       QUERYINDETERMINATE_TESTS,
-      QUERYINDETERMINATE_TESTS_CSS,
       QUERYSTATE_TESTS,
       QUERYSTATE_TESTS_CSS,
       QUERYVALUE_TESTS,
       QUERYVALUE_TESTS_CSS
     ]
+# removed (until we determine they are necessary):
+#       QUERYENABLED_TESTS_CSS,
+#       QUERYINDETERMINATE_TESTS_CSS,
   }
   return shortcuts.render_to_response('%s/templates/richtext2.html' % common.CATEGORY, params)
 

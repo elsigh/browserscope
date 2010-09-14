@@ -66,14 +66,15 @@
         'insertSel='        + scoresStrict['I'].total,
         'querySupported='   + scoresPartial['Q'].total,
         'queryEnabled='     + scoresPartial['QE'].total,
-        'queryEnabledCSS='  + scoresPartial['QEC'].total,
         'queryInd='         + scoresPartial['QI'].total,
-        'queryIndCSS='      + scoresPartial['QIC'].total,
         'queryState='       + scoresPartial['QS'].total,
         'queryStateCSS='    + scoresPartial['QSC'].total,
         'queryValue='       + scoresPartial['QV'].total,
         'queryValueCSS='    + scoresPartial['QVC'].total
       ];
+// removed (until we determine they are necessary):
+//        'queryEnabledCSS='  + scoresPartial['QEC'].total,
+//        'queryIndCSS='      + scoresPartial['QIC'].total,
       parent.sendScore(beacon, continueParams);
     }
     {% endautoescape %}
