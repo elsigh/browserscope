@@ -88,6 +88,18 @@ QUERYVALUE_TESTS = {
       'pad':        '<b><span style="font-weight: normal">foo[bar]baz</span></b>',
       'expected':   'false' },
 
+    { 'id':         'B_SPAN.b-1_SI',
+      'desc':       'query the value of the "bold" command',
+      'qcvalue':    'bold',
+      'pad':        '<span class="b">foo[bar]baz</span>',
+      'expected':   'true' },
+
+    { 'id':         'B_MYB-1-SI',
+      'desc':       'query the state of the "bold" command',
+      'qcvalue':    'bold',
+      'pad':        '<myb>foo[bar]baz</myb>',
+      'expected':   'true' },
+
     # italic
     { 'id':         'I_TEXT_SI',
       'desc':       'query the value of the "bold" command',
@@ -125,6 +137,18 @@ QUERYVALUE_TESTS = {
       'pad':        '<i><span style="font-style: normal">foo[bar]baz</span></i>',
       'expected':   'false' },
 
+    { 'id':         'I_SPAN.i-1_SI',
+      'desc':       'query the value of the "italic" command',
+      'qcvalue':    'italic',
+      'pad':        '<span class="i">foo[bar]baz</span>',
+      'expected':   'true' },
+
+    { 'id':         'I_MYI-1-SI',
+      'desc':       'query the state of the "italic" command',
+      'qcvalue':    'italic',
+      'pad':        '<myi>foo[bar]baz</myi>',
+      'expected':   'true' },
+
     # fontname
     { 'id':         'FN_FONTf:a-1_SI',
       'rte1-id':    'q-fontname-0',
@@ -161,6 +185,18 @@ QUERYVALUE_TESTS = {
       'pad':        '<span style="font-family: courier"><font face="arial">foo[bar]baz</font></span>',
       'expected':   'arial' },
 
+    { 'id':         'FN_SPAN.fs18px-1_SI',
+      'desc':       'query the value of the "fontname" command',
+      'qcvalue':    'fontname',
+      'pad':        '<span class="courier">foo[bar]baz</span>',
+      'expected':   'courier' },
+
+    { 'id':         'FN_MYCOURIER-1-SI',
+      'desc':       'query the state of the "fontname" command',
+      'qcvalue':    'fontname',
+      'pad':        '<mycourier>foo[bar]baz</mycourier>',
+      'expected':   'courier' },
+
     # fontsize
     { 'id':         'FS_FONTsz:4-1_SI',
       'rte1-id':    'q-fontsize-0',
@@ -188,6 +224,30 @@ QUERYVALUE_TESTS = {
       'qcvalue':    'fontsize',
       'pad':        '<font size=1 style="font-size: x-large">foo[bar]baz</font>',
       'expected':   '24px' },
+
+    { 'id':         'FS_SPAN.large-1_SI',
+      'desc':       'query the value of the "fontsize" command',
+      'qcvalue':    'fontsize',
+      'pad':        '<span class="large">foo[bar]baz</span>',
+      'expected':   'large' },
+
+    { 'id':         'FS_SPAN.fs18px-1_SI',
+      'desc':       'query the value of the "fontsize" command',
+      'qcvalue':    'fontsize',
+      'pad':        '<span class="fs18px">foo[bar]baz</span>',
+      'expected':   '18px' },
+
+    { 'id':         'FA_MYLARGE-1-SI',
+      'desc':       'query the state of the "fontsize" command',
+      'qcvalue':    'fontsize',
+      'pad':        '<mylarge>foo[bar]baz</mylarge>',
+      'expected':   'large' },
+
+    { 'id':         'FA_MYFS18PX-1-SI',
+      'desc':       'query the state of the "fontsize" command',
+      'qcvalue':    'fontsize',
+      'pad':        '<myfs18px>foo[bar]baz</myfs18px>',
+      'expected':   '18px' },
 
     # backcolor
     { 'id':         'BC_FONTs:bc:fca-1_SI',
@@ -223,6 +283,18 @@ QUERYVALUE_TESTS = {
       'pad':        '<span class="Apple-style-span" style="background-color: rgb(255, 0, 0)">foo[bar]baz</span>',
       'expected':   '#ff0000' },
 
+    { 'id':         'BC_SPAN.bcred-1_SI',
+      'desc':       'query the value of the "backcolor" command',
+      'qcvalue':    'backcolor',
+      'pad':        '<span class="bcred">foo[bar]baz</span>',
+      'expected':   'red' },
+
+    { 'id':         'BC_MYBCRED-1-SI',
+      'desc':       'query the state of the "backcolor" command',
+      'qcvalue':    'backcolor',
+      'pad':        '<mybcred>foo[bar]baz</mybcred>',
+      'expected':   'red' },
+
     # forecolor
     { 'id':         'FC_FONTc:f00-1_SI',
       'rte1-id':    'q-forecolor-0',
@@ -257,6 +329,18 @@ QUERYVALUE_TESTS = {
       'pad':        '<span style="color: #dd9955"><span>foo[bar]baz</span></span>',
       'expected':   '#dd9955' },
 
+    { 'id':         'FC_SPAN.red-1_SI',
+      'desc':       'query the value of the "forecolor" command',
+      'qcvalue':    'forecolor',
+      'pad':        '<span class="red">foo[bar]baz</span>',
+      'expected':   'red' },
+
+    { 'id':         'FC_MYRED-1-SI',
+      'desc':       'query the state of the "forecolor" command',
+      'qcvalue':    'forecolor',
+      'pad':        '<myred>foo[bar]baz</myred>',
+      'expected':   'red' },
+
     # hilitecolor
     { 'id':         'HC_FONTs:bc:fc0-1_SI',
       'rte1-id':    'q-hilitecolor-0',
@@ -289,7 +373,19 @@ QUERYVALUE_TESTS = {
       'desc':       'query the value of the "hilitecolor" command, where the color was set on an ancestor',
       'qcvalue':    'hilitecolor',
       'pad':        '<span style="background-color: #bb1122"><span>foo[bar]baz</span></span>',
-      'expected':   '#bb1122' }
+      'expected':   '#bb1122' },
+
+    { 'id':         'HC_SPAN.bcred-1_SI',
+      'desc':       'query the value of the "hilitecolor" command',
+      'qcvalue':    'hilitecolor',
+      'pad':        '<span class="bcred">foo[bar]baz</span>',
+      'expected':   'red' },
+
+    { 'id':         'HC_MYBCRED-1-SI',
+      'desc':       'query the state of the "hilitecolor" command',
+      'qcvalue':    'hilitecolor',
+      'pad':        '<mybcred>foo[bar]baz</mybcred>',
+      'expected':   'red' }
   ]
 }
 

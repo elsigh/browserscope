@@ -100,47 +100,71 @@ QUERYSTATE_TESTS = {
       'pad':        '<b><span style="font-weight: normal">foo[bar]baz</span></b>',
       'expected':   False },
 
+    { 'id':         'B_SPAN.b-1-SI',
+      'desc':       'query the state of the "bold" command',
+      'qcstate':    'bold',
+      'pad':        '<span class="b">foo[bar]baz</span>',
+      'expected':   True },
+
+    { 'id':         'B_MYB-1-SI',
+      'desc':       'query the state of the "bold" command',
+      'qcstate':    'bold',
+      'pad':        '<myb>foo[bar]baz</myb>',
+      'expected':   True },
+
     # italic
     { 'id':         'I_TEXT_SI',
       'rte1-id':    'q-italic-0',
-      'desc':       'query the state of the "bold" command',
+      'desc':       'query the state of the "italic" command',
       'qcstate':    'italic',
       'pad':        'foo[bar]baz',
       'expected':   False },
 
     { 'id':         'I_I-1_SI',
       'rte1-id':    'q-italic-1',
-      'desc':       'query the state of the "bold" command',
+      'desc':       'query the state of the "italic" command',
       'qcstate':    'italic',
       'pad':        '<i>foo[bar]baz</i>',
       'expected':   True },
 
     { 'id':         'I_EM-1_SI',
       'rte1-id':    'q-italic-2',
-      'desc':       'query the state of the "bold" command',
+      'desc':       'query the state of the "italic" command',
       'qcstate':    'italic',
       'pad':        '<em>foo[bar]baz</em>',
       'expected':   True },
 
     { 'id':         'I_SPANs:fs:i-1_SI',
       'rte1-id':    'q-italic-3',
-      'desc':       'query the state of the "bold" command',
+      'desc':       'query the state of the "italic" command',
       'qcstate':    'italic',
       'pad':        '<span style="font-style: italic">foo[bar]baz</span>',
       'expected':   True },
 
     { 'id':         'I_SPANs:fs:n-1_SI',
-      'desc':       'query the state of the "bold" command',
+      'desc':       'query the state of the "italic" command',
       'qcstate':    'italic',
       'pad':        '<span style="font-style: normal">foo[bar]baz</span>',
       'expected':   False },
 
     { 'id':         'I_I-SPANs:fs:n-1_SI',
       'rte1-id':    'q-italic-4',
-      'desc':       'query the state of the "bold" command',
+      'desc':       'query the state of the "italic" command',
       'qcstate':    'italic',
       'pad':        '<i><span style="font-style: normal">foo[bar]baz</span></i>',
       'expected':   False },
+
+    { 'id':         'I_SPAN.i-1-SI',
+      'desc':       'query the state of the "italic" command',
+      'qcstate':    'italic',
+      'pad':        '<span class="i">foo[bar]baz</span>',
+      'expected':   True },
+
+    { 'id':         'I_MYI-1-SI',
+      'desc':       'query the state of the "italic" command',
+      'qcstate':    'italic',
+      'pad':        '<myi>foo[bar]baz</myi>',
+      'expected':   True },
 
     # underline
     { 'id':         'U_TEXT_SI',
@@ -183,6 +207,18 @@ QUERYSTATE_TESTS = {
       'desc':       'query the state of the "underline" command',
       'qcstate':    'underline',
       'pad':        '<span style="text-decoration: underline">foo[bar]baz</span>',
+      'expected':   True },
+
+    { 'id':         'U_SPAN.u-1-SI',
+      'desc':       'query the state of the "underline" command',
+      'qcstate':    'underline',
+      'pad':        '<span class="u">foo[bar]baz</span>',
+      'expected':   True },
+
+    { 'id':         'U_MYU-1-SI',
+      'desc':       'query the state of the "underline" command',
+      'qcstate':    'underline',
+      'pad':        '<myu>foo[bar]baz</myu>',
       'expected':   True },
 
     # strikethrough
@@ -228,6 +264,18 @@ QUERYSTATE_TESTS = {
       'pad':        '<span style="text-decoration: line-through">foo[bar]baz</span>',
       'expected':   True },
 
+    { 'id':         'S_SPAN.s-1-SI',
+      'desc':       'query the state of the "strikethrough" command',
+      'qcstate':    'strikethrough',
+      'pad':        '<span class="s">foo[bar]baz</span>',
+      'expected':   True },
+
+    { 'id':         'S_MYS-1-SI',
+      'desc':       'query the state of the "strikethrough" command',
+      'qcstate':    'strikethrough',
+      'pad':        '<mys>foo[bar]baz</mys>',
+      'expected':   True },
+
     # subscript
     { 'id':         'SUB_TEXT_SI',
       'rte1-id':    'q-subscript-0',
@@ -241,6 +289,18 @@ QUERYSTATE_TESTS = {
       'desc':       'query the state of the "subscript" command',
       'qcstate':    'subscript',
       'pad':        '<sub>foo[bar]baz</sub>',
+      'expected':   True },
+
+    { 'id':         'SUB_SPAN.sub-1-SI',
+      'desc':       'query the state of the "subscript" command',
+      'qcstate':    'subscript',
+      'pad':        '<span class="sub">foo[bar]baz</span>',
+      'expected':   True },
+
+    { 'id':         'SUB_MYSUB-1-SI',
+      'desc':       'query the state of the "subscript" command',
+      'qcstate':    'subscript',
+      'pad':        '<mysub>foo[bar]baz</mysub>',
       'expected':   True },
 
     # superscript
@@ -263,6 +323,18 @@ QUERYSTATE_TESTS = {
       'qcstate':    'insertorderedlist',
       'pad':        'foo[bar]baz',
       'expected':   False },
+
+    { 'id':         'SUP_SPAN.sup-1-SI',
+      'desc':       'query the state of the "superscript" command',
+      'qcstate':    'superscript',
+      'pad':        '<span class="sup">foo[bar]baz</span>',
+      'expected':   True },
+
+    { 'id':         'SUP_MYSUP-1-SI',
+      'desc':       'query the state of the "superscript" command',
+      'qcstate':    'superscript',
+      'pad':        '<mysup>foo[bar]baz</mysup>',
+      'expected':   True },
 
     # insertorderedlist
     { 'id':         'IOL_TEXT-1_SI',
@@ -337,6 +409,18 @@ QUERYSTATE_TESTS = {
       'pad':        '<div style="text-align: center">foo[bar]baz</div>',
       'expected':   True },
 
+    { 'id':         'JC_SPAN.jc-1-SI',
+      'desc':       'query the state of the "justifycenter" command',
+      'qcstate':    'justifycenter',
+      'pad':        '<span class="jc">foo[bar]baz</span>',
+      'expected':   True },
+
+    { 'id':         'JC_MYJC-1-SI',
+      'desc':       'query the state of the "justifycenter" command',
+      'qcstate':    'justifycenter',
+      'pad':        '<myjc>foo[bar]baz</myjc>',
+      'expected':   True },
+
     # justifyfull
     { 'id':         'JF_TEXT_SI',
       'rte1-id':    'q-justifyfull-0',
@@ -364,6 +448,18 @@ QUERYSTATE_TESTS = {
       'desc':       'query the state of the "justifyfull" command',
       'qcstate':    'justifyfull',
       'pad':        '<span style="text-align: justify">foo[bar]baz</span>',
+      'expected':   True },
+
+    { 'id':         'JF_SPAN.jf-1-SI',
+      'desc':       'query the state of the "justifyfull" command',
+      'qcstate':    'justifyfull',
+      'pad':        '<span class="jf">foo[bar]baz</span>',
+      'expected':   True },
+
+    { 'id':         'JF_MYJF-1-SI',
+      'desc':       'query the state of the "justifyfull" command',
+      'qcstate':    'justifyfull',
+      'pad':        '<myjf>foo[bar]baz</myjf>',
       'expected':   True },
 
     # justifyleft
@@ -394,6 +490,18 @@ QUERYSTATE_TESTS = {
       'pad':        '<span style="text-align: left">foo[bar]baz</span>',
       'expected':   True },
 
+    { 'id':         'JL_SPAN.jl-1-SI',
+      'desc':       'query the state of the "justifyleft" command',
+      'qcstate':    'justifyleft',
+      'pad':        '<span class="jl">foo[bar]baz</span>',
+      'expected':   True },
+
+    { 'id':         'JL_MYJL-1-SI',
+      'desc':       'query the state of the "justifyleft" command',
+      'qcstate':    'justifyleft',
+      'pad':        '<myjl>foo[bar]baz</myjl>',
+      'expected':   True },
+
     # justifyright
     { 'id':         'JR_TEXT_SI',
       'rte1-id':    'q-justifyright-0',
@@ -421,6 +529,18 @@ QUERYSTATE_TESTS = {
       'desc':       'query the state of the "justifyright" command',
       'qcstate':    'justifyright',
       'pad':        '<span style="text-align: right">foo[bar]baz</span>',
+      'expected':   True },
+
+    { 'id':         'JR_SPAN.jr-1-SI',
+      'desc':       'query the state of the "justifyright" command',
+      'qcstate':    'justifyright',
+      'pad':        '<span class="jr">foo[bar]baz</span>',
+      'expected':   True },
+      
+    { 'id':         'JR_MYJR-1-SI',
+      'desc':       'query the state of the "justifyright" command',
+      'qcstate':    'justifyright',
+      'pad':        '<myjr>foo[bar]baz</myjr>',
       'expected':   True }
   ]
 }
