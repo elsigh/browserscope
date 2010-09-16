@@ -51,11 +51,12 @@ function canonicalizeStyle(str, emitFlags) {
   for (var a = 0; a < count; ++a) {
     // Retrieve "name: value" pair
     // Note: may expectedly fail if the last pair was terminated with ';'
-    if (!attributes[a].match(/ ?([^ :]+) ?: ?(.+)/))
+    var avPair = attributes[a].match(/ ?([^ :]+) ?: ?(.+)/);
+    if (!avPair)
       continue;
 
-    var name  = RegExp.$1;
-    var value = RegExp.$2.replace(/ $/, '');  // Remove any trailing space.
+    var name  = avPair[1];
+    var value = avPair[2].replace(/ $/, '');  // Remove any trailing space.
 
     switch (name) {
       case 'color':
@@ -68,9 +69,17 @@ function canonicalizeStyle(str, emitFlags) {
         }
         break;
       
+      case 'font-family':
+        if (emitFlags.canonicalizeUnits) {
+          resultArr.push(name + ': ' + new FontName(value).toString());
+        } else {
+          resultArr.push(name + ': ' + value);
+        }
+        break;
+        
       case 'font-size':
         if (emitFlags.canonicalizeUnits) {
-          resultArr.push(name + ': ' + new Size(value).toString());
+          resultArr.push(name + ': ' + new FontSize(value).toString());
         } else {
           resultArr.push(name + ': ' + value);
         }
@@ -93,12 +102,13 @@ function canonicalizeStyle(str, emitFlags) {
  * Note that this function relies on the spaces of the input string already
  * having been normalized by canonicalizeSpaces!
  *
+ * @param elemName {String} the name of the element
  * @param attrName {String} the name of the attribute
  * @param attrValue {String} the value of the attribute
  * @param emitFlags {Object} flags used for this output
  * @return {String/null} the canonicalized value, or null if the attribute should be skipped.
  */
-function canonicalizeSingleAttribute(attrName, attrValue, emitFlags) {
+function canonicalizeSingleAttribute(elemName, attrName, attrValue, emitFlags) {
   // We emit attributes as name="value", so change any contained apostrophes
   // to quote marks.
   attrValue = attrValue.replace(/\x22/, '\x27');
@@ -110,19 +120,37 @@ function canonicalizeSingleAttribute(attrName, attrValue, emitFlags) {
     case 'id':
       return emitFlags.emitID ? attrValue : null;
 
-    // Remove spans with value 1. Retain spans with other values, even if
-    // empty or with a value 0, since those indicate a flawed implementation.
-    case 'colspan':
-    case 'rowspan':
-    case 'span':
-      return (attrValue == '1') ? null : attrValue;
-      
     // Remove empty style attributes, canonicalize the contents otherwise,
     // provided the test cares for styles.
     case 'style':
       return (emitFlags.emitStyle && attrValue) 
                  ? canonicalizeStyle(attrValue, emitFlags)
                  : null;
+      
+    // Canonicalize colors.
+    case 'bgcolor':
+    case 'color':
+      return emitFlags.canonicalizeUnits ? new Color(attrValue).toString() : attrValue;
+
+    // Canonicalize font names.
+    case 'face':
+      return emitFlags.canonicalizeUnits ? new FontName(attrValue).toString() : attrValue;
+      
+    // Canonicalize font sizes (leave other 'size' attributes as-is).
+    case 'size':
+      switch (elemName) {
+        case 'basefont':
+        case 'font':
+          return emitFlags.canonicalizeUnits ? new FontSize(attrValue).toString() : attrValue;
+      }
+      return attrValue;
+      
+    // Remove spans with value 1. Retain spans with other values, even if
+    // empty or with a value 0, since those indicate a flawed implementation.
+    case 'colspan':
+    case 'rowspan':
+    case 'span':
+      return (attrValue == '1') ? null : attrValue;
       
     // Boolean attributes: presence equals true. If present, the value must be
     // the empty string or the attribute's canonical name.
@@ -185,7 +213,7 @@ function canonicalizeElementTag(str, emitFlags) {
     return str;
   }
 
-  var result = str.substr(0, pos);
+  var elemName = str.substr(0, pos);
   str = str.substr(pos + 1);
 
   // Even if emitFlags.emitAttrs is not set, we must iterate over the
@@ -249,12 +277,14 @@ function canonicalizeElementTag(str, emitFlags) {
     }
 
     if (emitFlags.emitAttrs) {
-      attrValue = canonicalizeSingleAttribute(attrName, attrValue, emitFlags);
+      attrValue = canonicalizeSingleAttribute(elemName, attrName, attrValue, emitFlags);
       if (attrName && attrValue != null) {
         attrs.push(attrName + '="' + attrValue + '"');
       }
     }
   }
+
+  var result = elemName;
 
   // Sort alphabetically (on full string rather than just attribute value for
   // simplicity. Also, attribute names will differ when encountering the '=').

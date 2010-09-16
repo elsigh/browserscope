@@ -171,9 +171,17 @@ function compareTextTestResultWith(actual, expected) {
       }
       return false;
     
+    case 'fontname':
+      for (var idx = 0; idx < count; ++idx) {
+        if (new FontName(actual).compare(new FontName(expectedArr[idx]))) {
+          return true;
+        }
+      }
+      return false;
+    
     case 'fontsize':
       for (var idx = 0; idx < count; ++idx) {
-        if (new Size(actual).compare(new Size(expectedArr[idx]))) {
+        if (new FontSize(actual).compare(new FontSize(expectedArr[idx]))) {
           return true;
         }
       }

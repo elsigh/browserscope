@@ -293,8 +293,7 @@ UNAPPLY_TESTS_CSS = {
       'command':    'strikethrough',
       'pad':        '<span class="s">foo[bar]baz</span>',
       'checkClass': True,
-      'expected':   '<span class="s">foo</span>[bar]<span class="s">baz</span>',
-      'accept':     '<span class="s">foo<span style="text-decoration: none">[bar]</span>baz</span>' }
+      'expected':   '<span class="s">foo</span>[bar]<span class="s">baz</span>' }
   ]
 }
 

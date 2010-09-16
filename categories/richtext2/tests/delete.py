@@ -79,6 +79,21 @@ DELETE_TESTS = {
       'pad':         'foo&#x0308;&#x0324;^barbaz',
       'expected':    'fo^barbaz' },
 
+    { 'id':          'CHAR-5_SI-1',
+      'desc':        'Delete 1 character with combining diaeresis above and below, selection on diaeresis above',
+      'pad':         'foo[&#x0308;]&#x0324;barbaz',
+      'expected':    'fo^barbaz' },
+
+    { 'id':          'CHAR-5_SI-2',
+      'desc':        'Delete 1 character with combining diaeresis above and below, selection on diaeresis below',
+      'pad':         'foo&#x0308;[&#x0324;]barbaz',
+      'expected':    'fo^barbaz' },
+
+    { 'id':          'CHAR-5_SR',
+      'desc':        'Delete 1 character with combining diaeresis above and below, selection oblique on diaeresis and following text',
+      'pad':         'foo&#x0308;[&#x0324;bar]baz',
+      'expected':    'fo^baz' },
+
     { 'id':          'CHAR-6_SC',
       'desc':        'Delete 1 character with enclosing square',
       'pad':         'foo&#x20DE;^barbaz',

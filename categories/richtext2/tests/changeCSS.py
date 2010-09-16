@@ -57,17 +57,40 @@ CHANGE_TESTS_CSS = {
   'styleWithCSS':  True,
 
   'Proposed': [
+    # --- HTML5 spec ---
+
+    # italic
+    { 'id':         'I_I-1_SL',
+      'desc':       'Italicize partially italicized text',
+      'command':    'italic',
+      'pad':        'foo[bar<i>baz]</i>qoz',
+      'expected':   'foo<span style="font-style: italic">[barbaz]</span>qoz' },
+
+    { 'id':         'I_B-1_SL',
+      'desc':       'Italicize partially bolded text',
+      'command':    'italic',
+      'pad':        'foo[bar<b>baz]</b>qoz',
+      'expected':   'foo<span style="font-style: italic">[bar<b>baz]</b></span>qoz',
+      'accept':     'foo<span style="font-style: italic">[bar<b>baz</b>}</span>qoz' },
+
+    { 'id':         'I_B-1_SW',
+      'desc':       'Italicize bold text, ideally combining both',
+      'command':    'italic',
+      'pad':        'foobar<b>[baz]</b>qoz',
+      'expected':   'foobar<span style="font-style: italic; font-weight: bold">[baz]</span>qoz',
+      'accept':     'foobar<b><span style="font-style: italic">[baz]</span></b>qoz' },
+
     # --- MIDAS spec ---
 
     # backcolor
-    { 'id':         'BC:gray_SPANs:bc:g-1_SW',
+    { 'id':         'BC:gray_SPANs:bc:b-1_SW',
       'desc':       'Change background color from blue to gray',
       'command':    'backcolor',
       'value':      'gray',
       'pad':        '<span style="background-color: blue">[foobarbaz]</span>',
       'expected':   '<span style="background-color: gray">[foobarbaz]</span>' },
 
-    { 'id':         'BC:gray_SPANs:bc:g-1_SO',
+    { 'id':         'BC:gray_SPANs:bc:b-1_SO',
       'desc':       'Change background color from blue to gray',
       'command':    'backcolor',
       'value':      'gray',
@@ -75,7 +98,7 @@ CHANGE_TESTS_CSS = {
       'expected':   [ '{<span style="background-color: gray">foobarbaz</span>}',
                       '<span style="background-color: gray">[foobarbaz]</span>' ] },
 
-    { 'id':         'BC:gray_SPANs:bc:g-1_SI',
+    { 'id':         'BC:gray_SPANs:bc:b-1_SI',
       'desc':       'Change background color from blue to gray',
       'command':    'backcolor',
       'value':      'gray',
@@ -83,7 +106,7 @@ CHANGE_TESTS_CSS = {
       'expected':   '<span style="background-color: blue">foo</span><span style="background-color: gray">[bar]</span><span style="background-color: blue">baz</span>',
       'accept':     '<span style="background-color: blue">foo<span style="background-color: gray">[bar]</span>baz</span>' },
 
-    { 'id':         'BC:gray_P-SPANs:bc:g-1_SW',
+    { 'id':         'BC:gray_P-SPANs:bc:b-1_SW',
       'desc':       'Change background color within a paragraph from blue to gray',
       'command':    'backcolor',
       'value':      'gray',
@@ -91,26 +114,40 @@ CHANGE_TESTS_CSS = {
       'expected':   [ '<p><span style="background-color: gray">[foobarbaz]</span></p>',
                       '<p style="background-color: gray">[foobarbaz]</p>' ] },
 
-    { 'id':         'BC:gray_P-SPANs:bc:g-2_SW',
+    { 'id':         'BC:gray_P-SPANs:bc:b-2_SW',
       'desc':       'Change background color within a paragraph from blue to gray',
       'command':    'backcolor',
       'value':      'gray',
       'pad':        '<p>foo<span style="background-color: blue">[bar]</span>baz</p>',
       'expected':   '<p>foo<span style="background-color: gray">[bar]</span>baz</p>' },
 
-    { 'id':         'BC:gray_P-SPANs:bc:g-3_SO',
+    { 'id':         'BC:gray_P-SPANs:bc:b-3_SO',
       'desc':       'Change background color within a paragraph from blue to gray (selection encloses more than previous span)',
       'command':    'backcolor',
       'value':      'gray',
       'pad':        '<p>[foo<span style="background-color: blue">barbaz</span>qoz]quz</p>',
       'expected':   '<p><span style="background-color: gray">[foobarbazqoz]</span>quz</p>' },
 
-    { 'id':         'BC:gray_P-SPANs:bc:g-3_SL',
+    { 'id':         'BC:gray_P-SPANs:bc:b-3_SL',
       'desc':       'Change background color within a paragraph from blue to gray (previous span partially selected)',
       'command':    'backcolor',
       'value':      'gray',
       'pad':        '<p>[foo<span style="background-color: blue">bar]baz</span>qozquz</p>',
       'expected':   '<p><span style="background-color: gray">[foobar]</span><span style="background-color: blue">baz</span>qozquz</p>' },
+
+    { 'id':         'BC:gray_SPANs:bc:b-2_SL',
+      'desc':       'Change background color from blue to gray on partially covered span, selection extends left',
+      'command':    'backcolor',
+      'value':      'gray',
+      'pad':        'foo [bar <span style="background-color: blue">baz] qoz</span> quz sic',
+      'expected':   'foo <span style="background-color: gray">[bar baz]</span><span style="background-color: blue"> qoz</span> quz sic' },
+
+    { 'id':         'BC:gray_SPANs:bc:b-2_SR',
+      'desc':       'Change background color from blue to gray on partially covered span, selection extends right',
+      'command':    'backcolor',
+      'value':      'gray',
+      'pad':        'foo bar <span style="background-color: blue">baz [qoz</span> quz] sic',
+      'expected':   'foo bar <span style="background-color: blue">baz </span><span style="background-color: gray">[qoz quz]</span> sic' },
 
     # font name
     { 'id':         'FN:c_SPANs:ff:a-1_SW',

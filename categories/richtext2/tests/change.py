@@ -285,7 +285,37 @@ CHANGE_TESTS = {
       'value':      'smaller',
       'pad':        '<font size="4">foo[bar]baz</font>',
       'expected':   '<font size="4">foo<font size="smaller">[bar]</font>baz</font>',
-      'accept':     '<font size="4">foo</font><font size="3">[bar]</font><font size="4">baz</font>' }
+      'accept':     '<font size="4">foo</font><font size="3">[bar]</font><font size="4">baz</font>' },
+
+    # formatblock
+    { 'id':         'FB:h1_ADDRESS-1_SW',
+      'desc':       'change block from <address> to <h1>',
+      'command':    'formatblock',
+      'value':      'h1',
+      'pad':        '<address>foo [bar] baz</address>',
+      'expected':   '<h1>foo bar baz</h1>' },
+
+    { 'id':         'FB:h1_ADDRESS-FONTsz:4-1_SO',
+      'desc':       'change block from <address> with partially formatted content to <h1>',
+      'command':    'formatblock',
+      'value':      'h1',
+      'pad':        '<address>foo [<font size="4">bar</font>] baz</address>',
+      'expected':   '<h1>foo [bar] baz</h1>' },
+
+    { 'id':         'FB:h1_ADDRESS-FONTsz:4-1_SW',
+      'desc':       'change block from <address> with partially formatted content to <h1>',
+      'command':    'formatblock',
+      'value':      'h1',
+      'pad':        '<address>foo <font size="4">[bar]</font> baz</address>',
+      'expected':   '<h1>foo [bar] baz</h1>' },
+
+    { 'id':         'FB:h1_ADDRESS-FONT.ass.sz:4-1_SW',
+      'desc':       'change block from <address> with partially formatted content to <h1>',
+      'command':    'formatblock',
+      'value':      'h1',
+      'pad':        '<address>foo <font class="Apple-style-span" size="4">[bar]</font> baz</address>',
+      'expected':   '<h1>foo [bar] baz</h1>' }
+
   ]
 }
 

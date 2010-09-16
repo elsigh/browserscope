@@ -199,7 +199,7 @@ QUERYENABLED_TESTS = {
 
     { 'id':         'INSERTTEXT_TEXT-1',
       'desc':       'check whether the "inserttext" command is enabled',
-      'qcenabled':  'insertTEXT-1' },
+      'qcenabled':  'inserttext' },
 
     { 'id':         'REMOVEFORMAT_TEXT-1',
       'desc':       'check whether the "removeformat" command is enabled',
