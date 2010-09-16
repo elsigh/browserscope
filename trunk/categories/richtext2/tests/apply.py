@@ -242,6 +242,7 @@ APPLY_TESTS = {
       'command':    'increasefontsize',
       'pad':        'foo[bar]baz',
       'expected':   [ 'foo<font size="4">[bar]</font>baz',
+                      'foo<font size="+1">[bar]</font>baz',
                       'foo<big>[bar]</big>baz' ] },
 
     # decreasefontsize
@@ -251,6 +252,7 @@ APPLY_TESTS = {
       'command':    'decreasefontsize',
       'pad':        'foo[bar]baz',
       'expected':   [ 'foo<font size="2">[bar]</font>baz',
+                      'foo<font size="-1">[bar]</font>baz',
                       'foo<small>[bar]</small>baz' ] },
 
     # indent

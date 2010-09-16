@@ -164,6 +164,18 @@ UNAPPLY_TESTS = {
       'expected':   [ '<p><b>foo</b><i>[bar]</i></p><p><b>baz</b></p>',
                       '<b><p>foo</p></b><p><i>[bar]</i></p><b><p>baz</p></b>' ] },
 
+    { 'id':         'B_B-2_SL',
+      'desc':       'Remove partially covered bold, selection extends left',
+      'command':    'bold',
+      'pad':        'foo [bar <b>baz] qoz</b> quz sic',
+      'expected':   'foo [bar baz]<b> qoz</b> quz sic' },
+
+    { 'id':         'B_B-2_SR',
+      'desc':       'Remove partially covered bold, selection extends right',
+      'command':    'bold',
+      'pad':        'foo bar <b>baz [qoz</b> quz] sic',
+      'expected':   'foo bar <b>baz </b>[qoz quz] sic' },
+
     # italic
     { 'id':         'I_I-1_SW',
       'rte1-id':    'u-italic-0',
@@ -433,6 +445,7 @@ UNAPPLY_TESTS = {
       'desc':       'unlink a partially contained <a> element',
       'command':    'unlink',
       'pad':        'fo<a>o[ba</a>r]baz' },
+
     # outdent
     { 'id':         'OUTDENT_BQ-1_SW',
       'rte1-id':    'u-outdent-0',

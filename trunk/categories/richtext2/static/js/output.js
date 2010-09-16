@@ -142,10 +142,10 @@ function escapeOutput(str) {
  * @see variables.js for success levels
  */
 function outputSingleTestResult(actual, successLevel) {
-  var tr = currentIDPartial ? document.getElementById(currentIDPartial) : document.getElementById(currentIDStrict);
+  var tr = document.getElementById(currentIDOutput);
   var td;
 
-  if (!tr || !tr.cells || tr.cells.length < 12) {
+  if (!tr || !tr.cells || tr.cells.length < 10) {
     // This means the output template and this JavaScript code are
     // out of sync. This really shouldn't happen and won't look pretty,
     // but there's not much we can show in this case.
@@ -195,9 +195,10 @@ function outputSingleTestResult(actual, successLevel) {
   
   // Column 1: test ID, with a bookmark to facilitate external references
   // Already filled in
+  var cellIndex = 0;
   
   // Column 2: command being tested
-  td = tr.cells[1];
+  td = tr.cells[++cellIndex];
   var usesHTML = false;
   var cmd;
   var value = getTestParameter(PARAM_VALUE);
@@ -227,40 +228,34 @@ function outputSingleTestResult(actual, successLevel) {
   }
   
   // Column 3: value of command (if any)
+  td = tr.cells[++cellIndex];
   if (typeof value == 'string') {
-    td = tr.cells[2];
     td.innerHTML = "'" + escapeOutput(value) + "'";  
   }
   
-  // Column 4: styleWithCSS
-  td = tr.cells[3];
-  var styleWithCSS = getTestParameter(PARAM_STYLE_WITH_CSS);
-  td.innerHTML = styleWithCSS ? 'y' : 'n';
-  td.title = styleWithCSS ? 'styleWithCSS is set' : 'styleWithCSS is false';
-  
-  // Column 5: check Attributes
-  td = tr.cells[4];
+  // Column 4: check Attributes
+  td = tr.cells[++cellIndex];
   if (usesHTML) {
     var checkAttrs = getTestParameter(PARAM_CHECK_ATTRIBUTES);
-    td.innerHTML = checkAttrs ? 'y' : 'n';
+    td.innerHTML = checkAttrs ? '&#x25CF;' : '&#x25CB;';
     td.title = checkAttrs ? 'attributes must match' : 'attributes are ignored';
   } else {
     td.innerHTML = '-';
     td.title = 'attributes not applicable';
   }
-  
-  // Column 6: check Style
-  td = tr.cells[5];
+
+  // Column 5: check style
+  td = tr.cells[++cellIndex];
   if (usesHTML) {
     var checkStyle = getTestParameter(PARAM_CHECK_STYLE);
     if (checkAttrs && checkStyle) {
-      td.innerHTML = 'y';
+      td.innerHTML = '&#x25CF;';
       td.title = 'style attribute contents must match';
     } else if (checkAttrs) {
-      td.innerHTML = 'n';
+      td.innerHTML = '&#x25CB;';
       td.title = 'style attribute is ignored';
     } else {
-      td.innerHTML = 'n';
+      td.innerHTML = '&#x25CB;';
       td.title = 'all attributes (incl. style) are ignored';
     }
   } else {
@@ -268,61 +263,20 @@ function outputSingleTestResult(actual, successLevel) {
     td.title = 'style not applicable';
   }
   
-  // Column 7: check Selection
-  td = tr.cells[6];
-  var expectedSpec = getTestParameter(PARAM_EXPECTED);
-  if (usesHTML) {
-    var checkSel = getTestParameter(PARAM_CHECK_SELECTION);                     
-    if (checkSel === undefined) {
-      if (typeof expectedSpec == 'string') {
-        checkSel = hasSelMarker.test(expectedSpec);
-      } else {
-        var y = false;
-        var n = false;
-        var count = expectedSpec.length;
-        for (var e = 0; e < count; ++e) {
-          if (hasSelMarker.test(expectedSpec[e])) {
-            y = true;
-          } else {
-            n = true;
-          }
-        }
-        if (y && !n) {
-          checkSel = true;
-        } else if (!y && n) {
-          checkSel = false;
-        }
-      }
-    }
-    if (checkSel === undefined) {
-      td.innerHTML = '?';
-      td.title = 'selection check depends on individual expectation string';
-    } else if (checkSel) {
-      td.innerHTML = 'y';
-      td.title = 'result selection is being checked';
-    } else {
-      td.innerHTML = 'n';
-      td.title = 'result selection is irrelevant';
-    }
-  } else {
-     td.innerHTML = '-';
-     td.title = 'selection not applicable';
-  }
-  
-  // Column 8: pass/fail
-  td = tr.cells[7];
+  // Column 6: pass/fail
+  td = tr.cells[++cellIndex];
   td.innerHTML = resultString;
   td.title = resultTitle;
   td.className = backgroundColorClass;
   
-  // Column 9: original pad specification
-  td = tr.cells[8];
+  // Column 7: original pad specification
+  td = tr.cells[++cellIndex];
   td.innerHTML = highlightSelectionMarkers(escapeOutput(getTestParameter(PARAM_PAD)));
   
-  // Column 10: expected result(s)
-  td = tr.cells[9];
+  // Column 8: expected result(s)
+  td = tr.cells[++cellIndex];
   var expectedOutput = '';
-  var expectedArr = getExpectationArray(expectedSpec);
+  var expectedArr = getExpectationArray(getTestParameter(PARAM_EXPECTED));
   for (var idx = 0; idx < expectedArr.length; ++idx) {
     if (expectedOutput) {
       expectedOutput = expectedOutput + '\xA0\xA0\xA0<i>or</i><br>';
@@ -342,8 +296,8 @@ function outputSingleTestResult(actual, successLevel) {
   }
   td.innerHTML = expectedOutput;
   
-  // Column 11: actual result
-  td = tr.cells[10];
+  // Column 9: actual result
+  td = tr.cells[++cellIndex];
   switch (successLevel) {
     case RESULT_SETUP_EXCEPTION:
       td.innerHTML = formatValueOrString(actual);
@@ -367,7 +321,7 @@ function outputSingleTestResult(actual, successLevel) {
       break;
   }
 
-  // Column 12: test description
+  // Column 10: test description
   // Already filled in
 }
 

@@ -165,16 +165,19 @@ function runTestSuite(suite) {
             case 'S':  // Selection tests - strict per definitonem (leave out 'S' in id) 
               currentIDPartial = '';
               currentIDStrict  = generateTestID(currentSuiteID, currentTest.id);
+              currentIDOutput  = currentIDStrict;
               break;
 
             case 'Q':  // Query tests
               currentIDPartial = generateTestID(currentSuiteID, currentTest.id);
               currentIDStrict  = '';
+              currentIDOutput  = currentIDPartial;
               break;
               
             default:
               currentIDPartial = generateTestID(currentSuiteID, currentTest.id);
               currentIDStrict  = generateTestID(currentSuiteID + 'S', currentTest.id);
+              currentIDOutput  = currentIDPartial;
           }
           ++counts[currentSuiteID].total;
           ++counts[currentSuiteID][currentClassID];

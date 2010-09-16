@@ -94,6 +94,7 @@ var currentClassScoreID    = '';    // ID of the element showing the final score
 var currentTest            = null;  // sub-object of currentClass, specifying the current test
 var currentIDpartial       = '';    // totally unique ID for non-strict tests
 var currentIDStrict        = '';    // totally unique ID for strict tests
+var currentIDOutput        = '';    // ID used in output table
 var currentResultHTML      = '';    // HTML string after executing the/all command(s)
 var currentOutputTable     = null;  // HTML table for the current suite + class
 var currentBackgroundShade = 'Lo';  // to facilitate alternating table row shading

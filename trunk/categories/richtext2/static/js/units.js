@@ -298,52 +298,60 @@ function Color(value) {
  * @constructor
  * @param value {String} original value
  */
-function Size(value) {
-  var pxMatch = String(value).match(/([0-9]+)px/);
-  if (pxMatch) {
-    var px = Number(pxMatch[1]);
+function FontSize(value) {
+  var match;
+  if (match = String(value).match(/([0-9]+)px/)) {
+    var px = Number(match[1]);
     if (px <= 10) {
-      this.size = 1;
+      this.size = '1';
     } else if (px <= 13) {
-      this.size = 2;
+      this.size = '2';
     } else if (px <= 16) {
-      this.size = 3;
+      this.size = '3';
     } else if (px <= 18) {
-      this.size = 4;
+      this.size = '4';
     } else if (px <= 24) {
-      this.size = 5;
+      this.size = '5';
     } else if (px <= 32) {
-      this.size = 6;
+      this.size = '6';
     } else if (px <= 47) {
-      this.size = 7;
+      this.size = '7';
     } else {
       this.size = NaN;
     }
+  } else if (match = String(value).match(/([+-][0-9]+)/)) {
+    this.size = match[1];
   } else if (Number(value)) {
-       this.size = Number(value);
+    this.size = String(Number(value));
   } else {
     switch (value) {
       case 'x-small':
-        this.size = 1;
+        this.size = '1';
         break;
       case 'small':
-        this.size = 2;
+        this.size = '2';
         break;
       case 'medium':
-        this.size = 3;
+        this.size = '3';
         break;
       case 'large':
-        this.size = 4;
+        this.size = '4';
         break;
       case 'x-large':
-        this.size = 5;
+        this.size = '5';
         break;
       case 'xx-large':
-        this.size = 6;
+        this.size = '6';
         break;
       case 'xxx-large':
       case '-webkit-xxx-large':
-        this.size = 7;
+        this.size = '7';
+        break;
+      case 'larger':
+        this.size = '+1';
+        break;
+      case 'smaller':
+        this.size = '-1';
         break;
       default:
         this.size = null;
@@ -353,6 +361,37 @@ function Size(value) {
     return this.size == other.size;
   }
   this.toString = function() {
-    return String(this.size);
+    return this.size;
+  }
+}
+
+/**
+ * Utility class for converting & canonicalizing font names.
+ *
+ * @constructor
+ * @param value {String} original value
+ */
+function FontName(value) {
+  value = String(value).toLowerCase();
+  switch (value) {
+    case 'arial new':
+      this.fontname = 'arial';
+      break;
+    case 'courier new':
+      this.fontname = 'courier';
+      break;
+    case 'times new':
+    case 'times roman':
+    case 'times new roman':
+      this.fontname = 'times';
+      break;
+    default:
+      this.fontname = value;
+  }
+  this.compare = function(other) {
+    return this.fontname == other.fontname;
+  }
+  this.toString = function() {
+    return this.fontname;
   }
 }

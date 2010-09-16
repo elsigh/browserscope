@@ -199,7 +199,7 @@ QUERYINDETERMINATE_TESTS = {
 
     { 'id':         'INSERTTEXT_TEXT-1',
       'desc':       'check whether the "inserttext" command is indeterminate',
-      'qcindeterm': 'insertTEXT-1' },
+      'qcindeterm': 'inserttext' },
 
     { 'id':         'REMOVEFORMAT_TEXT-1',
       'desc':       'check whether the "removeformat" command is indeterminate',
