@@ -135,6 +135,23 @@ function escapeOutput(str) {
 }
 
 /**
+ * Fills in a single output table cell
+ *
+ * @param id {String} ID suffix of the table column
+ * @param val {String} inner HTML to set
+ * @param ttl {String, optional} value of the 'title' attribute
+ */
+function setTD(id, val, ttl) {
+  var td = document.getElementById(currentIDOutput + id);
+  if (td) {
+    td.innerHTML = val;
+    if (ttl) {
+      td.title = ttl;
+    }
+  }
+}
+
+/**
  * Fills in a single test line
  *
  * @param actual {String} actual result
@@ -144,14 +161,6 @@ function escapeOutput(str) {
 function outputSingleTestResult(actual, successLevel) {
   var tr = document.getElementById(currentIDOutput);
   var td;
-
-  if (!tr || !tr.cells || tr.cells.length < 10) {
-    // This means the output template and this JavaScript code are
-    // out of sync. This really shouldn't happen and won't look pretty,
-    // but there's not much we can show in this case.
-    // At least this won't affect the test scores themselves. 
-    return;
-  }
 
   var hasSelMarker = /[\[\]\^{}\|]/;
   var backgroundColorClass;
@@ -198,83 +207,68 @@ function outputSingleTestResult(actual, successLevel) {
   var cellIndex = 0;
   
   // Column 2: command being tested
-  td = tr.cells[++cellIndex];
   var usesHTML = false;
   var cmd;
   var value = getTestParameter(PARAM_VALUE);
   if (cmd = getTestParameter(PARAM_COMMAND)) {
-    td.innerHTML = escapeOutput(cmd);
+    setTD(IDOUT_COMMAND, escapeOutput(cmd));
     usesHTML = true;
   } else if (cmd = getTestParameter(PARAM_FUNCTION)) {
-    td.innerHTML = '<i>' + escapeOutput(cmd) + '</i>';
+    setTD(IDOUT_COMMAND, '<i>' + escapeOutput(cmd) + '</i>');
     usesHTML = true;
   } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDSUPPORTED)) {
-    td.innerHTML = '<i>queryCommandSupported</i>';
+    setTD(IDOUT_COMMAND, '<i>queryCommandSupported</i>');
     value = cmd;
   } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDENABLED)) {
-    td.innerHTML = '<i>queryCommandEnabled</i>';
+    setTD(IDOUT_COMMAND, '<i>queryCommandEnabled</i>');
     value = cmd;
   } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDINDETERM)) {
-    td.innerHTML = '<i>queryCommandIndeterm</i>';
+    setTD(IDOUT_COMMAND, '<i>queryCommandIndeterm</i>');
     value = cmd;
   } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDSTATE)) {
-    td.innerHTML = '<i>queryCommandState</i>';
+    setTD(IDOUT_COMMAND, '<i>queryCommandState</i>');
     value = cmd;
   } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDVALUE)) {
-    td.innerHTML = '<i>queryCommandValue</i>';
+    setTD(IDOUT_COMMAND, '<i>queryCommandValue</i>');
     value = cmd;
   } else {
-    td.innerHTML = '<i>(none)</i>';
+    setTD(IDOUT_COMMAND, '<i>(none)</i>');
   }
   
   // Column 3: value of command (if any)
-  td = tr.cells[++cellIndex];
   if (typeof value == 'string') {
-    td.innerHTML = "'" + escapeOutput(value) + "'";  
+    setTD(IDOUT_VALUE, "'" + escapeOutput(value) + "'");
   }
   
   // Column 4: check Attributes
-  td = tr.cells[++cellIndex];
   if (usesHTML) {
     var checkAttrs = getTestParameter(PARAM_CHECK_ATTRIBUTES);
-    td.innerHTML = checkAttrs ? '&#x25CF;' : '&#x25CB;';
-    td.title = checkAttrs ? 'attributes must match' : 'attributes are ignored';
+    setTD(IDOUT_CHECKATTRS, checkAttrs ? OUTSTR_YES : OUTSTR_NO, checkAttrs ? 'attributes must match' : 'attributes are ignored');
   } else {
-    td.innerHTML = '-';
-    td.title = 'attributes not applicable';
+    setTD(IDOUT_CHECKATTRS, OUTSTR_NA, 'attributes not applicable');
   }
 
   // Column 5: check style
-  td = tr.cells[++cellIndex];
   if (usesHTML) {
     var checkStyle = getTestParameter(PARAM_CHECK_STYLE);
     if (checkAttrs && checkStyle) {
-      td.innerHTML = '&#x25CF;';
-      td.title = 'style attribute contents must match';
+      setTD(IDOUT_CHECKSTYLE, OUTSTR_YES, 'style attribute contents must match');
     } else if (checkAttrs) {
-      td.innerHTML = '&#x25CB;';
-      td.title = 'style attribute is ignored';
+      setTD(IDOUT_CHECKSTYLE, OUTSTR_NO, 'style attribute contents is ignored');
     } else {
-      td.innerHTML = '&#x25CB;';
-      td.title = 'all attributes (incl. style) are ignored';
+      setTD(IDOUT_CHECKSTYLE, OUTSTR_NO, 'all attributes (incl. style) are ignored');
     }
   } else {
-    td.innerHTML = '-';
-    td.title = 'style not applicable';
+    setTD(IDOUT_CHECKSTYLE, OUTSTR_NA, 'style not applicable');
   }
   
   // Column 6: pass/fail
-  td = tr.cells[++cellIndex];
-  td.innerHTML = resultString;
-  td.title = resultTitle;
-  td.className = backgroundColorClass;
+  setTD(IDOUT_STATUS, resultString, resultTitle);
   
   // Column 7: original pad specification
-  td = tr.cells[++cellIndex];
-  td.innerHTML = highlightSelectionMarkers(escapeOutput(getTestParameter(PARAM_PAD)));
+  setTD(IDOUT_PAD, highlightSelectionMarkers(escapeOutput(getTestParameter(PARAM_PAD))));
   
   // Column 8: expected result(s)
-  td = tr.cells[++cellIndex];
   var expectedOutput = '';
   var expectedArr = getExpectationArray(getTestParameter(PARAM_EXPECTED));
   for (var idx = 0; idx < expectedArr.length; ++idx) {
@@ -294,30 +288,27 @@ function outputSingleTestResult(actual, successLevel) {
                                       + '</span>';
     }
   }
-  td.innerHTML = expectedOutput;
+  setTD(IDOUT_EXPECTED, expectedOutput);
   
   // Column 9: actual result
-  td = tr.cells[++cellIndex];
   switch (successLevel) {
     case RESULT_SETUP_EXCEPTION:
-      td.innerHTML = formatValueOrString(actual);
+      setTD(IDOUT_ACTUAL, formatValueOrString(actual));
       break;
     case RESULT_EXECUTION_EXCEPTION:
-      td.title = escapeOutput(actual.toString());
-      td.innerHTML = UNSUPPORTED_COMMAND_EXCEPTION;
+      setTD(IDOUT_ACTUAL, UNSUPPORTED_COMMAND_EXCEPTION, escapeOutput(actual.toString()));
       break;
     case RESULT_VERIFICATION_EXCEPTION:
-      td.title = escapeOutput(actual.toString());
-      td.innerHTML = VERIFICATION_EXCEPTION;
+      setTD(IDOUT_ACTUAL,VERIFICATION_EXCEPTION, escapeOutput(actual.toString()));
       break;
     case RESULT_UNSUPPORTED:
-      td.innerHTML = actual;
+      setTD(IDOUT_ACTUAL, actual);
       break;
     case RESULT_DIFFS:
     case RESULT_SELECTION_DIFFS:
     case RESULT_ACCEPT:
     case RESULT_EQUAL:
-      td.innerHTML = usesHTML ? formatActualResult(escapeOutput(actual)) : formatValueOrString(actual);
+      setTD(IDOUT_ACTUAL, usesHTML ? formatActualResult(escapeOutput(actual)) : formatValueOrString(actual));
       break;
   }
 

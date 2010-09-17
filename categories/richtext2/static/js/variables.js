@@ -75,6 +75,21 @@ var PARAM_CHECK_SELECTION       = 'checkSel';
 var PARAM_STYLE_WITH_CSS        = 'styleWithCSS';
 var PARAM_ALLOW_EXCEPTION       = 'allowException';
 
+// ID suffixes for the output columns
+var IDOUT_COMMAND    = '_:cmd';
+var IDOUT_VALUE      = '_:val';
+var IDOUT_CHECKATTRS = '_:att';
+var IDOUT_CHECKSTYLE = '_:sty';
+var IDOUT_STATUS     = '_:sta';
+var IDOUT_PAD        = '_:pad';
+var IDOUT_EXPECTED   = '_:exp';
+var IDOUT_ACTUAL     = '_:act';
+
+// Output strings to use for yes/no/NA
+var OUTSTR_YES = '&#x25CF;'; 
+var OUTSTR_NO  = '&#x25CB;'; 
+var OUTSTR_NA  = '-'; 
+
 // DOM elements used for the tests.
 var editorElem = null;
 var editorWin  = null;

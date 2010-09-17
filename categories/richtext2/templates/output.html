@@ -11,8 +11,10 @@
         <TH>ID</TH>
         <TH>Command</TH>
         <TH>Value</TH>
+        {% ifnotequal s.id.0 "Q" %}{% comment %} Don't output certain columns for "queryCommand..." tests. {% endcomment %}
         <TH TITLE="check Atributes?">A</TH>
         <TH TITLE="check Style">S</TH>
+        {% endifnotequal %}
         <TH>Status</TH>
         <TH>Initial</TH>
         <TH>Expected</TH>
@@ -24,14 +26,16 @@
       {% for t in pv %}
       <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}" CLASS="greyBk{% cycle 'Lo' 'Hi' %}">
         <TD><A CLASS="idLabel" NAME="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}" HREF="#{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}">{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}</A></TD>
-        <TD>&nbsp;</TD>
-        <TD>&nbsp;</TD>
-        <TD ALIGN="CENTER">&nbsp;</TD>
-        <TD ALIGN="CENTER">&nbsp;</TD>
-        <TD ALIGN="CENTER">NONE</TD>
-        <TD>&nbsp;</TD>
-        <TD>&nbsp;</TD>
-        <TD><I>Processing...</I></TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cmd">&nbsp;</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:val">&nbsp;</TD>
+        {% ifnotequal s.id.0 "Q" %}{% comment %} Don't output certain columns for "queryCommand..." tests. {% endcomment %}
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:att" ALIGN="CENTER">&nbsp;</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sty" ALIGN="CENTER">&nbsp;</TD>
+        {% endifnotequal %}
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta" ALIGN="CENTER">NONE</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:pad">&nbsp;</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:exp">&nbsp;</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:act"><I>Processing...</I></TD>
         <TD>{{ t.desc|default:"&nbsp;" }}</TD>
       </TR>
       {% endfor %}
