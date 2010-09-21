@@ -54,6 +54,7 @@ DELETE_TESTS = {
   'checkStyle':    False,
 
   'Proposed': [
+    # single characters
     { 'id':          'CHAR-1_SC',
       'desc':        'Delete 1 character',
       'pad':         'foo^barbaz',
@@ -104,6 +105,7 @@ DELETE_TESTS = {
       'pad':         'foo&#x0338;^barbaz',
       'expected':    'fo^barbaz' },
 
+    # text selection
     { 'id':          'TEXT-1_SI',
       'desc':        'Delete text selection',
       'pad':         'foo[bar]baz',
@@ -154,11 +156,23 @@ DELETE_TESTS = {
       'pad':         'foo<gen>bar</gen>^baz',
       'expected':    'foo<gen>ba^</gen>baz' },
 
-    { 'id':          'P2_SS2',
-      'desc':        'Delete at start of paragraph - should merge with previous',
-      'pad':         '<p>foo</p><p>^bar</p>',
-      'expected':    '<p>foo^bar</p>' },
+    # paragraphs
+    { 'id':          'P2-1_SS2',
+      'desc':        'Delete from collapsed selection at start of paragraph - should merge with previous',
+      'pad':         '<p>foobar</p><p>^bazqoz</p>',
+      'expected':    '<p>foobar^bazqoz</p>' },
 
+    { 'id':          'P2-1_SI2',
+      'desc':        'Delete non-collapsed selection at start of paragraph - should not merge with previous',
+      'pad':         '<p>foobar</p><p>[baz]qoz</p>',
+      'expected':    '<p>foobar</p><p>^qoz</p>' },
+
+    { 'id':          'P2-1_SM',
+      'desc':        'Delete non-collapsed selection spanning 2 paragraphs - should merge them',
+      'pad':         '<p>foo[bar</p><p>baz]qoz</p>',
+      'expected':    '<p>foo^qoz</p>' },
+
+    # lists
     { 'id':          'OL-LI2-1_SO1',
       'desc':        'Delete fully wrapped list item',
       'pad':         'foo<ol>{<li>bar</li>}<li>baz</li></ol>qoz', 
@@ -181,16 +195,19 @@ DELETE_TESTS = {
       'pad':         'foo<ol>{<li>foo</li>}</ol>qoz',
       'expected':    'foo^qoz' },
 
+    # strange selections
     { 'id':          'HR.BR-1_SM',
       'desc':        'Delete selection that starts and ends within nodes that don\'t have children',
       'pad':         'foo<hr {>bar<br }>baz',
       'expected':    'foo<hr>|<br>baz' },
 
+    # tables
     { 'id':          'TABLE-1_SA',
       'desc':        'Delete from position immediately after table (should have no effect)',
       'pad':         'foo<table><tbody><tr><td>bar</td></tr></tbody></table>^baz',
       'expected':    'foo<table><tbody><tr><td>bar</td></tr></tbody></table>^baz' },
 
+    # table cells
     { 'id':          'TD-1_SS',
       'desc':        'Delete from start of first cell (should have no effect)',
       'pad':         'foo<table><tbody><tr><td>^bar</td></tr></tbody></table>baz',
@@ -201,6 +218,12 @@ DELETE_TESTS = {
       'pad':         'foo<table><tbody><tr><td>bar</td><td>^baz</td></tr></tbody></table>quoz',
       'expected':    'foo<table><tbody><tr><td>bar</td><td>^baz</td></tr></tbody></table>quoz' },
 
+    { 'id':          'TD2-1_SM',
+      'desc':        'Delete with selection spanning 2 cells',
+      'pad':         'foo<table><tbody><tr><td>ba[r</td><td>b]az</td></tr></tbody></table>quoz',
+      'expected':    'foo<table><tbody><tr><td>ba^</td><td>az</td></tr></tbody></table>quoz' },
+
+    # table rows
     { 'id':          'TR3-1_SO1',
       'desc':        'Delete first table row',
       'pad':         '<table><tbody>{<tr><td>A</td></tr>}<tr><td>B</td></tr><tr><td>C</td></tr></tbody></table>',

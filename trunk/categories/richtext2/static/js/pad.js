@@ -21,6 +21,18 @@
  */
 
 /**
+ * Helper object to use as fallback for unsupported selection.modify
+ */
+var SelNotSupported = {
+  modify: function(alter, direction, granularity) {
+    throw SELMODIFY_UNSUPPORTED;
+  },
+  selectAllChildren: function(elem) {
+    throw SELALLCHILDREN_UNSUPPORTED;
+  }
+}
+
+/**
  * Normalize text selection indicators and convert inter-element selection
  * indicators to comments.
  *
@@ -202,6 +214,12 @@ function initEditorElement() {
 
   var range = createFromNodes(pair1.node, pair1.offs, pair2.node, pair2.offs);
   range.select();
+  
+  try {
+    sel = editorWin.getSelection();
+  } catch (ex) {
+    sel = SelNotSupported();
+  }
 }
 
 /**
@@ -212,6 +230,7 @@ function resetEditorElement() {
   contentEditableElem.setAttribute('style', '');
   contentEditableElem.setAttribute('bgcolor', '');
 
+  selection = null;
   if (getTestParameter(PARAM_STYLE_WITH_CSS)) {
     try {
       editorDoc.execCommand('styleWithCSS', false, false);
@@ -233,13 +252,10 @@ function initEditorDoc() {
     editorWin = editorElem.contentWindow;
     editorDoc = editorWin.document;
     contentEditableElem = editorDoc.body;
-/*
-    // version using a simple DIV
-    editorElem = document.getElementById('editor');
-    editorWin = window;
-    editorDoc = document;
-    contentEditableElem = editorElem;
-*/
+    
+    win = editorWin;
+    doc = editorDoc;
+
     // Default styleWithCSS to false, since it's not supported by IE.
     try {
       editorDoc.execCommand('styleWithCSS', false, false);

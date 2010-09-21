@@ -54,7 +54,7 @@ FORWARDDELETE_TESTS = {
   'checkStyle':  False,
 
   'Proposed': [
-    # backward delete
+    # single characters
     { 'id':          'CHAR-1_SC',
       'desc':        'Delete 1 character',
       'pad':         'foo^barbaz',
@@ -90,6 +90,7 @@ FORWARDDELETE_TESTS = {
       'pad':         'fo^o&#x0338;barbaz',
       'expected':    'fo^barbaz' },
 
+    # text selections
     { 'id':          'TEXT-1_SI',
       'desc':        'Delete text selection',
       'pad':         'foo[bar]baz',
@@ -140,11 +141,23 @@ FORWARDDELETE_TESTS = {
       'pad':         'foo^<gen>bar</gen>baz',
       'expected':    'foo^<gen>ar</gen>baz' },
 
+    # paragraphs
     { 'id':          'P2-1_SE1',
-      'desc':        'Delete at end of paragraph - should merge with next',
-      'pad':         '<p>foo^</p><p>bar</p>',
-      'expected':    '<p>foo^bar</p>' },
+      'desc':        'Delete from collapsed selection at end of paragraph - should merge with next',
+      'pad':         '<p>foobar^</p><p>bazqoz</p>',
+      'expected':    '<p>foobar^bazqoz</p>' },
 
+    { 'id':          'P2-1_SI1',
+      'desc':        'Delete non-collapsed selection at end of paragraph - should not merge with next',
+      'pad':         '<p>foo[bar]</p><p>bazqoz</p>',
+      'expected':    '<p>foo^</p><p>bazqoz</p>' },
+
+    { 'id':          'P2-1_SM',
+      'desc':        'Delete non-collapsed selection spanning 2 paragraphs - should merge them',
+      'pad':         '<p>foo[bar</p><p>baz]qoz</p>',
+      'expected':    '<p>foo^qoz</p>' },
+
+    # lists
     { 'id':          'OL-LI2-1_SO1',
       'desc':        'Delete fully wrapped list item',
       'pad':         'foo<ol>{<li>bar</li>}<li>baz</li></ol>qoz', 
@@ -167,16 +180,19 @@ FORWARDDELETE_TESTS = {
       'pad':         'foo<ol>{<li>foo</li>}</ol>qoz',
       'expected':    'foo^qoz' },
 
+    # strange selections
     { 'id':          'HR.BR-1_SM',
       'desc':        'Delete selection that starts and ends within nodes that don\'t have children',
       'pad':         'foo<hr {>bar<br }>baz',
       'expected':    'foo<hr>|<br>baz' },
 
+    # tables
     { 'id':          'TABLE-1_SB',
       'desc':        'Delete from position immediately before table (should have no effect)',
       'pad':         'foo^<table><tbody><tr><td>bar</td></tr></tbody></table>baz',
       'expected':    'foo^<table><tbody><tr><td>bar</td></tr></tbody></table>baz' },
 
+    # table cells
     { 'id':          'TD-1_SE',
       'desc':        'Delete from end of last cell (should have no effect)',
       'pad':         'foo<table><tbody><tr><td>bar^</td></tr></tbody></table>baz',
@@ -185,7 +201,61 @@ FORWARDDELETE_TESTS = {
     { 'id':          'TD2-1_SE1',
       'desc':        'Delete from end of inner cell (should have no effect)',
       'pad':         'foo<table><tbody><tr><td>bar^</td><td>baz</td></tr></tbody></table>quoz',
-      'expected':    'foo<table><tbody><tr><td>bar^</td><td>baz</td></tr></tbody></table>quoz' }
+      'expected':    'foo<table><tbody><tr><td>bar^</td><td>baz</td></tr></tbody></table>quoz' },
+
+    { 'id':          'TD2-1_SM',
+      'desc':        'Delete with selection spanning 2 cells',
+      'pad':         'foo<table><tbody><tr><td>ba[r</td><td>b]az</td></tr></tbody></table>quoz',
+      'expected':    'foo<table><tbody><tr><td>ba^</td><td>az</td></tr></tbody></table>quoz' },
+
+    # table rows
+    { 'id':          'TR3-1_SO1',
+      'desc':        'Delete first table row',
+      'pad':         '<table><tbody>{<tr><td>A</td></tr>}<tr><td>B</td></tr><tr><td>C</td></tr></tbody></table>',
+      'expected':    ['<table><tbody>|<tr><td>B</td></tr><tr><td>C</td></tr></tbody></table>',
+                      '<table><tbody><tr><td>^B</td></tr><tr><td>C</td></tr></tbody></table>'] },
+
+    { 'id':          'TR3-1_SO2',
+      'desc':        'Delete middle table row',
+      'pad':         '<table><tbody><tr><td>A</td></tr>{<tr><td>B</td></tr>}<tr><td>C</td></tr></tbody></table>',
+      'expected':    ['<table><tbody><tr><td>A</td></tr>|<tr><td>C</td></tr></tbody></table>',
+                      '<table><tbody><tr><td>A</td></tr><tr><td>^C</td></tr></tbody></table>'] },
+
+    { 'id':          'TR3-1_SO3',
+      'desc':        'Delete last table row',
+      'pad':         '<table><tbody><tr><td>A</td></tr><tr><td>B</td></tr>{<tr><td>C</td></tr>}</tbody></table>',
+      'expected':    ['<table><tbody><tr><td>A</td></tr><tr><td>B</td></tr>|</tbody></table>',
+                      '<table><tbody><tr><td>A</td></tr><tr><td>B^</td></tr></tbody></table>'] },
+
+    { 'id':          'TR2rs:2-1_SO1',
+      'desc':        'Delete first table row where a cell has rowspan 2',
+      'pad':         '<table><tbody>{<tr><td>A</td><td rowspan=2>R</td></tr>}<tr><td>B</td></tr></tbody></table>',
+      'expected':    ['<table><tbody>|<tr><td>B</td><td>R</td></tr></tbody></table>',
+                      '<table><tbody><tr><td>^B</td><td>R</td></tr></tbody></table>'] },
+
+    { 'id':          'TR2rs:2-1_SO2',
+      'desc':        'Delete second table row where a cell has rowspan 2',
+      'pad':         '<table><tbody><tr><td>A</td><td rowspan=2>R</td></tr>{<tr><td>B</td></tr>}</tbody></table>',
+      'expected':    ['<table><tbody><tr><td>A</td><td>R</td></tr>|</tbody></table>',
+                      '<table><tbody><tr><td>A</td><td>R^</td></tr></tbody></table>'] },
+
+    { 'id':          'TR3rs:3-1_SO1',
+      'desc':        'Delete first table row where a cell has rowspan 3',
+      'pad':         '<table><tbody>{<tr><td>A</td><td rowspan=3>R</td></tr>}<tr><td>B</td></tr><tr><td>C</td></tr></tbody></table>',
+      'expected':    ['<table><tbody>|<tr><td>A</td><td rowspan="2">R</td></tr><tr><td>C</td></tr></tbody></table>',
+                      '<table><tbody><tr><td>^A</td><td rowspan="2">R</td></tr><tr><td>C</td></tr></tbody></table>'] },
+
+    { 'id':          'TR3rs:3-1_SO2',
+      'desc':        'Delete middle table row where a cell has rowspan 3',
+      'pad':         '<table><tbody><tr><td>A</td><td rowspan=3>R</td></tr>{<tr><td>B</td></tr>}<tr><td>C</td></tr></tbody></table>',
+      'expected':    ['<table><tbody><tr><td>B</td><td rowspan="2">R</td></tr>|<tr><td>C</td></tr></tbody></table>',
+                      '<table><tbody><tr><td>B</td><td rowspan="2">R</td></tr><tr><td>^C</td></tr></tbody></table>'] },
+
+    { 'id':          'TR3rs:3-1_SO3',
+      'desc':        'Delete last table row where a cell has rowspan 3',
+      'pad':         '<table><tbody><tr><td>A</td><td rowspan=3>R</td></tr><tr><td>B</td></tr>{<tr><td>C</td></tr>}</tbody></table>',
+      'expected':    ['<table><tbody><tr><td>A</td><td rowspan="2">R</td></tr><tr><td>B</td></tr>|</tbody></table>',
+                      '<table><tbody><tr><td>A</td><td rowspan="2">R</td></tr><tr><td>B^</td></tr></tbody></table>'] }
   ]
 }
 
