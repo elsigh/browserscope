@@ -21,6 +21,26 @@
  */
 
 /**
+ * Canonicalize HTML entities to their actual character
+ *
+ * @param str {String} the HTML string to be canonicalized
+ * @return {String} the canonicalized string
+ */
+
+function canonicalizeEntities(str) {
+  // TODO(rolandsteiner): this function is very much not optimized, but that shouldn't
+  // theoretically matter too much - look into it at some point.
+  var match;
+  while (match = str.match(/&#x([0-9A-F]+);/i)) {
+    str = str.replace('&#x' + match[1] + ';', String.fromCharCode(parseInt(match[1], 16)));
+  }
+  while (match = str.match(/&#([0-9]+);/)) {
+    str = str.replace('&#' + match[1] + ';', String.fromCharCode(Number(match[1])));
+  }
+  return str;
+}
+
+/**
  * Canonicalize the contents of the HTML 'style' attribute. 
  * I.e. sorts the CSS attributes alphabetically and canonicalizes the values
  * CSS attributes where necessary.
@@ -277,6 +297,7 @@ function canonicalizeElementTag(str, emitFlags) {
     }
 
     if (emitFlags.emitAttrs) {
+      attrValue = canonicalizeEntities(attrValue);
       attrValue = canonicalizeSingleAttribute(elemName, attrName, attrValue, emitFlags);
       if (attrName && attrValue != null) {
         attrs.push(attrName + '="' + attrValue + '"');
@@ -326,7 +347,7 @@ function canonicalizeElementsAndAttributes(str, emitFlags) {
     if (str.charAt(tagStart) == '/') {
       ++tagStart;
     }
-    result = result + str.substring(tagEnd, tagStart);
+    result = result + canonicalizeEntities(str.substring(tagEnd, tagStart));
     tagEnd = str.indexOf('>', tagStart);
     if (str.charAt(tagEnd - 1) == '/') {
       --tagEnd;
@@ -336,7 +357,7 @@ function canonicalizeElementsAndAttributes(str, emitFlags) {
     result = result + elemStr;
     tagStart = str.indexOf('<', tagEnd);
   }
-  return result + str.substring(tagEnd);
+  return result + canonicalizeEntities(str.substring(tagEnd));
 }
 
 /**

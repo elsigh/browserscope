@@ -34,6 +34,10 @@ var VERIFICATION_EXCEPTION        = 'EXCEPTION DURING TEST VERIFICATION';
 // Constants for indicating an exception in score handling.
 var SCORE_EXCEPTION = 'EXCEPTION WHEN WRITING TEST SCORES';
 
+// Exceptiona to be thrown on unsupported selection operations
+var SELMODIFY_UNSUPPORTED      = 'UNSUPPORTED selection.modify()';
+var SELALLCHILDREN_UNSUPPORTED = 'UNSUPPORTED selection.selectAllChildren()';
+
 // Selection comparison result contants.
 var RESULT_SETUP_EXCEPTION        = 0;
 var RESULT_EXECUTION_EXCEPTION    = 1;
@@ -95,6 +99,11 @@ var editorElem = null;
 var editorWin  = null;
 var editorDoc  = null;
 var contentEditableElem = null;
+
+// Helper variables to use in test functions
+var win = null;  // window object to use for test functions
+var doc = null;  // document object to use for test functions
+var sel = null;  // The current selection after the pad is set up
 
 // Selection markers used for pad and expectation specifications
 var hasSelMarkers = /[\[\]\^{}\|]/;
