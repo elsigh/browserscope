@@ -312,6 +312,272 @@ SELECTION_TESTS = {
       'pad':        '&#x9762;&#x767D;&#x3044;&#x4F8B;&#x6587;&#x3092;&#x30C6;&#x30B9;&#x30C8;^&#x3057;&#x307E;&#x3057;&#x3087;&#x3046;&#x3002;',
       'expected':   '&#x9762;&#x767D;&#x3044;&#x4F8B;&#x6587;&#x3092;&#x30C6;&#x30B9;&#x30C8;&#x3057;&#x307E;&#x3057;&#x3087;&#x3046;^&#x3002;' },
     
+    # --- extend selection forward
+    { 'id':         'SM:e.f.c_TEXT-1_SC-1',
+      'desc':       'extend selection 1 character forward',
+      'function':   'sel.modify("extend", "forward", "character");',
+      'pad':        'foo ^bar baz',
+      'expected':   'foo [b]ar baz' },
+
+    { 'id':         'SM:e.f.c_TEXT-1_SI-1',
+      'desc':       'extend selection 1 character forward',
+      'function':   'sel.modify("extend", "forward", "character");',
+      'pad':        'foo [b]ar baz',
+      'expected':   'foo [ba]r baz' },
+
+    { 'id':         'SM:e.f.w_TEXT-1_SC-1',
+      'desc':       'extend selection 1 word forward',
+      'function':   'sel.modify("extend", "forward", "word");',
+      'pad':        'foo ^bar baz',
+      'expected':   'foo [bar] baz' },
+
+    { 'id':         'SM:e.f.w_TEXT-1_SI-1',
+      'desc':       'extend selection 1 word forward',
+      'function':   'sel.modify("extend", "forward", "word");',
+      'pad':        'foo [b]ar baz',
+      'expected':   'foo [bar] baz' },
+
+    { 'id':         'SM:e.f.w_TEXT-1_SI-2',
+      'desc':       'extend selection 1 word forward',
+      'function':   'sel.modify("extend", "forward", "word");',
+      'pad':        'foo [bar] baz',
+      'expected':   'foo [bar baz]' },
+
+    # --- extend selection backward, shrinking it
+    { 'id':         'SM:e.b.c_TEXT-1_SI-2',
+      'desc':       'extend selection 1 character backward',
+      'function':   'sel.modify("extend", "backward", "character");',
+      'pad':        'foo [bar] baz',
+      'expected':   'foo [ba]r baz' },
+
+    { 'id':         'SM:e.b.c_TEXT-1_SI-1',
+      'desc':       'extend selection 1 character backward',
+      'function':   'sel.modify("extend", "backward", "character");',
+      'pad':        'foo [b]ar baz',
+      'expected':   'foo ^bar baz' },
+
+    { 'id':         'SM:e.b.w_TEXT-1_SI-3',
+      'desc':       'extend selection 1 word backward',
+      'function':   'sel.modify("extend", "backward", "word");',
+      'pad':        'foo [bar baz]',
+      'expected':   'foo [bar] baz' },
+
+    { 'id':         'SM:e.b.w_TEXT-1_SI-2',
+      'desc':       'extend selection 1 word backward',
+      'function':   'sel.modify("extend", "backward", "word");',
+      'pad':        'foo [bar] baz',
+      'expected':   'foo ^bar baz' },
+
+    { 'id':         'SM:e.b.w_TEXT-1_SI-4',
+      'desc':       'extend selection 1 word backward',
+      'function':   'sel.modify("extend", "backward", "word");',
+      'pad':        'foo b[ar baz]',
+      'expected':   'foo b[ar] baz' },
+
+    { 'id':         'SM:e.b.w_TEXT-1_SI-5',
+      'desc':       'extend selection 1 word backward',
+      'function':   'sel.modify("extend", "backward", "word");',
+      'pad':        'foo b[ar] baz',
+      'expected':   'foo b^ar baz' },
+
+    # --- extend selection backward, creating or extending a reverse selections
+    { 'id':         'SM:e.b.c_TEXT-1_SC-1',
+      'desc':       'extend selection 1 character backward',
+      'function':   'sel.modify("extend", "backward", "character");',
+      'pad':        'foo b^ar baz',
+      'expected':   'foo ]b[ar baz' },
+
+    { 'id':         'SM:e.b.c_TEXT-1_SIR-1',
+      'desc':       'extend selection 1 character backward',
+      'function':   'sel.modify("extend", "backward", "character");',
+      'pad':        'foo b]a[r baz',
+      'expected':   'foo ]ba[r baz' },
+
+    { 'id':         'SM:e.b.w_TEXT-1_SIR-1',
+      'desc':       'extend selection 1 word backward',
+      'function':   'sel.modify("extend", "backward", "word");',
+      'pad':        'foo b]a[r baz',
+      'expected':   'foo ]ba[r baz' },
+
+    { 'id':         'SM:e.b.w_TEXT-1_SIR-2',
+      'desc':       'extend selection 1 word backward',
+      'function':   'sel.modify("extend", "backward", "word");',
+      'pad':        'foo ]ba[r baz',
+      'expected':   ']foo ba[r baz' },
+
+    # --- extend selection forward, shrinking a reverse selections
+    { 'id':         'SM:e.f.c_TEXT-1_SIR-1',
+      'desc':       'extend selection 1 character forward',
+      'function':   'sel.modify("extend", "forward", "character");',
+      'pad':        'foo b]a[r baz',
+      'expected':   'foo ba^r baz' },
+
+    { 'id':         'SM:e.f.c_TEXT-1_SIR-2',
+      'desc':       'extend selection 1 character forward',
+      'function':   'sel.modify("extend", "forward", "character");',
+      'pad':        'foo ]ba[r baz',
+      'expected':   'foo b]a[r baz' },
+
+    { 'id':         'SM:e.f.w_TEXT-1_SIR-1',
+      'desc':       'extend selection 1 word forward',
+      'function':   'sel.modify("extend", "forward", "word");',
+      'pad':        'foo ]ba[r baz',
+      'expected':   'foo ba^r baz' },
+
+    { 'id':         'SM:e.f.w_TEXT-1_SIR-3',
+      'desc':       'extend selection 1 word forward',
+      'function':   'sel.modify("extend", "forward", "word");',
+      'pad':        ']foo ba[r baz',
+      'expected':   'foo ]ba[r baz' },
+
+    # --- extend selection forward to line boundary
+    { 'id':         'SM:e.f.lb_BR.BR-1_SC-1',
+      'desc':       'extend selection forward to line boundary',
+      'function':   'sel.modify("extend", "forward", "lineboundary");',
+      'pad':        'fo^o<br>bar<br>baz',
+      'expected':   'fo[o]<br>bar<br>baz' },
+
+    { 'id':         'SM:e.f.lb_BR.BR-1_SI-1',
+      'desc':       'extend selection forward to next line boundary',
+      'function':   'sel.modify("extend", "forward", "lineboundary");',
+      'pad':        'fo[o]<br>bar<br>baz',
+      'expected':   'fo[o<br>bar]<br>baz' },
+
+    { 'id':         'SM:e.f.lb_BR.BR-1_SM-1',
+      'desc':       'extend selection forward to line boundary',
+      'function':   'sel.modify("extend", "forward", "lineboundary");',
+      'pad':        'fo[o<br>b]ar<br>baz',
+      'expected':   'fo[o<br>bar]<br>baz' },
+
+    { 'id':         'SM:e.f.lb_P.P.P-1_SC-1',
+      'desc':       'extend selection forward to line boundary',
+      'function':   'sel.modify("extend", "forward", "lineboundary");',
+      'pad':        '<p>fo^o</p><p>bar</p><p>baz</p>',
+      'expected':   '<p>fo[o]</p><p>bar</p><p>baz</p>' },
+
+    { 'id':         'SM:e.f.lb_P.P.P-1_SI-1',
+      'desc':       'extend selection forward to next line boundary',
+      'function':   'sel.modify("extend", "forward", "lineboundary");',
+      'pad':        '<p>fo[o]</p><p>bar</p><p>baz</p>',
+      'expected':   '<p>fo[o</p><p>bar]</p><p>baz</p>' },
+
+    { 'id':         'SM:e.f.lb_P.P.P-1_SM-1',
+      'desc':       'extend selection forward to line boundary',
+      'function':   'sel.modify("extend", "forward", "lineboundary");',
+      'pad':        '<p>fo[o</p><p>b]ar</p><p>baz</p>',
+      'expected':   '<p>fo[o</p><p>bar]</p><p>baz</p>' },
+
+    { 'id':         'SM:e.f.lb_P.P.P-1_SMR-1',
+      'desc':       'extend selection forward to line boundary',
+      'function':   'sel.modify("extend", "forward", "lineboundary");',
+      'pad':        '<p>foo</p><p>b]a[r</p><p>baz</p>',
+      'expected':   '<p>foo</p><p>ba[r]</p><p>baz</p>' },
+
+    # --- extend selection backward to line boundary
+    { 'id':         'SM:e.b.lb_BR.BR-1_SC-2',
+      'desc':       'extend selection backward to line boundary',
+      'function':   'sel.modify("extend", "backward", "lineboundary");',
+      'pad':        'foo<br>bar<br>b^az',
+      'expected':   'foo<br>bar<br>]b[az' },
+
+    { 'id':         'SM:e.b.lb_BR.BR-1_SIR-2',
+      'desc':       'extend selection backward to previous line boundary',
+      'function':   'sel.modify("extend", "backward", "lineboundary");',
+      'pad':        'foo<br>bar<br>]b[az',
+      'expected':   'foo<br>]bar<br>b[az' },
+
+    { 'id':         'SM:e.b.lb_BR.BR-1_SMR-2',
+      'desc':       'extend selection backward to line boundary',
+      'function':   'sel.modify("extend", "backward", "lineboundary");',
+      'pad':        'foo<br>ba]r<br>b[az',
+      'expected':   'foo<br>]bar<br>b[az' },
+
+    { 'id':         'SM:e.b.lb_P.P.P-1_SC-2',
+      'desc':       'extend selection backward to line boundary',
+      'function':   'sel.modify("extend", "backward", "lineboundary");',
+      'pad':        '<p>foo</p><p>bar</p><p>b^az</p>',
+      'expected':   '<p>foo</p><p>bar</p><p>]b[az</p>' },
+
+    { 'id':         'SM:e.b.lb_P.P.P-1_SIR-2',
+      'desc':       'extend selection backward to previous line boundary',
+      'function':   'sel.modify("extend", "backward", "lineboundary");',
+      'pad':        '<p>foo</p><p>bar</p><p>]b[az</p>',
+      'expected':   '<p>foo</p><p>]bar</p><p>b[az</p>' },
+
+    { 'id':         'SM:e.b.lb_P.P.P-1_SMR-2',
+      'desc':       'extend selection backward to line boundary',
+      'function':   'sel.modify("extend", "backward", "lineboundary");',
+      'pad':        '<p>foo</p><p>ba]r</p><p>b[az</p>',
+      'expected':   '<p>foo</p><p>]bar</p><p>b[az</p>' },
+
+    { 'id':         'SM:e.b.lb_P.P.P-1_SM-2',
+      'desc':       'extend selection backward to line boundary',
+      'function':   'sel.modify("extend", "backward", "lineboundary");',
+      'pad':        '<p>foo</p><p>b[a]r</p><p>baz</p>',
+      'expected':   '<p>foo</p><p>]b[ar</p><p>baz</p>' },
+
+    # --- extend selection forward to next line (NOTE: use identical text in every line!)
+    { 'id':         'SM:e.f.l_BR.BR-2_SC-1',
+      'desc':       'extend selection forward to next line',
+      'function':   'sel.modify("extend", "forward", "line");',
+      'pad':        'fo^o<br>foo<br>foo',
+      'expected':   'fo[o<br>fo]o<br>foo' },
+
+    { 'id':         'SM:e.f.l_BR.BR-2_SI-1',
+      'desc':       'extend selection forward to next line',
+      'function':   'sel.modify("extend", "forward", "line");',
+      'pad':        'fo[o]<br>foo<br>foo',
+      'expected':   'fo[o<br>foo]<br>foo' },
+
+    { 'id':         'SM:e.f.l_BR.BR-2_SM-1',
+      'desc':       'extend selection forward to next line',
+      'function':   'sel.modify("extend", "forward", "line");',
+      'pad':        'fo[o<br>f]oo<br>foo',
+      'expected':   'fo[o<br>foo<br>f]oo' },
+
+    { 'id':         'SM:e.f.l_P.P-1_SC-1',
+      'desc':       'extend selection forward to next line over paragraph boundaries',
+      'function':   'sel.modify("extend", "forward", "line");',
+      'pad':        '<p>foo^bar</p><p>foobar</p>',
+      'expected':   '<p>foo[bar</p><p>foo]bar</p>' },
+
+    { 'id':         'SM:e.f.l_P.P-1_SMR-1',
+      'desc':       'extend selection forward to next line over paragraph boundaries',
+      'function':   'sel.modify("extend", "forward", "line");',
+      'pad':        '<p>fo]obar</p><p>foob[ar</p>',
+      'expected':   '<p>foobar</p><p>fo]ob[ar</p>' },
+
+    # --- extend selection backward to previous line (NOTE: use identical text in every line!)
+    { 'id':         'SM:e.b.l_BR.BR-2_SC-2',
+      'desc':       'extend selection backward to previous line',
+      'function':   'sel.modify("extend", "backward", "line");',
+      'pad':        'foo<br>foo<br>f^oo',
+      'expected':   'foo<br>f]oo<br>f[oo' },
+
+    { 'id':         'SM:e.b.l_BR.BR-2_SIR-2',
+      'desc':       'extend selection backward to previous line',
+      'function':   'sel.modify("extend", "backward", "line");',
+      'pad':        'foo<br>foo<br>]f[oo',
+      'expected':   'foo<br>]foo<br>f[oo' },
+
+    { 'id':         'SM:e.b.l_BR.BR-2_SMR-2',
+      'desc':       'extend selection backward to previous line',
+      'function':   'sel.modify("extend", "backward", "line");',
+      'pad':        'foo<br>fo]o<br>f[oo',
+      'expected':   'fo]o<br>foo<br>f[oo' },
+
+    { 'id':         'SM:e.b.l_P.P-1_SC-2',
+      'desc':       'extend selection backward to next line over paragraph boundaries',
+      'function':   'sel.modify("extend", "backward", "line");',
+      'pad':        '<p>foobar</p><p>foo^bar</p>',
+      'expected':   '<p>foo]bar</p><p>foo[bar</p>' },
+
+    { 'id':         'SM:e.b.l_P.P-1_SM-1',
+      'desc':       'extend selection backward to next line over paragraph boundaries',
+      'function':   'sel.modify("extend", "backward", "line");',
+      'pad':        '<p>fo[obar</p><p>foob]ar</p>',
+      'expected':   '<p>fo[ob]ar</p><p>foobar</p>' },
+
     # sel.selectAllChildren(<element>)
     { 'id':         'SAC:div_DIV-1_SC-1',
       'desc':       'selectAllChildren(<div>)',
