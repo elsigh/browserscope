@@ -40,11 +40,13 @@
     <p>
       <a href="/alltests" class="bs-btn">How Does Your Browser Compare?</a>
     </p>
+
     <!--
     <p>
       So far <strong>X</strong> users have run the tests <strong>X</strong> times on <strong>X</strong> unique browsers.
     </p>
     -->
+
     <br>
     <p>
       <a href="/user/tests/howto">Use
@@ -53,18 +55,7 @@
   </div>
 </div>
 
-<div id="bs-home-cur-ua">
-  <span class="bs-cur-ua goog-inline-block"></span>
-  <span>
-    We think you're using
-    <strong
-      id="bs-home-cur-ua-s"
-      title="{{ current_ua_string }}">{{ current_ua.pretty }}</strong>
-  </span>
-  <a
-    href="http://code.google.com/p/browserscope/issues/entry?template=UA%20Parsing%20Is%20Incorrect&comment={{ current_ua.pretty }} is not {{ current_ua_string }}"
-    target="_blank">No?</a>
-</div>
+
 {% if message %}
   <p class="d-msg">{{ message }}</p>
 {% endif %}
@@ -94,6 +85,7 @@
     {% endfor %}
   </ul>
 </div>
+
 
 {% ifequal build "production" %}
   <script src="{{ "browserscope.js"|resource_path }}"></script>

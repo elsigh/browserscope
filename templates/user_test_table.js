@@ -3,9 +3,8 @@
   // Adds the CSS to the DOM.
   var cssNode = document.createElement('link');
   cssNode.rel = 'stylesheet';
-  cssNode.type = 'text/css';
   cssNode.href = 'http://{{ server }}/static/results_table.css';
-  var headEl = document.getElementsByTagName('head')[0];
+  var headEl = document.head || document.getElementsByTagName('head')[0];
   headEl.appendChild(cssNode);
 
   var resultsTable = document.createElement('div');
@@ -35,5 +34,4 @@
   lastScript.parentNode.insertBefore(resultsTable, lastScript);
 
 })();
-
 

@@ -13,8 +13,39 @@
       var testDriverFrame = window['bs-test-driver'];
       testDriverFrame.testDriver.sendScore(results, continueParams);
     };
+    var getFrameDocument = function(iframeId) {
+      var doc;
+      var iframe = window.frames[iframeId];
+      if (!iframe) {
+        iframe = document.getElementById(iframeId);
+      }
+      if (!iframe) {
+        return null;
+      }
+      if (iframe.contentDocument) {
+        // For NS6
+        doc = iframe.contentDocument;
+      } else if (iframe.contentWindow) {
+        // For IE5.5 and IE6
+        doc = iframe.contentWindow.document;
+      } else if (iframe.document) {
+        // For IE5
+        doc = iframe.document;
+      }
+      return doc;
+    };
+    var onLoadHandler = function() {
+      // Resizes the frames to make sure we're not cutting off the buttons.
+      var testDriverFrameDocument = getFrameDocument('bs-test-driver');
+      var height = testDriverFrameDocument.body.offsetHeight;
+      var bsTestDriverFrame = document.getElementById('bs-test-driver');
+      var bsTestFrameset = document.getElementById('bs-test-frameset');
+      bsTestFrameset.rows = height + ',*';
+    };
   </script>
-  <frameset rows="{% if autorun %}80{% else %}120{% endif %},*">
+  <frameset id="bs-test-frameset"
+    rows="{% if autorun %}80{% else %}120{% endif %},*"
+    onload="onLoadHandler()">
     <frame
       id="bs-test-driver"
       name="bs-test-driver"
@@ -31,3 +62,4 @@
     Your browser does not support frames. Impressive.
   </noframes>
 </html>
+

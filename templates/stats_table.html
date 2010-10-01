@@ -154,9 +154,18 @@
   </table>
 
   <div class="bs-results-links">
-    {% if is_admin %}
-      <a href="/clear_memcache?v={{ v }}&category={{ category }}&continue={{ request_path }}" class="bs-admin">clear {{ category }} {{ v }} memcache</a>
-    {% endif %}
+
+    <span id="bs-results-cur-ua" class="bs-results-dl">
+      <span class="bs-cur-ua goog-inline-block"></span>
+      <span>
+        We think you're using
+        <strong>{{ current_user_agent }}</strong>
+      </span>
+      <a
+        href="http://code.google.com/p/browserscope/issues/entry?template=UA%20Parsing%20Is%20Incorrect&comment={{ current_ua.pretty }} is not {{ current_ua_string }}"
+        target="_blank">No?</a>
+    </span>
+
     {% if stats|by_key:"total_runs" %}
       {{ stats|by_key:"total_runs" }}
       {% ifequal stats|by_key:"total_runs" 1 %}
@@ -186,10 +195,18 @@
         >csv</a>
     </span>
 
-    <a
-      class="bs-l-p"
-      href="http://{{ server }}/?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}"
-      >Link to this page</a>
+    <span class="bs-results-dl">
+      <a
+        class="bs-l-p"
+        href="http://{{ server }}/?category={{ category }}&v={{ v }}{% if ua_by_param %}&ua={{ ua_by_param }}{% endif %}"
+        >Link to this page</a>
+    </span>
+
+    {% if is_admin %}
+      <div>
+        <a href="/clear_memcache?v={{ v }}&category={{ category }}&continue={{ request_path }}" class="bs-admin">clear {{ category }} {{ v }} memcache</a>
+      </div>
+    {% endif %}
   </div>
 
 </div>

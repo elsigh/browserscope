@@ -85,6 +85,10 @@ class TestCanBeacon(unittest.TestCase):
 
   def testBeacon(self):
     for test_set in all_test_sets.GetAllTestSets():
+      # Don't test our larger (and therefore serially slower) tests in the SDK.
+      if len(test_set.tests) > 100:
+        continue
+
       category = test_set.category
       csrf_token = self.client.get('/get_csrf').content
       # Constructs a reasonably random result set
