@@ -6,7 +6,12 @@
 }
 
 #bs-results {
+  display: inline-block; /* stretches to the table's contents */
   margin-top: 1em;
+}
+
+#bs-cur-ua {
+  font-size: 95%;
 }
 
 #bs-results-cats {
@@ -16,6 +21,7 @@
 #bs-results-cats li {
   float: left;
   margin-right: .3em;
+  margin-top: 2px;
   background-color: #ccc;
   border-top-right-radius: 4px;
   border-top-left-radius: 4px;
@@ -35,7 +41,6 @@
 }
 #bs-results-cats .bs-sel {
   background-color: #ddd;
-  border-top: 1px solid #ddd;
 }
 #bs-results-cats .bs-sel a {
   color: #000;
@@ -57,13 +62,15 @@
 }
 .bs-results-dl {
   font-size: 95%;
+  margin-right: 1em;
 }
 .bs-results-dl span {
   margin-right: auto;
 }
+#bs-results-cur-ua {
+  margin-left: .5em;
+}
 a.bs-l-p {
-  font-size: 95%;
-  margin-left: 2em;
   padding-left: 20px;
   background: url(/static/img/link.gif) 0 6px no-repeat;
 }

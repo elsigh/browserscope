@@ -46,7 +46,6 @@ var Beacon = function(uriParams, opt_doc, opt_id) {
    * @private
    */
   this.script_ = this.doc_.createElement('script');
-  this.script_.type = 'text/javascript';
   this.script_.id = id;
 
   var src = Beacon.SERVER + '/beacon?' + uriParams + '&callback=1' +

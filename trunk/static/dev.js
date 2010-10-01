@@ -34,8 +34,10 @@ var COMPILED = false;
  * Base namespace for the Closure library.  Checks to see goog is
  * already defined in the current scope before assigning to prevent
  * clobbering if base.js is loaded more than once.
+ *
+ * @const
  */
-var goog = goog || {}; // Check to see if already defined in current scope
+var goog = goog || {};
 
 
 /**
@@ -372,8 +374,9 @@ if (!COMPILED) {
     pathToNames: {}, // 1 to many
     nameToPath: {}, // 1 to 1
     requires: {}, // 1 to many
-    visited: {}, // used when resolving dependencies to prevent us from
-                 // visiting the file twice
+    // used when resolving dependencies to prevent us from
+    // visiting the file twice
+    visited: {},
     written: {} // used to keep track of script files we have written
   };
 
@@ -1333,7 +1336,10 @@ goog.scope = function(fn) {
 
 /**
  * @fileoverview Provides a base class for custom Error objects such that the
- * stack is corectly maintained.
+ * stack is correctly maintained.
+ *
+ * You should never need to throw goog.debug.Error(msg) directly, Error(msg) is
+ * sufficient.
  *
  *
  */
@@ -2534,6 +2540,17 @@ goog.string.toNumber = function(str) {
  * for type-inference. For example, <code>goog.asserts.assert(foo)</code>
  * will restrict <code>foo</code> to a truthy value.
  *
+ * The compiler has an option to disable asserts. So code like:
+ * <code>
+ * var x = goog.asserts.assert(foo()); goog.asserts.assert(bar());
+ * </code>
+ * will be transformed into:
+ * <code>
+ * var x = foo();
+ * </code>
+ * The compiler will leave in foo() (because its return value is used),
+ * but it will remove bar() because it assumes it does not have side-effects.
+ *
  *
  * @author agrieve@google.com (Andrew Grieve)
  */
@@ -2543,11 +2560,6 @@ goog.provide('goog.asserts.AssertionError');
 
 goog.require('goog.debug.Error');
 goog.require('goog.string');
-
-// TODO(nicksantos): Add return values for all these functions, so that they
-// can be chained like:
-// eatNumber(goog.asserts.isNumber(foo));
-// for more lisp-y asserts.
 
 /**
  * @define {boolean} Whether to strip out asserts or to leave them in.
@@ -2617,6 +2629,7 @@ goog.asserts.doAssertFailure_ =
  * @param {*} condition The condition to check.
  * @param {string=} opt_message Error message in case of failure.
  * @param {...*} var_args The items to substitute into the failure message.
+ * @return {*} The value of the condition.
  * @throws {goog.asserts.AssertionError} When the condition evaluates to false.
  */
 goog.asserts.assert = function(condition, opt_message, var_args) {
@@ -2624,6 +2637,7 @@ goog.asserts.assert = function(condition, opt_message, var_args) {
     goog.asserts.doAssertFailure_('', null, opt_message,
         Array.prototype.slice.call(arguments, 2));
   }
+  return condition;
 };
 
 
@@ -2664,8 +2678,9 @@ goog.asserts.fail = function(opt_message, var_args) {
  */
 goog.asserts.assertNumber = function(value, opt_message, var_args) {
   if (goog.asserts.ENABLE_ASSERTS && !goog.isNumber(value)) {
-    goog.asserts.doAssertFailure_('Expected number but got %s.', [value],
-        opt_message, Array.prototype.slice.call(arguments, 2));
+    goog.asserts.doAssertFailure_('Expected number but got %s: %s.',
+        [goog.typeOf(value), value], opt_message,
+        Array.prototype.slice.call(arguments, 2));
   }
   return /** @type {number} */ (value);
 };
@@ -2681,8 +2696,9 @@ goog.asserts.assertNumber = function(value, opt_message, var_args) {
  */
 goog.asserts.assertString = function(value, opt_message, var_args) {
   if (goog.asserts.ENABLE_ASSERTS && !goog.isString(value)) {
-    goog.asserts.doAssertFailure_('Expected string but got %s.', [value],
-        opt_message, Array.prototype.slice.call(arguments, 2));
+    goog.asserts.doAssertFailure_('Expected string but got %s: %s.',
+        [goog.typeOf(value), value], opt_message,
+        Array.prototype.slice.call(arguments, 2));
   }
   return /** @type {string} */ (value);
 };
@@ -2699,8 +2715,9 @@ goog.asserts.assertString = function(value, opt_message, var_args) {
  */
 goog.asserts.assertFunction = function(value, opt_message, var_args) {
   if (goog.asserts.ENABLE_ASSERTS && !goog.isFunction(value)) {
-    goog.asserts.doAssertFailure_('Expected function but got %s.', [value],
-        opt_message, Array.prototype.slice.call(arguments, 2));
+    goog.asserts.doAssertFailure_('Expected function but got %s: %s.',
+        [goog.typeOf(value), value], opt_message,
+        Array.prototype.slice.call(arguments, 2));
   }
   return /** @type {!Function} */ (value);
 };
@@ -2716,7 +2733,8 @@ goog.asserts.assertFunction = function(value, opt_message, var_args) {
  */
 goog.asserts.assertObject = function(value, opt_message, var_args) {
   if (goog.asserts.ENABLE_ASSERTS && !goog.isObject(value)) {
-    goog.asserts.doAssertFailure_('Expected object but got %s.', [value],
+    goog.asserts.doAssertFailure_('Expected object but got %s: %s.',
+        [goog.typeOf(value), value],
         opt_message, Array.prototype.slice.call(arguments, 2));
   }
   return /** @type {!Object} */ (value);
@@ -2733,8 +2751,9 @@ goog.asserts.assertObject = function(value, opt_message, var_args) {
  */
 goog.asserts.assertArray = function(value, opt_message, var_args) {
   if (goog.asserts.ENABLE_ASSERTS && !goog.isArray(value)) {
-    goog.asserts.doAssertFailure_('Expected array but got %s.', [value],
-        opt_message, Array.prototype.slice.call(arguments, 2));
+    goog.asserts.doAssertFailure_('Expected array but got %s: %s.',
+        [goog.typeOf(value), value], opt_message,
+        Array.prototype.slice.call(arguments, 2));
   }
   return /** @type {!Array} */ (value);
 };
@@ -2751,8 +2770,9 @@ goog.asserts.assertArray = function(value, opt_message, var_args) {
  */
 goog.asserts.assertBoolean = function(value, opt_message, var_args) {
   if (goog.asserts.ENABLE_ASSERTS && !goog.isBoolean(value)) {
-    goog.asserts.doAssertFailure_('Expected boolean but got %s.', [value],
-        opt_message, Array.prototype.slice.call(arguments, 2));
+    goog.asserts.doAssertFailure_('Expected boolean but got %s: %s.',
+        [goog.typeOf(value), value], opt_message,
+        Array.prototype.slice.call(arguments, 2));
   }
   return /** @type {boolean} */ (value);
 };
@@ -4025,6 +4045,523 @@ goog.array.zip = function(var_args) {
     result.push(value);
   }
 };
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Rendering engine detection.
+ * @see <a href="http://www.useragentstring.com/">User agent strings</a>
+ * For information on the browser brand (such as Safari versus Chrome), see
+ * goog.userAgent.product.
+ *
+ *
+ * @see ../demos/useragent.html
+ */
+
+goog.provide('goog.userAgent');
+
+goog.require('goog.string');
+
+
+/**
+ * @define {boolean} Whether we know at compile-time that the browser is IE.
+ */
+goog.userAgent.ASSUME_IE = false;
+
+
+/**
+ * @define {boolean} Whether we know at compile-time that the browser is GECKO.
+ */
+goog.userAgent.ASSUME_GECKO = false;
+
+
+/**
+ * @define {boolean} Whether we know at compile-time that the browser is WEBKIT.
+ */
+goog.userAgent.ASSUME_WEBKIT = false;
+
+
+/**
+ * @define {boolean} Whether we know at compile-time that the browser is a
+ *     mobile device running WebKit e.g. iPhone or Android.
+ */
+goog.userAgent.ASSUME_MOBILE_WEBKIT = false;
+
+
+/**
+ * @define {boolean} Whether we know at compile-time that the browser is OPERA.
+ */
+goog.userAgent.ASSUME_OPERA = false;
+
+
+/**
+ * Whether we know the browser engine at compile-time.
+ * @type {boolean}
+ * @private
+ */
+goog.userAgent.BROWSER_KNOWN_ =
+    goog.userAgent.ASSUME_IE ||
+    goog.userAgent.ASSUME_GECKO ||
+    goog.userAgent.ASSUME_MOBILE_WEBKIT ||
+    goog.userAgent.ASSUME_WEBKIT ||
+    goog.userAgent.ASSUME_OPERA;
+
+
+/**
+ * Returns the userAgent string for the current browser.
+ * Some user agents (I'm thinking of you, Gears WorkerPool) do not expose a
+ * navigator object off the global scope.  In that case we return null.
+ *
+ * @return {?string} The userAgent string or null if there is none.
+ */
+goog.userAgent.getUserAgentString = function() {
+  return goog.global['navigator'] ? goog.global['navigator'].userAgent : null;
+};
+
+
+/**
+ * @return {Object} The native navigator object.
+ */
+goog.userAgent.getNavigator = function() {
+  // Need a local navigator reference instead of using the global one,
+  // to avoid the rare case where they reference different objects.
+  // (goog.gears.FakeWorkerPool, for example).
+  return goog.global['navigator'];
+};
+
+
+/**
+ * Initializer for goog.userAgent.
+ *
+ * This is a named function so that it can be stripped via the jscompiler
+ * option for stripping types.
+ * @private
+ */
+goog.userAgent.init_ = function() {
+  /**
+   * Whether the user agent string denotes Opera.
+   * @type {boolean}
+   * @private
+   */
+  goog.userAgent.detectedOpera_ = false;
+
+  /**
+   * Whether the user agent string denotes Internet Explorer. This includes
+   * other browsers using Trident as its rendering engine. For example AOL
+   * and Netscape 8
+   * @type {boolean}
+   * @private
+   */
+  goog.userAgent.detectedIe_ = false;
+
+  /**
+   * Whether the user agent string denotes WebKit. WebKit is the rendering
+   * engine that Safari, Android and others use.
+   * @type {boolean}
+   * @private
+   */
+  goog.userAgent.detectedWebkit_ = false;
+
+  /**
+   * Whether the user agent string denotes a mobile device.
+   * @type {boolean}
+   * @private
+   */
+  goog.userAgent.detectedMobile_ = false;
+
+  /**
+   * Whether the user agent string denotes Gecko. Gecko is the rendering
+   * engine used by Mozilla, Mozilla Firefox, Camino and many more.
+   * @type {boolean}
+   * @private
+   */
+  goog.userAgent.detectedGecko_ = false;
+
+  var ua;
+  if (!goog.userAgent.BROWSER_KNOWN_ &&
+      (ua = goog.userAgent.getUserAgentString())) {
+    var navigator = goog.userAgent.getNavigator();
+    goog.userAgent.detectedOpera_ = ua.indexOf('Opera') == 0;
+    goog.userAgent.detectedIe_ = !goog.userAgent.detectedOpera_ &&
+        ua.indexOf('MSIE') != -1;
+    goog.userAgent.detectedWebkit_ = !goog.userAgent.detectedOpera_ &&
+        ua.indexOf('WebKit') != -1;
+    // WebKit also gives navigator.product string equal to 'Gecko'.
+    goog.userAgent.detectedMobile_ = goog.userAgent.detectedWebkit_ &&
+        ua.indexOf('Mobile') != -1;
+    goog.userAgent.detectedGecko_ = !goog.userAgent.detectedOpera_ &&
+        !goog.userAgent.detectedWebkit_ && navigator.product == 'Gecko';
+  }
+};
+
+
+if (!goog.userAgent.BROWSER_KNOWN_) {
+  goog.userAgent.init_();
+}
+
+
+/**
+ * Whether the user agent is Opera.
+ * @type {boolean}
+ */
+goog.userAgent.OPERA = goog.userAgent.BROWSER_KNOWN_ ?
+    goog.userAgent.ASSUME_OPERA : goog.userAgent.detectedOpera_;
+
+
+/**
+ * Whether the user agent is Internet Explorer. This includes other browsers
+ * using Trident as its rendering engine. For example AOL and Netscape 8
+ * @type {boolean}
+ */
+goog.userAgent.IE = goog.userAgent.BROWSER_KNOWN_ ?
+    goog.userAgent.ASSUME_IE : goog.userAgent.detectedIe_;
+
+
+/**
+ * Whether the user agent is Gecko. Gecko is the rendering engine used by
+ * Mozilla, Mozilla Firefox, Camino and many more.
+ * @type {boolean}
+ */
+goog.userAgent.GECKO = goog.userAgent.BROWSER_KNOWN_ ?
+    goog.userAgent.ASSUME_GECKO :
+    goog.userAgent.detectedGecko_;
+
+
+/**
+ * Whether the user agent is WebKit. WebKit is the rendering engine that
+ * Safari, Android and others use.
+ * @type {boolean}
+ */
+goog.userAgent.WEBKIT = goog.userAgent.BROWSER_KNOWN_ ?
+    goog.userAgent.ASSUME_WEBKIT || goog.userAgent.ASSUME_MOBILE_WEBKIT :
+    goog.userAgent.detectedWebkit_;
+
+
+/**
+ * Whether the user agent is running on a mobile device.
+ * @type {boolean}
+ */
+goog.userAgent.MOBILE = goog.userAgent.ASSUME_MOBILE_WEBKIT ||
+                        goog.userAgent.detectedMobile_;
+
+
+/**
+ * Used while transitioning code to use WEBKIT instead.
+ * @type {boolean}
+ * @deprecated Use {@link goog.userAgent.product.SAFARI} instead.
+ * TODO(nicksantos): Delete this from goog.userAgent.
+ */
+goog.userAgent.SAFARI = goog.userAgent.WEBKIT;
+
+
+/**
+ * @return {string} the platform (operating system) the user agent is running
+ *     on. Default to empty string because navigator.platform may not be defined
+ *     (on Rhino, for example).
+ * @private
+ */
+goog.userAgent.determinePlatform_ = function() {
+  var navigator = goog.userAgent.getNavigator();
+  return navigator && navigator.platform || '';
+};
+
+
+/**
+ * The platform (operating system) the user agent is running on. Default to
+ * empty string because navigator.platform may not be defined (on Rhino, for
+ * example).
+ * @type {string}
+ */
+goog.userAgent.PLATFORM = goog.userAgent.determinePlatform_();
+
+
+/**
+ * @define {boolean} Whether the user agent is running on a Macintosh operating
+ *     system.
+ */
+goog.userAgent.ASSUME_MAC = false;
+
+
+/**
+ * @define {boolean} Whether the user agent is running on a Windows operating
+ *     system.
+ */
+goog.userAgent.ASSUME_WINDOWS = false;
+
+
+/**
+ * @define {boolean} Whether the user agent is running on a Linux operating
+ *     system.
+ */
+goog.userAgent.ASSUME_LINUX = false;
+
+
+/**
+ * @define {boolean} Whether the user agent is running on a X11 windowing
+ *     system.
+ */
+goog.userAgent.ASSUME_X11 = false;
+
+
+/**
+ * @type {boolean}
+ * @private
+ */
+goog.userAgent.PLATFORM_KNOWN_ =
+    goog.userAgent.ASSUME_MAC ||
+    goog.userAgent.ASSUME_WINDOWS ||
+    goog.userAgent.ASSUME_LINUX ||
+    goog.userAgent.ASSUME_X11;
+
+
+/**
+ * Initialize the goog.userAgent constants that define which platform the user
+ * agent is running on.
+ * @private
+ */
+goog.userAgent.initPlatform_ = function() {
+  /**
+   * Whether the user agent is running on a Macintosh operating system.
+   * @type {boolean}
+   * @private
+   */
+  goog.userAgent.detectedMac_ = goog.string.contains(goog.userAgent.PLATFORM,
+      'Mac');
+
+  /**
+   * Whether the user agent is running on a Windows operating system.
+   * @type {boolean}
+   * @private
+   */
+  goog.userAgent.detectedWindows_ = goog.string.contains(
+      goog.userAgent.PLATFORM, 'Win');
+
+  /**
+   * Whether the user agent is running on a Linux operating system.
+   * @type {boolean}
+   * @private
+   */
+  goog.userAgent.detectedLinux_ = goog.string.contains(goog.userAgent.PLATFORM,
+      'Linux');
+
+  /**
+   * Whether the user agent is running on a X11 windowing system.
+   * @type {boolean}
+   * @private
+   */
+  goog.userAgent.detectedX11_ = !!goog.userAgent.getNavigator() &&
+      goog.string.contains(goog.userAgent.getNavigator()['appVersion'] || '',
+          'X11');
+};
+
+
+if (!goog.userAgent.PLATFORM_KNOWN_) {
+  goog.userAgent.initPlatform_();
+}
+
+
+/**
+ * Whether the user agent is running on a Macintosh operating system.
+ * @type {boolean}
+ */
+goog.userAgent.MAC = goog.userAgent.PLATFORM_KNOWN_ ?
+    goog.userAgent.ASSUME_MAC : goog.userAgent.detectedMac_;
+
+
+/**
+ * Whether the user agent is running on a Windows operating system.
+ * @type {boolean}
+ */
+goog.userAgent.WINDOWS = goog.userAgent.PLATFORM_KNOWN_ ?
+    goog.userAgent.ASSUME_WINDOWS : goog.userAgent.detectedWindows_;
+
+
+/**
+ * Whether the user agent is running on a Linux operating system.
+ * @type {boolean}
+ */
+goog.userAgent.LINUX = goog.userAgent.PLATFORM_KNOWN_ ?
+    goog.userAgent.ASSUME_LINUX : goog.userAgent.detectedLinux_;
+
+
+/**
+ * Whether the user agent is running on a X11 windowing system.
+ * @type {boolean}
+ */
+goog.userAgent.X11 = goog.userAgent.PLATFORM_KNOWN_ ?
+    goog.userAgent.ASSUME_X11 : goog.userAgent.detectedX11_;
+
+
+/**
+ * @return {string} The string that describes the version number of the user
+ *     agent.
+ * @private
+ */
+goog.userAgent.determineVersion_ = function() {
+  // All browsers have different ways to detect the version and they all have
+  // different naming schemes.
+
+  // version is a string rather than a number because it may contain 'b', 'a',
+  // and so on.
+  var version = '', re;
+
+  if (goog.userAgent.OPERA && goog.global['opera']) {
+    var operaVersion = goog.global['opera'].version;
+    version = typeof operaVersion == 'function' ? operaVersion() : operaVersion;
+  } else {
+    if (goog.userAgent.GECKO) {
+      re = /rv\:([^\);]+)(\)|;)/;
+    } else if (goog.userAgent.IE) {
+      re = /MSIE\s+([^\);]+)(\)|;)/;
+    } else if (goog.userAgent.WEBKIT) {
+      // WebKit/125.4
+      re = /WebKit\/(\S+)/;
+    }
+    if (re) {
+      var arr = re.exec(goog.userAgent.getUserAgentString());
+      version = arr ? arr[1] : '';
+    }
+  }
+  if (goog.userAgent.IE) {
+    // IE9 can be in document mode 9 but be reporting an inconsistent user agent
+    // version.  If it is identifying as a version lower than 9 we take the
+    // documentMode as the version instead.  IE8 has similar behavior.
+    // It is recommended to set the X-UA-Compatible header to ensure that IE9
+    // uses documentMode 9.
+    var docMode = goog.userAgent.getDocumentMode_();
+    if (docMode > parseFloat(version)) {
+      return String(docMode);
+    }
+  }
+  return version;
+};
+
+
+/**
+ * @return {number|undefined} Returns the document mode (for testing).
+ * @private
+ */
+goog.userAgent.getDocumentMode_ = function() {
+  // NOTE(user): goog.userAgent may be used in context where there is no DOM.
+  var doc = goog.global['document'];
+  return doc ? doc['documentMode'] : undefined;
+};
+
+
+/**
+ * The version of the user agent. This is a string because it might contain
+ * 'b' (as in beta) as well as multiple dots.
+ * @type {string}
+ */
+goog.userAgent.VERSION = goog.userAgent.determineVersion_();
+
+
+/**
+ * Compares two version numbers.
+ *
+ * @param {string} v1 Version of first item.
+ * @param {string} v2 Version of second item.
+ *
+ * @return {number}  1 if first argument is higher
+ *                   0 if arguments are equal
+ *                  -1 if second argument is higher.
+ * @deprecated Use goog.string.compareVersions.
+ */
+goog.userAgent.compare = function(v1, v2) {
+  return goog.string.compareVersions(v1, v2);
+};
+
+
+/**
+ * Cache for {@link goog.userAgent.isVersion}. Calls to compareVersions are
+ * surprisingly expensive and as a browsers version number is unlikely to change
+ * during a session we cache the results.
+ * @type {Object}
+ * @private
+ */
+goog.userAgent.isVersionCache_ = {};
+
+
+/**
+ * Whether the user agent version is higher or the same as the given version.
+ * NOTE: When checking the version numbers for Firefox and Safari, be sure to
+ * use the engine's version, not the browser's version number.  For example,
+ * Firefox 3.0 corresponds to Gecko 1.9 and Safari 3.0 to Webkit 522.11.
+ * Opera and Internet Explorer versions match the product release number.<br>
+ * @see <a href="http://en.wikipedia.org/wiki/Safari_(web_browser)">Webkit</a>
+ * @see <a href="http://en.wikipedia.org/wiki/Gecko_engine">Gecko</a>
+ *
+ * @param {string|number} version The version to check.
+ * @return {boolean} Whether the user agent version is higher or the same as
+ *     the given version.
+ */
+goog.userAgent.isVersion = function(version) {
+  return goog.userAgent.isVersionCache_[version] ||
+      (goog.userAgent.isVersionCache_[version] =
+          goog.string.compareVersions(goog.userAgent.VERSION, version) >= 0);
+};
+// Copyright 2010 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Browser capability checks for the dom package.
+ *
+ *
+ */
+
+
+goog.provide('goog.dom.BrowserFeature');
+
+goog.require('goog.userAgent');
+
+
+/**
+ * Enum of browser capabilities.
+ * @enum {boolean}
+ */
+goog.dom.BrowserFeature = {
+  /**
+   * Whether attributes 'name' and 'type' can be added to an element after it's
+   * created. False in Internet Explorer prior to version 9.
+   */
+  CAN_ADD_NAME_OR_TYPE_ATTRIBUTES: !goog.userAgent.IE ||
+      goog.userAgent.isVersion('9'),
+
+  /**
+   * Opera, Safari 3, and Internet Explorer 9 all support innerText but they
+   * include text nodes in script and style tags.
+   */
+  CAN_USE_INNER_TEXT: goog.userAgent.IE && !goog.userAgent.isVersion('9'),
+
+  /**
+   * Whether NoScope elements need a scoped element written before them in
+   * innerHTML.
+   * MSDN: http://msdn.microsoft.com/en-us/library/ms533897(VS.85).aspx#1
+   */
+  INNER_HTML_NEEDS_SCOPED_ELEMENT: goog.userAgent.IE
+};
 // Copyright 2007 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -4621,6 +5158,14 @@ goog.math.Size.prototype.getShortest = function() {
  */
 goog.math.Size.prototype.area = function() {
   return this.width * this.height;
+};
+
+
+/**
+ * @return {number} The perimeter of the size (width + height) * 2.
+ */
+goog.math.Size.prototype.perimeter = function() {
+  return (this.width + this.height) * 2;
 };
 
 
@@ -5256,450 +5801,6 @@ goog.object.createSet = function(var_args) {
 // limitations under the License.
 
 /**
- * @fileoverview Rendering engine detection.
- * @see <a href="http://www.useragentstring.com/">User agent strings</a>
- * For information on the browser brand (such as Safari versus Chrome), see
- * goog.userAgent.product.
- *
- *
- * @see ../demos/useragent.html
- */
-
-goog.provide('goog.userAgent');
-
-goog.require('goog.string');
-
-
-/**
- * @define {boolean} Whether we know at compile-time that the browser is IE.
- */
-goog.userAgent.ASSUME_IE = false;
-
-
-/**
- * @define {boolean} Whether we know at compile-time that the browser is GECKO.
- */
-goog.userAgent.ASSUME_GECKO = false;
-
-
-/**
- * @define {boolean} Whether we know at compile-time that the browser is WEBKIT.
- */
-goog.userAgent.ASSUME_WEBKIT = false;
-
-
-/**
- * @define {boolean} Whether we know at compile-time that the browser is a
- *     mobile device running WebKit e.g. iPhone or Android.
- */
-goog.userAgent.ASSUME_MOBILE_WEBKIT = false;
-
-
-/**
- * @define {boolean} Whether we know at compile-time that the browser is OPERA.
- */
-goog.userAgent.ASSUME_OPERA = false;
-
-
-/**
- * Whether we know the browser engine at compile-time.
- * @type {boolean}
- * @private
- */
-goog.userAgent.BROWSER_KNOWN_ =
-    goog.userAgent.ASSUME_IE ||
-    goog.userAgent.ASSUME_GECKO ||
-    goog.userAgent.ASSUME_MOBILE_WEBKIT ||
-    goog.userAgent.ASSUME_WEBKIT ||
-    goog.userAgent.ASSUME_OPERA;
-
-
-/**
- * Returns the userAgent string for the current browser.
- * Some user agents (I'm thinking of you, Gears WorkerPool) do not expose a
- * navigator object off the global scope.  In that case we return null.
- *
- * @return {?string} The userAgent string or null if there is none.
- */
-goog.userAgent.getUserAgentString = function() {
-  return goog.global['navigator'] ? goog.global['navigator'].userAgent : null;
-};
-
-
-/**
- * @return {Object} The native navigator object.
- */
-goog.userAgent.getNavigator = function() {
-  // Need a local navigator reference instead of using the global one,
-  // to avoid the rare case where they reference different objects.
-  // (goog.gears.FakeWorkerPool, for example).
-  return goog.global['navigator'];
-};
-
-
-/**
- * Initializer for goog.userAgent.
- *
- * This is a named function so that it can be stripped via the jscompiler
- * option for stripping types.
- * @private
- */
-goog.userAgent.init_ = function() {
-  /**
-   * Whether the user agent string denotes Opera.
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.detectedOpera_ = false;
-
-  /**
-   * Whether the user agent string denotes Internet Explorer. This includes
-   * other browsers using Trident as its rendering engine. For example AOL
-   * and Netscape 8
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.detectedIe_ = false;
-
-  /**
-   * Whether the user agent string denotes WebKit. WebKit is the rendering
-   * engine that Safari, Android and others use.
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.detectedWebkit_ = false;
-
-  /**
-   * Whether the user agent string denotes a mobile device.
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.detectedMobile_ = false;
-
-  /**
-   * Whether the user agent string denotes Gecko. Gecko is the rendering
-   * engine used by Mozilla, Mozilla Firefox, Camino and many more.
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.detectedGecko_ = false;
-
-  var ua;
-  if (!goog.userAgent.BROWSER_KNOWN_ &&
-      (ua = goog.userAgent.getUserAgentString())) {
-    var navigator = goog.userAgent.getNavigator();
-    goog.userAgent.detectedOpera_ = ua.indexOf('Opera') == 0;
-    goog.userAgent.detectedIe_ = !goog.userAgent.detectedOpera_ &&
-        ua.indexOf('MSIE') != -1;
-    goog.userAgent.detectedWebkit_ = !goog.userAgent.detectedOpera_ &&
-        ua.indexOf('WebKit') != -1;
-    // WebKit also gives navigator.product string equal to 'Gecko'.
-    goog.userAgent.detectedMobile_ = goog.userAgent.detectedWebkit_ &&
-        ua.indexOf('Mobile') != -1;
-    goog.userAgent.detectedGecko_ = !goog.userAgent.detectedOpera_ &&
-        !goog.userAgent.detectedWebkit_ && navigator.product == 'Gecko';
-  }
-};
-
-
-if (!goog.userAgent.BROWSER_KNOWN_) {
-  goog.userAgent.init_();
-}
-
-
-/**
- * Whether the user agent is Opera.
- * @type {boolean}
- */
-goog.userAgent.OPERA = goog.userAgent.BROWSER_KNOWN_ ?
-    goog.userAgent.ASSUME_OPERA : goog.userAgent.detectedOpera_;
-
-
-/**
- * Whether the user agent is Internet Explorer. This includes other browsers
- * using Trident as its rendering engine. For example AOL and Netscape 8
- * @type {boolean}
- */
-goog.userAgent.IE = goog.userAgent.BROWSER_KNOWN_ ?
-    goog.userAgent.ASSUME_IE : goog.userAgent.detectedIe_;
-
-
-/**
- * Whether the user agent is Gecko. Gecko is the rendering engine used by
- * Mozilla, Mozilla Firefox, Camino and many more.
- * @type {boolean}
- */
-goog.userAgent.GECKO = goog.userAgent.BROWSER_KNOWN_ ?
-    goog.userAgent.ASSUME_GECKO :
-    goog.userAgent.detectedGecko_;
-
-
-/**
- * Whether the user agent is WebKit. WebKit is the rendering engine that
- * Safari, Android and others use.
- * @type {boolean}
- */
-goog.userAgent.WEBKIT = goog.userAgent.BROWSER_KNOWN_ ?
-    goog.userAgent.ASSUME_WEBKIT || goog.userAgent.ASSUME_MOBILE_WEBKIT :
-    goog.userAgent.detectedWebkit_;
-
-
-/**
- * Whether the user agent is running on a mobile device.
- * @type {boolean}
- */
-goog.userAgent.MOBILE = goog.userAgent.ASSUME_MOBILE_WEBKIT ||
-                        goog.userAgent.detectedMobile_;
-
-
-/**
- * Used while transitioning code to use WEBKIT instead.
- * @type {boolean}
- * @deprecated Use {@link goog.userAgent.product.SAFARI} instead.
- * TODO(nicksantos): Delete this from goog.userAgent.
- */
-goog.userAgent.SAFARI = goog.userAgent.WEBKIT;
-
-
-/**
- * @return {string} the platform (operating system) the user agent is running
- *     on. Default to empty string because navigator.platform may not be defined
- *     (on Rhino, for example).
- * @private
- */
-goog.userAgent.determinePlatform_ = function() {
-  var navigator = goog.userAgent.getNavigator();
-  return navigator && navigator.platform || '';
-};
-
-
-/**
- * The platform (operating system) the user agent is running on. Default to
- * empty string because navigator.platform may not be defined (on Rhino, for
- * example).
- * @type {string}
- */
-goog.userAgent.PLATFORM = goog.userAgent.determinePlatform_();
-
-
-/**
- * @define {boolean} Whether the user agent is running on a Macintosh operating
- *     system.
- */
-goog.userAgent.ASSUME_MAC = false;
-
-
-/**
- * @define {boolean} Whether the user agent is running on a Windows operating
- *     system.
- */
-goog.userAgent.ASSUME_WINDOWS = false;
-
-
-/**
- * @define {boolean} Whether the user agent is running on a Linux operating
- *     system.
- */
-goog.userAgent.ASSUME_LINUX = false;
-
-
-/**
- * @define {boolean} Whether the user agent is running on a X11 windowing
- *     system.
- */
-goog.userAgent.ASSUME_X11 = false;
-
-
-/**
- * @type {boolean}
- * @private
- */
-goog.userAgent.PLATFORM_KNOWN_ =
-    goog.userAgent.ASSUME_MAC ||
-    goog.userAgent.ASSUME_WINDOWS ||
-    goog.userAgent.ASSUME_LINUX ||
-    goog.userAgent.ASSUME_X11;
-
-
-/**
- * Initialize the goog.userAgent constants that define which platform the user
- * agent is running on.
- * @private
- */
-goog.userAgent.initPlatform_ = function() {
-  /**
-   * Whether the user agent is running on a Macintosh operating system.
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.detectedMac_ = goog.string.contains(goog.userAgent.PLATFORM,
-      'Mac');
-
-  /**
-   * Whether the user agent is running on a Windows operating system.
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.detectedWindows_ = goog.string.contains(
-      goog.userAgent.PLATFORM, 'Win');
-
-  /**
-   * Whether the user agent is running on a Linux operating system.
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.detectedLinux_ = goog.string.contains(goog.userAgent.PLATFORM,
-      'Linux');
-
-  /**
-   * Whether the user agent is running on a X11 windowing system.
-   * @type {boolean}
-   * @private
-   */
-  goog.userAgent.detectedX11_ = !!goog.userAgent.getNavigator() &&
-      goog.string.contains(goog.userAgent.getNavigator()['appVersion'] || '',
-          'X11');
-};
-
-
-if (!goog.userAgent.PLATFORM_KNOWN_) {
-  goog.userAgent.initPlatform_();
-}
-
-
-/**
- * Whether the user agent is running on a Macintosh operating system.
- * @type {boolean}
- */
-goog.userAgent.MAC = goog.userAgent.PLATFORM_KNOWN_ ?
-    goog.userAgent.ASSUME_MAC : goog.userAgent.detectedMac_;
-
-
-/**
- * Whether the user agent is running on a Windows operating system.
- * @type {boolean}
- */
-goog.userAgent.WINDOWS = goog.userAgent.PLATFORM_KNOWN_ ?
-    goog.userAgent.ASSUME_WINDOWS : goog.userAgent.detectedWindows_;
-
-
-/**
- * Whether the user agent is running on a Linux operating system.
- * @type {boolean}
- */
-goog.userAgent.LINUX = goog.userAgent.PLATFORM_KNOWN_ ?
-    goog.userAgent.ASSUME_LINUX : goog.userAgent.detectedLinux_;
-
-
-/**
- * Whether the user agent is running on a X11 windowing system.
- * @type {boolean}
- */
-goog.userAgent.X11 = goog.userAgent.PLATFORM_KNOWN_ ?
-    goog.userAgent.ASSUME_X11 : goog.userAgent.detectedX11_;
-
-
-/**
- * @return {string} The string that describes the version number of the user
- *     agent.
- * @private
- */
-goog.userAgent.determineVersion_ = function() {
-  // All browsers have different ways to detect the version and they all have
-  // different naming schemes.
-
-  // version is a string rather than a number because it may contain 'b', 'a',
-  // and so on.
-  var version = '', re;
-
-  if (goog.userAgent.OPERA && goog.global['opera']) {
-    var operaVersion = goog.global['opera'].version;
-    version = typeof operaVersion == 'function' ? operaVersion() : operaVersion;
-  } else {
-    if (goog.userAgent.GECKO) {
-      re = /rv\:([^\);]+)(\)|;)/;
-    } else if (goog.userAgent.IE) {
-      re = /MSIE\s+([^\);]+)(\)|;)/;
-    } else if (goog.userAgent.WEBKIT) {
-      // WebKit/125.4
-      re = /WebKit\/(\S+)/;
-    }
-    if (re) {
-      var arr = re.exec(goog.userAgent.getUserAgentString());
-      version = arr ? arr[1] : '';
-    }
-  }
-  return version;
-};
-
-
-/**
- * The version of the user agent. This is a string because it might contain
- * 'b' (as in beta) as well as multiple dots.
- * @type {string}
- */
-goog.userAgent.VERSION = goog.userAgent.determineVersion_();
-
-
-/**
- * Compares two version numbers.
- *
- * @param {string} v1 Version of first item.
- * @param {string} v2 Version of second item.
- *
- * @return {number}  1 if first argument is higher
- *                   0 if arguments are equal
- *                  -1 if second argument is higher.
- * @deprecated Use goog.string.compareVersions.
- */
-goog.userAgent.compare = function(v1, v2) {
-  return goog.string.compareVersions(v1, v2);
-};
-
-
-/**
- * Cache for {@link goog.userAgent.isVersion}. Calls to compareVersions are
- * surprisingly expensive and as a browsers version number is unlikely to change
- * during a session we cache the results.
- * @type {Object}
- * @private
- */
-goog.userAgent.isVersionCache_ = {};
-
-
-/**
- * Whether the user agent version is higher or the same as the given version.
- * NOTE: When checking the version numbers for Firefox and Safari, be sure to
- * use the engine's version, not the browser's version number.  For example,
- * Firefox 3.0 corresponds to Gecko 1.9 and Safari 3.0 to Webkit 522.11.
- * Opera and Internet Explorer versions match the product release number.<br>
- * @see <a href="http://en.wikipedia.org/wiki/Safari_(web_browser)">Webkit</a>
- * @see <a href="http://en.wikipedia.org/wiki/Gecko_engine">Gecko</a>
- *
- * @param {string|number} version The version to check.
- * @return {boolean} Whether the user agent version is higher or the same as
- *     the given version.
- */
-goog.userAgent.isVersion = function(version) {
-  return goog.userAgent.isVersionCache_[version] ||
-      (goog.userAgent.isVersionCache_[version] =
-          goog.string.compareVersions(goog.userAgent.VERSION, version) >= 0);
-};
-// Copyright 2006 The Closure Library Authors. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS-IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-/**
  * @fileoverview Utilities for manipulating the browser's Document Object Model
  * Inspiration taken *heavily* from mochikit (http://mochikit.com/).
  *
@@ -5722,6 +5823,7 @@ goog.provide('goog.dom.DomHelper');
 goog.provide('goog.dom.NodeType');
 
 goog.require('goog.array');
+goog.require('goog.dom.BrowserFeature');
 goog.require('goog.dom.TagName');
 goog.require('goog.dom.classes');
 goog.require('goog.math.Coordinate');
@@ -6342,7 +6444,8 @@ goog.dom.createDom_ = function(doc, args) {
   // Internet Explorer is dumb: http://msdn.microsoft.com/workshop/author/
   //                            dhtml/reference/properties/name_2.asp
   // Also does not allow setting of 'type' attribute on 'input' or 'button'.
-  if (goog.userAgent.IE && attributes && (attributes.name || attributes.type)) {
+  if (!goog.dom.BrowserFeature.CAN_ADD_NAME_OR_TYPE_ATTRIBUTES && attributes &&
+      (attributes.name || attributes.type)) {
     var tagNameArr = ['<', tagName];
     if (attributes.name) {
       tagNameArr.push(' name="', goog.string.htmlEscape(attributes.name),
@@ -6511,7 +6614,12 @@ goog.dom.htmlToDocumentFragment = function(htmlString) {
  */
 goog.dom.htmlToDocumentFragment_ = function(doc, htmlString) {
   var tempDiv = doc.createElement('div');
-  tempDiv.innerHTML = htmlString;
+  if (goog.dom.BrowserFeature.INNER_HTML_NEEDS_SCOPED_ELEMENT) {
+    tempDiv.innerHTML = '<br>' + htmlString;
+    tempDiv.removeChild(tempDiv.firstChild);
+  } else {
+    tempDiv.innerHTML = htmlString;
+  }
   if (tempDiv.childNodes.length == 1) {
     return /** @type {!Node} */ (tempDiv.removeChild(tempDiv.firstChild));
   } else {
@@ -6561,17 +6669,32 @@ goog.dom.isCss1CompatMode_ = function(doc) {
 
 
 /**
- * Determines if the given node can contain children.
+ * Determines if the given node can contain children, intended to be used for
+ * HTML generation.
+ *
+ * IE natively supports node.canHaveChildren but has inconsistent behavior.
+ * Prior to IE8 the base tag allows children and in IE9 all nodes return true
+ * for canHaveChildren.
+ *
+ * In practice all non-IE browsers allow you to add children to any node, but
+ * the behavior is inconsistent:
+ *
+ * <pre>
+ *   var a = document.createElement('br');
+ *   a.appendChild(document.createTextNode('foo'));
+ *   a.appendChild(document.createTextNode('bar'));
+ *   console.log(a.childNodes.length);  // 2
+ *   console.log(a.innerHTML);  // Chrome: "", IE9: "foobar", FF3.5: "foobar"
+ * </pre>
+ *
+ * TODO(user): Rename shouldAllowChildren() ?
+ *
  * @param {Node} node The node to check.
  * @return {boolean} Whether the node can contain children.
  */
 goog.dom.canHaveChildren = function(node) {
   if (node.nodeType != goog.dom.NodeType.ELEMENT) {
     return false;
-  }
-  if ('canHaveChildren' in node) {
-    // IE supports this natively.
-    return node.canHaveChildren;
   }
   switch (node.tagName) {
     case goog.dom.TagName.APPLET:
@@ -7197,11 +7320,11 @@ goog.dom.PREDEFINED_TAG_VALUES_ = {'IMG': ' ', 'BR': '\n'};
 /**
  * Returns true if the element has a tab index that allows it to receive
  * keyboard focus (tabIndex >= 0), false otherwise.  Note that form elements
- * natively support keyboard focus, even if they have no tab index.  See
- * http://go/tabindex for more info.
+ * natively support keyboard focus, even if they have no tab index.
  * @param {Element} element Element to check.
  * @return {boolean} Whether the element has a tab index that allows keyboard
  *     focus.
+ * @see http://fluidproject.org/blog/2008/01/09/getting-setting-and-removing-tabindex-values-with-javascript/
  */
 goog.dom.isFocusableTabIndex = function(element) {
   // IE returns 0 for an unset tabIndex, so we must use getAttributeNode(),
@@ -7247,9 +7370,9 @@ goog.dom.setFocusableTabIndex = function(element, enable) {
  */
 goog.dom.getTextContent = function(node) {
   var textContent;
-  // Note(user): Both Opera and Safara 3 supports innerText but they include
+  // Note(user): IE9, Opera, and Safara 3 support innerText but they include
   // text nodes in script tags. So we revert to use a user agent test here.
-  if (goog.userAgent.IE && ('innerText' in node)) {
+  if (goog.dom.BrowserFeature.CAN_USE_INNER_TEXT && ('innerText' in node)) {
     textContent = goog.string.canonicalizeNewlines(node.innerText);
     // Unfortunately .innerText() returns text with &shy; symbols
     // We need to filter it out and then remove duplicate whitespaces
@@ -7260,9 +7383,13 @@ goog.dom.getTextContent = function(node) {
   }
 
   // Strip &shy; entities. goog.format.insertWordBreaks inserts them in Opera.
-  textContent = textContent.replace(/\xAD/g, '');
+  textContent = textContent.replace(/ \xAD /g, ' ').replace(/\xAD/g, '');
 
-  textContent = textContent.replace(/ +/g, ' ');
+  // Skip this replacement on IE, which automatically turns &nbsp; into ' '
+  // and / +/ into ' ' when reading innerText.
+  if (!goog.userAgent.IE) {
+    textContent = textContent.replace(/ +/g, ' ');
+  }
   if (textContent != ' ') {
     textContent = textContent.replace(/^\s*/, '');
   }
@@ -8202,6 +8329,50 @@ goog.debug.errorHandlerWeakDep = {
    */
   protectEntryPoint: function(fn, opt_tracers) { return fn; }
 };
+// Copyright 2010 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Browser capability checks for the events package.
+ *
+ *
+ */
+
+
+goog.provide('goog.events.BrowserFeature');
+
+goog.require('goog.userAgent');
+
+
+/**
+ * Enum of browser capabilities.
+ * @enum {boolean}
+ */
+goog.events.BrowserFeature = {
+  /**
+   * Whether the button attribute of the event is W3C compliant.
+   * False in Internet Explorer prior to version 9.
+   */
+  HAS_W3C_BUTTON: !goog.userAgent.IE || goog.userAgent.isVersion('9'),
+
+  /**
+   * To prevent default in IE7 for certain keydown events we need set the
+   * keyCode to -1.
+   */
+  SET_KEY_CODE_TO_PREVENT_DEFAULT: goog.userAgent.IE &&
+      !goog.userAgent.isVersion('8')
+};
 // Copyright 2005 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -8482,6 +8653,7 @@ goog.events.Event.preventDefault = function(e) {
 goog.provide('goog.events.BrowserEvent');
 goog.provide('goog.events.BrowserEvent.MouseButton');
 
+goog.require('goog.events.BrowserFeature');
 goog.require('goog.events.Event');
 goog.require('goog.userAgent');
 
@@ -8643,8 +8815,8 @@ goog.events.BrowserEvent.prototype.metaKey = false;
 
 
 /**
- * Whether the deafault platform modifier key was pressed at time of event.
- * (This is control for all platformes except Mac, where it's Meta.
+ * Whether the default platform modifier key was pressed at time of event.
+ * (This is control for all platforms except Mac, where it's Meta.
  * @type {boolean}
  */
 goog.events.BrowserEvent.prototype.platformModifierKey = false;
@@ -8731,7 +8903,7 @@ goog.events.BrowserEvent.prototype.init = function(e, opt_currentTarget) {
  * @return {boolean} True if button was pressed.
  */
 goog.events.BrowserEvent.prototype.isButton = function(button) {
-  if (goog.userAgent.IE) {
+  if (!goog.events.BrowserFeature.HAS_W3C_BUTTON) {
     if (this.type == 'click') {
       return button == goog.events.BrowserEvent.MouseButton.LEFT;
     } else {
@@ -8758,16 +8930,6 @@ goog.events.BrowserEvent.prototype.stopPropagation = function() {
 
 
 /**
- * To prevent default in IE7 for certain keydown events we need set the keyCode
- * to -1.
- * @type {boolean}
- * @private
- */
-goog.events.BrowserEvent.IE7_SET_KEY_CODE_TO_PREVENT_DEFAULT_ =
-    goog.userAgent.IE && !goog.userAgent.isVersion('8');
-
-
-/**
  * @inheritDoc
  */
 goog.events.BrowserEvent.prototype.preventDefault = function() {
@@ -8775,13 +8937,17 @@ goog.events.BrowserEvent.prototype.preventDefault = function() {
   var be = this.event_;
   if (!be.preventDefault) {
     be.returnValue = false;
-    if (goog.events.BrowserEvent.IE7_SET_KEY_CODE_TO_PREVENT_DEFAULT_) {
+    if (goog.events.BrowserFeature.SET_KEY_CODE_TO_PREVENT_DEFAULT) {
       /** @preserveTry */
       try {
-        // Most keys can be prevented using returnValue, just like in IE8 but
-        // some special keys require setting the keyCode to -1 as well:
+        // Most keys can be prevented using returnValue. Some special keys
+        // require setting the keyCode to -1 as well:
         //
+        // In IE7:
         // F3, F5, F10, F11, Ctrl+P, Crtl+O, Ctrl+F (these are taken from IE6)
+        //
+        // In IE8:
+        // Ctrl+P, Crtl+O, Ctrl+F (F1-F12 cannot be stopped through the event)
         //
         // We therefore do this for all function keys as well as when Ctrl key
         // is pressed.
@@ -15659,9 +15825,10 @@ goog.net.xhrMonitor = new goog.net.XhrMonitor_();
  * ensure no leaks.
  *
  * XhrIo is event based, it dispatches events when a request finishes, fails or
- * succeeds or when the ready-state changes. The ready-state event fires first,
- * followed by a generic completed event, and lastly the error or success event
- * is fired as appropriate.
+ * succeeds or when the ready-state changes. The ready-state or timeout event
+ * fires first, followed by a generic completed event. Then the abort, error,
+ * or success event is fired as appropriate. Lastly, the ready event will fire
+ * to indicate that the object may be used to make another request.
  *
  * The error event may also be called before completed and
  * ready-state-change if the XmlHttpRequest.open() or .send() methods throw.
@@ -15803,7 +15970,7 @@ goog.net.XhrIo.send = function(url, opt_callback, opt_method, opt_content,
 goog.net.XhrIo.cleanup = function() {
   var instances = goog.net.XhrIo.sendInstances_;
   while (instances.length) {
-     instances.pop().dispose();
+    instances.pop().dispose();
   }
 };
 
@@ -15975,7 +16142,7 @@ goog.net.XhrIo.prototype.setTimeoutInterval = function(ms) {
 
 /**
  * Instance send that actually uses XMLHttpRequest to make a server call.
- * @param {string|goog.Uri} url Uri to make request too.
+ * @param {string|goog.Uri} url Uri to make request to.
  * @param {string=} opt_method Send method, default: GET.
  * @param {string|GearsBlob=} opt_content Post data. This can be a Gears blob
  *     if the underlying HTTP request object is a Gears HTTP request.
@@ -15983,8 +16150,8 @@ goog.net.XhrIo.prototype.setTimeoutInterval = function(ms) {
  *     request.
  */
 goog.net.XhrIo.prototype.send = function(url, opt_method, opt_content,
-                                           opt_headers) {
-  if (this.active_) {
+                                         opt_headers) {
+  if (this.xhr_) {
     throw Error('[goog.net.XhrIo] Object is active with another request');
   }
 
@@ -16321,7 +16488,7 @@ goog.net.XhrIo.prototype.cleanUpXhr_ = function(opt_fromDispose) {
     var xhr = this.xhr_;
     var clearedOnReadyStateChange =
         this.xhrOptions_[goog.net.XmlHttp.OptionType.USE_NULL_FUNCTION] ?
-              goog.nullFunction : null;
+            goog.nullFunction : null;
     this.xhr_ = null;
     this.xhrOptions_ = null;
 
@@ -16361,7 +16528,7 @@ goog.net.XhrIo.prototype.cleanUpXhr_ = function(opt_fromDispose) {
  * @return {boolean} Whether there is an active request.
  */
 goog.net.XhrIo.prototype.isActive = function() {
-  return this.active_;
+  return !!this.xhr_;
 };
 
 
@@ -16457,21 +16624,39 @@ goog.net.XhrIo.prototype.getLastUri = function() {
 
 /**
  * Get the response text from the Xhr object
- * Will only return correct result when called from the context of a callback
- * @return {string} Result from the server.
+ * Will only return correct result when called from the context of a callback.
+ * @return {string} Result from the server, or '' if no result available.
  */
 goog.net.XhrIo.prototype.getResponseText = function() {
-  return this.xhr_ ? this.xhr_.responseText : '';
+  /** @preserveTry */
+  try {
+    return this.xhr_ ? this.xhr_.responseText : '';
+  } catch (e) {
+    // http://www.w3.org/TR/XMLHttpRequest/#the-responsetext-attribute
+    // states that responseText should return '' (and responseXML null)
+    // when the state is not LOADING or DONE. Instead, IE and Gears can
+    // throw unexpected exceptions, eg, when a request is aborted or no
+    // data is available yet.
+    this.logger_.fine('Can not get responseText: ' + e.message);
+    return '';
+  }
 };
 
 
 /**
  * Get the response XML from the Xhr object
- * Will only return correct result when called from the context of a callback
- * @return {Document} The DOM Document representing the XML file.
+ * Will only return correct result when called from the context of a callback.
+ * @return {Document} The DOM Document representing the XML file, or null
+ * if no result available.
  */
 goog.net.XhrIo.prototype.getResponseXml = function() {
-  return this.xhr_ ? this.xhr_.responseXML : null;
+  /** @preserveTry */
+  try {
+    return this.xhr_ ? this.xhr_.responseXML : null;
+  } catch (e) {
+    this.logger_.fine('Can not get responseXML: ' + e.message);
+    return null;
+  }
 };
 
 
@@ -16525,7 +16710,7 @@ goog.net.XhrIo.prototype.getLastErrorCode = function() {
  */
 goog.net.XhrIo.prototype.getLastError = function() {
   return goog.isString(this.lastError_) ? this.lastError_ :
-    String(this.lastError_);
+      String(this.lastError_);
 };
 
 
@@ -16631,6 +16816,48 @@ goog.net.cookies.isEnabled = function() {
 
 
 /**
+ * We do not allow '=', ';', or white space in the name.
+ *
+ * NOTE: The following are allowed by this method, but should be avoided for
+ * cookies handled by the server.
+ * - any name starting with '$'
+ * - 'Comment'
+ * - 'Domain'
+ * - 'Expires'
+ * - 'Max-Age'
+ * - 'Path'
+ * - 'Secure'
+ * - 'Version'
+ *
+ * @param {string} name Cookie name.
+ * @return {boolean} Whether name is valid.
+ *
+ * @see <a href="http://tools.ietf.org/html/rfc2109">RFC 2109</a>
+ * @see <a href="http://tools.ietf.org/html/rfc2965">RFC 2965</a>
+ */
+goog.net.cookies.isValidName = function(name) {
+  return !(/[;=\s]/.test(name));
+};
+
+
+/**
+ * We do not allow ';' or line break in the value.
+ *
+ * Spec does not mention any illegal characters, but in practice semi-colons
+ * break parsing and line breaks truncate the name.
+ *
+ * @param {string} value Cookie value.
+ * @return {boolean} Whether value is valid.
+ *
+ * @see <a href="http://tools.ietf.org/html/rfc2109">RFC 2109</a>
+ * @see <a href="http://tools.ietf.org/html/rfc2965">RFC 2965</a>
+ */
+goog.net.cookies.isValidValue = function(value) {
+  return !(/[;\r\n]/.test(value));
+};
+
+
+/**
  * Sets a cookie.  The max_age can be -1 to set a session cookie. To remove and
  * expire cookies, use remove() instead.
  *
@@ -16638,8 +16865,8 @@ goog.net.cookies.isEnabled = function() {
  * up to the callers of {@code get} and {@code set} (as well as all the other
  * methods) to handle any possible encoding and decoding.
  *
- * @throws {!Error} If the {@code name} contains either ";" or "=".
- * @throws {!Error} If the {@code value} contains ";"".
+ * @throws {!Error} If the {@code name} fails #goog.net.cookies.isValidName.
+ * @throws {!Error} If the {@code value} fails #goog.net.cookies.isValidValue.
  *
  * @param {string} name  The cookie name.
  * @param {string} value  The cookie value.
@@ -16654,12 +16881,10 @@ goog.net.cookies.isEnabled = function() {
  *     name).
  */
 goog.net.cookies.set = function(name, value, opt_maxAge, opt_path, opt_domain) {
-  // we do not allow '=' or ';' in the name
-  if (/[;=]/.test(name)) {
+  if (!goog.net.cookies.isValidName(name)) {
     throw Error('Invalid cookie name "' + name + '"');
   }
-  // we do not allow ';' in value
-  if (/;/.test(value)) {
+  if (!goog.net.cookies.isValidValue(value)) {
     throw Error('Invalid cookie value "' + value + '"');
   }
 
@@ -20220,10 +20445,14 @@ goog.ui.Component.prototype.createDom = function() {
 
 
 /**
- * Renders the component.  If a parent element is supplied, it should already be
- * in the document and then the component's element will be appended to it.  If
- * there is no optional parent element and the element doesn't have a parentNode
- * then it will be appended to the document body.
+ * Renders the component.  If a parent element is supplied, the component's
+ * element will be appended to it.  If there is no optional parent element and
+ * the element doesn't have a parentNode then it will be appended to the
+ * document body.
+ *
+ * If this component has a parent component, and the parent component is
+ * not in the document already, then this will not call {@code enterDocument}
+ * on this component.
  *
  * Throws an Error if the component is already rendered.
  *
@@ -20250,10 +20479,14 @@ goog.ui.Component.prototype.renderBefore = function(siblingElement) {
 
 
 /**
- * Renders the component.  If a parent element is supplied, it should already be
- * in the document and then the component's element will be appended to it.  If
- * there is no optional parent element and the element doesn't have a parentNode
- * then it will be appended to the document body.
+ * Renders the component.  If a parent element is supplied, the component's
+ * element will be appended to it.  If there is no optional parent element and
+ * the element doesn't have a parentNode then it will be appended to the
+ * document body.
+ *
+ * If this component has a parent component, and the parent component is
+ * not in the document already, then this will not call {@code enterDocument}
+ * on this component.
  *
  * Throws an Error if the component is already rendered.
  *
@@ -20528,6 +20761,10 @@ goog.ui.Component.prototype.addChild = function(child, opt_render) {
  *    <li>the child component is already in the document, regardless of the
  *        parent's DOM state.
  *  </ul>
+ *
+ * If {@code opt_render} is true and the parent component is not already
+ * in the document, {@code enterDocument} will not be called on this component
+ * at this point.
  *
  * Finally, this method also throws an error if the new child already has a
  * different parent, or the given index is out of bounds.
@@ -22290,7 +22527,14 @@ goog.events.KeyCodes = {
   CLOSE_SQUARE_BRACKET: 221, // needs localization
   WIN_KEY: 224,
   MAC_FF_META: 224, // Firefox (Gecko) fires this for the meta key instead of 91
-  WIN_IME: 229
+  WIN_IME: 229,
+
+  // We've seen users whose machines fire this keycode at regular one
+  // second intervals. The common thread among these users is that
+  // they're all using Dell Inspiron laptops, so we suspect that this
+  // indicates a hardware/bios problem.
+  // http://en.community.dell.com/support-forums/laptop/f/3518/p/19285957/19523128.aspx
+  PHANTOM: 255
 };
 
 
@@ -22328,6 +22572,7 @@ goog.events.KeyCodes.isTextModifyingKeyEvent = function(e) {
     case goog.events.KeyCodes.PAGE_DOWN:
     case goog.events.KeyCodes.PAGE_UP:
     case goog.events.KeyCodes.PAUSE:
+    case goog.events.KeyCodes.PHANTOM:
     case goog.events.KeyCodes.PRINT_SCREEN:
     case goog.events.KeyCodes.RIGHT:
     case goog.events.KeyCodes.SHIFT:
@@ -24106,7 +24351,9 @@ goog.ui.Tooltip.prototype.onHide_ = function() {
  *     at.
  */
 goog.ui.Tooltip.prototype.maybeShow = function(el, opt_pos) {
-  if (this.anchor == el) {
+  // Assert that the mouse is still over the same element, and that we have not
+  // detached from the anchor in the meantime.
+  if (this.anchor == el && this.elements_.contains(this.anchor)) {
     if (this.seenInteraction_ || !this.requireInteraction_) {
       // If it is currently showing, then hide it, and abort if it doesn't hide.
       this.setVisible(false);
@@ -24132,7 +24379,6 @@ goog.ui.Tooltip.prototype.getElements = function() {
 
 /**
  * @return {Element} Active element reference.
- * @protected
  */
 goog.ui.Tooltip.prototype.getActiveElement = function() {
   return this.activeEl_;

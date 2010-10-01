@@ -3,9 +3,8 @@
   // Adds the CSS to the DOM.
   var cssNode = document.createElement('link');
   cssNode.rel = 'stylesheet';
-  cssNode.type = 'text/css';
   cssNode.href = 'http://{{ server }}/static/button.css';
-  var headEl = document.getElementsByTagName('head')[0];
+  var headEl = document.head || document.getElementsByTagName('head')[0];
   headEl.appendChild(cssNode);
 
   var runTestEl = document.createElement('div');

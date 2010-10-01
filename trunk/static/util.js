@@ -42,10 +42,9 @@ goog.global.CLOSURE_NO_DEPS = true;
  */
 Util.addCssText = function(cssText, opt_id) {
   var cssNode = goog.dom.createElement('style');
-  cssNode.type = 'text/css';
   cssNode.id = opt_id ? opt_id : 'cssh-sheet-' + document.styleSheets.length;
 
-  var headEl = document.getElementsByTagName('head')[0];
+  var headEl = document.head || document.getElementsByTagName('head')[0];
   headEl.appendChild(cssNode);
 
   // IE
@@ -83,8 +82,7 @@ Util.curry = function(scope, fn) {
  * @return {boolean} true if IE, false otherwise.
  */
 Util.isInternetExplorer = function() {
-   return /msie/i.test(navigator.userAgent) &&
-       !/opera/i.test(navigator.userAgent);
+   return /*@cc_on!@*/0;
 };
 
 
@@ -183,10 +181,10 @@ Util.createChromeFrameCheckbox = function(serverUaString, opt_reloadOnChange) {
  */
 Util.getJsUaOverrides = function() {
   var jsUa, jsFamilyName, jsV1, jsV2, jsV3;
-  var isIE = navigator.userAgent.indexOf('MSIE') != -1;
+  var isIE = /*@cc_on!@*/0;
   if (isIE && typeof document.documentMode != 'undefined') {
     var matches = /MSIE (\d+)\.(\d+)/.exec(navigator.userAgent); // MSIE x.x;
-    if (window.external == null) {
+    if (!window.external) {
         jsFamilyName = 'IE Platform Preview';
         jsV1 = '9';
         jsV2 = '0';
