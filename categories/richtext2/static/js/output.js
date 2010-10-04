@@ -344,3 +344,22 @@ function outputTestSuiteScores() {
                         scoresPartial[currentSuiteID].total + '/' + 
                         counts[currentSuiteID].total;
 }
+
+/**
+ * Writes a fatal error to the output (replaces alert box)
+ *
+ * @param text {String} text to output
+ */
+function writeFatalError(text) {
+  var errorsStart = document.getElementById('errors');
+  var divider = document.getElementById('divider');
+  if (!errorsStart) {
+    errorsStart = document.createElement('hr');
+    errorsStart.id = 'errors';
+    divider.parentNode.insertBefore(errorsStart, divider);
+  }
+  var error = document.createElement('div');
+  error.className = 'fatalerror';
+  error.innerHTML = 'FATAL ERROR: ' + escapeOutput(text);
+  errorsStart.parentNode.insertBefore(error, divider);
+}

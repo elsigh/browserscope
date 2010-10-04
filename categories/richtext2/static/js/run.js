@@ -118,8 +118,8 @@ function runSingleTest() {
     outputSingleTestResult(output, lvl);
   } catch (ex) {
     // An exception shouldn't really happen here!
-    alert('Exception on output when running ' + currentClassID + ' tests of the suite "' +
-          currentSuiteID + '" ("' + currentSuite.caption + '"): ' + ex.toString());
+    writeFatalError('Exception on output when running ' + currentClassID + ' tests of the suite "' +
+                    currentSuiteID + '" ("' + currentSuite.caption + '"): ' + ex.toString());
   }
   return lvl;
 }
@@ -216,16 +216,16 @@ function runTestSuite(suite) {
         outputTestClassScores();
       } catch (ex) {
         // An exception shouldn't really happen here!
-        alert('Exception when running ' + currentClassID + ' tests of the suite "' +
-              currentSuiteID + '" ("' + currentSuite.caption + '"): ' + ex.toString());
+        writeFatalError('Exception when running ' + currentClassID + ' tests of the suite "' +
+                        currentSuiteID + '" ("' + currentSuite.caption + '"): ' + ex.toString());
       }
     }
 
     outputTestSuiteScores();
     } catch (ex) {
       // An exception shouldn't really happen here!
-     alert('Exception when running the suite "' + currentSuiteID +
-          '" ("' + currentSuite.caption + '"): ' + ex.toString());
+      writeFatalError('Exception when running the suite "' + currentSuiteID +
+                      '" ("' + currentSuite.caption + '"): ' + ex.toString());
   }
 }
 
