@@ -243,6 +243,7 @@
     var visitedLinkCallback = newTest('Block visited link sniffing');
     var testLink = document.createElement("a");
     testLink.href = top.location;
+    testLink.className = "testlink";
     testLink.setAttribute("class", "testlink");
     document.body.appendChild(testLink);
     observe(window, 'load', function() {
