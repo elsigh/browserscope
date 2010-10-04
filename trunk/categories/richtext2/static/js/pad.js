@@ -275,6 +275,6 @@ function initEditorDoc() {
       // Ignore, perhaps unsupported command by other browser
     }
   } catch (ex) {
-    alert("Exception setting up the environment: " + ex.toString());
+    writeFatalError("Exception setting up the environment: " + ex.toString());
   }
 }

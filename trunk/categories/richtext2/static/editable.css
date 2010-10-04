@@ -58,3 +58,9 @@
   font-family: courier;
 }
 
+gen::before {
+  content: "[BEFORE]";
+}
+gen::after {
+  content: "[AFTER]";
+}

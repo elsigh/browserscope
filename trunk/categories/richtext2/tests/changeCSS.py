@@ -175,14 +175,14 @@ CHANGE_TESTS_CSS = {
     { 'id':         'FN:a_FONTf:a-1_SI',
       'desc':       'Change existing font name to same font name, using CSS styling (should be noop)',
       'command':    'fontname',
-      'value':      'courier',
+      'value':      'arial',
       'pad':        '<font face="arial">foo[bar]baz</font>',
       'expected':   '<font face="arial">foo[bar]baz</font>' },
 
     { 'id':         'FN:a_FONTf:a-1_SW',
       'desc':       'Change existing font name to same font name, using CSS styling (should be noop or perhaps change tag)',
       'command':    'fontname',
-      'value':      'courier',
+      'value':      'arial',
       'pad':        '<font face="arial">[foobarbaz]</font>',
       'expected':   [ '<font face="arial">[foobarbaz]</font>',
                       '<span style="font-family: arial">[foobarbaz]</span>' ] },
@@ -190,7 +190,7 @@ CHANGE_TESTS_CSS = {
     { 'id':         'FN:a_FONTf:a-1_SO',
       'desc':       'Change existing font name to same font name, using CSS styling (should be noop or perhaps change tag)',
       'command':    'fontname',
-      'value':      'courier',
+      'value':      'arial',
       'pad':        '{<font face="arial">foobarbaz</font>}',
       'expected':   [ '{<font face="arial">foobarbaz</font>}',
                       '<font face="arial">[foobarbaz]</font>',
@@ -200,7 +200,7 @@ CHANGE_TESTS_CSS = {
     { 'id':         'FN:a_SPANs:ff:a-1_SI',
       'desc':       'Change existing font name to same font name, using CSS styling (should be noop)',
       'command':    'fontname',
-      'value':      'courier',
+      'value':      'arial',
       'pad':        '<span style="font-family: arial">[foobarbaz]</span>',
       'expected':   '<span style="font-family: arial">[foobarbaz]</span>' },
 
@@ -232,7 +232,7 @@ CHANGE_TESTS_CSS = {
       'value':      '18px',
       'pad':        '<span style="font-size: large">[foobarbaz]</span>',
       # note: both expectations are treated as equivalent anyway - here for documentation purposes only
-      'expected':   [ '<span style="font-size: large">[foobarbaz]</span>',
+      'expected':   [ '<span style="font-size: 18px">[foobarbaz]</span>',
                       '<span style="font-size: large">[foobarbaz]</span>' ] },
 
     { 'id':         'FS:4_SPANs:fs:l-1_SW',

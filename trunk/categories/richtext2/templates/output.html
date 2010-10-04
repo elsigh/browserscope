@@ -1,4 +1,43 @@
-﻿{% for s in suites %}
+﻿<!-- Legend -->
+<TABLE CLASS="legend">
+  <THEAD>
+    <TR><TH COLSPAN=3 CLASS="legendHdr">Result Description</TH></TR>
+    <TR><TH>Status</TH><TH ALIGN="LEFT">Meaning</TH><TH ALIGN="LEFT">Explanation</TH></TR>
+  </THEAD>
+  <TBODY>
+    <TR><TD CLASS="successBkLo" ALIGN="CENTER">&nbsp;PASS&nbsp;</TD><TD ROWSPAN=2>Passed</TD><TD ROWSPAN=2>Both the result HTML as well as the selection are as expected.</TD></TR>
+    <TR><TD CLASS="successBkHi" ALIGN="CENTER">&nbsp;PASS&nbsp;</TD></TR>
+    <TR><TD CLASS="acceptBkLo" ALIGN="CENTER">&nbsp;ACC.&nbsp;</TD><TD ROWSPAN=2>Acceptable</TD><TD ROWSPAN=2>The HTML result is technically correct, but not ideal (too verbose, deprecated usage, etc.). The selection is correct. For strict tests this will count as failure.</TD></TR>
+    <TR><TD CLASS="acceptBkHi" ALIGN="CENTER">&nbsp;ACC.&nbsp;</TD></TR>
+    <TR><TD CLASS="seldiffBkLo" ALIGN="CENTER">&nbsp;SEL.&nbsp;</TD><TD ROWSPAN=2>Selection Differences</TD><TD ROWSPAN=2>The result is as expected, or acceptable, but the final selection is incorrect. For strict tests this will count as failure.</TD></TR>
+    <TR><TD CLASS="seldiffBkHi" ALIGN="CENTER">&nbsp;SEL.&nbsp;</TD></TR>
+    <TR><TD CLASS="failBkLo" ALIGN="CENTER">&nbsp;FAIL&nbsp;</TD><TD ROWSPAN=2>Failure</TD><TD ROWSPAN=2>The result HTML is incorrect.</TD></TR>
+    <TR><TD CLASS="failBkHi" ALIGN="CENTER">&nbsp;FAIL&nbsp;</TD></TR>
+    <TR><TD CLASS="exceptionBkLo" ALIGN="CENTER">&nbsp;EXC.&nbsp;</TD><TD ROWSPAN=2>Exception</TD><TD ROWSPAN=2>An unexpected exception was thrown during the execution of the test.</TD></TR>
+    <TR><TD CLASS="exceptionBkHi" ALIGN="CENTER">&nbsp;EXC.&nbsp;</TD></TR>
+  </TBODY>
+</TABLE>
+<TABLE CLASS="legend">
+  <THEAD>
+    <TR><TH COLSPAN=2 CLASS="legendHdr">Selection and Result Display</TH></TR>
+    <TR><TH>Character</TH><TH ALIGN="LEFT">Explanation</TH></TR>
+  </THEAD>
+  <TBODY>
+    <TR><TD CLASS="sel" ALIGN="CENTER">[</TD><TD>Start of selection - selection point is within a text node.</TD></TR>
+    <TR><TD CLASS="sel" ALIGN="CENTER">]</TD><TD>End of selection - selection point is within a text node.</TD></TR>
+    <TR><TD CLASS="sel" ALIGN="CENTER">^</TD><TD>Collapsed selection - selection point is within a text node.</TD></TR>
+    <TR><TD COLSPAN=2>&nbsp;</TD></TR>
+    <TR><TD CLASS="sel" ALIGN="CENTER">{</TD><TD>Start of selection - selection point is within an element node.</TD></TR>
+    <TR><TD CLASS="sel" ALIGN="CENTER">}</TD><TD>End of selection - selection point is within an element node.</TD></TR>
+    <TR><TD CLASS="sel" ALIGN="CENTER">|</TD><TD>Collapsed selection - selection point is within an element node.</TD></TR>
+    <TR><TD COLSPAN=2>&nbsp;</TD></TR>
+    <TR><TD ALIGN="CENTER"><SPAN CLASS="fade">foo</SPAN></TD><TD>Greyed text indicates parts of the output that are ignored for the purposes of checking the result.</TD></TR>
+    <TR><TD ALIGN="CENTER"><SPAN CLASS="txt">foo</SPAN></TD><TD>Grey border indicates extent of text nodes in the result.</TD></TR>
+  </TBODY>
+</TABLE>
+<HR ID="divider">
+<!-- Main output -->
+{% for s in suites %}
   <H1 ID="{{ s.id }}"><A NAME="{{ s.id }}" HREF="#{{ s.id }}">{{ s.id }}</A> - {{ s.caption }}: <SPAN ID="{{ s.id }}-score">?/?/?</SPAN></H1>
   {% if s.comment %}
   <DIV CLASS="comment">{{ s.comment|safe }}</DIV>

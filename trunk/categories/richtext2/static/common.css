@@ -1,5 +1,22 @@
+.legend {
+  vertical-align: top;
+  margin: 8px;
+  border: 1px solid black;
+  padding: 12px;
+  background-color: #f8f8ff;
+}
+
+.legendHdr {
+  font-size: large;
+  text-decoration: underline;
+}
+
+table.legend {
+  display: inline-table;
+}
+
 .suite-thead {
-    text-align: left;
+  text-align: left;
 }
 
 .greyBkLo {
@@ -62,9 +79,9 @@
   color: #666666;
 }
 
-gen::before {
-  content: "[BEFORE]";
+.fatalerror {
+  color: red;
+  font-size: large;
+  font-weight: bold;
 }
-gen::after {
-  content: "[AFTER]";
-}
+
