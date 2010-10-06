@@ -617,6 +617,7 @@ def Beacon(request, category_id=None):
     test_set = all_test_sets.GetTestSet(category)
 
   if not test_set:
+    logging.info('Unabled to find a test set for %s' % category)
     return http.HttpResponse(BAD_BEACON_MSG + 'TestSet')
 
   logging.info('Beacon category: %s\n w/ results_str: %s' %
@@ -633,7 +634,9 @@ def Beacon(request, category_id=None):
       js_user_agent_v2=js_user_agent_v2,
       js_user_agent_v3=js_user_agent_v3)
   if not result_parent:
-    return http.HttpResponse(BAD_BEACON_MSG + 'ResultParent')
+    msg = BAD_BEACON_MSG + 'ResultParent'
+    logging.info(msg)
+    return http.HttpResponse(msg)
 
   # User tests don't need to update our recent tests list.
   if not user_test_set:

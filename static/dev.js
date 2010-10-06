@@ -1954,15 +1954,24 @@ goog.string.unescapeEntities = function(str) {
  * @return {string} The unescaped {@code str} string.
  */
 goog.string.unescapeEntitiesUsingDom_ = function(str) {
-  var el = goog.global['document']['createElement']('a');
-  el['innerHTML'] = str;
+  // Use a DIV as FF3 generates bogus markup for A > PRE.
+  var el = goog.global['document']['createElement']('div');
+  // Wrap in PRE to preserve whitespace in IE.
+  // The PRE must be part of the innerHTML markup,
+  // just setting innerHTML on a PRE element does not work.
+  // Also include a leading character since conforming HTML5
+  // UAs will strip leading newlines inside a PRE element.
+  el['innerHTML'] = '<pre>x' + str + '</pre>';
   // Accesing the function directly triggers some virus scanners.
-  if (el[goog.string.NORMALIZE_FN_]) {
-    el[goog.string.NORMALIZE_FN_]();
+  if (el['firstChild'][goog.string.NORMALIZE_FN_]) {
+    el['firstChild'][goog.string.NORMALIZE_FN_]();
   }
-  str = el['firstChild']['nodeValue'];
+  // Remove the leading character we added.
+  str = el['firstChild']['firstChild']['nodeValue'].slice(1);
   el['innerHTML'] = '';
-  return str;
+  // IE will also return non-standard newlines for TextNode.nodeValue,
+  // switching \r and \n, so canonicalize them before returning.
+  return goog.string.canonicalizeNewlines(str);
 };
 
 
@@ -4605,6 +4614,7 @@ goog.dom.TagName = {
   BODY: 'BODY',
   BR: 'BR',
   BUTTON: 'BUTTON',
+  CANVAS: 'CANVAS',
   CAPTION: 'CAPTION',
   CENTER: 'CENTER',
   CITE: 'CITE',
@@ -5000,8 +5010,8 @@ goog.math.Coordinate.equals = function(a, b) {
 
 /**
  * Returns the distance between two coordinates.
- * @param {goog.math.Coordinate} a A Coordinate.
- * @param {goog.math.Coordinate} b A Coordinate.
+ * @param {!goog.math.Coordinate} a A Coordinate.
+ * @param {!goog.math.Coordinate} b A Coordinate.
  * @return {number} The distance between {@code a} and {@code b}.
  */
 goog.math.Coordinate.distance = function(a, b) {
@@ -5019,8 +5029,8 @@ goog.math.Coordinate.distance = function(a, b) {
  * in lower-level languages, but the speed difference is not nearly as
  * pronounced in JavaScript (only a few percent.)
  *
- * @param {goog.math.Coordinate} a A Coordinate.
- * @param {goog.math.Coordinate} b A Coordinate.
+ * @param {!goog.math.Coordinate} a A Coordinate.
+ * @param {!goog.math.Coordinate} b A Coordinate.
  * @return {number} The squared distance between {@code a} and {@code b}.
  */
 goog.math.Coordinate.squaredDistance = function(a, b) {
@@ -5033,9 +5043,9 @@ goog.math.Coordinate.squaredDistance = function(a, b) {
 /**
  * Returns the difference between two coordinates as a new
  * goog.math.Coordinate.
- * @param {goog.math.Coordinate} a A Coordinate.
- * @param {goog.math.Coordinate} b A Coordinate.
- * @return {goog.math.Coordinate} A Coordinate representing the difference
+ * @param {!goog.math.Coordinate} a A Coordinate.
+ * @param {!goog.math.Coordinate} b A Coordinate.
+ * @return {!goog.math.Coordinate} A Coordinate representing the difference
  *     between {@code a} and {@code b}.
  */
 goog.math.Coordinate.difference = function(a, b) {
@@ -5045,9 +5055,9 @@ goog.math.Coordinate.difference = function(a, b) {
 
 /**
  * Returns the sum of two coordinates as a new goog.math.Coordinate.
- * @param {goog.math.Coordinate} a A Coordinate.
- * @param {goog.math.Coordinate} b A Coordinate.
- * @return {goog.math.Coordinate} A Coordinate representing the sum of the two
+ * @param {!goog.math.Coordinate} a A Coordinate.
+ * @param {!goog.math.Coordinate} b A Coordinate.
+ * @return {!goog.math.Coordinate} A Coordinate representing the sum of the two
  *     coordinates.
  */
 goog.math.Coordinate.sum = function(a, b) {
@@ -8605,6 +8615,98 @@ goog.events.Event.stopPropagation = function(e) {
 goog.events.Event.preventDefault = function(e) {
   e.preventDefault();
 };
+// Copyright 2010 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Event Types.
+ *
+ *
+ *
+ *
+ */
+
+
+goog.provide('goog.events.EventType');
+
+goog.require('goog.userAgent');
+
+/**
+ * Constants for event names.
+ * @enum {string}
+ */
+goog.events.EventType = {
+  // Mouse events
+  CLICK: 'click',
+  DBLCLICK: 'dblclick',
+  MOUSEDOWN: 'mousedown',
+  MOUSEUP: 'mouseup',
+  MOUSEOVER: 'mouseover',
+  MOUSEOUT: 'mouseout',
+  MOUSEMOVE: 'mousemove',
+  SELECTSTART: 'selectstart', // IE, Safari, Chrome
+
+  // Key events
+  KEYPRESS: 'keypress',
+  KEYDOWN: 'keydown',
+  KEYUP: 'keyup',
+
+  // Focus
+  BLUR: 'blur',
+  FOCUS: 'focus',
+  DEACTIVATE: 'deactivate', // IE only
+  // TODO(user): Test these. I experienced problems with DOMFocusIn, the event
+  // just wasn't firing.
+  FOCUSIN: goog.userAgent.IE ? 'focusin' : 'DOMFocusIn',
+  FOCUSOUT: goog.userAgent.IE ? 'focusout' : 'DOMFocusOut',
+
+  // Forms
+  CHANGE: 'change',
+  SELECT: 'select',
+  SUBMIT: 'submit',
+  INPUT: 'input',
+  PROPERTYCHANGE: 'propertychange', // IE only
+
+  // Drag and drop
+  DRAGSTART: 'dragstart',
+  DRAGENTER: 'dragenter',
+  DRAGOVER: 'dragover',
+  DRAGLEAVE: 'dragleave',
+  DROP: 'drop',
+
+  // WebKit touch events.
+  TOUCHSTART: 'touchstart',
+  TOUCHMOVE: 'touchmove',
+  TOUCHEND: 'touchend',
+  TOUCHCANCEL: 'touchcancel',
+
+  // Misc
+  CONTEXTMENU: 'contextmenu',
+  ERROR: 'error',
+  HELP: 'help',
+  LOAD: 'load',
+  LOSECAPTURE: 'losecapture',
+  READYSTATECHANGE: 'readystatechange',
+  RESIZE: 'resize',
+  SCROLL: 'scroll',
+  UNLOAD: 'unload',
+
+  // HTML 5 History events
+  HASHCHANGE: 'hashchange',
+  POPSTATE: 'popstate'
+};
+
 // Copyright 2005 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -8655,6 +8757,7 @@ goog.provide('goog.events.BrowserEvent.MouseButton');
 
 goog.require('goog.events.BrowserFeature');
 goog.require('goog.events.Event');
+goog.require('goog.events.EventType');
 goog.require('goog.userAgent');
 
 
@@ -8857,9 +8960,9 @@ goog.events.BrowserEvent.prototype.init = function(e, opt_currentTarget) {
     }
     // TODO(user): Use goog.events.EventType when it has been refactored into its
     // own file.
-  } else if (type == 'mouseover') {
+  } else if (type == goog.events.EventType.MOUSEOVER) {
     relatedTarget = e.fromElement;
-  } else if (type == 'mouseout') {
+  } else if (type == goog.events.EventType.MOUSEOUT) {
     relatedTarget = e.toElement;
   }
 
@@ -9913,7 +10016,6 @@ goog.events.pools.releaseEvent;
 
 
 goog.provide('goog.events');
-goog.provide('goog.events.EventType');
 
 goog.require('goog.array');
 goog.require('goog.debug.entryPointRegistry');
@@ -10512,67 +10614,6 @@ goog.events.expose = function(e) {
     }
   }
   return str.join('\n');
-};
-
-
-/**
- * Constants for event names.
- * @enum {string}
- */
-// TODO(user): Move to its own file.
-goog.events.EventType = {
-  // Mouse events
-  CLICK: 'click',
-  DBLCLICK: 'dblclick',
-  MOUSEDOWN: 'mousedown',
-  MOUSEUP: 'mouseup',
-  MOUSEOVER: 'mouseover',
-  MOUSEOUT: 'mouseout',
-  MOUSEMOVE: 'mousemove',
-  SELECTSTART: 'selectstart', // IE, Safari, Chrome
-
-  // Key events
-  KEYPRESS: 'keypress',
-  KEYDOWN: 'keydown',
-  KEYUP: 'keyup',
-
-  // Focus
-  BLUR: 'blur',
-  FOCUS: 'focus',
-  DEACTIVATE: 'deactivate', // IE only
-  // TODO(user): Test these. I experienced problems with DOMFocusIn, the event
-  // just wasn't firing.
-  FOCUSIN: goog.userAgent.IE ? 'focusin' : 'DOMFocusIn',
-  FOCUSOUT: goog.userAgent.IE ? 'focusout' : 'DOMFocusOut',
-
-  // Forms
-  CHANGE: 'change',
-  SELECT: 'select',
-  SUBMIT: 'submit',
-  INPUT: 'input',
-  PROPERTYCHANGE: 'propertychange', // IE only
-
-  // Drag and drop
-  DRAGSTART: 'dragstart',
-  DRAGENTER: 'dragenter',
-  DRAGOVER: 'dragover',
-  DRAGLEAVE: 'dragleave',
-  DROP: 'drop',
-
-  // Misc
-  CONTEXTMENU: 'contextmenu',
-  ERROR: 'error',
-  HELP: 'help',
-  LOAD: 'load',
-  LOSECAPTURE: 'losecapture',
-  READYSTATECHANGE: 'readystatechange',
-  RESIZE: 'resize',
-  SCROLL: 'scroll',
-  UNLOAD: 'unload',
-
-  // HTML 5 History events
-  HASHCHANGE: 'hashchange',
-  POPSTATE: 'popstate'
 };
 
 
@@ -16342,7 +16383,7 @@ goog.net.XhrIo.prototype.dispatchErrors_ = function() {
  *     defaults to ABORT.
  */
 goog.net.XhrIo.prototype.abort = function(opt_failureCode) {
-  if (this.xhr_) {
+  if (this.xhr_ && this.active_) {
     this.logger_.fine(this.formatMsg_('Aborting'));
     this.active_ = false;
     this.inAbort_ = true;
@@ -16692,6 +16733,18 @@ goog.net.XhrIo.prototype.getResponseJson = function(opt_xssiPrefix) {
 goog.net.XhrIo.prototype.getResponseHeader = function(key) {
   return this.xhr_ && this.isComplete() ?
       this.xhr_.getResponseHeader(key) : undefined;
+};
+
+
+/**
+ * Gets the text of all the headers in the response.
+ * Will only return correct result when called from the context of a callback
+ * and the request has completed.
+ * @return {string} The value of the response headers or empty string.
+ */
+goog.net.XhrIo.prototype.getAllResponseHeaders = function() {
+  return this.xhr_ && this.isComplete() ?
+      this.xhr_.getAllResponseHeaders() : '';
 };
 
 
@@ -19613,7 +19666,17 @@ goog.style.getFontFamily = function(el) {
   if (doc.body.createTextRange) {
     var range = doc.body.createTextRange();
     range.moveToElementText(el);
-    font = range.queryCommandValue('FontName');
+    /** @preserveTry */
+    try {
+      font = range.queryCommandValue('FontName');
+    } catch (e) {
+      // This is a workaround for a awkward exception.
+      // On some IE, there is an exception coming from it.
+      // The error description from this exception is:
+      // This window has already been registered as a drop target
+      // This is bogus description, likely due to a bug in ie.
+      font = '';
+    }
   }
   if (!font) {
     // Note if for some reason IE can't derive FontName with a TextRange, we
