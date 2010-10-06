@@ -2163,7 +2163,7 @@ goog.string.quote = function(s) {
 
 
 /**
- * Takes a string and returns the escaped string for that charater.
+ * Takes a string and returns the escaped string for that character.
  * @param {string} str The string to escape.
  * @return {string} An escaped string representing {@code str}.
  */
@@ -2298,7 +2298,7 @@ goog.string.removeAll = function(s, ss) {
  */
 goog.string.regExpEscape = function(s) {
   return String(s).replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, '\\$1').
-                   replace(/\x08/g, '\\x08');
+      replace(/\x08/g, '\\x08');
 };
 
 
@@ -2432,7 +2432,7 @@ goog.string.compareVersions = function(version1, version2) {
           goog.string.compareElements_(v1Comp[2].length == 0,
               v2Comp[2].length == 0) ||
           goog.string.compareElements_(v1Comp[2], v2Comp[2]);
-    // Stop as soon as an inequality is discovered.
+      // Stop as soon as an inequality is discovered.
     } while (order == 0);
   }
 
