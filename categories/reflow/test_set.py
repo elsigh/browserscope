@@ -163,8 +163,7 @@ class ReflowTestSet(test_set_base.TestSet):
     """
     raw_score = raw_scores.get(test_key, None)
     if raw_score in (None, ''):
-      # We'll give em the benefit of the doubt here.
-      return 90, ''
+      return 0, ''
 
     raw_score = int(raw_score)
     if raw_score <= 10:

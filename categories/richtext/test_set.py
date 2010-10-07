@@ -307,12 +307,11 @@ class RichTextTestSet(test_set_base.TestSet):
           display_score += raw_score
 
     if num_tests <= 0:
-      # This really should not happen.
-      num_tests = 1
       score = 0
+      display = ''
     else:
       score = int(round(100.0 * display_score / num_tests))
-    display = '%s/%s' % (display_score, num_tests)
+      display = '%s/%s' % (display_score, num_tests)
     return score, display
 
   def GetTestsByCategory(self, category):

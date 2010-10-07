@@ -247,7 +247,7 @@ class NetworkTestSet(test_set_base.TestSet):
     total_score = 0
     for test in self.VisibleTests():
       total_tests += 1
-      if test.key in results and results[test.key]['score'] is not None:
+      if test.key in results and results[test.key]['raw_score'] is not None:
         # For booleans, when "score" is 100 that's test_type true.
         # steve's custom score for hostconn & maxconn map
         # simply to 10 for good, 5 for ok, and 0 for fail, but we only award
@@ -255,8 +255,12 @@ class NetworkTestSet(test_set_base.TestSet):
         if results[test.key]['score'] == 100:
           total_score += 1
         total_valid_tests += 1
-    score = int(round(100.0 * total_score / total_tests))
-    display = '%s/%s' % (total_score, total_valid_tests)
+    if total_valid_tests:
+      score = int(round(100.0 * total_score / total_tests))
+      display = '%s/%s' % (total_score, total_valid_tests)
+    else:
+      score = 0
+      display = ''
     return score, display
 
 
