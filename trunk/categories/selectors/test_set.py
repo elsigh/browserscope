@@ -71,7 +71,8 @@ class SelectorsTestSet(test_set_base.TestSet):
           # display_value is the text for the cell.
     """
     raw_score = raw_scores.get(test_key, 0)
-    score = 0
+    if not raw_score:
+      return 0, ''
     if test_key == 'passed':
       if raw_score >= 2100:
         score = 95

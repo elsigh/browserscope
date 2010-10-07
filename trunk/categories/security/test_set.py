@@ -158,7 +158,7 @@ class SecurityTestSet(test_set_base.TestSet):
     for test in tests:
       total_tests += 1
 
-      if results.has_key(test.key) and results[test.key]['raw_score'] is not None:
+      if test.key in results and results[test.key]['raw_score'] is not None:
         score = results[test.key]['score']
         logging.info('test: %s, score: %s' % (test.key, score))
         total_valid_tests += 1
@@ -169,9 +169,12 @@ class SecurityTestSet(test_set_base.TestSet):
         logging.info('test: %s has no median' % test.key)
 
     #logging.info('%s, %s, %s' % (total_score, total_tests, total_valid_tests))
-    score = int(round(100 * total_score / total_tests))
-    display = '%s/%s' % (total_score, total_valid_tests)
-
+    if total_valid_tests:
+      score = int(round(100 * total_score / total_tests))
+      display = '%s/%s' % (total_score, total_valid_tests)
+    else:
+      score = 0
+      display = ''
     return score, display
 
 

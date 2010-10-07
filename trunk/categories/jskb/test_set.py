@@ -142,7 +142,7 @@ class JskbTestSet(test_set_base.TestSet):
     group_members = test.group_members
     if len(group_members):
       if raw_scores is None:
-        return 50, ''
+        return 0, ''
       abbrevs = set()
       total_score = 0
       n_scored = 0
@@ -165,10 +165,11 @@ class JskbTestSet(test_set_base.TestSet):
 
     snippet = ecmascript_snippets.with_name(test_key)
     median = raw_scores[test_key]
-    if median is None: return 0, None
+    if median is None:
+      return 0, ''
     # TODO(mikesamuel): a confidence metric around the results.
     int_median = int(round(median))
-    
+
     display = '?'
     values = snippet[ecmascript_snippets.VALUES]
     if int_median >= 0 and int_median < len(values):
@@ -190,14 +191,15 @@ class JskbTestSet(test_set_base.TestSet):
           # score is from 0 to 100.
           # display_value is the text for the cell.
     """
-    total_score = 0
-    n_results = 0
-    for _, v in results.iteritems():
-      total_score += float(v['score'])
-      n_results += 1
-    if not n_results: return 0, ''
-    score = total_score / n_results
-    return score, '%d' % int(score)
+    scores = [v['score'] for v in results.values() if v['score']]
+    n_results = len(scores)
+    if n_results:
+      score = sum(scores) / n_results
+      display = str(score)
+    else:
+      score = 0
+      display = ''
+    return score, display
 
 TEST_SET = JskbTestSet(
     category=_CATEGORY,
