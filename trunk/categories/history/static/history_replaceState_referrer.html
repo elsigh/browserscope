@@ -1,0 +1,68 @@
+<html>
+<head></head>
+<script src="/history/static/puppet/puppet.js"></script>
+<script src="/history/static/util.js"></script>
+<script>
+window.TEST_NAME = "history_replaceState_referrer";
+
+/**
+ * Replace the URL at the top of the history stack and navigate to another page.
+ * Ensure that the HTTP-Referer matches the replacement URL.
+ *
+ * NOTE: This test pushes state onto the outter window because clicks faked in
+ * the test window are attributed to the outter window in Chrome.
+ */
+window.onload = function() {
+  window.orig = window.location.href;
+  run(load, "/history/static/one.html");
+  run(shown, id("debug"));
+
+  // Push two onto stack
+  run(function() {
+    var state = "/history/static/two.html";
+    assert(!!puppet.window().history.replaceState, "history.replaceState is not defined");
+    // See note about modifying outter window history above.
+    window.history.replaceState(state, '', state);
+    puppet.window().history.replaceState(state, '', state);
+    display_(state);
+    assert(location_(state), "Location doesn't match replaced state.");
+  });
+
+  // Navigate away and check referrer
+  run(function() {
+    click(id("away"));
+    wait(location_, "/history/static/away.html");
+  });
+  run(function() {
+    assert(!!puppet.window().document.referrer.match("two.html"),
+	"Referrer doesn't match pushed state.");
+  });
+
+
+  run(function() {
+    back_();
+    wait(location_, "/history/static/two.html");
+  });
+
+  // Ensure the correct referrer is still exposed after back/forward
+  run(function() {
+    forward_();
+    wait(location_, "/history/static/away.html");
+  });
+  run(function() {
+    assert(!!puppet.window().document.referrer.match("two.html"),
+	"Referrer doesn't match pushed state.");
+  });
+
+  run(function() {
+    window.history.replaceState({}, '', window.orig);
+  });
+
+  run(function() {
+    saveResult(window.TEST_NAME, 1);
+  });
+};
+
+</script>
+<body></body>
+</html>

@@ -1,0 +1,59 @@
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=8">
+<script src="/history/static/puppet/puppet.js"></script>
+<script src="/history/static/util.js"></script>
+<script>
+window.TEST_NAME = "history_hashChange_back_forward_iframe_replace";
+
+/**
+ * Push some states onto the history stack via location.hash then replace the
+ * location on an iframe. location.replace() does not effect history, so changes
+ * to the iframe location should have no impact on the test window history
+ * stack. Verify that onhashchange events fire as expected.
+ */
+window.onload = function() {
+  run(load, "/history/static/one_iframe.html");
+  run(shown, id("debug"));
+
+  // Push two onto stack
+  run(function() {
+    var state = "two";
+    puppet.window().frames[0].location.replace("away.html?two");
+    puppet.window().location.hash = state;
+    display_(state);
+    assert(location_(state), "Location doesn't match pushed state.");
+  });
+  run(function() {
+    assertEq(window.hashChanges.length, 2, "Unexpected number of hash changes.");
+  });
+
+  // Push three onto stack
+  run(function() {
+    var state = "three";
+    puppet.window().frames[0].location.replace("away.html?three");
+    puppet.window().location.hash = state;
+    display_(state);
+    assert(location_(state), "Location doesn't match pushed state.");
+  });
+  run(function() {
+    assertEq(window.hashChanges.length, 3, "Unexpected number of hash changes.");
+  });
+
+  // Go back to two
+  run(function() {
+    back_();
+    wait(location_, "two");
+  });
+  run(function() {
+    assertEq(window.hashChanges.length, 4, "Unexpected number of hash changes.");
+  });
+
+  run(function() {
+    saveResult(window.TEST_NAME, 1);
+  });
+};
+</script>
+</head>
+<body></body>
+</html>

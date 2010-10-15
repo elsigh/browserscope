@@ -1,0 +1,52 @@
+<html>
+<head></head>
+<script src="/history/static/puppet/puppet.js"></script>
+<script src="/history/static/util.js"></script>
+<script>
+window.TEST_NAME = "history_pushState_cross_site";
+
+/**
+ * Attempt to push a full qualified URI breaking same origin policy.
+ */
+window.onload = function() {
+  run(load, "/history/static/one.html");
+  run(shown, id("debug"));
+
+  // Push two onto stack
+  run(function() {
+    pops = [];
+    assert(!!puppet.window().history.pushState, "history.pushState is not defined");
+  });
+
+  // A different path should be okay.
+  run(function() {
+    var loc = puppet.window().location;
+    var url = loc.protocol + loc.hostname + "/somepath/xyz";
+    var except = false;
+    try {
+      puppet.window().history.pushState({}, '', url);
+    } catch(e) {
+      except = true;
+    }
+    assertEq(except, false, "Unexpected security exception.");
+  });
+
+  // A different domain should not be okay.
+  run(function() {
+    var url = "http://www.foo.bar/";
+    var except = false;
+    try {
+      puppet.window().history.pushState({}, '', url);
+    } catch(e) {
+      except = true;
+    }
+    assertEq(except, true, "Security exception expected.");
+  });
+
+  run(function() {
+    saveResult(window.TEST_NAME, 1);
+  });
+};
+</script>
+<body></body>
+</html>

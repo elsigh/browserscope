@@ -1,0 +1,65 @@
+<html>
+<head></head>
+<script src="/history/static/puppet/puppet.js"></script>
+<script src="/history/static/util.js"></script>
+<script>
+window.TEST_NAME = "history_pushState_back_forward";
+
+/**
+ * Push two URLs onto the stack and verify that expected pop
+ * events fire after navigating away and back.
+ */
+window.onload = function() {
+  run(load, "/history/static/one.html");
+  run(shown, id("debug"));
+
+  // Push two onto stack
+  run(function() {
+    pops = [];
+    var state = "/history/static/two.html";
+    assert(!!puppet.window().history.pushState, "history.pushState is not defined");
+    puppet.window().history.pushState(state, '', state);
+    display_(state);
+    assert(location_(state), "Location doesn't match pushed state.");
+  });
+
+  // Push three onto stack
+  run(function() {
+    var state = "/history/static/three.html";
+    puppet.window().history.pushState(state, '', state);
+    display_(state);
+    assert(location_(state), "Location doesn't match pushed state.");
+  });
+  run(function() {
+    assertEq(window.pops.length, 0, "Unexpected number of popsate events thrown.");
+  });
+
+  // Go back to two
+  run(function() {
+    back_();
+    wait(location_, "/history/static/two.html");
+  });
+  run(function() {
+    assertEq(window.pops.length, 1, "Unexpected number of popsate events thrown.");
+    assertEq(lastPop_(), "/history/static/two.html", "Unexpected state in popstate event.");
+    assert(!!text("ONE"), "Unexpected page loaded.");
+  });
+
+  // Go back to one
+  run(function() {
+    back_();
+    wait(location_, "/history/static/one.html");
+  });
+  run(function() {
+    assertEq(window.pops.length, 2, "Unexpected number of popsate events thrown.");
+    assertEq(lastPop_(), undefined, "Unexpected state in popstate event.");
+    assert(!!text("ONE"), "Unexpected page loaded.");
+  });
+
+  run(function() {
+    saveResult(window.TEST_NAME, 1);
+  });
+};
+</script>
+<body></body>
+</html>

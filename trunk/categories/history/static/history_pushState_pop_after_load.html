@@ -1,0 +1,85 @@
+<html>
+<head></head>
+<script src="/history/static/puppet/puppet.js"></script>
+<script src="/history/static/util.js"></script>
+<script>
+window.TEST_NAME = "history_pushState_pop_after_load";
+
+/**
+ * Push two URLs onto the stack, navigates away, then navigates back to
+ * verify that popstate events fire after onload().
+ */
+window.onload = function() {
+  run(load, "/history/static/one.html");
+  run(shown, id("debug"));
+
+  // Push two onto stack
+  run(function() {
+    pops = [];
+    var state = "/history/static/two.html";
+    assert(!!puppet.window().history.pushState, "history.pushState is not defined");
+    puppet.window().history.pushState(state, '', state);
+    display_(state);
+  });
+
+  // Push slow onto stack
+  run(function() {
+    var state = "/history/static/slow.html";
+    puppet.window().history.pushState(state, '', state);
+    display_(state);
+  });
+
+  // Navigate away
+  run(function() {
+    click(id("away"));
+    wait(location_, "/history/static/away.html");
+  });
+
+  // Go back to slow
+  run(function() {
+    window.events = [];
+    window.events.push('back');
+    back_();
+    wait(location_, "/history/static/slow.html");
+  });
+  // Go back to two
+  run(function() {
+    window.events.push('back');
+    back_();
+    wait(location_, "/history/static/two.html");
+  });
+  // Go back to one
+  run(function() {
+    window.events.push('back');
+    back_();
+    wait(location_, "/history/static/one.html");
+  });
+  run(function() {
+    shown(text("IMAGE LOADED"));
+  });
+  // No popstate events should precede load
+  run(function() {
+    var loadCount = 0;
+    var lastIndexOfLoad = -1;
+    var firstIndexOfPopState = -1;
+    for (var i=0, event; event=window.events[i]; i++) {
+      if (event == "load") {
+        loadCount++;
+        lastIndexOfLoad = i;
+      }
+      if (event == "popstate" && firstIndexOfPopState < 0) {
+        firstIndexOfPopState = i;
+      }
+    }
+    assertEq(loadCount, 1, "Unexpected number of load events.");
+    assert(firstIndexOfPopState >= 0, "Expected 1 or moe popstate events.");
+    assert(firstIndexOfPopState > lastIndexOfLoad, "popstate events should only fire after onload().");
+  });
+
+  run(function() {
+    saveResult(window.TEST_NAME, 1);
+  });
+};
+</script>
+<body></body>
+</html>

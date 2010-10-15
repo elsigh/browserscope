@@ -102,6 +102,8 @@ handlers:
 - url: /jskb/static
   static_dir: categories/jskb/static
   expiration: '3650d'
+- url: /history/static
+  static_dir: categories/history/static
 
 - url: /favicon\.ico
   static_files: static/img/favicon.ico

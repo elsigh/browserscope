@@ -195,5 +195,7 @@ urlpatterns = patterns('',
  (r'^jskb/json$', 'categories.jskb.handlers.Json'),
  (r'^jskb/environment-checks$', 'categories.jskb.handlers.EnvironmentChecks'),
 
-
+  # History URLs
+  (r'^history/about$', 'categories.history.handlers.About'),
+  (r'^history/stats_table$', 'categories.history.handlers.StatsTable'),
 )

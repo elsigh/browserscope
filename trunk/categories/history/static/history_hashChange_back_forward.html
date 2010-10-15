@@ -1,0 +1,61 @@
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=8">
+<script src="/history/static/puppet/puppet.js"></script>
+<script src="/history/static/util.js"></script>
+<script>
+window.TEST_NAME = "history_hashChange_back_forward";
+
+/**
+ * Push some states onto the history stack via location.hash. Verify that
+ * onhashcahnge fires when we navigate back/forward and that pages don't reload.
+ */
+window.onload = function() {
+  run(load, "/history/static/one.html");
+  run(shown, id("debug"));
+
+  run(function() {
+    assertEq(window.hashChanges.length, 1, "Unexpected number of hash changes.");
+    assertEq(window.loads.length, 1, "Unexpected number of pages loads.");
+  });
+
+  // Push two onto stack
+  run(function() {
+    var state = "two";
+    puppet.window().location.hash = state;
+    display_(state);
+    assert(location_(state), "Location doesn't match pushed state.");
+  });
+  run(function() {
+    assertEq(window.hashChanges.length, 2, "Unexpected number of hash changes.");
+    assertEq(window.loads.length, 1, "Unexpected number of pages loads.");
+  });
+
+  // Go back to one.html
+  run(function() {
+    back_();
+    wait(location_, "one.html");
+  });
+  run(function() {
+    assertEq(window.hashChanges.length, 3, "Unexpected number of hash changes.");
+    assertEq(window.loads.length, 1, "Unexpected number of pages loads.");
+  });
+
+  // Go forward to two
+  run(function() {
+    forward_();
+    wait(location_, "#two");
+  });
+  run(function() {
+    assertEq(window.hashChanges.length, 4, "Unexpected number of hash changes.");
+    assertEq(window.loads.length, 1, "Unexpected number of pages loads.");
+  });
+
+  run(function() {
+    saveResult(window.TEST_NAME, 1);
+  });
+};
+</script>
+</head>
+<body></body>
+</html>
