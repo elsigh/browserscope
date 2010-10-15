@@ -1,0 +1,74 @@
+<html>
+<head></head>
+<script src="/history/static/puppet/puppet.js"></script>
+<script src="/history/static/util.js"></script>
+<script>
+window.TEST_NAME = "history_replaceState_away";
+
+/**
+ * Push a state, replace the state, then navigate away. Verify functionality
+ * on back / forward.
+ */
+window.onload = function() {
+  run(load, "/history/static/one.html");
+  run(shown, id("debug"));
+
+  // Push two onto stack
+  run(function() {
+    pops = [];
+    var state = "/history/static/two.html";
+    assert(!!puppet.window().history.pushState, "history.pushState is not defined");
+    assert(!!puppet.window().history.replaceState, "history.replaceState is not defined");
+    puppet.window().history.pushState(state, '', state);
+    display_(state);
+    assert(location_(state), "Location doesn't match pushed state.");
+  });
+
+  // Push three onto stack
+  run(function() {
+    var state = "/history/static/three.html";
+    puppet.window().history.replaceState(state, '', state);
+    display_(state);
+    assert(location_(state), "Location doesn't match pushed state.");
+  });
+  run(function() {
+    assertEq(window.pops.length, 0, "Unexpected number of popsate events thrown.");
+  });
+
+  // Navigate away
+  run(function() {
+    click(id("away"));
+    wait(location_, "/history/static/away.html");
+  });
+
+  // Go back to three
+  run(function() {
+    back_();
+    wait(location_, "/history/static/three.html");
+  });
+  run(shown, id("debug"));
+  run(function() {
+    assertEq(window.pops.length, 1, "Unexpected number of popsate events thrown.");
+    assertEq(lastPop_(), "/history/static/three.html", "Unexpected state in popstate event.");
+    assert(!!text("THREE"), "Unexpected page loaded.");
+  });
+
+
+  // Go back to one (two should not be on stack)
+  run(function() {
+    back_();
+    wait(location_, "/history/static/one.html");
+  });
+  run(function() {
+    assertEq(window.pops.length, 2, "Unexpected number of popsate events thrown.");
+    assertEq(lastPop_(), undefined, "Unexpected state in popstate event.");
+    assert(!!text("THREE"), "Unexpected page loaded.");
+  });
+
+  run(function() {
+    saveResult(window.TEST_NAME, 1);
+  });
+};
+</script>
+<body></body>
+</html>
