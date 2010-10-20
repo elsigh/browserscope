@@ -173,6 +173,13 @@ APPLY_TESTS = {
       'pad':        'foo[bar]baz',
       'expected':   '<blockquote>foo[bar]baz</blockquote>' },
 
+    { 'id':         'FB:BQ_BR.BR-1_SM',
+      'desc':       'format a multi-line selection into a block: use <blockquote>',
+      'command':    'formatblock',
+      'value':      'blockquote',
+      'pad':        'fo[o<br>bar<br>b]az',
+      'expected':   '<blockquote>fo[o<br>bar<br>b]az</blockquote>' },
+
     # --- MIDAS spec ---
 
     # backcolor (note: no non-CSS variant available)

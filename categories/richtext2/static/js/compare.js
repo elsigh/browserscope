@@ -21,20 +21,26 @@
  */
 
 /**
+ * constants used only in the compare functions. 
+ */
+var RESULT_DIFF  = 0;  // actual result doesn't match expectation
+var RESULT_SEL   = 1;  // actual result matches expectation in HTML only
+var RESULT_EQUAL = 2;  // actual result matches expectation in both HTML and selection
+
+/**
  * Compare a test result to a single expectation string.
  *
  * FIXME: add support for optional elements/attributes.
  *
  * @param expected {String} the already canonicalized (with the exception of selection marks) expectation string
  * @param actual {String} the already canonicalized (with the exception of selection marks) actual result
- * @param checkSel {Bool} whether the correctness of the resulst selection should be checked for
  * @return {Integer} one of the RESULT_... return values
  * @see variables.js for return values
  */
-function compareHTMLTestResultToSingleHTMLExpectation(expected, actual, checkSel) {
+function compareHTMLTestResultToSingleHTMLExpectation(expected, actual) {
   // If the test checks the selection, then the actual string must match the
   // expectation exactly.
-  if (checkSel && expected == actual) {
+  if (expected == actual) {
     return RESULT_EQUAL;
   }
 
@@ -43,12 +49,8 @@ function compareHTMLTestResultToSingleHTMLExpectation(expected, actual, checkSel
   expected = expected.replace(/[\[\]\^{}\|]/g, '');  // outside tag
   actual = actual.replace(/ [{}\|]>/g, '>');         // intra-tag
   actual = actual.replace(/[\[\]\^{}\|]/g, '');      // outside tag
-  if (expected == actual) {
-    // If the test doesn't care about selection then we can treat the result
-    // as fully conformant. Flag selection differences otherwise.
-    return checkSel ? RESULT_SELECTION_DIFFS : RESULT_EQUAL;
-  }
-  return RESULT_DIFFS;
+
+  return (expected == actual) ? RESULT_SEL : RESULT_DIFF;
 }
 
 /**
@@ -73,25 +75,18 @@ function getExpectationArray(expected) {
  * @param {String/Boolean} actual value
  * @param {String/Array} expectation(s)
  * @param {Object} flags to use for canonicalization
- * @param {Boolean} whether to check the result selection
  * @return {Integer} one of the RESULT_... return values
  * @see variables.js for return values
  */
-function compareHTMLTestResultWith(actual, expected, emitFlags, checkSel) {
+function compareHTMLTestResultWith(actual, expected, emitFlags) {
   // Find the most favorable result among the possible expectation strings.
   var expectedArr  = getExpectationArray(expected);
   var count = expectedArr.length;
-  var best = RESULT_DIFFS;
+  var best = RESULT_DIFF;
   for (var idx = 0; idx < count; ++idx) {
     var expected = canonicalizeSpaces(expectedArr[idx]);
     expected = canonicalizeElementsAndAttributes(expected, emitFlags);
-    // FIXME: The RegExp below is probably too simple and
-    // may trigger on attribute values, etc.
-    var result = compareHTMLTestResultToSingleHTMLExpectation(
-                     expected,
-                     actual,
-                     checkSel != false &&
-                         (checkSel || hasSelMarkers.test(expected)));
+    var result = compareHTMLTestResultToSingleHTMLExpectation(expected, actual);
     if (result == RESULT_EQUAL) {
       // Shortcut: it doesn't get any better.
       return RESULT_EQUAL;
@@ -105,12 +100,11 @@ function compareHTMLTestResultWith(actual, expected, emitFlags, checkSel) {
 
 /**
  * Compare the current HTMLtest result to the expectation string(s).
+ * Sets the global result variables.
  *
- * @return {Integer} one of the RESULT_... return values
- * @see variables.js for return values
+ * @see variables.js for result values
  */
 function compareHTMLTestResult() {
-  var checkSel = getTestParameter(PARAM_CHECK_SELECTION);
   var emitFlags = {emitAttrs:         getTestParameter(PARAM_CHECK_ATTRIBUTES),
                    emitStyle:         getTestParameter(PARAM_CHECK_STYLE),
                    emitClass:         getTestParameter(PARAM_CHECK_CLASS),
@@ -118,7 +112,7 @@ function compareHTMLTestResult() {
                    lowercase:         true,
                    canonicalizeUnits: true};
   
-  var actual = currentResultHTML;
+  var actual = currentActualHTML;
   // Remove closing tags </hr>, </br> for comparison.
   actual = actual.replace(/<\/[hb]r>/g, '');
   // Remove text node markers for comparison.
@@ -127,19 +121,65 @@ function compareHTMLTestResult() {
   actual = canonicalizeElementsAndAttributes(actual, emitFlags);
 
   var expected = getTestParameter(PARAM_EXPECTED);
-  var bestExpected = compareHTMLTestResultWith(actual, expected, emitFlags, checkSel);
+  var bestExpected = compareHTMLTestResultWith(actual, expected, emitFlags);
   if (bestExpected == RESULT_EQUAL) {
-    return RESULT_EQUAL;
+    // Shortcut - it doesn't get any better 
+    currentResultHTML      = RESULTHTML_EQUAL;
+    currentResultSelection = RESULTSEL_EQUAL;
+    return;
   }
   var accepted = getTestParameter(PARAM_ACCEPT);
-  if (!accepted) {
-    return bestExpected;
+  var bestAccepted = accepted ? compareHTMLTestResultWith(actual, accepted, emitFlags)
+                              : RESULT_DIFF;
+  switch (bestExpected) {
+    case RESULT_SEL:
+      switch (bestAccepted) {
+        case RESULT_EQUAL:
+          // Since the HTML was equal on the/an expected result,
+          // it has to be equal with the accepted result as well.
+          // Therefore, the difference can only lie in the selection.
+          currentResultHTML      = RESULTHTML_EQUAL;
+          currentResultSelection = RESULTSEL_ACCEPT;
+          break;
+
+        case RESULT_SEL:
+          // Since the HTML was equal on the/an expected result,
+          // it has to be equal with the accepted result as well.
+          // The selection however, matches neither.
+          currentResultHTML      = RESULTHTML_EQUAL;
+          currentResultSelection = RESULTSEL_DIFF;
+          break;
+
+        case RESULT_DIFF:
+        default:
+          // The acceptable expectations all have different HTML
+          // -> stay with the original result.
+          currentResultHTML      = RESULTHTML_EQUAL;
+          currentResultSelection = RESULTSEL_DIFF;
+          break;
+      }
+      break;
+
+    case RESULT_DIFF:
+    default:
+      switch (bestAccepted) {
+        case RESULT_EQUAL:
+          currentResultHTML      = RESULTHTML_ACCEPT;
+          currentResultSelection = RESULTSEL_EQUAL;
+          break;
+
+        case RESULT_SEL:
+          currentResultHTML      = RESULTHTML_ACCEPT;
+          currentResultSelection = RESULTSEL_DIFF;
+          break;
+
+        default:
+          currentResultHTML      = RESULTHTML_DIFFS;
+          currentResultSelection = RESULTSEL_NA;
+          break;
+      }
+      break;
   }
-  var bestAccepted = compareHTMLTestResultWith(actual, accepted, emitFlags, checkSel);
-  if (bestAccepted == RESULT_EQUAL) {
-    return RESULT_ACCEPT;
-  }
-  return bestExpected > bestAccepted ? bestExpected : bestAccepted;
 }
 
 /**
@@ -200,21 +240,23 @@ function compareTextTestResultWith(actual, expected) {
 
 /**
  * Compare the passed-in text test result to the expectation string(s).
+ * Sets the global result variables.
  *
  * @param {String/Boolean} actual value
- * @return {Integer} one of the RESULT_... return values
- * @see variables.js for return values
+ * @see variables.js for result values
  */
 function compareTextTestResult(actual) {
   var expected = getTestParameter(PARAM_EXPECTED);
   if (compareTextTestResultWith(actual, expected)) {
-    return RESULT_EQUAL;
+    currentResultHTML = RESULTHTML_EQUAL;
+    return;
   }
   var accepted = getTestParameter(PARAM_ACCEPT);
   if (accepted && compareTextTestResultWith(actual, accepted)) {
-    return RESULT_ACCEPT;
+    currentResultHTML = RESULTHTML_ACCEPT;
+    return;
   }
-  return RESULT_DIFFS;
+  currentResultHTML = RESULTHTML_DIFFS;
 }
 
 /**
@@ -304,10 +346,10 @@ function prepareTestResult() {
   encloseTextNodesWithQuotes(contentEditableElem);
   
   // 3.) retrieve innerHTML, canonicalize spacing
-  currentResultHTML = canonicalizeSpaces(contentEditableElem.innerHTML);
+  currentActualHTML = canonicalizeSpaces(contentEditableElem.innerHTML);
 
   // 4a.) remove comment start and end comment tags, retain only {, } and |
-  currentResultHTML = currentResultHTML.replace(/ ?<!-- ?/g, '');
-  currentResultHTML = currentResultHTML.replace(/ ?--> ?/g, '');
+  currentActualHTML = currentActualHTML.replace(/ ?<!-- ?/g, '');
+  currentActualHTML = currentActualHTML.replace(/ ?--> ?/g, '');
 }
 

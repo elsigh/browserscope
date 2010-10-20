@@ -24,7 +24,6 @@ QUERYSUPPORTED_TESTS = {
   'pad':           'foo[bar]baz',
   'checkAttrs':    False,
   'checkStyle':    False,
-  'checkSel':      False,
   'styleWithCSS':  False,
   'expected':      True,
 
@@ -185,7 +184,7 @@ QUERYSUPPORTED_TESTS = {
 
     { 'id':          'INSERTTEXT_TEXT-1',
       'desc':        'check whether the "inserttext" command is supported',
-      'qcsupported': 'insertTEXT-1' },
+      'qcsupported': 'inserttext' },
 
     { 'id':          'REMOVEFORMAT_TEXT-1',
       'desc':        'check whether the "removeformat" command is supported',

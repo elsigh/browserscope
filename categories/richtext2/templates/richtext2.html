@@ -45,38 +45,8 @@
       var e = document.getElementById('editor');
       e.parentNode.removeChild(e);
 
-      var continueParams = [
-        'selection='        + scoresStrict['S'].total,
-        'apply='            + scoresPartial['A'].total,
-        'applySel='         + scoresStrict['A'].total,
-        'applyCSS='         + scoresPartial['AC'].total,
-        'applyCSSSel='      + scoresStrict['AC'].total,
-        'unapply='          + scoresPartial['U'].total,
-        'unapplySel='       + scoresStrict['U'].total,
-        'unapplyCSS='       + scoresPartial['UC'].total,
-        'unapplyCSSSel='    + scoresStrict['UC'].total,
-        'change='           + scoresPartial['C'].total,
-        'changeSel='        + scoresStrict['C'].total,
-        'changeCSS='        + scoresPartial['CC'].total,
-        'changeCSSSel='     + scoresStrict['CC'].total,
-        'delete='           + scoresPartial['D'].total,
-        'deleteSel='        + scoresStrict['D'].total,
-        'forwarddelete='    + scoresPartial['FD'].total,
-        'forwarddeleteSel=' + scoresStrict['FD'].total,
-        'insert='           + scoresPartial['I'].total,
-        'insertSel='        + scoresStrict['I'].total,
-        'querySupported='   + scoresPartial['Q'].total,
-        'queryEnabled='     + scoresPartial['QE'].total,
-        'queryInd='         + scoresPartial['QI'].total,
-        'queryState='       + scoresPartial['QS'].total,
-        'queryStateCSS='    + scoresPartial['QSC'].total,
-        'queryValue='       + scoresPartial['QV'].total,
-        'queryValueCSS='    + scoresPartial['QVC'].total
-      ];
-// removed (until we determine they are necessary):
-//        'queryEnabledCSS='  + scoresPartial['QEC'].total,
-//        'queryIndCSS='      + scoresPartial['QIC'].total,
-      parent.sendScore(beacon, continueParams);
+      fillResults();
+      parent.sendScore(beacon, categoryTotals);
     }
     {% endautoescape %}
   </script>  

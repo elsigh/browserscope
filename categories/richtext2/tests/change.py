@@ -293,7 +293,7 @@ CHANGE_TESTS = {
       'command':    'formatblock',
       'value':      'h1',
       'pad':        '<address>foo [bar] baz</address>',
-      'expected':   '<h1>foo bar baz</h1>' },
+      'expected':   '<h1>foo [bar] baz</h1>' },
 
     { 'id':         'FB:h1_ADDRESS-FONTsz:4-1_SO',
       'desc':       'change block from <address> with partially formatted content to <h1>',

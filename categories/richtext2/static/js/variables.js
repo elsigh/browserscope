@@ -29,6 +29,7 @@ var SETUP_NOCOMMAND_EXCEPTION = 'NO COMMAND, GENERAL FUNCTION OR QUERY FUNCTION 
 
 // Constants for indicating a test action is unsupported (threw exception).
 var UNSUPPORTED_COMMAND_EXCEPTION = 'UNSUPPORTED COMMAND';
+var EXECUTION_EXCEPTION           = 'EXCEPTION';
 var VERIFICATION_EXCEPTION        = 'EXCEPTION DURING TEST VERIFICATION';
 
 // Constants for indicating an exception in score handling.
@@ -38,15 +39,20 @@ var SCORE_EXCEPTION = 'EXCEPTION WHEN WRITING TEST SCORES';
 var SELMODIFY_UNSUPPORTED      = 'UNSUPPORTED selection.modify()';
 var SELALLCHILDREN_UNSUPPORTED = 'UNSUPPORTED selection.selectAllChildren()';
 
+// HTML comparison result contants.
+var RESULTHTML_SETUP_EXCEPTION        = 0;
+var RESULTHTML_EXECUTION_EXCEPTION    = 1;
+var RESULTHTML_VERIFICATION_EXCEPTION = 2;
+var RESULTHTML_UNSUPPORTED            = 3;
+var RESULTHTML_DIFFS                  = 4;
+var RESULTHTML_ACCEPT                 = 6;  // HTML technically correct, but not ideal.
+var RESULTHTML_EQUAL                  = 7;
+
 // Selection comparison result contants.
-var RESULT_SETUP_EXCEPTION        = 0;
-var RESULT_EXECUTION_EXCEPTION    = 1;
-var RESULT_VERIFICATION_EXCEPTION = 2;
-var RESULT_UNSUPPORTED            = 3;
-var RESULT_DIFFS                  = 4;
-var RESULT_SELECTION_DIFFS        = 5;
-var RESULT_ACCEPT                 = 6;  // HTML technically correct, but not ideal. Counts as FAIL in strict tests
-var RESULT_EQUAL                  = 7;
+var RESULTSEL_DIFF   = 0;
+var RESULTSEL_NA     = 1;
+var RESULTSEL_ACCEPT = 2;  // Selection is acceptable, but not ideal.
+var RESULTSEL_EQUAL  = 3;
 
 // Special attributes used to mark selections within elements that otherwise
 // have no children. Important: attribute name MUST be lower case!
@@ -75,7 +81,6 @@ var PARAM_CHECK_ATTRIBUTES      = 'checkAttrs';
 var PARAM_CHECK_STYLE           = 'checkStyle';
 var PARAM_CHECK_CLASS           = 'checkClass';
 var PARAM_CHECK_ID              = 'checkID';
-var PARAM_CHECK_SELECTION       = 'checkSel';
 var PARAM_STYLE_WITH_CSS        = 'styleWithCSS';
 var PARAM_ALLOW_EXCEPTION       = 'allowException';
 
@@ -84,7 +89,8 @@ var IDOUT_COMMAND    = '_:cmd';
 var IDOUT_VALUE      = '_:val';
 var IDOUT_CHECKATTRS = '_:att';
 var IDOUT_CHECKSTYLE = '_:sty';
-var IDOUT_STATUS     = '_:sta';
+var IDOUT_STATUSHTML = '_:htm';
+var IDOUT_STATUSSEL  = '_:sel';
 var IDOUT_PAD        = '_:pad';
 var IDOUT_EXPECTED   = '_:exp';
 var IDOUT_ACTUAL     = '_:act';
@@ -105,61 +111,32 @@ var win = null;  // window object to use for test functions
 var doc = null;  // document object to use for test functions
 var sel = null;  // The current selection after the pad is set up
 
-// Selection markers used for pad and expectation specifications
-var hasSelMarkers = /[\[\]\^{}\|]/;
-
 // Variables holding the current suite and test for simplicity.
 var currentSuite           = null;  // object specifiying the current test suite
 var currentSuiteID         = '';    // ID of the current suite
-var currentSuiteScoreID    = '';    // ID of the element showing the final scores for the suite
+var currentSuiteScoreID    = '';    // ID of the element showing the final score for the suite
+var currentSuiteSelScoreID = '';    // ID of the element showing the final selection score for the suite
 var currentClass           = null;  // sub-object of currentSuite, specifying the current class
 var currentClassID         = '';    // ID string of the current class - one of testClasses, below
 var currentClassScoreID    = '';    // ID of the element showing the final scores for the class
+var currentClassSelScoreID = '';    // ID of the element showing the final selection scores for the class
 var currentTest            = null;  // sub-object of currentClass, specifying the current test
-var currentIDpartial       = '';    // totally unique ID for non-strict tests
-var currentIDStrict        = '';    // totally unique ID for strict tests
-var currentIDOutput        = '';    // ID used in output table
-var currentResultHTML      = '';    // HTML string after executing the/all command(s)
+var currentTestID          = '';    // ID of the current test
+var currentActualHTML      = '';    // HTML string after executing the/all command(s)
+var currentResultHTML      = 0;     // Result value (integer) for the actual HTML - see RESULTHTML_... above
+var currentResultSelection = 0;     // Result value (integer) for the selection - see RESULTSEL_... above
 var currentOutputTable     = null;  // HTML table for the current suite + class
-var currentBackgroundShade = 'Lo';  // to facilitate alternating table row shading
+var currentBackgroundShade = 'Hi';  // to facilitate alternating table row shading
 
 // Classes of tests
 var testClassIDs = ['Finalized', 'RFC', 'Proposed'];
 
 // Dictionaries storing the numeric results.
-var counts        = {};
-var scoresStrict  = {};
-var scoresPartial = {};
+var counts          = {};
+var scoresHTML      = {};
+var scoresSelection = {};
 
-// Beacon results (seed, or the beacon will fail).
-var beacon = ['selection=0',
-              'apply=0',
-              'applySel=0',
-              'applyCSS=0',
-              'applyCSSSel=0',
-              'change=0',
-              'changeSel=0',
-              'changeCSS=0',
-              'changeCSSSel=0',
-              'unapply=0',
-              'unapplySel=0',
-              'unapplyCSS=0',
-              'unapplyCSSSel=0',
-              'delete=0',
-              'deleteSel=0',
-              'forwarddelete=0',
-              'forwarddeleteSel=0',
-              'insert=0',
-              'insertSel=0',
-              'querySupported=0',
-              'queryEnabled=0',
-              'queryInd=0',
-              'queryState=0',
-              'queryStateCSS=0',
-              'queryValue=0',
-              'queryValueCSS=0'];
-// removed (until we determine they are necessary):
-//              'queryEnabledCSS=0',
-//              'queryIndCSS=0',
-
+// Results - populated by the fillResults() function.
+var categoryResults = [];
+var beacon = [];
 

@@ -19,37 +19,38 @@ table.legend {
   text-align: left;
 }
 
-.greyBkLo {
+.greyBkLo, .naBkLo {
   background-color: #dddddd;
 }
-.successBkLo {
+.passBkLo {
   background-color: #d4ffc0;
 }
 .failBkLo {
   background-color: #ffcccc;
 }
-.seldiffBkLo, .acceptBkLo {
+.acceptBkLo {
   background-color: #ffffc0;
 }
-.exceptionBkLo {
+.exceptionBkLo, .unsupportedBkLo {
   background-color: #f0d0f4;
 }
 
-.greyBkHi {
+.greyBkHi, .naBkHi {
   background-color: #eeeeee;
 }
-.successBkHi {
+.passBkHi {
   background-color: #e0ffdc;
 }
 .failBkHi {
   background-color: #ffdcdc;
 }
-.seldiffBkHi, .acceptBkHi {
+.acceptBkHi {
   background-color: #ffffd8;
 }
-.exceptionBkHi {
+.exceptionBkHi, .unsupportedBkHi {
   background-color: #f4dcf8;
 }
+
 
 .sel {
   color: blue;
