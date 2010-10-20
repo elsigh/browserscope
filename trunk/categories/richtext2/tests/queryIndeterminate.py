@@ -42,13 +42,12 @@ __author__ = 'rolandsteiner@google.com (Roland Steiner)'
 #
 # Sxn or SxRn    selection applies to element #n of several identical
 
-QUERYINDETERMINATE_TESTS = {
+QUERYINDETERM_TESTS = {
   'id':           'QI',
-  'caption':      'queryCommandIndeterminate Tests',
+  'caption':      'queryCommandIndeterm Tests',
   'pad':          'foo[bar]baz',
   'checkAttrs':   False,
   'checkStyle':   False,
-  'checkSel':     False,
   'styleWithCSS': False,
   'expected':     False,
 
@@ -239,15 +238,3 @@ QUERYINDETERMINATE_TESTS = {
   ]
 }
 
-# QUERYINDETERMINATE_TESTS_CSS = {
-#   'id':           'QIC',
-#   'caption':      'queryCommandIndeterminate Tests, using styleWithCSS',
-#   'pad':          'foo[bar]baz',
-#   'checkAttrs':   False,
-#   'checkStyle':   False,
-#   'checkSel':     False,
-#   'styleWithCSS': True,
-#   'expected':     False,
-#   'Proposed':     QUERYINDETERMINATE_TESTS['Proposed']
-# }
-                    

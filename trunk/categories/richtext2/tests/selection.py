@@ -47,7 +47,6 @@ SELECTION_TESTS = {
   'caption':       'Selection Tests',
   'checkAttrs':    True,
   'checkStyle':    True,
-  'checkSel':      True,
   'styleWithCSS':  False,
 
   'RFC': [
@@ -279,6 +278,30 @@ SELECTION_TESTS = {
       'function':   'sel.modify("move", "left", "character");',
       'pad':        '<p dir="rtl">foo b^ar baz</p>',
       'expected':   '<p dir="rtl">foo ^bar baz</p>' },
+    
+    { 'id':         'SM:m.f.c_TEXT:ar-1_SC-1',
+      'desc':       'move caret forward 1 character (i.e., left) in Arabic text',
+      'function':   'sel.modify("move", "forward", "character");',
+      'pad':        '&#1605;&#1585;&#1581;^&#1576;&#1575;&#32;&#1575;&#1604;&#1593;&#1575;&#1604;&#1605;',
+      'expected':   '&#1605;&#1585;^&#1581;&#1576;&#1575;&#32;&#1575;&#1604;&#1593;&#1575;&#1604;&#1605;' },
+    
+    { 'id':         'SM:m.b.c_TEXT:ar-1_SC-1',
+      'desc':       'move caret backward 1 character (i.e., right) in Arabic text',
+      'function':   'sel.modify("move", "backward", "character");',
+      'pad':        '&#1605;&#1585;&#1581;^&#1576;&#1575;&#32;&#1575;&#1604;&#1593;&#1575;&#1604;&#1605;',
+      'expected':   '&#1605;&#1585;&#1581;&#1576;^&#1575;&#32;&#1575;&#1604;&#1593;&#1575;&#1604;&#1605;' },
+    
+    { 'id':         'SM:m.f.c_TEXT:he-1_SC-1',
+      'desc':       'move caret forward 1 character (i.e., left) in Hebrew text',
+      'function':   'sel.modify("move", "forward", "character");',
+      'pad':        '&#1513;&#1500;^&#1493;&#1501;&#32;&#1506;&#1493;&#1500;&#1501;',
+      'expected':   '&#1513;^&#1500;&#1493;&#1501;&#32;&#1506;&#1493;&#1500;&#1501;' },
+    
+    { 'id':         'SM:m.b.c_TEXT:he-1_SC-1',
+      'desc':       'move caret backward 1 character (i.e., right) in Hebrew text',
+      'function':   'sel.modify("move", "backward", "character");',
+      'pad':        '&#1513;&#1500;^&#1493;&#1501;&#32;&#1506;&#1493;&#1500;&#1501;',
+      'expected':   '&#1513;&#1500;&#1493;^&#1501;&#32;&#1506;&#1493;&#1500;&#1501;' },
     
     # --- move forward/backward over words in Japanese text
     { 'id':         'SM:m.f.w_TEXT-jp_SC-1',

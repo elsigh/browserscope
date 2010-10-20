@@ -160,7 +160,8 @@ class TestSet(object):
     test_scores = [x.split('=') for x in str(results_str).split(',')]
     test_keys = sorted([x[0] for x in test_scores])
     if not ignore_key_errors and self._test_keys != test_keys:
-      raise ParseResultsKeyError(expected=self._test_keys, actual=test_keys)
+      expected_keys = self._test_keys
+      raise ParseResultsKeyError(expected=expected_keys, actual=test_keys)
     try:
       parsed_results = dict([(key, {'raw_score': int(score)})
                              for key, score in test_scores])

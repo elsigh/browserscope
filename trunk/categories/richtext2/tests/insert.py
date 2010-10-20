@@ -68,7 +68,7 @@ INSERT_TESTS = {
       'command':    'inserthorizontalrule',
       'pad':        'foo[bar]baz',
       'expected':   'foo<hr>^baz',
-      'accept':     'foo<hr>|bar' },
+      'accept':     'foo<hr>|baz' },
 
     { 'id':         'IHR_DIV-B-1_SX',
       'desc':       'Insert <hr> between elements',
@@ -144,7 +144,7 @@ INSERT_TESTS = {
       'desc':       'Insert <hr> into a paragraph, splitting it',
       'command':    'inserthorizontalrule',
       'pad':        '<p>foo^bar</p>',
-      'expected':   [ '<p>bar</p><hr>|<p>bar</p>',
+      'expected':   [ '<p>foo</p><hr>|<p>bar</p>',
                       '<p>foo</p><hr><p>^bar</p>' ] },
 
     { 'id':         'IHR_P-1_SS',
@@ -321,11 +321,11 @@ INSERT_TESTS = {
       'expected':   'foo<h1>NEW</h1><h2>HTML</h2>^baz' },
 
     { 'id':         'IHTML:P-B_TEXT-1_SI',
-      'desc':       'InsertHTML: "<p>NEW</b>HTML</b>!</p>"',
+      'desc':       'InsertHTML: "<p>NEW<b>HTML</b>!</p>"',
       'command':    'inserthtml',
-      'value':      '<p>NEW</b>HTML</b>!</p>',
+      'value':      '<p>NEW<b>HTML</b>!</p>',
       'pad':        'foo[bar]baz',
-      'expected':   'foo<p>NEW</b>HTML</b>!</p>^baz' }
+      'expected':   'foo<p>NEW<b>HTML</b>!</p>^baz' }
   ]
 }
 

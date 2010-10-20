@@ -47,7 +47,6 @@ QUERYSTATE_TESTS = {
   'caption':       'queryCommandState Tests',
   'checkAttrs':    False,
   'checkStyle':    False,
-  'checkSel':      False,
   'styleWithCSS':  False,
 
   'Proposed': [
@@ -646,7 +645,6 @@ QUERYSTATE_TESTS_CSS = {
   'caption':      'queryCommandState Tests, using styleWithCSS',
   'checkAttrs':   False,
   'checkStyle':   False,
-  'checkSel':     False,
   'styleWithCSS': True,
   
   'Proposed':     QUERYSTATE_TESTS['Proposed']

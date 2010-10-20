@@ -48,7 +48,6 @@ QUERYENABLED_TESTS = {
   'pad':          'foo[bar]baz',
   'checkAttrs':   False,
   'checkStyle':   False,
-  'checkSel':     False,
   'styleWithCSS': False,
   'expected':     True,
 
@@ -239,16 +238,4 @@ QUERYENABLED_TESTS = {
       'expected':   False }
   ]
 }
-
-# QUERYENABLED_TESTS_CSS = {
-#   'id':           'QEC',
-#   'caption':      'queryCommandEnabled Tests, using styleWithCSS',
-#   'pad':          'foo[bar]baz',
-#   'checkAttrs':   False,
-#   'checkStyle':   False,
-#   'checkSel':     False,
-#   'styleWithCSS': True,
-#   'expected':     True,
-#   'Proposed':     QUERYENABLED_TESTS['Proposed']
-# }
 

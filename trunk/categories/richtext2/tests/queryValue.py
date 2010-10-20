@@ -47,7 +47,6 @@ QUERYVALUE_TESTS = {
   'caption':       'queryCommandValue Tests',
   'checkAttrs':    False,
   'checkStyle':    False,
-  'checkSel':      False,
   'styleWithCSS':  False,
 
   'Proposed': [
@@ -229,7 +228,8 @@ QUERYVALUE_TESTS = {
       'desc':       'query the "heading" value',
       'qcvalue':    'heading',
       'pad':        '<h1>foobar^baz</h1>',
-      'expected':   [ 'h1', '<h1>' ] },
+      'expected':   'h1',
+      'accept':     '<h1>' },
 
     # fontname
     { 'id':         'FN_FONTf:a-1_SI',
@@ -476,7 +476,6 @@ QUERYVALUE_TESTS_CSS = {
   'caption':      'queryCommandValue Tests, using styleWithCSS',
   'checkAttrs':   False,
   'checkStyle':   False,
-  'checkSel':     False,
   'styleWithCSS': True,
   
   'Proposed':     QUERYVALUE_TESTS['Proposed']

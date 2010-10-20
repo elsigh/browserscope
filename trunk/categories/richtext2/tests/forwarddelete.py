@@ -50,7 +50,7 @@ FORWARDDELETE_TESTS = {
   'id':          'FD',
   'caption':     'Forward-Delete Tests',
   'command':     'forwardDelete',
-  'checkAttrs':  False,
+  'checkAttrs':  True,
   'checkStyle':  False,
 
   'Proposed': [

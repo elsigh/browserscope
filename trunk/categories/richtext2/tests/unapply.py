@@ -446,6 +446,18 @@ UNAPPLY_TESTS = {
       'command':    'unlink',
       'pad':        'fo<a>o[ba</a>r]baz' },
 
+    { 'id':         'UNLINK_As:d:b.fw:b-1_SW',
+      'desc':       'unlink, preserving styles',
+      'command':    'unlink',
+      'pad':        'foo<a href="#" style="display: block; font-weight: bold">[bar]</a>baz',
+      'expected':   'foo<span style="display: block; font-weight: bold">[bar]</span>baz' },
+
+    { 'id':         'UNLINK_A-IMG-1_SO',
+      'desc':       'unlink a linked image at the start of the content',
+      'command':    'unlink',
+      'pad':        '{<a href="#"><img src="pic.jpg" align="right" height="140" width="200"></a>abc]',
+      'expected':   '{<img src="pic.jpg" align="right" height="140" width="200">abc]' },
+
     # outdent
     { 'id':         'OUTDENT_BQ-1_SW',
       'rte1-id':    'u-outdent-0',
