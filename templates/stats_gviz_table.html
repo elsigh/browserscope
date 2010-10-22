@@ -19,7 +19,8 @@
 
     function initialize() {
       var query = new google.visualization.Query(
-        "/?category={{ category }}&ua={{ ua_params }}&v=top&o=gviz_data");
+          '/?category={{ category }}&ua=' +
+          '{{ ua_params }}&v=top&o=gviz_data&tqx=reqId:0');
       query.send(draw);
     }
 

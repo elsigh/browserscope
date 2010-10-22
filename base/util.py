@@ -806,14 +806,20 @@ def FormatStatsDataAsGviz(params, tqx):
   Returns:
     A JSON string as content in a text/plain HttpResponse.
   """
+  # row headers
+  description = [('UA', 'string'), ('Score', 'number')]
+  for test in params['tests']:
+    description.append((test.name, 'string'))
+  data_table = gviz_api.DataTable(description)
+
   data = []
   for user_agent in params['user_agents']:
-    summary_score = params['stats'].get(user_agent, {}).get('summary_score', 0)
-    if summary_score:
-      version_string = user_agent.rsplit(' ')[-1]
-      data.append([version_string, summary_score])
-  description = [('user_agent', 'string'), ('score', 'number')]
-  data_table = gviz_api.DataTable(description)
+    row_stats = params['stats'].get(user_agent, {})
+    row_data = [user_agent, row_stats.get('summary_score', '')]
+    ua_results = row_stats.get('results')
+    for test in params['tests']:
+      row_data.append(ua_results.get(test.key).get('display'))
+    data.append(row_data)
   data_table.LoadData(data)
 
   return data_table.ToResponse(tqx=tqx)
