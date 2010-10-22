@@ -493,13 +493,13 @@ html>body .goog-inline-block {
   position: relative;
   top: -20px;
 }
-#bs-user-settings .rt {
-  margin-bottom: 18px;
+#bs-user-settings .bs-table {
+  font-size: 90%;
 }
-#bs-user-settings .rt td {
+#bs-user-settings .bs-table td {
   white-space: normal;
 }
-#bs-user-settings .rt th {
+#bs-user-settings .bs-table th {
   text-align: left;
   cursor: auto;
 }
@@ -528,6 +528,19 @@ html>body .goog-inline-block {
 }
 #bs-usertest-dontforget {
   margin-bottom: 8px;
+}
+
+/* For the iframe user_test_table page */
+#bs-user-test-table-tpl #bs-body {
+  padding: 0;
+}
+#bs-user-test-table-tpl #bs-results {
+  margin: 0;
+}
+#bs-user-test-table-tpl h1 {
+  float: none;
+  padding: 0;
+  margin-bottom: 5px;
 }
 
 /** User Agent **/

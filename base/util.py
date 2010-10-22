@@ -66,7 +66,7 @@ MULTI_TEST_FRAMESET_TPL = 'multi_test_frameset.html'
 MULTI_TEST_DRIVER_TPL = 'multi_test_driver.html'
 
 VALID_STATS_OUTPUTS = ('html', 'pickle', 'xhr', 'csv', 'json', 'jsonp',
-                       'gviz', 'gviz_data', 'gviz_timeline_data')
+                       'gviz_table', 'gviz_data', 'gviz_timeline_data')
 
 def Render(request, template, params={}, category=None):
   """Wrapper function to render templates with global and category vars."""
@@ -74,6 +74,7 @@ def Render(request, template, params={}, category=None):
   params['version_id'] = os.environ['CURRENT_VERSION_ID']
   params['build'] = settings.BUILD
   params['resource_version'] = custom_filters.get_resource_version()
+  params['template'] = template.replace('.html', '').replace('_', '-')
   params['epoch'] = int(time.time())
   # we never want o=xhr in our request_path, right?
   params['request_path'] = request.get_full_path().replace('&o=xhr', '')
@@ -621,7 +622,7 @@ def Beacon(request, category_id=None):
     return http.HttpResponse(BAD_BEACON_MSG + 'TestSet')
 
   logging.info('Beacon category: %s\n w/ results_str: %s' %
-               (category, results_str))
+               (category, results_str[0:100]))
 
   if params_str:
     params_str = urllib.unquote(params_str)
@@ -784,7 +785,7 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
   #logging.info("GetStats got params: %s", str(params))
   if output in ['html', 'xhr']:
     return GetStatsDataTemplatized(params, 'table')
-  elif output in ['csv', 'gviz', 'json', 'jsonp']:
+  elif output in ['csv', 'gviz_table', 'json', 'jsonp']:
     return GetStatsDataTemplatized(params, output)
   elif output == 'gviz_data':
     return FormatStatsDataAsGviz(params, request.GET.get('tqx', ''))

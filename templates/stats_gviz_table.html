@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div id="visualization"></div>
+
+{% ifequal build "production" %}
+  <script src="{{ "browserscope.js"|resource_path }}"></script>
+{% else %}
+  <script>var CLOSURE_NO_DEPS = true;</script>
+  <script src="{{ "dev.js"|resource_path }}"></script>
+  <script src="{{ "util.js"|resource_path }}"></script>
+{% endifequal %}
+
+  <script src="http://www.google.com/jsapi"></script>
+  <script>
+    google.load('visualization', '1', {packages: ['table']});
+    google.setOnLoadCallback(initialize);
+
+    function initialize() {
+      var query = new google.visualization.Query(
+        "/?category={{ category }}&ua={{ ua_params }}&v=top&o=gviz_data");
+      query.send(draw);
+    }
+
+    function draw(response) {
+      if (response.isError()) {
+        alert('Error in query');
+      }
+      var data = response.getDataTable()
+
+      var dataTable = new google.visualization.Table(
+          document.getElementById('visualization'));
+      dataTable.draw(data, {'height': '400px'});
+    }
+  </script>
+
+{% endblock %}
+

@@ -35,7 +35,7 @@
         <th># Tests</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody id="rt-tbody-{{ category }}">
       {% for user_agent in user_agents %}
         {% with stats|by_key:user_agent|by_key:"current_results" as results %}
           {% if results %}
