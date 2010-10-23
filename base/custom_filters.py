@@ -98,6 +98,23 @@ def as_range(end_range):
 def utc_to_pst(utc_dt):
   return utc_dt - timedelta(hours=8)
 
+
+@register.filter
+def group_thousands(number):
+  """Formats a number with commas to indicate grouped thousands.
+  Args:
+    number: A number
+  Returns:
+    A number with commas indicating thousands, i.e. 1222333 -> 1,222,333.
+  """
+  s = '%d' % number
+  groups = []
+  while s and s[-1].isdigit():
+    groups.append(s[-3:])
+    s = s[:-3]
+  return s + ','.join(reversed(groups))
+
+
 @register.filter
 def scale_100_to_10(value):
   """Convert a value from 0-100 range to 0-10 range.
@@ -112,3 +129,4 @@ def scale_100_to_10(value):
     return 0
   else:
     return max(1, int(value) / 10)
+

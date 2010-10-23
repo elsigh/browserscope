@@ -2,7 +2,7 @@
 
 {% block body %}
 
-<div id="visualization"></div>
+<div id="visualization" class="rt"></div>
 
 {% ifequal build "production" %}
   <script src="{{ "browserscope.js"|resource_path }}"></script>
@@ -20,7 +20,8 @@
     function initialize() {
       var query = new google.visualization.Query(
           '/?category={{ category }}&ua=' +
-          '{{ ua_params }}&v=top&o=gviz_data&tqx=reqId:0');
+          '{{ ua_params }}&v=top&o=gviz_data&tqx=reqId:0',
+          {'sendMethod': 'scriptInjection'});
       query.send(draw);
     }
 
@@ -28,11 +29,22 @@
       if (response.isError()) {
         alert('Error in query');
       }
-      var data = response.getDataTable()
 
       var dataTable = new google.visualization.Table(
           document.getElementById('visualization'));
-      dataTable.draw(data, {'height': '400px'});
+      var data = response.getDataTable();
+      var cssClassNames = {
+        headerRow: '',
+        hoverTableRow: '',
+        selectedTableRow: '',
+        tableRow: 'rt-row'
+      };
+      dataTable.draw(data, {
+        'height': '300px',
+        'width': 'auto',
+        'alternatingRowStyle': false,
+        'cssClassNames': cssClassNames
+      });
     }
   </script>
 
