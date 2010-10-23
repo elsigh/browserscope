@@ -132,7 +132,6 @@ def Render(request, template, params={}, category=None):
   return shortcuts.render_to_response(template, params, mimetype=mimetype)
 
 
-
 def CategoryTest(request):
   """Loads the test frameset for a category."""
   category = re.sub('\/test.*', '', request.path)[1:]
@@ -722,7 +721,8 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
         for test_key, result in results.items())
 
   # Set current_browser to one in browsers or add it if not found.
-  current_browser = models.user_agent.UserAgent.factory(current_user_agent_string).pretty()
+  current_browser = models.user_agent.UserAgent.factory(
+      current_user_agent_string).pretty()
   for browser in browsers:
     if current_browser.startswith(browser):
       current_browser = browser
@@ -766,10 +766,16 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
     browser_stats['current_score'] = current_stats['summary_score']
     browser_stats['current_display'] = current_stats['summary_display']
 
+  is_user_test = False
+  test_set = all_test_sets.GetTestSet(category)
+  if test_set is not None and test_set.user_test_category is not None:
+    is_user_test = True
+
   params = {
     'category': category,
     'category_name': test_set.category_name,
     'tests': opt_tests or test_set.VisibleTests(),
+    'is_user_test': is_user_test,
     'v': version_level,
     'output': output,
     'server': GetServer(request),
@@ -806,20 +812,50 @@ def FormatStatsDataAsGviz(params, tqx):
   Returns:
     A JSON string as content in a text/plain HttpResponse.
   """
+
   # row headers
-  description = [('UA', 'string'), ('Score', 'number')]
+  description = [('ua', 'string', 'UserAgent'), ('score', 'number', 'Score')]
   for test in params['tests']:
-    description.append((test.name, 'string'))
+    description.append((test.key, 'number', test.name))
+  description.append(('numtests', 'number', '# Tests'))
   data_table = gviz_api.DataTable(description)
 
   data = []
   for user_agent in params['user_agents']:
     row_stats = params['stats'].get(user_agent, {})
-    row_data = [user_agent, row_stats.get('summary_score', '')]
+    row_data = []
+
+    # Start with summary score to get the cell color.
+    summary_score = row_stats.get('summary_score')
+    if summary_score:
+      p = {'className': 'rt-t-s-%s' %
+           custom_filters.scale_100_to_10(summary_score)}
+      summary_score_data = (summary_score, '%s/100' % summary_score, p)
+
+      # User agent uses the summary score coloration.
+      user_agent_data = (user_agent.lower(), user_agent, p)
+
+      row_data.append(user_agent_data)
+      row_data.append(summary_score_data)
+    else:
+      row_data.append(user_agent.lower(), user_agent)
+
+
+    # Test data by key.
     ua_results = row_stats.get('results')
     for test in params['tests']:
-      row_data.append(ua_results.get(test.key).get('display'))
+      score = ua_results.get(test.key).get('score')
+      score_to_base10 = custom_filters.scale_100_to_10(score)
+      p = {'className': 'rt-t-s-%s' % score_to_base10}
+      display = ua_results.get(test.key).get('display')
+      if params['is_user_test']:
+        display = custom_filters.group_thousands(display)
+      row_data.append((score, display, p))
+
+    # Total runs.
+    row_data.append(ua_results.get('total_runs', 0))
     data.append(row_data)
+
   data_table.LoadData(data)
 
   return data_table.ToResponse(tqx=tqx)

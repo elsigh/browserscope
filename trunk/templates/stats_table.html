@@ -113,7 +113,14 @@
               <td
                 align="{{ test.cell_align }}"
                 class="rt-t-s-{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"score"|scale_100_to_10 }}"
-                >{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"display" }}
+                >
+                {% with stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"display" as result %}
+                  {% if is_user_test %}
+                    {{ result|group_thousands }}
+                  {% else %}
+                    {{ result }}
+                  {% endif %}
+                {% endwith %}
               </td>
             {% endfor %}
             <td class="rt-tot">
