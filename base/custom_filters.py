@@ -107,7 +107,7 @@ def group_thousands(number):
   Returns:
     A number with commas indicating thousands, i.e. 1222333 -> 1,222,333.
   """
-  s = '%d' % number
+  s = str(number)
   groups = []
   while s and s[-1].isdigit():
     groups.append(s[-3:])

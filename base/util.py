@@ -767,8 +767,8 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
     browser_stats['current_display'] = current_stats['summary_display']
 
   is_user_test = False
-  test_set = all_test_sets.GetTestSet(category)
-  if test_set is not None and test_set.user_test_category is not None:
+  user_test_set = models.user_test.Test.get_test_set_from_category(category)
+  if user_test_set:
     is_user_test = True
 
   params = {
