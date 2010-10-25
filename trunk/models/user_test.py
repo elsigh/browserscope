@@ -232,6 +232,10 @@ def update_test_meta(key, test_scores):
     test.save()
     test.add_memcache()
 
+  if meta.test is None:
+    meta.test = test
+    dirty = True
+
   for test_key, test_value in test_scores:
     min_key = '%s_min_value' % test_key
     max_key = '%s_max_value' % test_key
