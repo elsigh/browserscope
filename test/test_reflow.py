@@ -32,11 +32,11 @@ class ReflowTestTest(unittest.TestCase):
     self.test_set = test_set.TEST_SET
 
   def testScoreAndDisplayValueNone(self):
-    self.assertEqual((90, ''), self.test_set.GetTestScoreAndDisplayValue(
+    self.assertEqual((0, ''), self.test_set.GetTestScoreAndDisplayValue(
         'testVisibility', {}))
-    self.assertEqual((90, ''), self.test_set.GetTestScoreAndDisplayValue(
+    self.assertEqual((0, ''), self.test_set.GetTestScoreAndDisplayValue(
         'testVisibility', {'testVisibility': None}))
-    self.assertEqual((90, ''), self.test_set.GetTestScoreAndDisplayValue(
+    self.assertEqual((0, ''), self.test_set.GetTestScoreAndDisplayValue(
         'testVisibility', {'testVisibility': ''}))
 
   def testScoreAndDisplayValueZero(self):

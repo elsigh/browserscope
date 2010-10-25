@@ -979,24 +979,37 @@ def SeedDatastore(request):
 def UpdateDatastore(request):
   """Generic datastore munging routine."""
 
-  query = db.Query(models.user_agent.UserAgent)
-  query.filter('family =', 'IE')
-  query.filter('v1 =', '9')
+  # query = db.Query(models.user_agent.UserAgent)
+  # query.filter('family =', 'IE')
+  # query.filter('v1 =', '9')
+  # key = request.GET.get('key')
+  # if key:
+  #   query.filter('__key__ >', db.Key(key))
+  # query.order('__key__')
+  # user_agent = query.get()
+  # if not user_agent:
+  #   return http.HttpResponse('All Done!')
+
+  # # Do something with user_agent here.
+  # user_agent.family = 'IE Platform Preview'
+  # user_agent.save()
+
+  query = db.Query(models.user_test.Test)
   key = request.GET.get('key')
   if key:
     query.filter('__key__ >', db.Key(key))
   query.order('__key__')
-  user_agent = query.get()
-  if not user_agent:
+  test = query.get()
+  if not test:
     return http.HttpResponse('All Done!')
-
-  # Do something with user_agent here.
-  user_agent.family = 'IE Platform Preview'
-  user_agent.save()
+  meta = models.user_test.TestMeta().save()
+  test.meta = meta
+  test.save()
+  test.add_memcache()
 
   params = {
-    'next_url': '/update_datastore?key=%s' % user_agent.key(),
-    'current_name': user_agent.get_string_list(),
+    'next_url': '/update_datastore?key=%s' % test.key(),
+    'current_name': test.name,
     'next_name': 'nextosity'
   }
   return Render(request, 'update_datastore.html', params)
