@@ -163,7 +163,7 @@ class Test(db.Model):
       deferred.defer(update_test_keys, key, test_keys)
 
     # Regardless we'll defer updating the TestMeta reference.
-    #deferred.defer(update_test_meta, key, test_scores)
+    deferred.defer(update_test_meta, key, test_scores)
 
     test_set = test.get_test_set_from_test_keys(test_keys)
     return test_set
@@ -197,7 +197,7 @@ class Test(db.Model):
     return match
 
 
-def update_test_meta(key, test_keys):
+def update_test_keys(key, test_keys):
   """Deferred task handler for ensuring TestMeta stays in sync.
   Args:
     key: Test key.
@@ -214,36 +214,47 @@ def update_test_meta(key, test_keys):
     test.add_memcache()
 
 
-def update_test_keys(key, test_scores):
+def update_test_meta(key, test_scores):
   """Deferred task handler for ensuring Test.test_keys stays in sync.
   Args:
     key: Test key.
-    test_scores: A list of test_keys and scores from a recent beacon.
+    test_scores: A tuple of string ('test_key', 'score') from a recent beacon.
   """
   dirty = False
   test = Test.get_mem(key)
-  meta = Test.meta
+  meta = test.meta
 
-  # Sets up a backreference to the Test from the TestMeta.
-  if not meta.test:
-    meta.test = test
-    dirty = True
+  # Just in case?, we want to make sure our test has a meta reference.
+  if not meta:
+    meta = TestMeta()
+    meta.save()
+    test.meta = meta
+    test.save()
+    test.add_memcache()
 
-  for test_key, test_value in test_scores.items():
-    min_key = '%_min_value' % test_key
-    max_key = '%_max_value' % test_key
+  for test_key, test_value in test_scores:
+    min_key = '%s_min_value' % test_key
+    max_key = '%s_max_value' % test_key
 
-    if not meta.has_key(min_key):
-      meta[min_key] = test_value
-      meta[max_key] = test_value
+    # Convert test_value into an int from a string.
+    test_value = int(test_value)
+
+    if not hasattr(meta, min_key):
+      setattr(meta, min_key, test_value)
+      setattr(meta, max_key, test_value)
       dirty = True
     else:
-      if test_value < meta[min_key]:
-        meta[min_key] = test_value
+      if test_value < getattr(meta, min_key):
+        setattr(meta, min_key, test_value)
         dirty = True
-      elif test_value > meta[max_key]:
-        meta[max_key] = test_value
+      elif test_value > getattr(meta, max_key):
+        setattr(meta, max_key, test_value)
         dirty = True
+
+      #logging.info('finally %s %s: %s, %s: %s' %
+      #             (test_key, getattr(meta, min_key), min_key,
+      #              getattr(meta, max_key), max_key))
 
   if dirty:
     meta.save()
+

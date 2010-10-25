@@ -123,10 +123,13 @@ class TestWithData(unittest.TestCase):
     u = models.user_test.User.get_or_insert(current_user.user_id())
     u.email = current_user.email()
     u.save()
+    meta = models.user_test.TestMeta().save()
     self.test = models.user_test.Test(user=u, name='Fake Test',
                                       url='http://fakeurl.com/test.html',
-                                      description='stuff', sandboxid='sand')
+                                      description='stuff', sandboxid='sand',
+                                      meta=meta)
     self.test.save()
+
 
   def saveData(self):
     params = {
@@ -137,6 +140,47 @@ class TestWithData(unittest.TestCase):
     params['csrf_token'] = csrf_token
     response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
     self.assertEqual(204, response.status_code)
+
+
+  def testUpdateTestMeta(self):
+    # Invoke the deferred handler forcefully since the SDK won't run
+    # our deferred tasks.
+    params = {
+      'category': self.test.get_memcache_keyname(),
+      'results': 'apple=1,banana=2,coconut=4',
+    }
+    csrf_token = self.client.get('/get_csrf').content
+    params['csrf_token'] = csrf_token
+    response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
+
+    self.assertFalse(hasattr(self.test.meta, 'apple_min_value'))
+
+    models.user_test.update_test_meta(self.test.key(),
+        [['apple', '1'], ['banana', '2'], ['coconut', '3']])
+    # update our reference
+    meta = models.user_test.TestMeta.get(self.test.meta.key())
+    self.assertTrue(hasattr(meta, 'apple_min_value'))
+    self.assertTrue(hasattr(meta, 'apple_max_value'))
+    self.assertTrue(hasattr(meta, 'coconut_min_value'))
+    self.assertTrue(hasattr(meta, 'coconut_max_value'))
+    self.assertEquals(1, meta.apple_min_value)
+    self.assertEquals(1, meta.apple_max_value)
+    self.assertEquals(2, meta.banana_min_value)
+    self.assertEquals(2, meta.banana_max_value)
+    self.assertEquals(3, meta.coconut_min_value)
+    self.assertEquals(3, meta.coconut_max_value)
+
+    models.user_test.update_test_meta(self.test.key(),
+        [['apple', '0'], ['banana', '2'], ['coconut', '30']])
+    # update our reference
+    meta = models.user_test.TestMeta.get(self.test.meta.key())
+    self.assertEquals(0, meta.apple_min_value)
+    self.assertEquals(1, meta.apple_max_value)
+    self.assertEquals(2, meta.banana_min_value)
+    self.assertEquals(2, meta.banana_max_value)
+    self.assertEquals(3, meta.coconut_min_value)
+    self.assertEquals(30, meta.coconut_max_value)
+
 
   def testUserBeaconJsReturn(self):
     response = self.client.get('/user/beacon/%s' % self.test.key())
