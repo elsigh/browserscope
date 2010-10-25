@@ -1002,10 +1002,13 @@ def UpdateDatastore(request):
   test = query.get()
   if not test:
     return http.HttpResponse('All Done!')
-  meta = models.user_test.TestMeta().save()
-  test.meta = meta
-  test.save()
-  test.add_memcache()
+
+  # pass if we already have a meta
+  if not hasattr(test, 'meta'):
+    meta = models.user_test.TestMeta().save()
+    test.meta = meta
+    test.save()
+    test.add_memcache()
 
   params = {
     'next_url': '/update_datastore?key=%s' % test.key(),

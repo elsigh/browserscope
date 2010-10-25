@@ -169,9 +169,10 @@ def TestEdit(request, key):
         'description': request.REQUEST.get('description'),
         'sandboxid': request.REQUEST.get('sandboxid')
       }
-    except Exception as e:
-      error_msg = ('Something did not quite work there, very sorry. '
-                   'Error is: %s' % e)
+    # Do not try to catch / variable-ize this exception, it breaks in
+    # production.
+    except:
+      error_msg = ('Something did not quite work there, very sorry. ')
       logging.info(error_msg)
       if api_key:
         return http.HttpResponseServerError(error_msg)
