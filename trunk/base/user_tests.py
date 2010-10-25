@@ -137,13 +137,15 @@ def TestEdit(request, key):
           test.sandboxid = request.REQUEST.get('sandboxid')
       # create
       else:
+        meta = models.user_test.TestMeta().save()
         test = models.user_test.Test(
                    user=user,
                    name=request.REQUEST.get('name'),
                    url=request.REQUEST.get('url'),
                    description=request.REQUEST.get('description'),
                    sandboxid=request.REQUEST.get('sandboxid',
-                                                 _get_random_sandboxid()))
+                                                 _get_random_sandboxid()),
+                   meta=meta)
       test.save()
       test.add_memcache()
 
@@ -157,6 +159,7 @@ def TestEdit(request, key):
     except datastore_errors.BadValueError, error_msg:
       if api_key:
         msg = 'Validation error: %s' % error_msg
+        logging.info(msg)
         return http.HttpResponseServerError(msg)
 
       request = decorators.add_csrf_to_request(request)
@@ -166,8 +169,10 @@ def TestEdit(request, key):
         'description': request.REQUEST.get('description'),
         'sandboxid': request.REQUEST.get('sandboxid')
       }
-    except:
-      error_msg = 'Something did not quite work there, very sorry.'
+    except Exception as e:
+      error_msg = ('Something did not quite work there, very sorry. '
+                   'Error is: %s' % e)
+      logging.info(error_msg)
       if api_key:
         return http.HttpResponseServerError(error_msg)
 

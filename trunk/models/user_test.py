@@ -52,16 +52,11 @@ class TestSet(test_set_base.TestSet):
     return 0, ''
 
 
-def update_test_keys(key, test_keys):
-  test = Test.get_mem(key)
-  dirty = False
-  for test_key in test_keys:
-    if not test_key in test.test_keys:
-      test.test_keys.append(test_key)
-      dirty = True
-  if dirty:
-    test.save()
-    test.add_memcache()
+# This reference model exists for storing values about the tests, like min/max.
+class TestMeta(db.Expando):
+  created = db.DateTimeProperty(auto_now_add=True)
+  modified = db.DateTimeProperty(auto_now=True)
+  test = db.ReferenceProperty()
 
 
 class Test(db.Model):
@@ -72,6 +67,7 @@ class Test(db.Model):
   hosted = db.BooleanProperty(required=True, default=False)
   description = db.TextProperty()
   sandboxid = db.StringProperty()
+  meta = db.ReferenceProperty(TestMeta)
   created = db.DateTimeProperty(auto_now_add=True)
   modified = db.DateTimeProperty(auto_now=True)
 
@@ -166,6 +162,9 @@ class Test(db.Model):
     else:
       deferred.defer(update_test_keys, key, test_keys)
 
+    # Regardless we'll defer updating the TestMeta reference.
+    #deferred.defer(update_test_meta, key, test_scores)
+
     test_set = test.get_test_set_from_test_keys(test_keys)
     return test_set
 
@@ -196,3 +195,55 @@ class Test(db.Model):
     if match is None:
       return None
     return match
+
+
+def update_test_meta(key, test_keys):
+  """Deferred task handler for ensuring TestMeta stays in sync.
+  Args:
+    key: Test key.
+    test_keys: A list of strings, the test_key values for each test.
+  """
+  test = Test.get_mem(key)
+  dirty = False
+  for test_key in test_keys:
+    if not test_key in test.test_keys:
+      test.test_keys.append(test_key)
+      dirty = True
+  if dirty:
+    test.save()
+    test.add_memcache()
+
+
+def update_test_keys(key, test_scores):
+  """Deferred task handler for ensuring Test.test_keys stays in sync.
+  Args:
+    key: Test key.
+    test_scores: A list of test_keys and scores from a recent beacon.
+  """
+  dirty = False
+  test = Test.get_mem(key)
+  meta = Test.meta
+
+  # Sets up a backreference to the Test from the TestMeta.
+  if not meta.test:
+    meta.test = test
+    dirty = True
+
+  for test_key, test_value in test_scores.items():
+    min_key = '%_min_value' % test_key
+    max_key = '%_max_value' % test_key
+
+    if not meta.has_key(min_key):
+      meta[min_key] = test_value
+      meta[max_key] = test_value
+      dirty = True
+    else:
+      if test_value < meta[min_key]:
+        meta[min_key] = test_value
+        dirty = True
+      elif test_value > meta[max_key]:
+        meta[max_key] = test_value
+        dirty = True
+
+  if dirty:
+    meta.save()
