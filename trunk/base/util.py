@@ -766,16 +766,11 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
     browser_stats['current_score'] = current_stats['summary_score']
     browser_stats['current_display'] = current_stats['summary_display']
 
-  is_user_test = False
-  user_test_set = models.user_test.Test.get_test_set_from_category(category)
-  if user_test_set:
-    is_user_test = True
-
   params = {
     'category': category,
     'category_name': test_set.category_name,
     'tests': opt_tests or test_set.VisibleTests(),
-    'is_user_test': is_user_test,
+    'is_user_test': models.user_test.Test.is_user_test_category(category),
     'v': version_level,
     'output': output,
     'server': GetServer(request),

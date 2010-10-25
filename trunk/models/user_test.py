@@ -170,6 +170,13 @@ class Test(db.Model):
     return test_set
 
   @staticmethod
+  def is_user_test_category(category):
+    if re.match(Test.get_prefix(), category):
+      return True
+    else:
+      return False
+
+  @staticmethod
   def get_test_set_from_category(category):
     if re.match(Test.get_prefix(), category):
       category_prefix = '%s_' % Test.get_prefix()

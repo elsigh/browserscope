@@ -19,8 +19,6 @@
  * global <code>CLOSURE_NO_DEPS</code> is set to true.  This allows projects to
  * include their own deps file(s) from different locations.
  *
- *
- *
  */
 
 /**
@@ -113,6 +111,21 @@ goog.provide = function(name) {
   }
 
   goog.exportPath_(name);
+};
+
+
+/**
+ * Marks that the current file should only be used for testing, and never for
+ * live code in production.
+ * @param {string} opt_message Optional message to add to the error that's
+ *     raised when used in production code.
+ */
+goog.setTestOnly = function(opt_message) {
+  if (COMPILED && !goog.DEBUG) {
+    opt_message = opt_message || '';
+    throw Error('Importing test-only code into non-debug environment' +
+                opt_message ? ': ' + opt_message : '.');
+  }
 };
 
 
@@ -241,7 +254,6 @@ goog.addDependency = function(relPath, provides, requires) {
 };
 
 
-
 /**
  * Implements a system for the dynamic resolution of dependencies
  * that works in parallel with the BUILD system. Note that all calls
@@ -271,9 +283,7 @@ goog.require = function(rule) {
         goog.global.console['error'](errorMessage);
       }
 
-      
         throw Error(errorMessage);
-        
     }
   }
 };
@@ -1319,7 +1329,6 @@ goog.scope = function(fn) {
 };
 
 
-
 // Copyright 2009 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -1340,7 +1349,6 @@ goog.scope = function(fn) {
  *
  * You should never need to throw goog.debug.Error(msg) directly, Error(msg) is
  * sufficient.
- *
  *
  */
 
@@ -1384,8 +1392,6 @@ goog.debug.Error.prototype.name = 'CustomError';
 
 /**
  * @fileoverview Utilities for string manipulation.
- *
- *
  */
 
 
@@ -2560,8 +2566,6 @@ goog.string.toNumber = function(str) {
  * The compiler will leave in foo() (because its return value is used),
  * but it will remove bar() because it assumes it does not have side-effects.
  *
- *
- * @author agrieve@google.com (Andrew Grieve)
  */
 
 goog.provide('goog.asserts');
@@ -2820,9 +2824,6 @@ goog.asserts.assertInstanceof = function(value, type, opt_message, var_args) {
 
 /**
  * @fileoverview Utilities for manipulating arrays.
- *
- *
- *
  *
  */
 
@@ -4073,8 +4074,6 @@ goog.array.zip = function(var_args) {
  * @see <a href="http://www.useragentstring.com/">User agent strings</a>
  * For information on the browser brand (such as Safari versus Chrome), see
  * goog.userAgent.product.
- *
- *
  * @see ../demos/useragent.html
  */
 
@@ -4537,7 +4536,6 @@ goog.userAgent.isVersion = function(version) {
 /**
  * @fileoverview Browser capability checks for the dom package.
  *
- *
  */
 
 
@@ -4589,7 +4587,6 @@ goog.dom.BrowserFeature = {
  * @fileoverview Defines the goog.dom.TagName enum.  This enumerates
  * all html tag names specified by the W3C HTML 4.01 Specification.
  * Reference http://www.w3.org/TR/html401/index/elements.html.
- *
  */
 goog.provide('goog.dom.TagName');
 
@@ -4708,8 +4705,6 @@ goog.dom.TagName = {
 
 /**
  * @fileoverview Utilities for adding, removing and setting classes.
- *
- *
  *
  */
 
@@ -4943,7 +4938,6 @@ goog.dom.classes.toggle = function(element, className) {
 
 /**
  * @fileoverview A utility class for representing two-dimensional positions.
- *
  */
 
 
@@ -5079,8 +5073,6 @@ goog.math.Coordinate.sum = function(a, b) {
 
 /**
  * @fileoverview A utility class for representing two-dimensional sizes.
- *
- *
  */
 
 
@@ -5129,7 +5121,7 @@ goog.math.Size.equals = function(a, b) {
 
 
 /**
- * @return {goog.math.Size} A new copy of the Size.
+ * @return {!goog.math.Size} A new copy of the Size.
  */
 goog.math.Size.prototype.clone = function() {
   return new goog.math.Size(this.width, this.height);
@@ -5198,7 +5190,7 @@ goog.math.Size.prototype.isEmpty = function() {
 
 /**
  * Clamps the width and height parameters upward to integer values.
- * @return {goog.math.Size} This size with ceil'd components.
+ * @return {!goog.math.Size} This size with ceil'd components.
  */
 goog.math.Size.prototype.ceil = function() {
   this.width = Math.ceil(this.width);
@@ -5208,7 +5200,7 @@ goog.math.Size.prototype.ceil = function() {
 
 
 /**
- * @param {goog.math.Size} target The target size.
+ * @param {!goog.math.Size} target The target size.
  * @return {boolean} True if this Size is the same size or smaller than the
  *     target size in both dimensions.
  */
@@ -5219,7 +5211,7 @@ goog.math.Size.prototype.fitsInside = function(target) {
 
 /**
  * Clamps the width and height parameters downward to integer values.
- * @return {goog.math.Size} This size with floored components.
+ * @return {!goog.math.Size} This size with floored components.
  */
 goog.math.Size.prototype.floor = function() {
   this.width = Math.floor(this.width);
@@ -5230,7 +5222,7 @@ goog.math.Size.prototype.floor = function() {
 
 /**
  * Rounds the width and height parameters to integer values.
- * @return {goog.math.Size} This size with rounded components.
+ * @return {!goog.math.Size} This size with rounded components.
  */
 goog.math.Size.prototype.round = function() {
   this.width = Math.round(this.width);
@@ -5242,7 +5234,7 @@ goog.math.Size.prototype.round = function() {
 /**
  * Scales the size uniformly by a factor.
  * @param {number} s The scale factor.
- * @return {goog.math.Size} This Size object after scaling.
+ * @return {!goog.math.Size} This Size object after scaling.
  */
 goog.math.Size.prototype.scale = function(s) {
   this.width *= s;
@@ -5256,8 +5248,8 @@ goog.math.Size.prototype.scale = function(s) {
  * original aspect ratio will be preserved.
  *
  * This function assumes that both Sizes contain strictly positive dimensions.
- * @param {goog.math.Size} target The target size.
- * @return {goog.math.Size} This Size object, after optional scaling.
+ * @param {!goog.math.Size} target The target size.
+ * @return {!goog.math.Size} This Size object, after optional scaling.
  */
 goog.math.Size.prototype.scaleToFit = function(target) {
   var s = this.aspectRatio() > target.aspectRatio() ?
@@ -5282,9 +5274,6 @@ goog.math.Size.prototype.scaleToFit = function(target) {
 
 /**
  * @fileoverview Utilities for manipulating objects/maps/hashes.
- *
- *
- *
  */
 
 goog.provide('goog.object');
@@ -5817,8 +5806,6 @@ goog.object.createSet = function(var_args) {
  * You can use {@link goog.dom.DomHelper} to create new dom helpers that refer
  * to a different document object.  This is useful if you are working with
  * frames or multiple windows.
- *
- *
  *
  */
 
@@ -8320,7 +8307,6 @@ goog.debug.entryPointRegistry.unmonitorAllIfPossible = function(monitor) {
  * properties compiler warning for weak dependencies on
  * {@link goog.debug.ErrorHandler#protectEntryPoint}.
  *
- *
  */
 
 goog.provide('goog.debug.errorHandlerWeakDep');
@@ -8355,7 +8341,6 @@ goog.debug.errorHandlerWeakDep = {
 
 /**
  * @fileoverview Browser capability checks for the events package.
- *
  *
  */
 
@@ -8400,7 +8385,6 @@ goog.events.BrowserFeature = {
 /**
  * @fileoverview Implements the disposable interface. The dispose method is used
  * to clean up references and resources.
- *
  */
 
 
@@ -8508,7 +8492,6 @@ goog.dispose = function(obj) {
 
 /**
  * @fileoverview A base class for event objects.
- *
  *
  */
 
@@ -8633,8 +8616,6 @@ goog.events.Event.preventDefault = function(e) {
  * @fileoverview Event Types.
  *
  *
- *
- *
  */
 
 
@@ -8743,12 +8724,11 @@ goog.events.EventType = {
  * - altKey         {boolean}   Was alt key depressed
  * - shiftKey       {boolean}   Was shift key depressed
  * - metaKey        {boolean}   Was meta key depressed
+ * - state          {Object}    History state object
  *
  * NOTE: The keyCode member contains the raw browser keyCode. For normalized
  * key and character code use {@link goog.events.KeyHandler}.
  * </pre>
- *
- *
  *
  */
 
@@ -8918,6 +8898,14 @@ goog.events.BrowserEvent.prototype.metaKey = false;
 
 
 /**
+ * History state object, only set for PopState events where it's a copy of the
+ * state object provided to pushState or replaceState.
+ * @type {Object}
+ */
+goog.events.BrowserEvent.prototype.state;
+
+
+/**
  * Whether the default platform modifier key was pressed at time of event.
  * (This is control for all platforms except Mac, where it's Meta.
  * @type {boolean}
@@ -8984,6 +8972,7 @@ goog.events.BrowserEvent.prototype.init = function(e, opt_currentTarget) {
   this.shiftKey = e.shiftKey;
   this.metaKey = e.metaKey;
   this.platformModifierKey = goog.userAgent.MAC ? e.metaKey : e.ctrlKey;
+  this.state = e.state;
   this.event_ = e;
   delete this.returnValue_;
   delete this.propagationStopped_;
@@ -9107,7 +9096,6 @@ goog.events.BrowserEvent.prototype.disposeInternal = function() {
 /**
  * @fileoverview Definition of the goog.events.EventWrapper interface.
  *
- *
  */
 
 goog.provide('goog.events.EventWrapper');
@@ -9173,7 +9161,6 @@ goog.events.EventWrapper.prototype.unlisten = function(src, listener, opt_capt,
 
 /**
  * @fileoverview Listener object.
- *
  * @see ../demos/events.html
  */
 
@@ -9331,8 +9318,6 @@ goog.events.Listener.prototype.handleEvent = function(eventObject) {
 
 /**
  * @fileoverview Datastructure: Pool.
- *
- *
  *
  *
  * A generic class for handling pools of objects that is more efficient than
@@ -9536,7 +9521,6 @@ goog.structs.SimplePool.prototype.disposeInternal = function() {
 /**
  * @fileoverview Detection of JScript version.
  *
- *
  */
 
 
@@ -9634,8 +9618,6 @@ goog.userAgent.jscript.isVersion = function(version) {
  *
  * JScript 5.6 has some serious issues with GC so we use object pools to reduce
  * the number of object allocations.
- *
- *
  *
  */
 
@@ -9993,10 +9975,7 @@ goog.events.pools.releaseEvent;
  * goog.events.removeAll();
  * </pre>
  *
- *
- *
  *                                            in IE and event object patching]
- *
  *
  * @supported IE6+, FF1.5+, WebKit, Opera.
  * @see ../demos/events.html
@@ -10506,7 +10485,7 @@ goog.events.getListeners = function(obj, type, capture) {
  * @param {?string} type Event type.
  * @param {boolean} capture Capture phase?.
  * @return {Array.<goog.events.Listener>?} Array of listener objects.
- *     Returns null if object has no lsiteners of that type.
+ *     Returns null if object has no listeners of that type.
  * @private
  */
 goog.events.getListeners_ = function(obj, type, capture) {
@@ -10530,10 +10509,10 @@ goog.events.getListeners_ = function(obj, type, capture) {
  * Gets the goog.events.Listener for the event or null if no such listener is
  * in use.
  *
- * @param {EventTarget|goog.events.EventTarget} src The node to stop
- *     listening to events on.
+ * @param {EventTarget|goog.events.EventTarget} src The node from which to get
+ *     listeners.
  * @param {?string} type The name of the event without the 'on' prefix.
- * @param {Function|Object} listener The listener function to remove.
+ * @param {Function|Object} listener The listener function to get.
  * @param {boolean=} opt_capt In DOM-compliant browsers, this determines
  *                            whether the listener is fired during the
  *                            capture or bubble phase of the event.
@@ -11079,8 +11058,6 @@ goog.debug.entryPointRegistry.register(
 /**
  * @fileoverview Implementation of EventTarget as defined by W3C DOM 2/3.
  *
- *
- *
  * @see ../demos/eventtarget.html
  */
 
@@ -11276,7 +11253,6 @@ goog.events.EventTarget.prototype.disposeInternal = function() {
 /**
  * @fileoverview A timer class to which other classes and objects can
  * listen on.  This is only an abstraction above setInterval.
- *
  *
  * @see ../demos/timers.html
  */
@@ -11561,7 +11537,6 @@ goog.Timer.clear = function(timerId) {
 
 /**
  * @fileoverview Generics method for collection-like classes and objects.
- *
  *
  *
  * This file contains functions to work with collections. It supports using
@@ -11903,7 +11878,6 @@ goog.structs.every = function(col, f, opt_obj) {
 
 /**
  * @fileoverview Python style iteration utilities.
- *
  */
 
 
@@ -12466,8 +12440,6 @@ goog.iter.nextOrValue = function(iterable, defaultValue) {
  * @fileoverview Datastructure: Hash Map.
  *
  *
- *
- *
  * This file contains an implementation of a Map structure. It implements a lot
  * of the methods used in goog.structs so those functions work on hashes.  For
  * convenience with common usage the methods accept any type for the key, though
@@ -12911,8 +12883,6 @@ goog.structs.Map.hasKey_ = function(obj, key) {
  * @fileoverview Datastructure: Set.
  *
  *
- *
- *
  * This class implements a set data structure. Adding and removing is O(1). It
  * supports both object and primitive values. Be careful because you can add
  * both 1 and new Number(1), because these are not the same. You can even add
@@ -13159,7 +13129,12 @@ goog.structs.Set.prototype.__iterator__ = function(opt_keys) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @fileoverview Logging and debugging utilities.
+ *
 
+ * @see ../demos/debug.html
+ */
 
 goog.provide('goog.debug');
 
@@ -13589,7 +13564,6 @@ goog.debug.fnNameCache_ = {};
  * dependencies this file has on other closure classes as any dependency it
  * takes won't be able to use the logging infrastructure.
  *
- *
  */
 
 goog.provide('goog.debug.LogRecord');
@@ -14004,7 +13978,6 @@ goog.debug.LogBuffer.prototype.forEachRecord = function(func) {
  * @fileoverview Definition of the Logger class. Please minimize dependencies
  * this file has on other closure classes as any dependency it takes won't be
  * able to use the logging infrastructure.
- *
  *
  * @see ../demos/debug.html
  */
@@ -14786,7 +14759,6 @@ goog.debug.LogManager.createLogger_ = function(name) {
 
 /**
  * @fileoverview JSON utility functions.
- *
  */
 
 
@@ -15257,7 +15229,6 @@ goog.net.EventType = {
 /**
  * @fileoverview Interface for a factory for creating XMLHttpRequest objects
  * and metadata about them.
- *
  */
 
 goog.provide('goog.net.XmlHttpFactory');
@@ -15321,7 +15292,6 @@ goog.net.XmlHttpFactory.prototype.internalGetOptions = goog.abstractMethod;
 /**
  * @fileoverview Implementation of XmlHttpFactory which allows construction from
  * simple factory methods.
- *
  */
 
 goog.provide('goog.net.WrapperXmlHttpFactory');
@@ -15388,8 +15358,6 @@ goog.net.WrapperXmlHttpFactory.prototype.getOptions = function() {
 
 /**
  * @fileoverview Low level handling of XMLHttpRequest.
- *
- *
  */
 
 goog.provide('goog.net.DefaultXmlHttpFactory');
@@ -15619,7 +15587,6 @@ goog.net.XmlHttp.setGlobalFactory(new goog.net.DefaultXmlHttpFactory());
  * the problem and a minimal test case.
  *
  * This class's methods are no-ops for non-Gecko browsers.
- *
  *
  */
 
@@ -15879,7 +15846,6 @@ goog.net.xhrMonitor = new goog.net.XhrMonitor_();
  * Tested = IE6, FF1.5, Safari, Opera 8.5
  *
  * TODO(user): Error cases aren't playing nicely in Safari.
- *
  *
  */
 
@@ -16808,7 +16774,6 @@ goog.debug.entryPointRegistry.register(
 /**
  * @fileoverview Functions for setting, getting and deleting cookies.
  *
- *
  */
 
 
@@ -17155,6 +17120,213 @@ goog.net.cookies.getKeyValues_ = function() {
   }
   return {keys: keys, values: values};
 };
+// Copyright 2008 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Utilities for creating functions. Loosely inspired by the
+ * java classes: http://go/functions.java and http://go/predicate.java.
+ *
+ * @author nicksantos@google.com (Nick Santos)
+ */
+
+
+goog.provide('goog.functions');
+
+
+/**
+ * Creates a function that always returns the same value.
+ * @param {*} retValue The value to return.
+ * @return {!Function} The new function.
+ */
+goog.functions.constant = function(retValue) {
+  return function() {
+    return retValue;
+  };
+};
+
+
+/**
+ * Always returns false.
+ * @type {function(...): boolean}
+ */
+goog.functions.FALSE = goog.functions.constant(false);
+
+
+/**
+ * Always returns true.
+ * @type {function(...): boolean}
+ */
+goog.functions.TRUE = goog.functions.constant(true);
+
+
+/**
+ * Always returns NULL.
+ * @type {function(...): null}
+ */
+goog.functions.NULL = goog.functions.constant(null);
+
+
+/**
+ * A simple function that returns the first argument of whatever is passed
+ * into it.
+ * @param {*=} opt_returnValue The single value that will be returned.
+ * @param {...*} var_args Optional trailing arguments. These are ignored.
+ * @return {*} The first argument passed in, or undefined if nothing was passed.
+ */
+goog.functions.identity = function(opt_returnValue, var_args) {
+  return opt_returnValue;
+};
+
+
+/**
+ * Creates a function that always throws an error with the given message.
+ * @param {string} message The error message.
+ * @return {!Function} The error-throwing function.
+ */
+goog.functions.error = function(message) {
+  return function() {
+    throw Error(message);
+  };
+};
+
+
+/**
+ * Given a function, create a function that silently discards all additional
+ * arguments.
+ * @param {Function} f The original function.
+ * @return {!Function} A version of f that discards its arguments.
+ */
+goog.functions.lock = function(f) {
+  return function() {
+    return f.call(this);
+  };
+};
+
+
+/**
+ * Creates the composition of the functions passed in.
+ * For example, (goog.functions.compose(f, g))(a) is equivalent to f(g(a)).
+ * @param {...Function} var_args A list of functions.
+ * @return {!Function} The composition of all inputs.
+ */
+goog.functions.compose = function(var_args) {
+  var functions = arguments;
+  var length = functions.length;
+  return function() {
+    var result;
+    if (length) {
+      result = functions[length - 1].apply(this, arguments);
+    }
+
+    for (var i = length - 2; i >= 0; i--) {
+      result = functions[i].call(this, result);
+    }
+    return result;
+  };
+};
+
+
+/**
+ * Creates a function that calls the functions passed in in sequence, and
+ * returns the value of the last function. For example,
+ * (goog.functions.sequence(f, g))(x) is equivalent to f(x),g(x).
+ * @param {...Function} var_args A list of functions.
+ * @return {!Function} A function that calls all inputs in sequence.
+ */
+goog.functions.sequence = function(var_args) {
+  var functions = arguments;
+  var length = functions.length;
+  return function() {
+    var result;
+    for (var i = 0; i < length; i++) {
+      result = functions[i].apply(this, arguments);
+    }
+    return result;
+  };
+};
+
+
+/**
+ * Creates a function that returns true if each of its components evaluates
+ * to true. The components are evaluated in order, and the evaluation will be
+ * short-circuited as soon as a function returns false.
+ * For example, (goog.functions.and(f, g))(x) is equivalent to f(x) && g(x).
+ * @param {...Function} var_args A list of functions.
+ * @return {!Function} A function that ANDs its component functions.
+ */
+goog.functions.and = function(var_args) {
+  var functions = arguments;
+  var length = functions.length;
+  return function() {
+    for (var i = 0; i < length; i++) {
+      if (!functions[i].apply(this, arguments)) {
+        return false;
+      }
+    }
+    return true;
+  };
+};
+
+
+/**
+ * Creates a function that returns true if any of its components evaluates
+ * to true. The components are evaluated in order, and the evaluation will be
+ * short-circuited as soon as a function returns true.
+ * For example, (goog.functions.and(f, g))(x) is equivalent to f(x) || g(x).
+ * @param {...Function} var_args A list of functions.
+ * @return {!Function} A function that ORs its component functions.
+ */
+goog.functions.or = function(var_args) {
+  var functions = arguments;
+  var length = functions.length;
+  return function() {
+    for (var i = 0; i < length; i++) {
+      if (functions[i].apply(this, arguments)) {
+        return true;
+      }
+    }
+    return false;
+  };
+};
+
+
+/**
+ * Generic factory function to construct an object given the constructor
+ * and the arguments. Intended to be bound to create object factories.
+ *
+ * Callers should cast the result to the appropriate type for proper type
+ * checking by the compiler.
+ * @param {!Function} constructor The constructor for the Object.
+ * @param {...*} var_args The arguments to be passed to the contructor.
+ * @return {!Object} A new instance of the class given in {@code constructor}.
+ */
+goog.functions.create = function(constructor, var_args) {
+  /** @constructor */
+  var temp = function() {};
+  temp.prototype = constructor.prototype;
+
+  // obj will have constructor's prototype in its chain and
+  // 'obj instanceof constructor' will be true.
+  var obj = new temp();
+
+  // obj is intialized by constructor.
+  // arguments is only array-like so lacks shift(), but can be used with
+  // the Array prototype function.
+  constructor.apply(obj, Array.prototype.slice.call(arguments, 1));
+  return obj;
+};
 // Copyright 2005 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17209,7 +17381,6 @@ goog.net.cookies.getKeyValues_ = function() {
  *   }
  * }
  * </pre>
- *
  *
  */
 
@@ -17508,7 +17679,6 @@ goog.events.EventHandler.prototype.handleEvent = function(e) {
 
 /**
  * @fileoverview A utility class for representing a numeric box.
- *
  */
 
 
@@ -17559,7 +17729,7 @@ goog.math.Box = function(top, right, bottom, left) {
  * Creates a Box by bounding a collection of goog.math.Coordinate objects
  * @param {...goog.math.Coordinate} var_args Coordinates to be included inside
  *     the box.
- * @return {goog.math.Box} A Box containing all the specified Coordinates.
+ * @return {!goog.math.Box} A Box containing all the specified Coordinates.
  */
 goog.math.Box.boundingBox = function(var_args) {
   var box = new goog.math.Box(arguments[0].y, arguments[0].x,
@@ -17577,7 +17747,7 @@ goog.math.Box.boundingBox = function(var_args) {
 
 /**
  * Creates a copy of the box with the same dimensions.
- * @return {goog.math.Box} A clone of this Box.
+ * @return {!goog.math.Box} A clone of this Box.
  */
 goog.math.Box.prototype.clone = function() {
   return new goog.math.Box(this.top, this.right, this.bottom, this.left);
@@ -17614,7 +17784,7 @@ goog.math.Box.prototype.contains = function(other) {
  * @param {number=} opt_right Right margin.
  * @param {number=} opt_bottom Bottom margin.
  * @param {number=} opt_left Left margin.
- * @return {goog.math.Box} A reference to this Box.
+ * @return {!goog.math.Box} A reference to this Box.
  */
 goog.math.Box.prototype.expand = function(top, opt_right, opt_bottom,
     opt_left) {
@@ -17745,7 +17915,6 @@ goog.math.Box.intersects = function(a, b) {
 
 /**
  * @fileoverview A utility class for representing rectangles.
- *
  */
 
 
@@ -18083,10 +18252,6 @@ goog.math.Rect.prototype.getSize = function() {
 
 /**
  * @fileoverview Utilities for element styles.
- *
- *
- *
- *
  *
  * @see ../demos/inline_block_quirks.html
  * @see ../demos/inline_block_standards.html
@@ -19895,7 +20060,6 @@ goog.style.getScrollbarWidth = function() {
 /**
  * @fileoverview Generator for unique element IDs.
  *
- *
  */
 
 goog.provide('goog.ui.IdGenerator');
@@ -19950,10 +20114,6 @@ goog.ui.IdGenerator.instance = goog.ui.IdGenerator.getInstance();
 /**
  * @fileoverview Abstract class for all UI components. This defines the standard
  * design pattern that all UI components should follow.
- *
- *
- *
- *
  *
  * @see ../demos/samplecomponent.html
  */
@@ -21147,6 +21307,7 @@ goog.require('goog.dom.TagName');
 goog.require('goog.dom.classes');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
+goog.require('goog.functions');
 goog.require('goog.ui.Component');
 
 
@@ -21299,8 +21460,9 @@ goog.ui.TableSorter.prototype.sort_ = function(e) {
 
   // Perform the sort.
   if (this.dispatchEvent(goog.ui.TableSorter.EventType.BEFORESORT)) {
-    this.sort(col, reverse);
-    this.dispatchEvent(goog.ui.TableSorter.EventType.SORT);
+    if (this.sort(col, reverse)) {
+      this.dispatchEvent(goog.ui.TableSorter.EventType.SORT);
+    }
   }
 };
 
@@ -21309,8 +21471,14 @@ goog.ui.TableSorter.prototype.sort_ = function(e) {
  * Sort the table contents by the values in the given column.
  * @param {number} column The column to sort by.
  * @param {boolean=} opt_reverse Whether to sort in reverse.
+ * @return {boolean} Whether the sort was executed.
  */
 goog.ui.TableSorter.prototype.sort = function(column, opt_reverse) {
+  var sortFunction = this.getSortFunction(column);
+  if (sortFunction === goog.ui.TableSorter.noSort) {
+    return false;
+  }
+
   // Get some useful DOM nodes.
   var table = this.getElement();
   var tBody = table.tBodies[0];
@@ -21341,7 +21509,6 @@ goog.ui.TableSorter.prototype.sort = function(column, opt_reverse) {
   }
 
   // Sort the array.
-  var sortFunction = this.getSortFunction(column);
   var multiplier = this.reversed_ ? -1 : 1;
   goog.array.stableSort(values,
                         function(a, b) {
@@ -21367,7 +21534,18 @@ goog.ui.TableSorter.prototype.sort = function(column, opt_reverse) {
   goog.dom.classes.add(header, this.reversed_ ?
       goog.getCssName('goog-tablesorter-sorted-reverse') :
       goog.getCssName('goog-tablesorter-sorted'));
+
+  return true;
 };
+
+
+/**
+ * Disables sorting on the specified column
+ * @param {*} a First sort value.
+ * @param {*} b Second sort value.
+ * @return {number} Negative if a < b, 0 if a = b, and positive if a > b.
+ */
+goog.ui.TableSorter.noSort = goog.functions.error('no sort');
 
 
 /**
@@ -21417,8 +21595,6 @@ goog.ui.TableSorter.createReverseSort = function(sortFunction) {
 
 /**
  * @fileoverview Common positioning code.
- *
- *
  *
  */
 
@@ -21897,7 +22073,6 @@ goog.positioning.flipCorner = function(corner) {
 /**
  * @fileoverview Abstract base class for positioning implementations.
  *
- *
  */
 
 goog.provide('goog.positioning.AbstractPosition');
@@ -21944,8 +22119,6 @@ goog.positioning.AbstractPosition.prototype.reposition =
 
 /**
  * @fileoverview Client positioning class.
- *
- *
  *
  */
 
@@ -22024,8 +22197,6 @@ goog.positioning.AnchoredPosition.prototype.reposition = function(
 /**
  * @fileoverview Client positioning class.
  *
- *
- *
  */
 
 goog.provide('goog.positioning.ViewportPosition');
@@ -22088,8 +22259,6 @@ goog.positioning.ViewportPosition.prototype.reposition = function(
 
 /**
  * @fileoverview Client viewport positioning class.
- *
- *
  *
  */
 
@@ -22163,7 +22332,6 @@ goog.positioning.AbsolutePosition.prototype.reposition = function(
 
 /**
  * @fileoverview Anchored viewport positioning class.
- *
  *
  */
 
@@ -22290,8 +22458,6 @@ goog.positioning.AnchoredViewportPosition.prototype.reposition = function(
 /**
  * @fileoverview Client positioning class.
  *
- *
- *
  */
 
 goog.provide('goog.positioning.ClientPosition');
@@ -22368,7 +22534,7 @@ goog.positioning.ClientPosition.prototype.reposition = function(
  * @fileoverview Client viewport positioning class.
  *
  * @author robbyw@google.com (Robert Walker)
- *
+ * @author eae@google.com (Emil A Eklund)
  */
 
 goog.provide('goog.positioning.ViewportClientPosition');
@@ -22468,7 +22634,6 @@ goog.positioning.ViewportClientPosition.prototype.reposition = function(
 
 /**
  * @fileoverview Constant declarations for common key codes.
- *
  *
  * @see ../demos/keyhandler.html
  */
@@ -22783,8 +22948,6 @@ goog.events.KeyCodes.isCharacterKey = function(keyCode) {
 
 /**
  * @fileoverview Definition of the PopupBase class.
- *
- *
  *
  */
 
@@ -23492,8 +23655,6 @@ goog.ui.PopupBase.prototype.disposeInternal = function() {
 /**
  * @fileoverview Definition of the Popup class.
  *
- *
- *
  * @see ../demos/popup.html
  */
 
@@ -23899,7 +24060,6 @@ goog.ui.Popup.ViewPortClientPosition = goog.positioning.ViewportClientPosition;
 
 /**
  * @fileoverview Tooltip widget implementation.
- *
  *
  * @see ../demos/tooltip.html
  */
@@ -24901,8 +25061,6 @@ goog.ui.Tooltip.ElementTooltipPosition.prototype.reposition = function(
  *
  * Uses features of RFC 3986 for parsing/formatting URIs:
  *   http://gbiv.com/protocols/uri/rfc/rfc3986.html
- *
- *
  *
  */
 
