@@ -1003,12 +1003,24 @@ def UpdateDatastore(request):
   if not test:
     return http.HttpResponse('All Done!')
 
-  # pass if we already have a meta
-  if not hasattr(test, 'meta'):
-    meta = models.user_test.TestMeta().save()
-    test.meta = meta
-    test.save()
-    test.add_memcache()
+  test_set = test.get_test_set_from_test_keys(test.test_keys)
+  browsers = result_stats.CategoryBrowserManager.GetBrowsers(
+      test_set.category, version_level='top')
+  visible_test_keys = test.test_keys
+  stats_data = result_stats.CategoryStatsManager.GetStats(
+      test_set, browsers, visible_test_keys, use_memcache=True)
+
+  for user_agent in browsers:
+    row_stats = stats_data.get(user_agent)
+    ua_results = row_stats.get('results')
+    if ua_results:
+      test_scores = []
+      for test_key in test.test_keys:
+        score = str(ua_results.get(test_key).get('score'))
+        test_scores.append([test_key, score])
+      logging.info('TEST_SCORES: %s' % test_scores)
+      models.user_test.update_test_meta(test.key(), test_scores)
+      #deferred.defer(models.user_test.update_test_meta, key, test_scores)
 
   params = {
     'next_url': '/update_datastore?key=%s' % test.key(),
