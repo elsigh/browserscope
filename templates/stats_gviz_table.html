@@ -20,7 +20,8 @@
     function initialize() {
       var query = new google.visualization.Query(
           '/?category={{ category }}&ua=' +
-          '{{ ua_params }}&v=top&o=gviz_data&tqx=reqId:0',
+          '{{ ua_params }}&v=top&o=gviz_data' +
+          '&highlight={{ highlight }}&tqx=reqId:0',
           {'sendMethod': 'scriptInjection'});
       query.send(draw);
     }
@@ -40,8 +41,8 @@
         tableRow: 'rt-row'
       };
       dataTable.draw(data, {
-        'height': '300px',
-        'width': 'auto',
+        'height': '{{ height }}',
+        'width': '{{ width }}',
         'alternatingRowStyle': false,
         'cssClassNames': cssClassNames
       });

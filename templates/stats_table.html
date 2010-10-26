@@ -110,18 +110,20 @@
             </td>
 
             {% for test in tests %}
-              <td
-                align="{{ test.cell_align }}"
-                class="rt-t-s-{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"score"|scale_100_to_10 }}"
-                >
-                {% with stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"display" as result %}
-                  {% if is_user_test %}
-                    {{ result|group_thousands }}
-                  {% else %}
-                    {{ result }}
-                  {% endif %}
-                {% endwith %}
-              </td>
+              {% with stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"score"|scale_100_to_10 as scaled_score %}
+                <td
+                  align="{{ test.cell_align }}"
+                  class="{% if is_user_test %}{% if highlight %}rt-t-s-{{ scaled_score }}{% endif %}{% else %}rt-t-s-{{ scaled_score }}{% endif %}"
+                  >
+                  {% with stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"display" as result %}
+                    {% if is_user_test %}
+                      {{ result|group_thousands }}
+                    {% else %}
+                      {{ result }}
+                    {% endif %}
+                  {% endwith %}
+                </td>
+              {% endwith %}
             {% endfor %}
             <td class="rt-tot">
               {% ifequal category "summary" %}{% else %}

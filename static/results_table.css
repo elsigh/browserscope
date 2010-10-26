@@ -129,7 +129,15 @@ a.bs-l-p {
   border: 1px solid #ddd;
   white-space: nowrap;
 }
-
+/* UA cell */
+.google-visualization-table-tr-head > td:first-child {
+  text-align: left;
+}
+/* # Tests cell */
+.google-visualization-table-tr-head > td:last-child {
+  text-align: right;
+}
+/* override JSKB and gviz table default */
 .google-visualization-table-tr-head td,
 #rt-jskb tbody td {
   white-space: normal;

@@ -41,14 +41,23 @@ class User(db.Model):
 
 class TestSet(test_set_base.TestSet):
   def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
-    raw_score = raw_scores.get(test_key, 0)
+    #logging.info('GetTestScoreAndDisplayValue, %s, %s' % (test_key, raw_scores))
+    score = 0
+    raw_score = raw_scores.get(test_key, None)
     if raw_score is None:
       raw_score = ''
     else:
-      raw_score = str(raw_score)
-    return 0, raw_score
+      #logging.info('RAW_SCORE: %s' % raw_score)
+      if raw_score != '':
+        test = Test.get_test_from_category(self.category)
+        score = test.get_score_from_display(test_key, raw_score)
+        if score == 0:
+          score = 1
+        #logging.info('SCOOOOORE: %s' % score)
+    return score, str(raw_score)
 
   def GetRowScoreAndDisplayValue(self, results):
+    """There's no row/summary score in a User Test."""
     return 0, ''
 
 
@@ -75,11 +84,6 @@ class Test(db.Model):
     o = urlparse(self.url)
     base_url = '%s://%s/' % (o.scheme, o.netloc)
     return base_url
-
-  # def get_mirrored_content(self):
-  #   mirrored_content = mirror.MirroredContent.get_by_key_name(
-  #       self.get_memcache_keyname())
-  #   return mirrored_content
 
   def get_memcache_keyname(self):
     return Test.get_memcache_keyname_static(self.key())
@@ -113,6 +117,15 @@ class Test(db.Model):
     test_set.sandboxid = self.sandboxid
     return test_set
 
+  def get_score_from_display(self, test_key, display):
+    """Converts a displayed number value into a 1-100 score."""
+    test_min_value = getattr(self.meta, '%s_min_value' % test_key)
+    test_max_value = getattr(self.meta, '%s_max_value' % test_key)
+    value_on_100_scale = int(((int(display) - test_min_value) /
+        (test_max_value - test_min_value)) * 100)
+    return value_on_100_scale
+
+
   @staticmethod
   def get_mem(key):
     memcache_keyname = Test.get_memcache_keyname_static(key)
@@ -129,8 +142,49 @@ class Test(db.Model):
    return 'usertest'
 
   @staticmethod
+  def is_user_test_category(category):
+    if re.match(Test.get_prefix(), category):
+      return True
+    else:
+      return False
+
+  @staticmethod
   def get_memcache_keyname_static(key):
     return '%s_%s' % (Test.get_prefix(), key)
+
+  @staticmethod
+  def get_key_from_category(category):
+    if re.match(Test.get_prefix(), category):
+      category_prefix = '%s_' % Test.get_prefix()
+      if category_prefix not in category:
+        return None
+      return category.replace(category_prefix, '')
+    else:
+      return None
+
+  @staticmethod
+  def get_test_from_category(category):
+    key = Test.get_key_from_category(category)
+    if key:
+      return Test.get_mem(key)
+    else:
+      return None
+
+  @staticmethod
+  def get_test_set_from_category(category):
+    test = Test.get_test_from_category(category)
+    if test:
+      return test.get_test_set_from_test_keys(test.test_keys)
+    else:
+      return None
+
+  @staticmethod
+  def get_test_set_from_data(content):
+    """Extracts the test_set out of content."""
+    match = re.search(r'.+var _bTestSet\s?=\s?(\[[^\]]+\]);', content)
+    if match is None:
+      return None
+    return match
 
   @staticmethod
   def get_test_set_from_results_str(category, results_str):
@@ -167,34 +221,6 @@ class Test(db.Model):
 
     test_set = test.get_test_set_from_test_keys(test_keys)
     return test_set
-
-  @staticmethod
-  def is_user_test_category(category):
-    if re.match(Test.get_prefix(), category):
-      return True
-    else:
-      return False
-
-  @staticmethod
-  def get_test_set_from_category(category):
-    if re.match(Test.get_prefix(), category):
-      category_prefix = '%s_' % Test.get_prefix()
-      if category_prefix not in category:
-        return None
-      key = category.replace(category_prefix, '')
-      test = Test.get_mem(key)
-      return test.get_test_set_from_test_keys(test.test_keys)
-    else:
-      return None
-
-  @staticmethod
-  def get_test_set_from_data(content):
-    """Extracts the test_set out of content."""
-    match = re.search(r'.+var _bTestSet\s?=\s?(\[[^\]]+\]);', content)
-    logging.info('match: %s' % match )
-    if match is None:
-      return None
-    return match
 
 
 def update_test_keys(key, test_keys):

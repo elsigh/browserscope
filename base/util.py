@@ -659,8 +659,19 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
     opt_tests: list of tests.
     use_memcache: Use memcache or not.
   """
+
+  # gviz_table is pretty lightweight, so we'll pass through here.
+  if output == 'gviz_table':
+    params = {
+      'height': request.REQUEST.get('height', '300px'),
+      'width': request.REQUEST.get('width', 'auto'),
+      'request_path': request.get_full_path(),
+      'highlight': request.REQUEST.get('highlight', ''),
+    }
+    return GetStatsDataTemplatized(params, output)
+
   category = test_set.category
-  logging.info('GetStats for %s' % category)
+  #logging.info('GetStats for %s' % category)
   version_level = request.GET.get('v', 'top')
   is_skip_static = request.GET.get('sc')  # 'sc' for skip cache
   browser_param = request.GET.get('ua')
@@ -783,12 +794,13 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
     'stats': stats_data,
     'params': test_set.default_params,
     'results_uri_string': results_str,
+    'highlight': request.REQUEST.get('highlight', ''),
     'callback': request.REQUEST.get('callback', ''),
   }
   #logging.info("GetStats got params: %s", str(params))
   if output in ['html', 'xhr']:
     return GetStatsDataTemplatized(params, 'table')
-  elif output in ['csv', 'gviz_table', 'json', 'jsonp']:
+  elif output in ['csv', 'json', 'jsonp']:
     return GetStatsDataTemplatized(params, output)
   elif output == 'gviz_data':
     return FormatStatsDataAsGviz(params, request.GET.get('tqx', ''))
@@ -809,7 +821,6 @@ def FormatStatsDataAsGviz(params, tqx):
   Returns:
     A JSON string as content in a text/plain HttpResponse.
   """
-
   # row headers
   description = [('ua', 'string', 'UserAgent'), ('score', 'number', 'Score')]
   for test in params['tests']:
@@ -824,9 +835,12 @@ def FormatStatsDataAsGviz(params, tqx):
 
     # Start with summary score to get the cell color.
     summary_score = row_stats.get('summary_score')
+    # fwiw user tests don't have a summary score.
     if summary_score:
-      p = {'className': 'rt-t-s-%s' %
-           custom_filters.scale_100_to_10(summary_score)}
+      p = {}
+      if params['highlight']:
+        p = {'className': 'rt-t-s-%s' %
+             custom_filters.scale_100_to_10(summary_score)}
       summary_score_data = (summary_score, '%s/100' % summary_score, p)
 
       # User agent uses the summary score coloration.
@@ -844,15 +858,16 @@ def FormatStatsDataAsGviz(params, tqx):
       test_result = ua_results.get(test.key)
       score = test_result.get('score')
       display = test_result.get('display')
+      p = {}
       # User tests don't have "score" set, they only have display because
       # they don't implement a test_set scoring algorithm.
       # TODO(elsigh): consider just populating score in get stats.
       if params['is_user_test']:
         # This needs to use min_value,max_value to get turned into 0-100
-        #score = display
         display = custom_filters.group_thousands(display)
-      score_to_base10 = custom_filters.scale_100_to_10(score)
-      p = {'className': 'rt-t-s-%s' % score_to_base10}
+      if params['highlight']:
+        score_to_base10 = custom_filters.scale_100_to_10(score)
+        p = {'className': 'rt-t-s-%s' % score_to_base10}
       row_data.append((score, display, p))
 
     # Total runs.
@@ -1026,7 +1041,8 @@ def UpdateDatastore(request):
       for test_key in test.test_keys:
         # User Tests don't have "score" set, just display
         display = str(ua_results.get(test_key).get('display'))
-        test_scores.append([test_key, display])
+        if display != '':
+          test_scores.append([test_key, display])
       #logging.info(' -- TEST_SCORES: %s' % test_scores)
       models.user_test.update_test_meta(test.key(), test_scores)
       #deferred.defer(models.user_test.update_test_meta, key, test_scores)
