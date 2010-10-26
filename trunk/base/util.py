@@ -835,7 +835,7 @@ def FormatStatsDataAsGviz(params, tqx):
       row_data.append(user_agent_data)
       row_data.append(summary_score_data)
     else:
-      row_data.append(user_agent.lower(), user_agent)
+      row_data.append((user_agent.lower(), user_agent))
 
 
     # Test data by key.
