@@ -841,12 +841,18 @@ def FormatStatsDataAsGviz(params, tqx):
     # Test data by key.
     ua_results = row_stats.get('results')
     for test in params['tests']:
-      score = ua_results.get(test.key).get('score')
+      test_result = ua_results.get(test.key)
+      score = test_result.get('score')
+      display = test_result.get('display')
+      # User tests don't have "score" set, they only have display because
+      # they don't implement a test_set scoring algorithm.
+      # TODO(elsigh): consider just populating score in get stats.
+      if params['is_user_test']:
+        # This needs to use min_value,max_value to get turned into 0-100
+        #score = display
+        display = custom_filters.group_thousands(display)
       score_to_base10 = custom_filters.scale_100_to_10(score)
       p = {'className': 'rt-t-s-%s' % score_to_base10}
-      display = ua_results.get(test.key).get('display')
-      if params['is_user_test']:
-        display = custom_filters.group_thousands(display)
       row_data.append((score, display, p))
 
     # Total runs.
@@ -1018,9 +1024,10 @@ def UpdateDatastore(request):
     if ua_results:
       test_scores = []
       for test_key in test.test_keys:
-        score = str(ua_results.get(test_key).get('score'))
-        test_scores.append([test_key, score])
-      logging.info('TEST_SCORES: %s' % test_scores)
+        # User Tests don't have "score" set, just display
+        display = str(ua_results.get(test_key).get('display'))
+        test_scores.append([test_key, display])
+      #logging.info(' -- TEST_SCORES: %s' % test_scores)
       models.user_test.update_test_meta(test.key(), test_scores)
       #deferred.defer(models.user_test.update_test_meta, key, test_scores)
 
