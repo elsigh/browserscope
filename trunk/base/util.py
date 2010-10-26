@@ -666,6 +666,8 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
   browser_param = request.GET.get('ua')
   results_str = request.GET.get('%s_results' % category,
       request.GET.get('results', None)) # allow "results" for user_tests.
+  if results_str == 'None':
+    results_str = None
   current_user_agent_string = request.META['HTTP_USER_AGENT']
 
   visible_test_keys = [t.key for t in test_set.VisibleTests()]
