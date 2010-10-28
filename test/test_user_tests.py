@@ -216,7 +216,7 @@ class TestWithData(unittest.TestCase):
       '<p>stuff</p>',
       # Hidden form field in the browser v select.
       ('<input type="hidden" name="category" '
-       'value="usertest_agt1YS1wcm9maWxlcnIKCxIEVGVzdBgBDA">'),
+       'value="usertest_%s">' % self.test.key()),
       # Ensures that 1 test was saved and that full category update worked.
       '1\s+test\s+from\s+1\s+browser',
       # test_keys are there as headers
@@ -234,7 +234,7 @@ class TestWithData(unittest.TestCase):
     self.assertEqual(200, response.status_code)
     self.assertEqual('application/json', response['Content-type'])
     self.assertTrue(re.search(
-        '"category": "usertest_agt1YS1wcm9maWxlcnIKCxIEVGVzdBgBDA"',
+        '"category": "usertest_%s"' % self.test.key(),
         response.content))
 
     # callback test
@@ -244,7 +244,7 @@ class TestWithData(unittest.TestCase):
     self.assertEqual(200, response.status_code)
     self.assertEqual('application/json', response['Content-type'])
     self.assertTrue(re.search(
-        '"category": "usertest_agt1YS1wcm9maWxlcnIKCxIEVGVzdBgBDA"',
+        '"category": "usertest_%s"' % self.test.key(),
         response.content))
     self.assertTrue(re.search('^myFn\(\{', response.content))
 
@@ -312,16 +312,17 @@ class TestAliasedUserTest(unittest.TestCase):
     self.assertEqual(204, response.status_code)
 
   def testResultStats(self):
-    # These stats do not run through GetTestScoreAndDisplayValue, etc..
+    # Score is 10 because we give the first score a 10
+    # see user_test.py line 55
     stats = {
       'Other': {
          'summary_display': '',
          'total_runs': 1,
          'summary_score': 0,
          'results': {
-            'apple': {'score': 0, 'raw_score': 1, 'display': '1'},
-            'banana': {'score': 0, 'raw_score': 2, 'display': '2'},
-            'coconut': {'score': 0, 'raw_score': 4, 'display': '4'},
+            'apple': {'score': 10, 'raw_score': 1, 'display': '1'},
+            'banana': {'score': 10, 'raw_score': 2, 'display': '2'},
+            'coconut': {'score': 10, 'raw_score': 4, 'display': '4'},
          }
       },
       'total_runs': 1,

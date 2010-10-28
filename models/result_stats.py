@@ -468,7 +468,8 @@ class CategoryStatsManager(object):
       except db.Timeout:
         is_timed_out = True
       if is_timed_out:
-        logging.info('Timed out \'%s\' stats for %s', category, browser)
+        logging.info('Timed out \'%s\' in UpdateStatsCache doing '
+                     'GetMediansAndNumScores for %s', category, browser)
         unhandled_browsers.append(browser)
       else:
         stats = test_set.GetStats(test_keys, medians, num_scores)

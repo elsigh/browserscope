@@ -25,18 +25,24 @@
     <table class="bs-table">
       <thead>
         <tr>
+          <th></th>
           <th>_bTestKey</th>
           <th>Name</th>
           <th>URL</th>
           <th>Sandbox ID</th>
           <th>Description</th>
-          <th></th>
+          <th>Outputs</th>
         </tr>
       </thead>
       <tbody>
         {% for test in tests %}
           <tr>
-            <td>{{ test.key }}</td>
+            <td>
+              <a href="/user/tests/edit/{{ test.key }}">edit</a>
+            </td>
+            <td>
+              {{ test.key }}
+            </td>
             <td>{{ test.name }}</td>
             <td>
               <a href="{{ test.url }}" target="_blank">{{ test.url }}</a>
@@ -44,11 +50,10 @@
             <td>{{ test.sandboxid }}</td>
             <td>{{ test.description }}</td>
             <td>
-              <a href="/user/tests/edit/{{ test.key }}">edit</a>
               <a href="/browse?category=usertest_{{ test.key }}"
-                >Results</a>
+                >Results</a><br>
               <a href="/user/tests/table/{{ test.key }}?v=3&layout=simple"
-                >Table</a>
+                >Table</a><br>
               <a href="/user/tests/table/{{ test.key }}?v=3&o=csv">CSV</a>
               <a href="/user/tests/table/{{ test.key }}?v=3&o=json">JSON</a>
             </td>

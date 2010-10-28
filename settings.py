@@ -80,6 +80,7 @@ STATS_MEMCACHE_UA_ROW_NS = 'ua_row'
 STATS_MEMCACHE_UA_ROW_SCORE_NS = 'ua_row_score'
 STATS_SCORE_TRUE = 'yes'
 STATS_SCORE_FALSE = 'no'
+STATS_USERTEST_TIMEOUT = 3600
 
 # We toggle DEBUG and TEMPLATE_DEBUG based on APP ENGINE's reported env.
 DEBUG = False

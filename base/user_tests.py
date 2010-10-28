@@ -29,7 +29,6 @@ from google.appengine.api import datastore_errors
 from google.appengine.api import memcache
 from google.appengine.api import urlfetch
 
-from google.appengine.ext import deferred
 from google.appengine.ext import db
 
 import django
@@ -113,6 +112,7 @@ def TestEdit(request, key):
   # If a key was provided in the endpoint that means this is an edit.
   if key:
     test = models.user_test.Test.get_mem(key)
+    meta = models.user_test.TestMeta.get_mem_by_test(test)
     if (test.user.key().name() != current_user.user_id() and not
         users.is_current_user_admin()):
       return http.HttpResponse('You can\'t play with tests you don\'t own')
@@ -172,7 +172,7 @@ def TestEdit(request, key):
     # Do not try to catch / variable-ize this exception, it breaks in
     # production.
     except:
-      error_msg = ('Something did not quite work there, very sorry. ')
+      error_msg = 'Something did not quite work there, very sorry.'
       logging.info(error_msg)
       if api_key:
         return http.HttpResponseServerError(error_msg)

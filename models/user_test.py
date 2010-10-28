@@ -28,10 +28,11 @@ from google.appengine.ext import deferred
 
 from categories import test_set_base
 
+import settings
+
 # This value turns out to be key for aliasing, meaning we need to be
 # sure that aliased test sets use it when defining their tests.
 MAX_VALUE = 10000
-
 
 class User(db.Model):
   email = db.StringProperty()
@@ -51,8 +52,9 @@ class TestSet(test_set_base.TestSet):
       if raw_score != '':
         test = Test.get_test_from_category(self.category)
         score = test.get_score_from_display(test_key, raw_score)
+        # If we don't have an interesting min/max we'll be nice and go 10.
         if score == 0:
-          score = 1
+          score = 10
         #logging.info('SCOOOOORE: %s' % score)
     return score, str(raw_score)
 
@@ -66,6 +68,37 @@ class TestMeta(db.Expando):
   created = db.DateTimeProperty(auto_now_add=True)
   modified = db.DateTimeProperty(auto_now=True)
   test = db.ReferenceProperty()
+
+  def get_memcache_keyname(self, test):
+    return TestMeta.get_memcache_keyname_static(test)
+
+  def add_memcache(self, test):
+    memcache_keyname = self.get_memcache_keyname(test)
+    memcache.delete(memcache_keyname)
+    memcache.add(memcache_keyname, self,
+                 settings.STATS_USERTEST_TIMEOUT)
+
+  def save_memcache(self, test):
+    self.save()
+    self.add_memcache(test)
+
+  @staticmethod
+  def get_mem_by_test(test):
+    """Gets the TestMeta from memcache and/or puts it in there."""
+    memcache_keyname = '%s_meta' % TestMeta.get_memcache_keyname_static(test)
+    meta = memcache.get(memcache_keyname)
+    if not meta:
+      meta = test.meta
+    if not meta:
+      meta = TestMeta(test=test)
+      meta.save()
+    else:
+      meta.add_memcache(test)
+    return meta
+
+  @staticmethod
+  def get_memcache_keyname_static(test):
+    return '%s_meta' % Test.get_memcache_keyname_static(test.key())
 
 
 class Test(db.Model):
@@ -90,7 +123,12 @@ class Test(db.Model):
 
   def add_memcache(self):
     self.delete_memcache()
-    memcache.add(self.get_memcache_keyname(), self, 360)
+    memcache.add(self.get_memcache_keyname(), self,
+                 settings.STATS_USERTEST_TIMEOUT)
+
+  def save_memcache(self):
+    self.save()
+    self.add_memcache()
 
   def delete_memcache(self):
     memcache.delete(self.get_memcache_keyname())
@@ -119,27 +157,41 @@ class Test(db.Model):
 
   def get_score_from_display(self, test_key, display):
     """Converts a displayed number value into a 1-100 score."""
-    test_min_value = getattr(self.meta, '%s_min_value' % test_key)
-    test_max_value = getattr(self.meta, '%s_max_value' % test_key)
-    value_on_100_scale = int(((int(display) - test_min_value) /
-        (test_max_value - test_min_value)) * 100)
+    meta = TestMeta.get_mem_by_test(self)
+    #logging.info('get_score_from_display meta:%s' % meta)
+    if not hasattr(meta, '%s_min_value' % test_key):
+      value_on_100_scale = 0
+    else:
+      test_min_value = getattr(meta, '%s_min_value' % test_key)
+      test_max_value = getattr(meta, '%s_max_value' % test_key)
+      numerator = int(display) - test_min_value
+      divisor = test_max_value - test_min_value
+      if numerator < 1 or divisor < 1:
+        value_on_100_scale = 0
+      else:
+        value_on_100_scale = int((float(numerator)/float(divisor)) * 100)
+    #logging.info('USER TEST get_score_from_display %s: %s, %s, %s, %s = %s' %
+    #             (display, test_min_value, test_max_value, numerator, divisor,
+    #              value_on_100_scale))
     return value_on_100_scale
-
-
-  @staticmethod
-  def get_mem(key):
-    memcache_keyname = Test.get_memcache_keyname_static(key)
-    test = memcache.get(memcache_keyname)
-    if not test:
-      test = Test.get(key)
-    if not test:
-      return None
-    test.add_memcache()
-    return test
 
   @staticmethod
   def get_prefix():
    return 'usertest'
+
+  @staticmethod
+  def get_mem(key):
+    memcache_keyname = Test.get_memcache_keyname_static(key)
+    is_in_memcache = True
+    test = memcache.get(memcache_keyname)
+    if not test:
+      test = Test.get(key)
+      is_in_memcache = False
+    if not test:
+      return None
+    if is_in_memcache == False:
+      test.add_memcache()
+    return test
 
   @staticmethod
   def is_user_test_category(category):
@@ -211,8 +263,7 @@ class Test(db.Model):
     # memcache.
     if not test.test_keys:
       test.test_keys = test_keys
-      test.save()
-      test.add_memcache()
+      test.save_memcache()
     else:
       deferred.defer(update_test_keys, key, test_keys)
 
@@ -236,8 +287,7 @@ def update_test_keys(key, test_keys):
       test.test_keys.append(test_key)
       dirty = True
   if dirty:
-    test.save()
-    test.add_memcache()
+    test.save_memcache()
 
 
 def update_test_meta(key, test_scores):
@@ -248,15 +298,14 @@ def update_test_meta(key, test_scores):
   """
   dirty = False
   test = Test.get_mem(key)
-  meta = test.meta
+  meta = TestMeta.get_mem_by_test(test)
 
   # Just in case?, we want to make sure our test has a meta reference.
   if not meta:
     meta = TestMeta()
-    meta.save()
+    meta.save() # here we don't want to save_memcache yet
     test.meta = meta
-    test.save()
-    test.add_memcache()
+    test.save_memcache()
 
   if meta.test is None:
     meta.test = test
@@ -267,6 +316,8 @@ def update_test_meta(key, test_scores):
     max_key = '%s_max_value' % test_key
 
     # Convert test_value into an int from a string.
+    if test_value == 'Infnity':
+      continue
     test_value = int(test_value)
 
     if not hasattr(meta, min_key):
@@ -286,5 +337,5 @@ def update_test_meta(key, test_scores):
       #              getattr(meta, max_key), max_key))
 
   if dirty:
-    meta.save()
+    meta.save_memcache(test)
 
