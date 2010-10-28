@@ -43,6 +43,8 @@ urlpatterns = patterns('',
   (r'^user/tests/(.+)$', 'base.user_tests.Test'),
 
   # Admin functionality
+  (r'^204', 'base.util.Return204'),
+  (r'^204script', 'base.util.Return204'),
   (r'^update_datastore', 'base.util.UpdateDatastore'),
   (r'^seed_datastore$', 'base.util.SeedDatastore'),
   (r'^clear_datastore$', 'base.util.ClearDatastore'),

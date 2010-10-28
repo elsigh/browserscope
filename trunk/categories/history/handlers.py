@@ -32,7 +32,13 @@ from base import util
 
 from django import http
 from django import shortcuts
-	
-CATEGORY = 'History'
+
+CATEGORY = 'history'
 
 TEST_PAGE = '/%s/frameset' % CATEGORY
+
+def About(request):
+  """About page."""
+  overview = """These tests cover..."""
+  return util.About(request, CATEGORY, category_title='History',
+                    overview=overview, show_hidden=False)

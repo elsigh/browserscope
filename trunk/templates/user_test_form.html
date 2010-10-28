@@ -5,11 +5,25 @@
 <img src="/static/img/stethoscope.png" height="256" width="256" align="right" vspace="10" hspace="20" alt="">
 
 <h1>Test</h1>
-{% if error_msg %}
-  <h2 style="color:darkred">{{ error_msg }}</h2>
+
+{% if test.key %}
+  <div>
+    <label>Key:</label>
+    {{ test.key }}
+  </div>
 {% endif %}
+
+{% if error_msg %}
+  <div style="border: 2px outset darkred; display:inline-block; padding: 5px 10px; color:darkred">
+    <strong>Error saving your test: "{{ error_msg }}"</strong>
+  </div>
+{% endif %}
+
 <form id="bs-user-test-form" action="{{ request_path }}" method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="hidden" id="sandboxid" name="sandboxid" size="20"
+      max="{{ max_sandboxid_len }}"
+      value="{% if test %}{{ test.sandboxid }}{% else %}{{ sandboxid }}{% endif %}">
   <p>
     <label for="name">Test Name:</label>
       <input type="text" id="name" name="name" size="30"
@@ -39,14 +53,13 @@
   </p>
   -->
 
+  <!--
   <p>
     <label for="sandboxid">Sandbox ID:</label>
-    <input type="text" id="sandboxid" name="sandboxid" size="20"
-      max="{{ max_sandboxid_len }}"
-      value="{% if test %}{{ test.sandboxid }}{% else %}{{ sandboxid }}{% endif %}">
     &nbsp;<span style="font-size:90%; color: #aaa;"
       >can be used when testing to bypass IP throttling</span>
   </p>
+  -->
 
   <label for="description">Description:</label>
   <div>

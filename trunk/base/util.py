@@ -30,9 +30,11 @@ import urllib
 
 from google.appengine.api import memcache
 from google.appengine.api import users
-from google.appengine.ext import db
-from google.appengine.api.labs import taskqueue
 from google.appengine.api import urlfetch
+from google.appengine.api.labs import taskqueue
+
+from google.appengine.ext import deferred
+from google.appengine.ext import db
 
 import django
 from django import http
@@ -649,6 +651,12 @@ def Beacon(request, category_id=None):
     return http.HttpResponse('', status=204)
 
 
+def Return204(request):
+  return http.HttpResponse('', status=204)
+def Return204Script(request):
+  return http.HttpResponse('<script src="/204"></script>', status=200)
+
+
 def GetStats(request, test_set, output='html',  opt_tests=None,
              use_memcache=True):
   """Returns the stats table.
@@ -1028,31 +1036,39 @@ def UpdateDatastore(request):
 
   test_set = test.get_test_set_from_test_keys(test.test_keys)
   browsers = result_stats.CategoryBrowserManager.GetBrowsers(
-      test_set.category, version_level='top')
+      test_set.category, version_level=1)
   visible_test_keys = test.test_keys
-  stats_data = result_stats.CategoryStatsManager.GetStats(
-      test_set, browsers, visible_test_keys, use_memcache=True)
+  logging.info('Bout to GetStats w/%s' % browsers)
 
   for user_agent in browsers:
-    row_stats = stats_data.get(user_agent)
-    ua_results = row_stats.get('results')
-    if ua_results:
-      test_scores = []
-      for test_key in test.test_keys:
-        # User Tests don't have "score" set, just display
-        display = str(ua_results.get(test_key).get('display'))
-        if display != '':
-          test_scores.append([test_key, display])
-      #logging.info(' -- TEST_SCORES: %s' % test_scores)
-      models.user_test.update_test_meta(test.key(), test_scores)
-      #deferred.defer(models.user_test.update_test_meta, key, test_scores)
+    deferred.defer(datastore_deferred, test_set, test.key(),
+                   test.test_keys, user_agent)
 
   params = {
-    'next_url': '/update_datastore?key=%s' % test.key(),
+    #'next_url': '/update_datastore?key=%s' % test.key(),
     'current_name': test.name,
     'next_name': 'nextosity'
   }
   return Render(request, 'update_datastore.html', params)
+
+
+def datastore_deferred(test_set, user_test_key, test_keys, user_agent):
+  logging.info('%s, %s, %s, %s' % (test_set, user_test_key, test_keys,
+               user_agent))
+  stats_data = result_stats.CategoryStatsManager.GetStats(
+      test_set, [user_agent], test_keys, use_memcache=True)
+  row_stats = stats_data.get(user_agent)
+  ua_results = row_stats.get('results')
+  if ua_results:
+    test_scores = []
+    for test_key in test_keys:
+      # User Tests don't have "score" set, just display
+      display = str(ua_results.get(test_key).get('display'))
+      if display != '':
+        test_scores.append([test_key, display])
+    #logging.info(' -- TEST_SCORES: %s' % test_scores)
+    models.user_test.update_test_meta(user_test_key, test_scores)
+    #deferred.defer(models.user_test.update_test_meta, test.key(), test_scores)
 
 
 @decorators.admin_required
