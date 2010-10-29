@@ -85,7 +85,7 @@ class TestMeta(db.Expando):
   @staticmethod
   def get_mem_by_test(test):
     """Gets the TestMeta from memcache and/or puts it in there."""
-    memcache_keyname = '%s_meta' % TestMeta.get_memcache_keyname_static(test)
+    memcache_keyname = TestMeta.get_memcache_keyname_static(test)
     meta = memcache.get(memcache_keyname)
     if not meta:
       meta = test.meta
@@ -316,9 +316,11 @@ def update_test_meta(key, test_scores):
     max_key = '%s_max_value' % test_key
 
     # Convert test_value into an int from a string.
-    if test_value == 'Infnity':
+    try:
+      test_value = int(test_value)
+    except ValueError:
+      logging.info('ValueError for key:%s, val:%s' % (test_key, test_value))
       continue
-    test_value = int(test_value)
 
     if not hasattr(meta, min_key):
       setattr(meta, min_key, test_value)
