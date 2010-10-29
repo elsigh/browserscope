@@ -181,17 +181,24 @@ Util.createChromeFrameCheckbox = function(serverUaString, opt_reloadOnChange) {
  */
 Util.getJsUaOverrides = function() {
   var jsUa, jsFamilyName, jsV1, jsV2, jsV3;
-  var isIE = /*@cc_on!@*/0;
+  var isIE = navigator.userAgent.indexOf('MSIE') != -1;
   if (isIE && typeof document.documentMode != 'undefined') {
     var matches = /MSIE (\d+)\.(\d+)/.exec(navigator.userAgent); // MSIE x.x;
     if (!window.external) {
         jsFamilyName = 'IE Platform Preview';
         jsV1 = '9';
         jsV2 = '0';
+
+      var tempDiv = document.createElement('div');
+
+      // Based on the code at
+      // http://ie.microsoft.com/testdrive/Graphics/Transform2D/animation.js
+      if (typeof tempDiv.style['msTransform'] != 'undefined') {
+        jsV3 = '6';
+      }
       // Based on the code at
       // http://ie.microsoft.com/testdrive/HTML5/DOMCapabilities/demo.js
-      if (Object.getPrototypeOf(document.createElement('div')) ==
-          HTMLDivElement.prototype) {
+      else if (Object.getPrototypeOf(tempDiv) == HTMLDivElement.prototype) {
         jsV3 = '4';
       } else if (typeof Array.prototype.indexOf != 'undefined') {
         jsV3 = '3';

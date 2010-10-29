@@ -8,18 +8,25 @@
             jsFamilyName = 'IE Platform Preview';
             jsV1 = '9';
             jsV2 = '0';
-          // Based on the code at
-          // http://ie.microsoft.com/testdrive/HTML5/DOMCapabilities/demo.js
-          if (Object.getPrototypeOf(document.createElement('div')) ==
-              HTMLDivElement.prototype) {
-            jsV3 = '4';
-          } else if (typeof Array.prototype.indexOf != 'undefined') {
-            jsV3 = '3';
-          } else if (typeof document.getElementsByClassName != 'undefined') {
-            jsV3 = '2';
-          } else {
-            jsV3 = '1';
-          }
+
+            var tempDiv = document.createElement('div');
+
+            // Based on the code at
+            // http://ie.microsoft.com/testdrive/Graphics/Transform2D/animation.js
+            if (typeof tempDiv.style['msTransform'] != 'undefined') {
+              jsV3 = '6';
+            }
+            // Based on the code at
+            // http://ie.microsoft.com/testdrive/HTML5/DOMCapabilities/demo.js
+            else if (Object.getPrototypeOf(tempDiv) == HTMLDivElement.prototype) {
+              jsV3 = '4';
+            } else if (typeof Array.prototype.indexOf != 'undefined') {
+              jsV3 = '3';
+            } else if (typeof document.getElementsByClassName != 'undefined') {
+              jsV3 = '2';
+            } else {
+              jsV3 = '1';
+            }
         }
         else if (document.documentMode == 9) {
           if (window.navigator.appMinorVersion.indexOf("beta") > -1) {
