@@ -29,6 +29,12 @@ CHROME_UA_STRING = (
 
 TEST_STRINGS = (
     # ((family, v1, v2, v3), user_agent_string)
+    (('Firefox Beta', '4', '0', 'b4'),
+     'Mozilla/5.0 (X11; Linux i686 (x86_64); rv:2.0b4) Gecko/20100818 '
+     'Firefox/4.0b4', {}),
+    (('Firefox', '3', '6', '12'),
+      'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.12) '
+      'Gecko/20101027 Ubuntu/10.04 (lucid) Firefox/3.6.12', {}),
     (('Firefox (Shiretoko)', '3', '5', '1pre'),
      'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.1pre) '
      'Gecko/20090717 Ubuntu/9.04 (jaunty) Shiretoko/3.5.1pre', {}),

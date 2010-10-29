@@ -303,95 +303,12 @@ def Table(request, key):
     template = 'user_test_table.js'
   return util.Render(request, template, params)
 
-# # Fetch the inline js
-# memcache_key = 'inline_javascript_%s' % settings.BUILD
-# inline_javascript = memcache.get(memcache_key)
-# if not inline_javascript:
-#   if settings.BUILD == 'production':
-#     server = 'http://%s' % util.GetServer(request)
-#     response = urlfetch.fetch(url='%s%s' % (server,
-#                                             '/static/browserscope.js'))
-#     inline_javascript = response.content
-#   else:
-#     server = 'http://%s:8085' % request.META['SERVER_NAME']
-#     dev_response = urlfetch.fetch(url='%s%s' % (server,
-#                                                 '/static/dev.js'))
-#     util_response = urlfetch.fetch(url='%s%s' % (server,
-#                                                  '/static/util.js'))
-#     inline_javascript = '%s%s%s' % ('var CLOSURE_NO_DEPS = true;\n',
-#                                     dev_response.content,
-#                                     util_response.content)
-#   #memcache.add(memcache_key, inline_javascript, 30)
-# params['inline_javascript'] = inline_javascript
 
-# Fetch the inline CSS
-# memcache_key = 'inline_css_%s' % settings.BUILD
-# inline_css = memcache.get(memcache_key)
-# if not inline_css:
-#   if settings.BUILD == 'production':
-#     server = 'http://%s' % util.GetServer(request)
-#   else:
-#     server = 'http://%s:8085' % request.META['SERVER_NAME']
-
-#   response = urlfetch.fetch(url='%s%s' % (server,
-#                                           '/static/results_table.css'))
-#   inline_css = response.content
-#   #memcache.add(memcache_key, inline_css, 30)
-# params['inline_css'] = inline_css
-
-@decorators.admin_required
-def UpdateSchema(request):
-  tests = db.Query(models.user_test.Test)
-  for test in tests:
-    if not hasattr(test, 'sandboxid') or test.sandboxid is None:
-      setattr(test, 'sandboxid', str(_get_random_sandboxid()))
-      test.save()
-  return http.HttpResponse('All done')
-
-
-@decorators.admin_required
-def TestView(request, key):
-  """Experimental hosted mode for user tests."""
-  test = models.user_test.Test.get_mem(key)
-
-  #TODO(elsigh): Remove this.
-  #mirror.DEBUG = True
-  #mirror.EXPIRATION_DELTA_SECONDS = 1
-  #mirror.EXPIRATION_RECENT_URLS_SECONDS = 1
-
-  mirrored_content = None
-  if not request.GET.get('sc'):
-    mirrored_content = test.get_mirrored_content()
-    mirrored_content = None
-    #logging.info('mc from memcache: %s' % mirrored_content)
-  if mirrored_content is None:
-    #logging.info('store w/ key: %s' % test.get_memcache_keyname())
-    mirrored_content = mirror.MirroredContent.fetch_and_store(
-        key_name=test.get_memcache_keyname(),
-        base_url=test.get_base_url(),
-        translated_address=request.get_full_path(),
-        mirrored_url=test.url)
+def Index(request):
+  """Shows a table of user tests."""
   params = {
-    'mirrored_content': mirrored_content
   }
-  return util.Render(request, 'user_test.html', params)
-
-
-@decorators.admin_required
-def Test(request, key):
-  """Loads the test frameset for a category."""
-  test = models.user_test.Test.get_mem(key)
-  params = {
-    'category': test.get_memcache_keyname(),
-    'page_title': '%s' % test.name,
-    'continue': request.GET.get('continue', ''),
-    'autorun': '',
-    'testurl': '',
-    'test': test,
-    'test_page': test.url
-  }
-  #return shortcuts.render_to_response('test_frameset.html', params)
-  return util.Render(request, 'test_frameset.html', params)
+  return util.Render(request, 'user_tests_index.html', params)
 
 
 @decorators.provide_csrf

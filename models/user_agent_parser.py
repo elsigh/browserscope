@@ -89,6 +89,8 @@ USER_AGENT_PARSERS = (
   # must go before Browser/v1.v2 - eg: Minefield/3.1a1pre
   _P(r'(Namoroka|Shiretoko|Minefield)/(\d+)\.(\d+)\.(\d+(?:pre)?)',
      'Firefox ($1)'),
+  _P(r'(Firefox)/(\d+)\.(\d+)([ab]\d+[a-z]*)',
+     'Firefox Beta'),
   _P(r'(Namoroka|Shiretoko|Minefield)/(\d+)\.(\d+)([ab]\d+[a-z]*)?',
      'Firefox ($1)'),
   _P(r'(MozillaDeveloperPreview)/(\d+)\.(\d+)([ab]\d+[a-z]*)?'),
