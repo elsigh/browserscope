@@ -27,7 +27,11 @@ from google.appengine.runtime import DeadlineExceededError
 
 from base import decorators
 from categories import all_test_sets
+import models
 from models import result_ranker
+from models import result_stats
+
+import util
 
 import django
 from django import http
@@ -35,6 +39,62 @@ from django.utils import simplejson
 
 from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
+
+
+@decorators.admin_required
+def FixFirefoxBetaCategories(request):
+  query = db.Query(result_stats.CategoryBrowserManager)
+  key = request.GET.get('key')
+  if key:
+    query.filter('__key__ >', db.Key(key))
+  query.order('__key__')
+  bm = query.get()
+  if not bm:
+    return http.HttpResponse('All Done!')
+
+  dirty = False
+  newbrowsers = []
+  for browser in bm.browsers:
+    if browser.find('Firefox 4') != -1:
+      dirty = True
+      browser = browser.replace('Firefox 4', 'Firefox Beta 4')
+    newbrowsers.append(browser)
+
+  if dirty:
+    bm.browsers = newbrowsers
+    bm.save()
+
+  params = {
+    'next_url': '/admin/ua/ffbeta?key=%s' % bm.key(),
+    'current_name': 'Dirty? %s - %s' % (dirty, newbrowsers)
+  }
+  return util.Render(request, 'update_datastore.html', params)
+
+
+@decorators.admin_required
+def FixFirefoxBeta(request):
+  query = db.Query(models.user_agent.UserAgent)
+  query.filter('family =', 'Firefox')
+  query.filter('v3 =', 'b5')
+  key = request.GET.get('key')
+  if key:
+    query.filter('__key__ >', db.Key(key))
+  query.order('__key__')
+  user_agent = query.get()
+  if not user_agent:
+    return http.HttpResponse('All Done!')
+
+  # Do something with user_agent here.
+  user_agent.family = 'Firefox Beta'
+  user_agent.save()
+
+  params = {
+    'next_url': '/admin/ua/ffbeta?key=%s' % user_agent.key(),
+    'current_name': user_agent.get_string_list(),
+    'next_name': 'nextosity'
+  }
+  return util.Render(request, 'update_datastore.html', params)
+
 
 @decorators.admin_required
 def UploadRankers(request):
