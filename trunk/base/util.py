@@ -654,7 +654,7 @@ def Beacon(request, category_id=None):
 def Return204(request):
   return http.HttpResponse('', status=204)
 def Return204Script(request):
-  return http.HttpResponse('<script src="/204"></script>', status=200)
+  return http.HttpResponse('<html><script src="/204"></script></html>')
 
 
 def GetStats(request, test_set, output='html',  opt_tests=None,
@@ -1045,7 +1045,7 @@ def UpdateDatastore(request):
                    test.test_keys, user_agent)
 
   params = {
-    #'next_url': '/update_datastore?key=%s' % test.key(),
+    'next_url': '/update_datastore?key=%s' % test.key(),
     'current_name': test.name,
     'next_name': 'nextosity'
   }
