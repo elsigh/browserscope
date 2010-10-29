@@ -31,15 +31,14 @@ urlpatterns = patterns('',
 
   # User Tests
   (r'^user/settings$', 'base.user_tests.Settings'),
-  (r'^user/tests/update_schema$', 'base.user_tests.UpdateSchema'),
   (r'^user/tests/create$', 'base.user_tests.TestCreate'),
   (r'^user/tests/button$', 'base.user_tests.Button'),
   (r'^user/beacon/(.+)$', 'base.user_tests.BeaconJs'),
   (r'^user/tests/edit/(.+)$', 'base.user_tests.TestEdit'),
-  (r'^user/tests/view/(.+)$', 'base.user_tests.TestView'),
   (r'^user/tests/table/(.+)$', 'base.user_tests.Table'),
   (r'^user/tests/howto$', 'base.user_tests.TestHowto'),
   (r'^user/tests/raw/(.+)$', 'base.user_tests.RawTestData'),
+  (r'^user/tests/index$', 'base.user_tests.Index'),
   (r'^user/tests/(.+)$', 'base.user_tests.Test'),
 
   # Admin functionality
