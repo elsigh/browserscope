@@ -5,11 +5,11 @@
   <p>We're very sorry, but something sad has happened.</p>
   <p>We are aware of the issue and are working on it.</p>
 
-{% if is_admin %}
-Traceback:
-<pre>
-  {{ traceback }}
-</pre>
-{% endif %}
+  {% if is_admin %}
+    Traceback:
+    <pre>
+      {{ traceback }}
+    </pre>
+  {% endif %}
 
 {% endblock %}

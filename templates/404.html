@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block body %}
+  <h1>404 Resource Not Found</h1>
+  <p>What you want, it ain't here.</p>
+  <p>
+    <a href="browserscope@googlegroups.com">Contact us</a>
+    if you think we should have the file you want.
+  </p>
+
+  {% if is_admin %}
+    Traceback:
+    <pre>
+      {{ traceback }}
+    </pre>
+  {% endif %}
+
+{% endblock %}
