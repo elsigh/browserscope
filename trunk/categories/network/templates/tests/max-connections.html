@@ -38,12 +38,14 @@ Therefore, browsers that support more than 60 open connections will be shown as 
   var imgC = document.getElementById('img-c');
   var img = document.createElement('img');
   for (var i = 1; i <= 30; i++) {
-    var clone = img.cloneNode(true);
-    clone.id = 'img' + i;
-    clone.onload = countImage;
-    clone.src = 'http://' + i + '.{{ resource_cgi_base }}?type=gif&' +
-        'sleep={{ sleep }}&n=1&t={{ epoch }}';
-    imgC.appendChild(clone);
+    for (var j = 1; j <=2; j++) {
+      var clone = img.cloneNode(true);
+      clone.id = 'img' + i + '-' + j;
+      clone.onload = countImage;
+      clone.src = 'http://' + i + '.{{ resource_cgi_base }}?type=gif&' +
+          'sleep={{ sleep }}&n=' + j + '&t={{ epoch }}';
+      imgC.appendChild(clone);
+    }
   }
 </script>
 

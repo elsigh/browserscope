@@ -209,7 +209,7 @@ Util.getJsUaOverrides = function() {
       }
     }
     else if (document.documentMode == 9) {
-      if (window.navigator.appMinorVersion.indexOf("beta") > -1) {
+      if (window.navigator.appMinorVersion.indexOf('beta') > -1) {
         jsFamilyName = 'IE Beta';
         jsV1 = '9';
         jsV2 = '0';
