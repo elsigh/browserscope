@@ -22,6 +22,10 @@ import sys
 from google.appengine.ext import db
 from google.appengine.api import memcache
 from google.appengine.api.labs import taskqueue
+from google.appengine.runtime import DeadlineExceededError
+
+import django
+from django import http
 
 from categories import all_test_sets
 from models.user_agent import UserAgent
@@ -412,18 +416,34 @@ class CategoryStatsManager(object):
       }
     """
     category = test_set.category
-
+    dirty = False
     stats = {}
     if use_memcache:
       memcache_params = cls.MemcacheParams(category)
       stats = memcache.get_multi(browsers, **memcache_params)
+      logging.info('result_stats.GetStats browsers=%s, stats(cache)=%s' %
+                   (browsers, stats))
     total_runs = 0
-    for browser in browsers:
-      if browser not in stats:
-        medians, num_scores = test_set.GetMediansAndNumScores(browser)
-        stats[browser] = test_set.GetStats(test_keys, medians, num_scores)
-      total_runs += stats[browser].get('total_runs', 0)
-    if use_memcache:
+    try:
+      for browser in browsers:
+        logging.info('result_stats.GetStats for browser=%s' % browser)
+        if browser not in stats:
+          dirty = True
+          medians, num_scores = test_set.GetMediansAndNumScores(browser)
+          stats[browser] = test_set.GetStats(test_keys, medians, num_scores)
+        else:
+          logging.info('result_stats.GetStats found it cached for browser=%s' %
+                       browser)
+        total_runs += stats[browser].get('total_runs', 0)
+    except DeadlineExceededError:
+      # Try to get what we got in memcache.
+      logging.info('DeadlineExceededError caught! Trying to memcahce %s' %
+                   stats)
+      memcache.set_multi(stats, **memcache_params)
+      logging.info('Whew, made it.')
+
+    if use_memcache and dirty:
+      logging.info('result_stats.GetStats saving memcache %s' % stats)
       memcache.set_multi(stats, **memcache_params)
     stats['total_runs'] = total_runs
     return stats

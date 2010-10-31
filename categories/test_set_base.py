@@ -207,6 +207,7 @@ class TestSet(object):
       ({test_key_1: median_1, test_key_2: median_2},
        {test_key_1: num_scores_1, test_key_2: num_scores_2})
     """
+    logging.info('test_set_base.GetMediansAndNumScores browser=%s' % browser)
     medians, num_scores = {}, {}
     for test, ranker in zip(self.tests, self.GetRankers(browser)):
       if ranker:
@@ -247,8 +248,8 @@ class TestSet(object):
           }
       }
     """
-    logging.info('GetStats: category=%s, test_keys=%s raw_scores=%s,'
-                 ' num_scores=%s',
+    logging.info('test_set_base.GetStats: category=%s, test_keys=%s, '
+                 'raw_scores=%s, num_scores=%s',
                  self.category, test_keys, raw_scores, num_scores)
     results = {}
     total_runs = 0
