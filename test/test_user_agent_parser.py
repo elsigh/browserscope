@@ -28,7 +28,9 @@ CHROME_UA_STRING = (
     '(KHTML, like Gecko) Chrome/2.0.169.1 Safari/530.1')
 
 TEST_STRINGS = (
-    # ((family, v1, v2, v3), user_agent_string)
+    # ((family, v1, v2, v3), user_agent_string, js_user_agent_string={})
+    #(('', '', '', '').
+    #  '', {}),
     (('Firefox Beta', '4', '0', 'b4'),
      'Mozilla/5.0 (X11; Linux i686 (x86_64); rv:2.0b4) Gecko/20100818 '
      'Firefox/4.0b4', {}),
@@ -38,6 +40,10 @@ TEST_STRINGS = (
     (('Firefox (Shiretoko)', '3', '5', '1pre'),
      'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.1pre) '
      'Gecko/20090717 Ubuntu/9.04 (jaunty) Shiretoko/3.5.1pre', {}),
+    (('Firefox Beta', '4', '0', 'b8pre'),
+      'Mozilla/5.0 (X11; Linux x86_64; rv:2.0b8pre) Gecko/20101031 '
+      'Firefox-4.0/4.0b8pre', {}),
+
     (('Konqueror', '4', '3', '1'),
      'Mozilla/5.0 (X11; U; Linux; de-DE) AppleWebKit/527  '
      '(KHTML, like Gecko, Safari/419.3) konqueror/4.3.1,gzip(gfe)', {}),
