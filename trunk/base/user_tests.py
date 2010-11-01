@@ -296,7 +296,8 @@ def Table(request, key):
     'test': test,
     'stats_table': stats_table,
     'stats_table_category': 'usertest_%s' % key,
-    'stats_table_category_name': test.name
+    'stats_table_category_name': test.name,
+    'is_user_test': True,
   }
 
   template = 'user_test_table.html'
