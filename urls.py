@@ -18,6 +18,7 @@ urlpatterns = patterns('',
   # General URL handlers in shared/util.py
   (r'^$', 'base.util.Home'),
   (r'^faq', 'base.util.Faq'),
+  (r'^api', 'base.util.Api'),
   (r'^news', 'base.util.News'),
   (r'^browsers', 'base.util.Browsers'),
   (r'^alltests', 'base.util.AllTests'),

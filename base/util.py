@@ -311,19 +311,27 @@ def Home(request):
     test_set = results_test_set
   if not test_set:
     test_set = all_test_sets.GetTestSet('summary')
-  category = test_set.category
 
   # Tell GetStats what to output.
   output = request.GET.get('o', 'html')
   if output not in VALID_STATS_OUTPUTS:
     return http.HttpResponse('Invalid output specified')
+
+  js_embed = False
+  if output == 'js':
+    output = 'html'
+    js_embed = True
+
   stats_table = GetStats(request, test_set, output)
 
   # Show a static message above the table.
-  if category in settings.STATIC_CATEGORIES and output in ('xhr', 'html'):
+  if (test_set.category in settings.STATIC_CATEGORIES and
+      output in ('xhr', 'html')):
     stats_table = '%s%s' % (STATIC_MESSAGE, stats_table)
 
   if output == 'html':
+    # Default is the home page template
+    template = 'home.html'
     params = {
       'page_title': 'Home',
       'results_params': '&'.join(results_params),
@@ -331,11 +339,22 @@ def Home(request):
       'output': output,
       'ua_params': request.GET.get('ua', ''),
       'stats_table_category': test_set.category,
+      'stats_table_category_name': test_set.category_name,
       'stats_table': stats_table,
       'recent_tests': recent_tests,
       'message': request.GET.get('message'),
     }
-    return Render(request, 'home.html', params)
+    simple_layout = request.GET.get('layout') == 'simple'
+    if simple_layout:
+      params['hide_nav'] =  simple_layout
+      params['hide_footer'] = simple_layout
+      params['test'] = ''
+      template = 'user_test_table.html'
+    if js_embed:
+      params['mimetype'] = 'text/javascript'
+      template = 'user_test_table.js'
+
+    return Render(request, template, params)
 
   elif output == 'json':
     return http.HttpResponse(stats_table, mimetype='application/json')
@@ -383,6 +402,16 @@ def BrowseResults(request):
     'category': category,
   }
   return Render(request, 'browse.html', params)
+
+
+def Api(request):
+  """FAQ"""
+
+  params = {
+    'page_title': 'API',
+    'section_urls': ''
+  }
+  return Render(request, 'api.html', params)
 
 
 def Faq(request):

@@ -290,15 +290,17 @@ def Table(request, key):
 
   simple_layout = request.GET.get('layout') == 'simple'
   params = {
+    #'hide_header': simple_layout,
     'hide_nav': simple_layout,
     'hide_footer': simple_layout,
     'test': test,
-    'stats_table': stats_table
+    'stats_table': stats_table,
+    'stats_table_category': 'usertest_%s' % key,
+    'stats_table_category_name': test.name
   }
 
   template = 'user_test_table.html'
   if js_embed:
-    #params['mimetype'] = 'text/plain'
     params['mimetype'] = 'text/javascript'
     template = 'user_test_table.js'
   return util.Render(request, template, params)
