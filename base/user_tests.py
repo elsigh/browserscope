@@ -40,7 +40,7 @@ import models.user_test
 from base import decorators
 from base import util
 
-#from third_party.mirorrr import mirror
+from third_party.gviz import gviz_api
 
 from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
@@ -309,9 +309,35 @@ def Table(request, key):
 
 def Index(request):
   """Shows a table of user tests."""
-  params = {
-  }
-  return util.Render(request, 'user_tests_index.html', params)
+  output = request.GET.get('o')
+  if output == 'gviz_table_data':
+    return http.HttpResponse(FormatUserTestsAsGviz(request))
+  else:
+    params = {
+      'height': '400px',
+      'width': 'auto',
+    }
+    return util.Render(request, 'user_tests_index.html', params)
+
+
+def FormatUserTestsAsGviz(request):
+  tqx = request.GET.get('tqx')
+  description = [('created', 'datetime', 'Created'),
+                 ('author', 'string', 'Author'),
+                 ('name', 'string', 'Test'),
+                 ('description', 'string', 'Description')]
+
+  data = []
+  tests = db.Query(models.user_test.Test).order('created')
+  for test in tests:
+    data.append([test.created,
+                 #re.sub(r'\@.+', '', test.user.email),
+                 test.user.key(),
+                 '<a href="%s" target="_blank">%s</a>' % (test.url, test.name),
+                 test.description])
+
+  data_table = gviz_api.DataTable(description, data)
+  return data_table.ToResponse(tqx=tqx)
 
 
 @decorators.provide_csrf

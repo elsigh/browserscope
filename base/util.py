@@ -888,7 +888,6 @@ def FormatStatsDataAsGviz(params, tqx):
     else:
       row_data.append((user_agent.lower(), user_agent))
 
-
     # Test data by key.
     ua_results = row_stats.get('results')
     for test in params['tests']:
@@ -912,7 +911,6 @@ def FormatStatsDataAsGviz(params, tqx):
     data.append(row_data)
 
   data_table.LoadData(data)
-
   return data_table.ToResponse(tqx=tqx)
 
 
