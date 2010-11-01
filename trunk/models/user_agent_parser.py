@@ -91,6 +91,8 @@ USER_AGENT_PARSERS = (
      'Firefox ($1)'),
   _P(r'(Firefox)/(\d+)\.(\d+)([ab]\d+[a-z]*)',
      'Firefox Beta'),
+  _P(r'(Firefox)-(?:\d+\.\d+)?/(\d+)\.(\d+)([ab]\d+[a-z]*)',
+     'Firefox Beta'),
   _P(r'(Namoroka|Shiretoko|Minefield)/(\d+)\.(\d+)([ab]\d+[a-z]*)?',
      'Firefox ($1)'),
   _P(r'(MozillaDeveloperPreview)/(\d+)\.(\d+)([ab]\d+[a-z]*)?'),
