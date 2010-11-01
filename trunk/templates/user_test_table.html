@@ -5,14 +5,16 @@
 {% if message %}
   <p class="d-msg">{{ message }}</p>
 {% endif %}
-
 <div id="bs-results" class="bs-usertest">
   <ul id="bs-results-bycat" class="bs-results-bycat bs-compact">
-    <li id="usertest_{{ test.key }}-results">
-      <h3>{{ test.name }}</h3>
-      {% if test.description %}
-        <p>{{ test.description }}</p>
+    <li id="{{ stats_table_category }}-results">
+      <h3>{{ stats_table_category_name }}</h3>
+      {% if is_user_test %}
+        {% if test.description %}
+          <p>{{ test.description }}</p>
+        {% endif %}
       {% endif %}
+
       {{ stats_table|safe }}
     </li>
   </ul>
@@ -28,7 +30,7 @@
 
 <script>
   (function(){
-    var category = 'usertest_{{ test.key }}';
+    var category = '{{ stats_table_category }}';
     var httpUserAgent = '{{ current_ua_string }}';
     var output = '{{ output }}';
     var userAgentPretty = '{{ current_ua.pretty }}';
