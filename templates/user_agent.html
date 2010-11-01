@@ -160,6 +160,8 @@
 {% endifequal %}
 
 
+{% if ua_parsed %}
+{% else %}
 <script>
   // JS UA string.
   var jsUaStringEl = document.getElementById('js-ua-string');
@@ -196,5 +198,6 @@
     jsUaV3El.parentNode.insertBefore(noteEl, jsUaV3El.nextSibling);
   }
 </script>
+{% endif %}
 
 {% endblock %}
