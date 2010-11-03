@@ -128,12 +128,14 @@ class ResultParent(db.Expando):
         parent.__setattr__(test_key, values['expando'])
 
     def _AddResultInTransaction():
+      #logging.info('_AddResultInTransaction results(%s)' % results)
       parent.put()
       result_times = [ResultTime(parent=parent,
                                  test=test_key,
                                  score=values['raw_score'],
                                  dirty=not is_import)
                       for test_key, values in results.items()]
+      #logging.info('_AddResultInTransaction result_times(%s)' % result_times)
       db.put(result_times)
       return result_times
     result_times = db.run_in_transaction(_AddResultInTransaction)
