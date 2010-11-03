@@ -1,5 +1,33 @@
 {% extends "base.html" %}
 
+{% block head %}
+<style>
+.sortable {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sortable li {
+  background: #eee;
+  border: 1px solid #ccc;
+  margin: 0 0 4px !important;
+  vertical-align: bottom;
+  padding: 5px;
+  width: 300px;
+  cursor: move;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -html-user-select: none;
+}
+.sortable li span {
+  text-decoration: underline;
+  float: right;
+  cursor: pointer;
+}
+</style>
+{% endblock %}
+
 {% block body %}
 
 <img src="/static/img/stethoscope.png" height="256" width="256" align="right" vspace="10" hspace="20" alt="">
@@ -37,21 +65,6 @@
     &nbsp;<span style="font-size:90%; color: #aaa;"
       >used for referrer checking</span>
   </p>
-  <!--
-  <p>
-    Test is hosted:
-    <label for="hosted-url">
-      <input type="radio" name="hosted" id="hosted-url" value="0"
-        checked disabled>
-      on your URL
-    </label>
-    <label for="hosted-bs">
-      <input type="radio" name="hosted" id="hosted-bs" value="1"
-        disabled>
-      on Browserscope <sup>coming soon!</sup>
-    </label>
-  </p>
-  -->
 
   <!--
   <p>
@@ -68,9 +81,58 @@
       >{{ test.description }}</textarea>
   </div>
 
+  {% if test.test_keys %}
+    <p>
+      <label for="test_keys">Test Keys:</label>
+      <input type="hidden" name="test_keys" id="bs-test-keys-input"
+        value="{{ test.test_keys|join:"," }}">
+      <ol id="bs-test-keys" class="sortable">
+        {% for test_key in test.test_keys %}
+          <li id="bs-test_key-{{ test_key }}">{{ test_key }}</li>
+        {% endfor %}
+      </ol>
+    </p>
+  {% endif %}
+
   <p>
     <input type="submit" value="Save" class="bs-btn">
   </p>
 </form>
+
+<script src="{{ "jquery-1.4.2.min.js"|resource_path }}"></script>
+<script src="{{ "jquery-ui-1.8.6.custom.min.js"|resource_path }}"></script>
+<script>
+var idPrefix = 'bs-test_key-'
+jQuery('.sortable').each(function(i, el) {
+  var hiddenInputEl = jQuery('#' + el.id + '-input');
+  // Sets up the sortable list.
+  jQuery(el).sortable({
+    update: function(e, ui) {
+      var testKeys = [];
+      jQuery('.sortable li').each(function(i, el) {
+        testKeys.push(el.id.replace(idPrefix, ''));
+      });
+      hiddenInputEl.val(testKeys.join(','));
+    }
+  });
+  // Add the "x" to remove this item from the list.
+  jQuery('.sortable li').each(function(i, el) {
+    jQuery(el).append('<span>x</span>');
+  });
+  // Remove an item from the sortable list and hidden input.
+  jQuery('.sortable li span').each(function(i, el) {
+    jQuery(el).click(function(e) {
+      var li = jQuery(this).parent();
+      var testKey = li.attr('id').replace(idPrefix, '');
+      var testKeys = hiddenInputEl.val().split(',');
+      testKeys = jQuery.grep(testKeys, function(val) {
+        return val != testKey;
+      });
+      hiddenInputEl.val(testKeys.join(','));
+      li.remove();
+    });
+  });
+});
+</script>
 
 {% endblock %}
