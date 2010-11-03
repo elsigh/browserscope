@@ -109,6 +109,8 @@ def TestEdit(request, key):
   current_user = users.get_current_user()
   api_key = request.REQUEST.get('api_key')
 
+  logging.info('KEY: %s' % key)
+
   # If a key was provided in the endpoint that means this is an edit.
   if key:
     test = models.user_test.Test.get_mem(key)
@@ -135,6 +137,7 @@ def TestEdit(request, key):
         test.description = request.REQUEST.get('description')
         if request.REQUEST.get('sandboxid'):
           test.sandboxid = request.REQUEST.get('sandboxid')
+        test.test_keys = request.REQUEST.get('test_keys').split(',')
       # create
       else:
         meta = models.user_test.TestMeta().save()
@@ -328,7 +331,7 @@ def FormatUserTestsAsGviz(request):
                  ('description', 'string', 'Description')]
 
   data = []
-  tests = db.Query(models.user_test.Test).order('created')
+  tests = db.Query(models.user_test.Test).order('created').fetch(limit=100)
   for test in tests:
     data.append([test.created,
                  #re.sub(r'\@.+', '', test.user.email),

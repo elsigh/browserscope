@@ -428,6 +428,9 @@ class CategoryStatsManager(object):
           dirty = True
           medians, num_scores = test_set.GetMediansAndNumScores(browser)
           stats[browser] = test_set.GetStats(test_keys, medians, num_scores)
+          # Store memcache incrementally if we're working a *big* test.
+          if len(test_keys) > 30:
+            memcache.set_multi(stats, **memcache_params)
         else:
           logging.info('result_stats.GetStats found it cached for browser=%s' %
                        browser)
