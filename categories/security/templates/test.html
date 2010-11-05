@@ -67,7 +67,7 @@
     function runIframeTest(key, src, onload) {
       var runTestCallback = newTest(key);
       var iframe = document.createElement('iframe');
-      iframe.setAttribute('name', key);
+      iframe.setAttribute('id', key);
       if (key == 'Sandbox attribute') {
         iframe.setAttribute('sandbox', 'allow-same-origin');
       }
@@ -236,7 +236,7 @@
       return xmlhttp.responseText.match(/PASS/);
     });
     var stsCallback = runIframeTest('Strict Transport Security', "https://ua-profiler.appspot.com/security/test/set-sts");
-    var stsFrame = window.frames['Strict Transport Security'];
+    var stsFrame = document.getElementById('Strict Transport Security');
     observe(stsFrame, 'load', function () {
       var html = frameDocument(stsFrame).documentElement.innerHTML;
       if (html.match(/PASS/)) {
