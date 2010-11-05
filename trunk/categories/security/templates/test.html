@@ -168,7 +168,7 @@
     var attack = "<script>script_ran = true<\/script>";
     runIframeTest('Block reflected XSS',
                   NON_APP_ENGINE_BASE_URL + "../test/xss-frame-victim?q=" + attack,
-                  function (frame) { return top.xss_filter_test_result == 'true'; });
+                  function (frame) { return top.xss_filter_test_result != 'false'; });
     try { eval("var location = '#';"); } catch (ex) { }
     runTest('Block location spoofing', function () {
       return window.location != "#";
