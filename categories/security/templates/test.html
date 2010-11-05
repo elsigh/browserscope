@@ -67,7 +67,7 @@
     function runIframeTest(key, src, onload) {
       var runTestCallback = newTest(key);
       var iframe = document.createElement('iframe');
-      iframe.setAttribute('id', key);
+      iframe.setAttribute('name', key);
       if (key == 'Sandbox attribute') {
         iframe.setAttribute('sandbox', 'allow-same-origin');
       }
@@ -220,16 +220,25 @@
     observe(window, 'load', function () {
       cssExpressionCallback(function () { return window.script_in_css_pass; });
     });
+    function frameDocument(frame) {
+      if (frame.contentDocument){
+        return frame.contentDocument;
+      } else if (frame.contentWindow){
+        return frame.contentWindow.document;
+      } else {
+        return frame.document;
+      }
+    }
     runIframeTest('Sandbox attribute',  "static/sandbox-frame.html", function (frame) {
-      return !frame.contentDocument.documentElement.innerHTML.match(/FAIL/);
+      return !frameDocument(frame).documentElement.innerHTML.match(/FAIL/);
     });
     runAjaxTest('Origin header', 'test/originheader', function(xmlhttp) {
       return xmlhttp.responseText.match(/PASS/);
     });
     var stsCallback = runIframeTest('Strict Transport Security', "https://ua-profiler.appspot.com/security/test/set-sts");
-    var stsFrame = document.getElementById('Strict Transport Security');
+    var stsFrame = window.frames['Strict Transport Security'];
     observe(stsFrame, 'load', function () {
-      var html = stsFrame.contentDocument.documentElement.innerHTML;
+      var html = frameDocument(stsFrame).documentElement.innerHTML;
       if (html.match(/PASS/)) {
         stsCallback(function () { return true; });
       } else if (html.match(/FAIL/)) {
@@ -237,7 +246,7 @@
       }
     });
     runIframeTest('Block cross-origin CSS attacks', "static/cross-origin-css-attacker.html", function (frame) {
-      return frame.contentDocument.body.innerHTML.match(/PASS/);
+      return frameDocument(frame).documentElement.innerHTML.match(/PASS/);
     });
     runTest('Cross Origin Resource Sharing', function () {
       if (window.XDomainRequest) {
