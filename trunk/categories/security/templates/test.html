@@ -245,7 +245,11 @@
         stsCallback(function () { return false; });
       }
     });
+
     runIframeTest('Block cross-origin CSS attacks', "static/cross-origin-css-attacker.html", function (frame) {
+      return frameDocument(frame).documentElement.innerHTML.match(/PASS/);
+    });
+    runIframeTest('Content Security Policy', "test/csp", function (frame){
       return frameDocument(frame).documentElement.innerHTML.match(/PASS/);
     });
     runTest('Cross Origin Resource Sharing', function () {
