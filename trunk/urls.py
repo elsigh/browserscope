@@ -29,6 +29,8 @@ urlpatterns = patterns('',
   (r'^resource',  'third_party.resource-cgi.resource.Handler'),
   (r'^set_cookie',  'base.util.SetCookieAndRedirect'),
   (r'^timeline$', 'base.util.BrowserTimeLine'),
+  (r'^results$', 'base.util.GetResults'),
+  (r'^gviz_table_data$', 'base.util.GvizTableData'),
 
   # User Tests
   (r'^user/settings$', 'base.user_tests.Settings'),
@@ -84,9 +86,6 @@ urlpatterns = patterns('',
   (r'^_ah/queue/update-category', 'base.admin.UpdateCategory'),
   (r'^_ah/queue/recent-tests$', 'base.cron.UpdateRecentTests'),
   (r'^_ah/queue/update-stats-cache$', 'base.admin.UpdateStatsCache'),
-
-  # GViz Data source
-  #(r'^gviz$', 'base.util.Gviz'),
 
   # GAEBar
   (r'^gaebar/', include('third_party.gaebar.urls')),

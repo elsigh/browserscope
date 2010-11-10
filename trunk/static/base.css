@@ -564,8 +564,3 @@ td.wrap {
   white-space: normal !important;
   width: 20% !important;
 }
-
-/** Gviz table */
-#bs-body .google-visualization-table-tr-head > td:last-child {
-  text-align: left;
-}

@@ -1,4 +1,24 @@
 
+#bs-logo {
+  margin: 0;
+  float: left;
+}
+.bs-usertest #bs-logo {
+  float: none;
+}
+#bs-logo a {
+  display: block;
+  background: url(//www.browserscope.org/static/img/logo.png) 0 0 no-repeat;
+  width: 232px;
+  height: 39px;
+  margin: 0 20px 0 0;
+}
+.bs-ir span {
+  position: absolute;
+  top: -9999px;
+}
+
+
 #bs-results-title {
   border-top: 2px solid #ccc;
   margin-bottom: 0;
@@ -76,9 +96,6 @@ a.bs-l-p {
 }
 
 /* User tests o=js table */
-.bs-results-usertest {
-  font: 87%/1.4 Arial, sans;
-}
 .bs-results-usertest .bs-ua-star,
 .bs-results-usertest .bs-l-p,
 .bs-results-usertest .rt-b-f {
@@ -87,10 +104,7 @@ a.bs-l-p {
 .bs-results-usertest .bs-results-bycat {
   list-style: none;
 }
-.bs-results-usertest h3,
-.bs-results-usertest p {
-  margin-left: 10px;
-}
+
 .bs-results-usertest a {
   color: #4291bf;
 }
@@ -135,6 +149,7 @@ a.bs-l-p {
 /* # Tests cell */
 .google-visualization-table-tr-head > td:last-child {
   text-align: right;
+  white-space: nowrap;
 }
 /* override JSKB and gviz table default */
 .google-visualization-table-tr-head td,

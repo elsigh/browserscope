@@ -14,15 +14,11 @@
     <p class="d-msg">{{ message }}</p>
   {% endif %}
   <div id="bs-results" class="bs-usertest">
+    <h1 id="bs-logo" class="bs-ir">
+      <a href="/" target="_top"><span>{{ app_title }}</span></a>
+    </h1>
     <ul id="bs-results-bycat" class="bs-results-bycat bs-compact">
       <li id="usertest_{{ test.key }}-results">
-        <h3>
-        <a href="http://{{ server }}/user/tests/table/{{ test.key }}"
-          >{{ test.name }}</a>
-        </h3>
-        {% if test.description %}
-          <p>{{ test.description }}</p>
-        {% endif %}
         {{ stats_table|safe }}
       </li>
     </ul>

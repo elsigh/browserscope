@@ -418,12 +418,12 @@ class CategoryStatsManager(object):
     if use_memcache:
       memcache_params = cls.MemcacheParams(category)
       stats = memcache.get_multi(browsers, **memcache_params)
-      logging.info('result_stats.GetStats browsers=%s, stats(cache)=%s' %
-                   (browsers, stats))
+      #logging.info('result_stats.GetStats browsers=%s, stats(cache)=%s' %
+      #             (browsers, stats))
     total_runs = 0
     try:
       for browser in browsers:
-        logging.info('result_stats.GetStats for browser=%s' % browser)
+        #logging.info('result_stats.GetStats for browser=%s' % browser)
         if browser not in stats:
           dirty = True
           medians, num_scores = test_set.GetMediansAndNumScores(browser)
@@ -432,8 +432,8 @@ class CategoryStatsManager(object):
           if len(test_keys) > 30:
             memcache.set_multi(stats, **memcache_params)
         else:
-          logging.info('result_stats.GetStats found it cached for browser=%s' %
-                       browser)
+          logging.info('result_stats.GetStats found it cached for browser=%s'
+                       % (browser))
         total_runs += stats[browser].get('total_runs', 0)
     except DeadlineExceededError:
       # Try to get what we got in memcache.
