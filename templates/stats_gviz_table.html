@@ -1,4 +1,14 @@
 
+
+{% ifequal build "production" %}
+  <!--<script src="http://www.google.com/jsapi"></script>-->
+{% else %}
+  <!--<link rel="stylesheet" href="http://{{ server }}{{ "goog_table.css"|resource_path }}">
+  <script src="http://{{ server }}{{ "goog_jsapi.js"|resource_path }}"></script>
+  <script src="http://{{ server }}{{ "goog_table.js"|resource_path }}"></script>
+  -->
+{% endifequal %}
+
 <div class="rt">
   <h3>
     <a href="http://{{ server }}/user/tests/table/{{ test.key }}"
@@ -9,19 +19,30 @@
   {% endif %}
 
   <div id="bs-rt-{{ category }}">
-    Loading Browserscope results data ...
+    <p style="padding: 10px 0;">
+      Loading Browserscope results data ...
+    </p>
   </div>
-  <script src="//{{ server }}/ua?o=js"></script>
 </div>
-
-{% ifequal build "production" %}
-  <script src="//www.google.com/jsapi"></script>
-{% else %}
-  <link rel="stylesheet" href="//{{ server }}{{ "goog_table.css"|resource_path }}">
-  <script src="//{{ server }}{{ "goog_jsapi.js"|resource_path }}"></script>
-  <script src="//{{ server }}{{ "goog_table.js"|resource_path }}"></script>
-{% endifequal %}
 <script>
+  var tableContainer = document.getElementById('bs-rt-{{ category }}');
+
+  // ua
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src = '//{{ server }}/ua?o=js';
+  script.id = 'bs-ua-script';
+  tableContainer.parentNode.appendChild(script);
+
+  // jsapi
+  script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src = '//www.google.com/jsapi';
+  script.onload = function() {
+    google.load('visualization', '1',
+      {'packages': ['table'],'callback': initialize});
+  }
+  tableContainer.parentNode.insertBefore(script, tableContainer);
 
   function initialize() {
     var dataUrl = '//{{ server }}/gviz_table_data?' +
@@ -43,7 +64,6 @@
             'from Browserscope.');
     }
 
-    var tableContainer = document.getElementById('bs-rt-{{ category }}');
     var dataTable = new google.visualization.Table(tableContainer);
     var data = response.getDataTable();
     var cssClassNames = {
@@ -61,10 +81,10 @@
   }
 
   {% ifequal build "production" %}
-    google.load('visualization', '1', {packages: ['table']});
-    google.setOnLoadCallback(initialize);
+    /*google.load('visualization', '1', {packages: ['table']});
+    google.setOnLoadCallback(initialize);*/
   {% else %}
-    initialize();
+    /*initialize();*/
   {% endifequal %}
 </script>
 
