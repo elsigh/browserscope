@@ -109,8 +109,6 @@ def TestEdit(request, key):
   current_user = users.get_current_user()
   api_key = request.REQUEST.get('api_key')
 
-  logging.info('KEY: %s' % key)
-
   # If a key was provided in the endpoint that means this is an edit.
   if key:
     test = models.user_test.Test.get_mem(key)
@@ -260,20 +258,15 @@ def Button(request):
 
 
 def Table(request, key):
-  """The User Test results table."""
+  """The User Test results table.
+  Args:
+    request: The request object.
+    key: The Test.key() string.
+  """
   test = models.user_test.Test.get_mem(key)
   if not test:
     msg = 'No test was found with test_key %s.' % key
     return http.HttpResponseServerError(msg)
-
-  output = request.GET.get('o', 'html')
-  js_embed = False
-  if output == 'js':
-    output = 'html'
-    js_embed = True
-  if output not in util.VALID_STATS_OUTPUTS:
-    return http.HttpResponse('Invalid output specified')
-
 
   fields = request.GET.get('f')
   if fields:
@@ -282,32 +275,13 @@ def Table(request, key):
     test_keys = test.test_keys
   test_set = test.get_test_set_from_test_keys(test_keys)
 
-  stats_table = util.GetStats(request, test_set, output)
-
-  if output in ('xhr', 'pickle', 'csv', 'json',
-                'gviz', 'gviz_data', 'gviz_timeline_data'):
-    mimetype = None
-    if output == 'json':
-      mimetype = 'application/json'
-    return http.HttpResponse(stats_table, mimetype)
-
-  simple_layout = request.GET.get('layout') == 'simple'
   params = {
-    #'hide_header': simple_layout,
-    'hide_nav': simple_layout,
-    'hide_footer': simple_layout,
+    'hide_nav': True,
+    'hide_footer': True,
     'test': test,
-    'stats_table': stats_table,
-    'stats_table_category': 'usertest_%s' % key,
-    'stats_table_category_name': test.name,
-    'is_user_test': True,
   }
 
-  template = 'user_test_table.html'
-  if js_embed:
-    params['mimetype'] = 'text/javascript'
-    template = 'user_test_table.js'
-  return util.Render(request, template, params)
+  return util.GetResults(request, 'user_test_table.html', params, test_set)
 
 
 def Index(request):

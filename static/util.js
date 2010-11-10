@@ -982,6 +982,9 @@ Util.ResultTablesController.generateUrl = function(category, output,
 
   // Get the base path for this page.
   var url = goog.uri.utils.split(window.location.href)[5];
+  if (url == '/') {
+    url = '/results';
+  }
 
   // User Tests already have the category/test_key in the url.
   if (!window.location.href.match('/user/tests')) {

@@ -1,53 +1,70 @@
-{% extends "base.html" %}
 
-{% block body %}
+<div class="rt">
+  <h3>
+    <a href="http://{{ server }}/user/tests/table/{{ test.key }}"
+      >{{ stats_table_category_name }}</a>
+  </h3>
+  {% if test.description %}
+    <p>{{ test.description }}</p>
+  {% endif %}
 
-<div id="visualization" class="rt"></div>
+  <div id="bs-rt-{{ category }}">
+    Loading Browserscope results data ...
+  </div>
+  <script src="//{{ server }}/ua?o=js"></script>
+</div>
 
 {% ifequal build "production" %}
-  <script src="{{ "browserscope.js"|resource_path }}"></script>
+  <script src="//www.google.com/jsapi"></script>
 {% else %}
-  <script>var CLOSURE_NO_DEPS = true;</script>
-  <script src="{{ "dev.js"|resource_path }}"></script>
-  <script src="{{ "util.js"|resource_path }}"></script>
+  <link rel="stylesheet" href="//{{ server }}{{ "goog_table.css"|resource_path }}">
+  <script src="//{{ server }}{{ "goog_jsapi.js"|resource_path }}"></script>
+  <script src="//{{ server }}{{ "goog_table.js"|resource_path }}"></script>
 {% endifequal %}
+<script>
 
-  <script src="http://www.google.com/jsapi"></script>
-  <script>
+  function initialize() {
+    var dataUrl = '//{{ server }}/gviz_table_data?' +
+        'category={{ category }}&' +
+        'ua={{ ua_params }}&' +
+        'v={{ v }}&' +
+        'o=gviz_data&' +
+        'highlight={{ highlight }}&' +
+        'score={{ score }}&' +
+        'tqx=reqId:0';
+    var query = new google.visualization.Query(dataUrl,
+        {'sendMethod': 'scriptInjection'});
+    query.send(draw);
+  }
+
+  function draw(response) {
+    if (response.isError()) {
+      alert('Sorry but there was an error getting the results data ' +
+            'from Browserscope.');
+    }
+
+    var tableContainer = document.getElementById('bs-rt-{{ category }}');
+    var dataTable = new google.visualization.Table(tableContainer);
+    var data = response.getDataTable();
+    var cssClassNames = {
+      headerRow: '',
+      hoverTableRow: '',
+      selectedTableRow: '',
+      tableRow: 'rt-row'
+    };
+    dataTable.draw(data, {
+      {% if w %}'width': '{{ w }}',{% endif %}
+      {% if h %}'height': '{{ h }}',{% endif %}
+      'alternatingRowStyle': false,
+      'cssClassNames': cssClassNames
+    });
+  }
+
+  {% ifequal build "production" %}
     google.load('visualization', '1', {packages: ['table']});
     google.setOnLoadCallback(initialize);
-
-    function initialize() {
-      var query = new google.visualization.Query(
-          '/?category={{ category }}&ua=' +
-          '{{ ua_params }}&v=top&o=gviz_data' +
-          '&highlight={{ highlight }}&tqx=reqId:0',
-          {'sendMethod': 'scriptInjection'});
-      query.send(draw);
-    }
-
-    function draw(response) {
-      if (response.isError()) {
-        alert('Error in query');
-      }
-
-      var dataTable = new google.visualization.Table(
-          document.getElementById('visualization'));
-      var data = response.getDataTable();
-      var cssClassNames = {
-        headerRow: '',
-        hoverTableRow: '',
-        selectedTableRow: '',
-        tableRow: 'rt-row'
-      };
-      dataTable.draw(data, {
-        'height': '{{ height }}',
-        'width': '{{ width }}',
-        'alternatingRowStyle': false,
-        'cssClassNames': cssClassNames
-      });
-    }
-  </script>
-
-{% endblock %}
+  {% else %}
+    initialize();
+  {% endifequal %}
+</script>
 

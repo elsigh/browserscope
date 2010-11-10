@@ -8,49 +8,10 @@
 <div id="bs-results" class="bs-usertest">
   <ul id="bs-results-bycat" class="bs-results-bycat bs-compact">
     <li id="{{ stats_table_category }}-results">
-      <h3>{{ stats_table_category_name }}</h3>
-      {% if is_user_test %}
-        {% if test.description %}
-          <p>{{ test.description }}</p>
-        {% endif %}
-      {% endif %}
-
       {{ stats_table|safe }}
     </li>
   </ul>
 </div>
 
-{% ifequal build "production" %}
-  <script src="{{ "browserscope.js"|resource_path }}"></script>
-{% else %}
-  <script>var CLOSURE_NO_DEPS = true;</script>
-  <script src="{{ "dev.js"|resource_path }}"></script>
-  <script src="{{ "util.js"|resource_path }}"></script>
-{% endifequal %}
-
-<script>
-  (function(){
-    var category = '{{ stats_table_category }}';
-    var httpUserAgent = '{{ current_ua_string }}';
-    var output = '{{ output }}';
-    var userAgentPretty = '{{ current_ua.pretty }}';
-    var realUaString = Util.reconcileClientServerUaPretty(httpUserAgent,
-        userAgentPretty);
-    var resultsUriParams = '{{ results_params }}';
-    var uaUriParams = '{{ ua_params }}';
-    var browserFamily = '{{ v }}';
-    var controller = new Util.ResultTablesController(category,
-        browserFamily, output, realUaString, uaUriParams, resultsUriParams);
-    if (realUaString != userAgentPretty) {
-      var curUaStringEl = document.getElementById('bs-home-cur-ua-s');
-      curUaStringEl.innerHTML = realUaString;
-    }
-    var cb = Util.createChromeFrameCheckbox(httpUserAgent, true);
-    if (cb) {
-      var curUaStringContainer = document.getElementById('bs-home-cur-ua');
-      curUaStringContainer.appendChild(cb);
-    }
-  })();
-</script>
 
 {% endblock %}

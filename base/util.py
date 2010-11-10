@@ -67,8 +67,8 @@ TEST_DRIVER_TPL = 'test_driver.html'
 MULTI_TEST_FRAMESET_TPL = 'multi_test_frameset.html'
 MULTI_TEST_DRIVER_TPL = 'multi_test_driver.html'
 
-VALID_STATS_OUTPUTS = ('html', 'pickle', 'xhr', 'csv', 'json', 'jsonp',
-                       'gviz_table', 'gviz_data', 'gviz_timeline_data')
+VALID_STATS_OUTPUTS = ('html', 'pickle', 'xhr', 'csv', 'js', 'json', 'jsonp',
+                       'gviz_table', 'gviz_table_data', 'gviz_timeline_data')
 
 def Render(request, template, params={}, category=None):
   """Wrapper function to render templates with global and category vars."""
@@ -176,8 +176,7 @@ def CategoryTestDriver(request):
 
 
 def MultiTestFrameset(request):
-  """Multi-Page Test Frameset - frames the multi-page test driver and the
-current test page"""
+  """Multi-Page Test Frameset"""
   category = request.GET.get('category', '')
   params = {
     'page_title': 'Multi-Test Frameset',
@@ -283,84 +282,124 @@ def GetServer(request):
 
 
 STATIC_MESSAGE = ('<em class="rt-static">This is a recent snapshot '
-                  'of the results - '
-                  'it will be refreshed every hour.</em>')
+                  'of the results - it will be refreshed every hour.</em>')
 RECENT_TESTS_MEMCACHE_KEY = 'recent_tests'
 def Home(request):
-  """Our Home page."""
+  """Our Home page.
+  This also doubles as a general API request handler with a few specific
+  bits for the home page template."""
 
+  # The recent tests table.
   recent_tests = memcache.get(key=RECENT_TESTS_MEMCACHE_KEY)
   if not recent_tests:
     ScheduleRecentTestsUpdate()
 
+  # Show a static message above the table.
+  #if (test_set.category in settings.STATIC_CATEGORIES and
+  #    output in ('xhr', 'html')):
+  #  stats_table = '%s%s' % (STATIC_MESSAGE, stats_table)
+
+  params = {
+    'page_title': 'Home',
+    'message': request.GET.get('message'),
+    'recent_tests': recent_tests,
+  }
+  return GetResults(request, template='home.html', params=params)
+
+
+def GetResults(request, template=None, params={}, test_set=None):
+  """This is the main results handler for returning the results table."""
+
+  # Get request variables.
+  category = request.GET.get('category', 'summary')
+  output = request.GET.get('o', 'html')
+
+  if output not in VALID_STATS_OUTPUTS:
+    return http.HttpResponse('Invalid output specified')
+
+  # TODO(elsigh): Remove this user_test check once we go full gviz.
+  elif params.has_key('test') and output == 'html':
+    output = 'gviz_table'
+
+  # If this is a request to js embed the stats table.
+  elif output == 'js':
+    # override for GetStats, we'll escape the table in the tpl.
+    output = 'gviz_table'
+    params['mimetype'] = 'text/javascript'
+    template = 'stats_table.js'
+
+  elif output == 'json':
+    params['mimetype'] = 'application/json'
+    template = None
+
+  # Handle any URL passed results from recent tests.
   results_params = []
   results_test_set = None
-  for test_set in all_test_sets.GetAllTestSets():
-    results_key = '%s_results' % test_set.category
+  for test_set_ in all_test_sets.GetAllTestSets():
+    results_key = '%s_results' % test_set_.category
     results_uri_string = request.GET.get(results_key)
     # Adding a check for None since bots are sending it.
     if results_uri_string and results_uri_string != 'None':
       results_params.append('='.join((results_key, results_uri_string)))
-      results_test_set  = test_set
+      results_test_set  = test_set_
 
+  # Get the test_set
+  if test_set is None:
+    if category:
+      test_set = all_test_sets.GetTestSet(category)
+    elif len(results_params) == 1:
+      test_set = results_test_set
+    if not test_set:
+      test_set = all_test_sets.GetTestSet('summary')
+
+  params.update({
+    'stats_table_category': test_set.category,
+    'stats_table_category_name': test_set.category_name,
+    'category': test_set.category,
+    'server': GetServer(request),
+    'results_params': '&'.join(results_params),
+    'v': request.GET.get('v', 'top'),
+    'output': output,
+    'ua_params': request.GET.get('ua', ''),
+    'w': request.REQUEST.get('w', ''),
+    'h': request.REQUEST.get('h', ''),
+    'highlight': request.REQUEST.get('highlight', ''),
+    'score': request.REQUEST.get('score', ''),
+    'build': settings.BUILD,
+  })
+
+  # Get the meat and potatoes.
+  if output == 'gviz_table':
+    t = loader.get_template('stats_gviz_table.html')
+    stats_table = t.render(Context(params))
+  else:
+    stats_table = GetStats(request, test_set, output)
+
+  params['stats_table'] = stats_table
+
+  if template:
+    return Render(request, template, params)
+  else:
+    mimetype = None
+    if params.has_key('mimetype'):
+      mimetype = params['mimetype']
+    return http.HttpResponse(stats_table, mimetype)
+
+
+def GvizTableData(request):
+  """Returns a string formatted for consumption by a Google Viz table."""
   test_set = None
   category = request.GET.get('category')
-  if category:
-    test_set = all_test_sets.GetTestSet(category)
-  elif len(results_params) == 1:
-    test_set = results_test_set
+  if not category:
+    return http.HttpResponseBadRequest('Must pass category=something')
+
+  test_set = all_test_sets.GetTestSet(category)
   if not test_set:
-    test_set = all_test_sets.GetTestSet('summary')
+    return http.HttpResponseBadRequest(
+        'No test set was found for category=%s' % category)
 
-  # Tell GetStats what to output.
-  output = request.GET.get('o', 'html')
-  if output not in VALID_STATS_OUTPUTS:
-    return http.HttpResponse('Invalid output specified')
-
-  js_embed = False
-  if output == 'js':
-    output = 'html'
-    js_embed = True
-
-  stats_table = GetStats(request, test_set, output)
-
-  # Show a static message above the table.
-  if (test_set.category in settings.STATIC_CATEGORIES and
-      output in ('xhr', 'html')):
-    stats_table = '%s%s' % (STATIC_MESSAGE, stats_table)
-
-  if output == 'html':
-    # Default is the home page template
-    template = 'home.html'
-    params = {
-      'page_title': 'Home',
-      'results_params': '&'.join(results_params),
-      'v': request.GET.get('v', 'top'),
-      'output': output,
-      'ua_params': request.GET.get('ua', ''),
-      'stats_table_category': test_set.category,
-      'stats_table_category_name': test_set.category_name,
-      'stats_table': stats_table,
-      'recent_tests': recent_tests,
-      'message': request.GET.get('message'),
-    }
-    simple_layout = request.GET.get('layout') == 'simple'
-    if simple_layout:
-      params['hide_nav'] =  simple_layout
-      params['hide_footer'] = simple_layout
-      params['test'] = ''
-      template = 'user_test_table.html'
-    if js_embed:
-      params['mimetype'] = 'text/javascript'
-      template = 'user_test_table.js'
-
-    return Render(request, template, params)
-
-  elif output == 'json':
-    return http.HttpResponse(stats_table, mimetype='application/json')
-
-  else:
-    return http.HttpResponse(stats_table)
+  formatted_gviz_table_data = GetStats(request, test_set, 'gviz_table_data')
+  return http.HttpResponse(formatted_gviz_table_data)
 
 
 def BrowserTimeLine(request):
@@ -376,7 +415,7 @@ def BrowserTimeLine(request):
 def BrowseResults(request):
   category = request.GET.get('category')
   if not category:
-    return http.HttpResponse('You must pass category=something')
+    return http.HttpResponseBadRequest('You must pass category=something')
   test_set = all_test_sets.GetTestSet(category)
   test_keys = [t.key for t in test_set.VisibleTests()]
 
@@ -566,7 +605,7 @@ def ClearMemcache(request):
         browsers = ua.split(',')
         logging.info('browsers are: %s' % browsers)
       elif not version_level:
-        return http.HttpResponse('Either pass in ua= or v=')
+        return http.HttpResponseBadRequest('Either pass in ua= or v=')
 
       logging.info('categories are: %s' % categories)
       for category in categories:
@@ -627,7 +666,7 @@ def Beacon(request, category_id=None):
   # Totally bogus beacon.
   if not category or not results_str:
     logging.info('Got no category or results.')
-    return http.HttpResponse(BAD_BEACON_MSG + 'Category/Results')
+    return http.HttpResponseBadRequest(BAD_BEACON_MSG + 'Category/Results')
 
   # Quick check for a user-api test result.
   user_test_set = models.user_test.Test.get_test_set_from_results_str(
@@ -686,7 +725,7 @@ def Return204Script(request):
   return http.HttpResponse('<html><script src="/204"></script></html>')
 
 
-def GetStats(request, test_set, output='html',  opt_tests=None,
+def GetStats(request, test_set, output='html', opt_tests=None,
              use_memcache=True):
   """Returns the stats table.
   Args:
@@ -697,18 +736,8 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
     use_memcache: Use memcache or not.
   """
 
-  # gviz_table is pretty lightweight, so we'll pass through here.
-  if output == 'gviz_table':
-    params = {
-      'height': request.REQUEST.get('height', '300px'),
-      'width': request.REQUEST.get('width', 'auto'),
-      'request_path': request.get_full_path(),
-      'highlight': request.REQUEST.get('highlight', ''),
-    }
-    return GetStatsDataTemplatized(params, output)
-
   category = test_set.category
-  #logging.info('GetStats for %s' % category)
+  logging.info('GetStats for %s' % category)
   version_level = request.GET.get('v', 'top')
   is_skip_static = request.GET.get('sc')  # 'sc' for skip cache
   browser_param = request.GET.get('ua')
@@ -724,6 +753,7 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
   if browsers and '*' in browser_param:
     browsers = result_stats.CategoryBrowserManager.GetFilteredBrowsers(
         category, browsers)
+
   if (not is_skip_static and category in settings.STATIC_CATEGORIES
       and output in ('html', 'xhr')):
     # Use pickle'd data to which we can integrate a user's results.
@@ -802,9 +832,9 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
           score = 0
           display = ''
         current_stats['results'][sub_category] = {
-            'score': score,
-            'display': display
-            }
+          'score': score,
+          'display': display
+        }
         total_score += int(score)
       current_stats['summary_score'] = total_score / len(visible_test_keys)
       current_stats['summary_display'] = (
@@ -832,6 +862,7 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
     'params': test_set.default_params,
     'results_uri_string': results_str,
     'highlight': request.REQUEST.get('highlight', ''),
+    'score': request.REQUEST.get('score', ''),
     'callback': request.REQUEST.get('callback', ''),
   }
   #logging.info("GetStats got params: %s", str(params))
@@ -839,7 +870,7 @@ def GetStats(request, test_set, output='html',  opt_tests=None,
     return GetStatsDataTemplatized(params, 'table')
   elif output in ['csv', 'json', 'jsonp']:
     return GetStatsDataTemplatized(params, output)
-  elif output == 'gviz_data':
+  elif output == 'gviz_table_data':
     return FormatStatsDataAsGviz(params, request.GET.get('tqx', ''))
   elif output == 'gviz_timeline_data':
     return FormatStatsDataAsGvizTimeLine(params, request.GET.get('tqx', ''))
@@ -859,7 +890,11 @@ def FormatStatsDataAsGviz(params, tqx):
     A JSON string as content in a text/plain HttpResponse.
   """
   # row headers
-  description = [('ua', 'string', 'UserAgent'), ('score', 'number', 'Score')]
+  description = [('ua', 'string', 'UserAgent')]
+
+  if not params['is_user_test'] or params['score']:
+    description.append(('score', 'number', 'Score'))
+
   for test in params['tests']:
     description.append((test.key, 'number', test.name))
   description.append(('numtests', 'number', '# Tests'))
@@ -870,23 +905,34 @@ def FormatStatsDataAsGviz(params, tqx):
     row_stats = params['stats'].get(user_agent, {})
     row_data = []
 
-    # Start with summary score to get the cell color.
+    ua_class_name = ''
+    if user_agent == params['current_user_agent']:
+      ua_class_name = 'rt-ua-cur'
+
+    # This summary score is for native Browserscope tests only.
     summary_score = row_stats.get('summary_score')
-    # fwiw user tests don't have a summary score.
+    # User tests can in fact have a summary score, it's just a simple
+    # addition / total if requested.
+    if params['is_user_test'] and params['score']:
+      summary_score = 80
+
+    # Start with summary score to possibly give the cell a bg color.
     if summary_score:
-      p = {}
+      highlight_class_name = ''
       if params['highlight']:
-        p = {'className': 'rt-t-s-%s' %
-             custom_filters.scale_100_to_10(summary_score)}
-      summary_score_data = (summary_score, '%s/100' % summary_score, p)
+        highlight_class_name = ('rt-t-s-%s' %
+            custom_filters.scale_100_to_10(summary_score))
 
-      # User agent uses the summary score coloration.
-      user_agent_data = (user_agent.lower(), user_agent, p)
+      # User agent here includes the summary score coloration.
+      ua_p = {'className': [ua_class_name, highlight_class_name].join(' ')}
+      row_data.append((user_agent.lower(), user_agent, ua_p))
 
-      row_data.append(user_agent_data)
-      row_data.append(summary_score_data)
+      # Summary score, optionally highlighted.
+      score_p = {'className': highlight_class_name}
+      row_data.append((summary_score, '%s/100' % summary_score, score_p))
     else:
-      row_data.append((user_agent.lower(), user_agent))
+      ua_p = {'className': ua_class_name}
+      row_data.append((user_agent.lower(), user_agent, ua_p))
 
     # Test data by key.
     ua_results = row_stats.get('results')
@@ -907,7 +953,7 @@ def FormatStatsDataAsGviz(params, tqx):
       row_data.append((score, display, p))
 
     # Total runs.
-    row_data.append(ua_results.get('total_runs', 0))
+    row_data.append(row_stats.get('total_runs', 0))
     data.append(row_data)
 
   data_table.LoadData(data)
