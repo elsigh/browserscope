@@ -267,7 +267,7 @@ def UaParser(request):
   # JS snippet
   elif output == 'js':
     params = {'mimetype': 'text/javascript'}
-    return Render(request, 'user_agent_js.tpl', params)
+    return Render(request, 'user_agent.js', params)
   else:
     raise NotImplementedError
 
@@ -311,7 +311,7 @@ def GetResults(request, template=None, params={}, test_set=None):
   """This is the main results handler for returning the results table."""
 
   # Get request variables.
-  category = request.GET.get('category', 'summary')
+  category = request.GET.get('category')
   output = request.GET.get('o', 'html')
 
   if output not in VALID_STATS_OUTPUTS:

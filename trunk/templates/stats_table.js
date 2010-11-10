@@ -1,4 +1,6 @@
 (function(){
+  var scripts = document.getElementsByTagName('script');
+  var lastScript = scripts[scripts.length - 1];
 
   // Adds the CSS to the DOM.
   var cssNode = document.createElement('link');
@@ -25,8 +27,6 @@
   </div>{% endspaceless %}{% endfilter %}';
 
   // Adds the table HTML to the DOM.
-  var scripts = document.getElementsByTagName('script');
-  var lastScript = scripts[scripts.length - 1];
   lastScript.parentNode.insertBefore(resultsTable, lastScript);
 
 })();
