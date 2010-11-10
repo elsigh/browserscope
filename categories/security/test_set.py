@@ -129,7 +129,13 @@ _TESTS = (
   A user's browsing history <a href="http://whattheinternetknowsaboutyou.com/">can be sniffed</a> by 
   <a href="http://jeremiahgrossman.blogspot.com/2006/08/i-know-where-youve-been.html">testing the visited links</a> by 
   checking this CSS class. We test whether browsers restrict access to the 
-  :visited pseudo class.''')
+  :visited pseudo class.'''),
+  SecurityTest('Content Security Policy',
+	       'Content Security Policy',
+  '''Checks whether the browser supports 
+  <a href="http://research.sidstamm.com/papers/csp-www2010.pdf">Content Security Policy</a>,
+  which reduces the XSS attack surfaces for websites that wish to opt-in.'''), 
+
 )
 
 

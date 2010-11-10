@@ -108,6 +108,26 @@ def TestSts(request):
   else:
     return HttpResponsePermanentRedirect('http://www.browserscope.org/security/static/sts-fail.html')
 
+def XContentSecurityPolicyTest(request):
+  response = HttpResponse()
+  response['X-Content-Security-Policy']="allow 'self'"
+  response.write('''
+  <html>
+  <body>
+  <!-- the Eval inside xcsp.js should not work -->
+  <script src='../static/xcsp.js'></script>
+  <div id="csp">PASS</div>
+  <!-- The following inline script should not work -->
+  <script>
+  document.getElementById('csp').firstChild.nodeValue='FAIL'
+  </script>
+  </body>
+  </html>
+		  ''');
+  return response;
+
+
+
 def ReflectedXSSVictim(request):  
   attack_str = ""
   expected_attack = "<script>script_ran = true</script>"
