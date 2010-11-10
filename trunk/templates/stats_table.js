@@ -29,5 +29,7 @@
   // Adds the table HTML to the DOM.
   lastScript.parentNode.insertBefore(resultsTable, lastScript);
 
+  {% include "stats_gviz_table.js" %}
+
 })();
 

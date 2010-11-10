@@ -324,7 +324,6 @@ def GetResults(request, template=None, params={}, test_set=None):
   # If this is a request to js embed the stats table.
   elif output == 'js':
     # override for GetStats, we'll escape the table in the tpl.
-    output = 'gviz_table'
     params['mimetype'] = 'text/javascript'
     template = 'stats_table.js'
 
@@ -369,7 +368,7 @@ def GetResults(request, template=None, params={}, test_set=None):
   })
 
   # Get the meat and potatoes.
-  if output == 'gviz_table':
+  if output == 'gviz_table' or output == 'js':
     t = loader.get_template('stats_gviz_table.html')
     stats_table = t.render(Context(params))
   else:

@@ -13,6 +13,5 @@
     var scripts = document.getElementsByTagName('script');
     script = scripts[scripts.length - 1];
   }
-  window.console.log('lastScript:', script);
   script.parentNode.insertBefore(el, script);
 })();
