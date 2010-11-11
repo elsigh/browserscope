@@ -1,31 +1,42 @@
 
 // This script is included in stats_gviz_table.html and stats_table.js
 
+var bsResultsTable = function(id) {
 
-var tableContainer = document.getElementById('bs-rt-{{ category }}');
+  this.tableContainer_ = document.getElementById(id);
 
-// Store a reference to the initialize function in this closure on the DOM
-// node for the results table for external use, i.e. in JSPerf.
-tableContainer.refresh = initialize;
+  // ua
+  var script = document.createElement('script');
+  script.src = '//{{ server }}/ua?o=js';
+  script.id = 'bs-ua-script';
+  this.tableContainer_.parentNode.appendChild(script);
 
-// ua
-var script = document.createElement('script');
-script.src = '//{{ server }}/ua?o=js';
-script.id = 'bs-ua-script';
-tableContainer.parentNode.appendChild(script);
+  // jsapi - load it only once
+  if (!document.getElementById(bsResultsTable.JSAPI_ID)) {
+    script = document.createElement('script');
+    script.id = bsResultsTable.JSAPI_ID;
+    script.src = '//www.google.com/jsapi';
+    var instance = this;
+    script.onload = function() {
+      google.load('visualization', '1',
+        {'packages': ['table'],
+          'callback': function() {
+            instance.load();
+          }
+        })
+    };
+    this.tableContainer_.parentNode.insertBefore(script, this.tableContainer_);
+  } else {
+    this.load();
+  }
 
-// jsapi
-script = document.createElement('script');
-script.src = '//www.google.com/jsapi';
-script.onload = function() {
-  google.load('visualization', '1',
-    {'packages': ['table'], 'callback': initialize});
-}
-tableContainer.parentNode.insertBefore(script, tableContainer);
+};
 
-function initialize() {
-  tableContainer.innerHTML = 'Loading Browserscope results data ...';
-  tableContainer.className = 'rt-loading';
+bsResultsTable.JSAPI_ID = 'bs-jsapi';
+
+bsResultsTable.prototype.load = function() {
+  this.tableContainer_.className = 'rt-loading';
+  this.tableContainer_.innerHTML = 'Loading Browserscope results data ...';
   var dataUrl = '//{{ server }}/gviz_table_data?' +
       'category={{ category }}&' +
       'ua={{ ua_params }}&' +
@@ -36,16 +47,17 @@ function initialize() {
       'tqx=reqId:0';
   var query = new google.visualization.Query(dataUrl,
       {'sendMethod': 'scriptInjection'});
-  query.send(draw);
+  var instance = this;
+  query.send(function(response){instance.draw_(response)});
 }
 
-function draw(response) {
+bsResultsTable.prototype.draw_ = function(response) {
   if (response.isError()) {
     alert('Sorry but there was an error getting the results data ' +
           'from Browserscope.');
   }
-  tableContainer.className = ''; // remove loading.
-  var dataTable = new google.visualization.Table(tableContainer);
+  this.tableContainer_.className = ''; // remove loading.
+  var dataTable = new google.visualization.Table(this.tableContainer_);
   var data = response.getDataTable();
   var cssClassNames = {
     headerRow: '',
