@@ -29,7 +29,16 @@
   // Adds the table HTML to the DOM.
   lastScript.parentNode.insertBefore(resultsTable, lastScript);
 
+  // Load the results table
   {% include "stats_gviz_table.js" %}
+  var resultsTable = new bsResultsTable('bs-rt-{{ category }}');
+  {% if callback %}
+    if ({{ callback }}) {
+      {{ callback }}(resultsTable);
+    } else {
+      alert('You need to define {{ callback }}');
+    }
+  {% endif %}
 
 })();
 

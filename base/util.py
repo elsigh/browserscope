@@ -365,6 +365,7 @@ def GetResults(request, template=None, params={}, test_set=None):
     'highlight': request.REQUEST.get('highlight', ''),
     'score': request.REQUEST.get('score', ''),
     'build': settings.BUILD,
+    'callback': request.REQUEST.get('callback', ''),
   })
 
   # Get the meat and potatoes.
