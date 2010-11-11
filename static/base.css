@@ -509,6 +509,10 @@ html>body .goog-inline-block {
 #bs-user-test-form label {
   display: block;
 }
+#bs-home-tpl .rt-loading {
+  font-size: 200%;
+}
+
 .bs-usertest .bs-admin,
 .bs-usertest .bs-results-links,
 .bs-usertest .rt-ua-s-d {

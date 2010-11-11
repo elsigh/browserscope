@@ -117,7 +117,7 @@ a.bs-l-p {
   font-size: 95%;
 }
 .rt {
-  font-size: 90%;
+  font: 90% normal Arial, sans-serif;
   margin: 5px;
 }
 .rt .rt-v form {
@@ -255,7 +255,6 @@ a.bs-l-p {
 .rt-err {
   padding: 5em;
   text-align: center;
-  font-size: 200%;
   font-weight: bold;
   color: #666;
 }
