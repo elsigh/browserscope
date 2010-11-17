@@ -109,17 +109,18 @@
     var controller = new Util.ResultTablesController(category,
         browserFamily, output, realUaString, uaUriParams, resultsUriParams);
     if (realUaString != userAgentPretty) {
-      var curUaStringEl = document.getElementById('bs-home-cur-ua-s');
+      var curUaStringEl = document.getElementById('bs-cur-ua-{{ category }}');
       curUaStringEl.innerHTML = realUaString;
     }
     var cb = Util.createChromeFrameCheckbox(httpUserAgent, true);
     if (cb) {
-      var curUaStringContainer = document.getElementById('bs-home-cur-ua');
+      var curUaStringContainer =
+          document.getElementById('bs-results-cur-ua-{{ category }}');
       curUaStringContainer.appendChild(cb);
     }
   })();
 </script>
-<script src="http://www.google.com/jsapi" defer></script>
+<!--<script src="http://www.google.com/jsapi" defer></script>-->
 
 {% endblock %}
 
