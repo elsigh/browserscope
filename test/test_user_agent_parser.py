@@ -31,6 +31,10 @@ TEST_STRINGS = (
     # ((family, v1, v2, v3), user_agent_string, js_user_agent_string={})
     #(('', '', '', '').
     #  '', {}),
+    (('RockMelt', '0', '8', '34'),
+      'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/534.3 '
+      '(KHTML, like Gecko) RockMelt/0.8.34.841 Chrome/6.0.472.63 '
+      'Safari/534.3,gzip(gfe),gzip(gfe)', {}),
     (('Firefox Beta', '4', '0', 'b4'),
      'Mozilla/5.0 (X11; Linux i686 (x86_64); rv:2.0b4) Gecko/20100818 '
      'Firefox/4.0b4', {}),
