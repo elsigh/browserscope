@@ -100,6 +100,9 @@ USER_AGENT_PARSERS = (
   # e.g.: Flock/2.0b2
   _P(r'(Flock)/(\d+)\.(\d+)(b\d+?)'),
 
+  # RockMelt
+  _P(r'(RockMelt)/(\d+)\.(\d+)\.(\d+)'),
+
   # e.g.: Fennec/0.9pre
   _P(r'(Fennec)/(\d+)\.(\d+)(pre)'),
   _P(r'(Navigator)/(\d+)\.(\d+)\.(\d+)', 'Netscape'),
