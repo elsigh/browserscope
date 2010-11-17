@@ -5,7 +5,7 @@ var bsResultsTable = function(id) {
 
   this.tableContainer_ = document.getElementById(id);
 
-  // ua
+  // ua detection
   var script = document.createElement('script');
   script.src = '//{{ server }}/ua?o=js';
   script.id = 'bs-ua-script';
@@ -15,16 +15,24 @@ var bsResultsTable = function(id) {
   if (!document.getElementById(bsResultsTable.JSAPI_ID)) {
     script = document.createElement('script');
     script.id = bsResultsTable.JSAPI_ID;
-    script.src = '//www.google.com/jsapi';
     var instance = this;
-    script.onload = function() {
-      google.load('visualization', '1',
-        {'packages': ['table'],
-          'callback': function() {
-            instance.load();
-          }
-        })
+    var scriptLoaded = false;
+
+    // script onload for IE
+    script.onreadystatechange = function() {
+      if (!scriptLoaded &&
+          (this.readyState == 'loaded' || this.readyState == 'complete')) {
+        scriptLoaded = true;
+        instance.loadGvizTableApi();
+      }
     };
+
+    // script.onload
+    script.onload = function() {
+      instance.loadGvizTableApi();
+    };
+
+    script.src = '//www.google.com/jsapi';
     this.tableContainer_.parentNode.insertBefore(script, this.tableContainer_);
   } else {
     this.load();
@@ -33,6 +41,18 @@ var bsResultsTable = function(id) {
 };
 
 bsResultsTable.JSAPI_ID = 'bs-jsapi';
+
+
+bsResultsTable.prototype.loadGvizTableApi = function() {
+  var instance = this;
+  google.load('visualization', '1',
+        {'packages': ['table'],
+          'callback': function() {
+            instance.load();
+          }
+        });
+};
+
 
 bsResultsTable.prototype.load = function() {
   this.tableContainer_.className = 'rt-loading';

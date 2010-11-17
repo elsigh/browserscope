@@ -79,12 +79,13 @@
     iframe.setAttribute('width', '0');
     iframe.setAttribute('height', '0');
     iframe.setAttribute('frameborder', '0');
-    iframe.setAttribute('name', 'browserscope');
-    iframe.id = 'browserscope';
+    iframe.setAttribute('name', 'browserscope-{{ epoch }}');
+    iframe.id = 'browserscope-{{ epoch }}';
     iframe.src = 'about:blank';
     document.body.appendChild(iframe);
-    iframe = document.all ? document.all.browserscope.contentWindow :
-        window.frames.browserscope;
+    iframe = document.all ?
+        document.all['browserscope-{{ epoch }}'].contentWindow :
+        window.frames['browserscope-{{ epoch }}'];
     var iframeDoc = iframe.document;
     iframeDoc.open();
     iframeDoc.writeln('<html><body></body></html>');

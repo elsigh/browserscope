@@ -23,6 +23,7 @@ import hashlib
 import logging
 import random
 import re
+import time
 
 from google.appengine.api import users
 from google.appengine.api import datastore_errors
@@ -341,6 +342,7 @@ def BeaconJs(request, key):
     'csrf_token': request.session.get('csrf_token'),
     'server': util.GetServer(request),
     'sandboxid': request.GET.get('sandboxid', ''),
+    'epoch': int(time.time()),
   }
 
   # Does the user want a callback?
