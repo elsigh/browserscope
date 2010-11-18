@@ -246,13 +246,18 @@ function initEditorDoc() {
   // Wrap initialization code in a try/catch so we can fail gracefully
   // on older browsers.
   try {
-
-    // version using IFRAME
     editorElem = document.getElementById('editor');
+/*
+    // version using IFRAME
     editorWin = editorElem.contentWindow;
     editorDoc = editorWin.document;
     contentEditableElem = editorDoc.body;
-    
+*/
+    // version using DIV
+    editorWin = window;
+    editorDoc = document;
+    contentEditableElem = editorElem;
+
     win = editorWin;
     doc = editorDoc;
 

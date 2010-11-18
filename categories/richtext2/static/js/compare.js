@@ -193,11 +193,18 @@ function compareTextTestResultWith(actual, expected) {
   var expectedArr = getExpectationArray(expected);
   // Find the most favorable result among the possible expectation strings.
   var count = expectedArr.length;
+
+  // If the value matches the expectation exactly, then we're fine.  
+  for (var idx = 0; idx < count; ++idx) {
+    if (actual === expectedArr[idx])
+      return true;
+  }
   
-  // We only need to look at Color and Size units if the originating test
-  // was for queryCommandValue. If queryCommandValue is not for a color/size
-  // specific state, or it it wasn't a queryCommandValue test at all, then
-  // just compare directly.
+  // Otherwise see if we should canonicalize specific value types.
+  //
+  // We only need to look at font name, color and size units if the originating
+  // test was both a) queryCommandValue and b) querying a font name/color/size
+  // specific criterion.
   //
   // TODO(rolandsteiner): This is ugly! Refactor!
   switch (getTestParameter(PARAM_QUERYCOMMANDVALUE)) {
@@ -205,34 +212,24 @@ function compareTextTestResultWith(actual, expected) {
     case 'forecolor':
     case 'hilitecolor':
       for (var idx = 0; idx < count; ++idx) {
-        if (new Color(actual).compare(new Color(expectedArr[idx]))) {
+        if (new Color(actual).compare(new Color(expectedArr[idx])))
           return true;
-        }
       }
       return false;
     
     case 'fontname':
       for (var idx = 0; idx < count; ++idx) {
-        if (new FontName(actual).compare(new FontName(expectedArr[idx]))) {
+        if (new FontName(actual).compare(new FontName(expectedArr[idx])))
           return true;
-        }
       }
       return false;
     
     case 'fontsize':
       for (var idx = 0; idx < count; ++idx) {
-        if (new FontSize(actual).compare(new FontSize(expectedArr[idx]))) {
+        if (new FontSize(actual).compare(new FontSize(expectedArr[idx])))
           return true;
-        }
       }
       return false;
-    
-    default:
-      for (var idx = 0; idx < count; ++idx) {
-        if (actual === expectedArr[idx]) {
-          return true;
-        }
-      }
   }
   
   return false;
@@ -322,6 +319,16 @@ function prepareTestResult() {
     var offs1 = selRange.getAnchorOffset();
     var node2 = selRange.getFocusNode();
     var offs2 = selRange.getFocusOffset();
+    // do some sanity checking
+    if (node1 != contentEditableElem && !goog.dom.contains(contentEditableElem, node1)) {
+      node1 = null;
+      offs1 = 0;
+    }
+    if (node2 != contentEditableElem && !goog.dom.contains(contentEditableElem, node2)) {
+      node2 = null;
+      offs2 = 0;
+    }
+    // add markers
     if (node1 && node1 == node2 && offs1 == offs2) {
       // collapsed selection
       insertSelectionIndicator(node1, offs1, '^', '|');

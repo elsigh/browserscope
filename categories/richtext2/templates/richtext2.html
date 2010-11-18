@@ -7,6 +7,7 @@
   <title>New Rich Text Tests</title>
 
   <link rel="stylesheet" href="static/common.css" type="text/css">
+  <link rel="stylesheet" href="static/editable.css" type="text/css">
 
   <!-- utility scripts -->
   <script src="static/js/variables.js"></script> 
@@ -52,9 +53,10 @@
   </script>  
 </head> 
 
-<body onload="runTests()">
+<body onload="runTests();">
   {% include "richtext2/templates/output.html" %}
   <hr>
-  <iframe name="editor" id="editor" src="static/editable.html"></iframe>
+  <!--<iframe name="editor" id="editor" src="static/editable.html"></iframe>-->
+  <div id="editor" contenteditable="true"></div>
 </body> 
 </html> 

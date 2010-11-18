@@ -49,7 +49,7 @@ SELECTION_TESTS = {
   'checkStyle':    True,
   'styleWithCSS':  False,
 
-  'RFC': [
+  'Proposed': [
     # selectall
     { 'id':         'SELALL_TEXT-1_SI',
       'desc':       'select all, text only',

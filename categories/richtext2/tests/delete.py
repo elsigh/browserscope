@@ -270,7 +270,13 @@ DELETE_TESTS = {
       'desc':        'Delete last table row where a cell has rowspan 3',
       'pad':         '<table><tbody><tr><td>A</td><td rowspan=3>R</td></tr><tr><td>B</td></tr>{<tr><td>C</td></tr>}</tbody></table>',
       'expected':    ['<table><tbody><tr><td>A</td><td rowspan="2">R</td></tr><tr><td>B</td></tr>|</tbody></table>',
-                      '<table><tbody><tr><td>A</td><td rowspan="2">R</td></tr><tr><td>B^</td></tr></tbody></table>'] }
+                      '<table><tbody><tr><td>A</td><td rowspan="2">R</td></tr><tr><td>B^</td></tr></tbody></table>'] },
+
+    # nested non-editable
+    { 'id':          '',
+      'desc':        'Delete with selection including contentEditable="false"',
+      'pad':         '',
+      'expected':    '' },
   ]
 }
 
