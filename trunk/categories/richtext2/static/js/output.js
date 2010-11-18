@@ -58,12 +58,42 @@ function highlightSelectionMarkers(str) {
 }
                        
 /**
+ * Function to format output according to type
+ *
+ * @param value {String/Boolean} string or value to format
+ * @return {String} HTML-formatted string
+ */
+function formatValueOrString(value) {
+  if (value === undefined)
+    return '<i>undefined</i>';
+  if (value === null)
+    return '<i>null</i>';
+  
+  switch (typeof value) {
+    case 'boolean':
+      return '<i>' + value.toString() + '</i>';
+      
+    case 'number':
+      return value.toString();
+      
+    case 'string':
+      return "'" + escapeOutput(value.toString()) + "'";
+      
+    default:
+      return '<i>(' + escapeOutput(value.toString()) + ')</i>';
+  } 
+}
+
+/**
  * Function to highlight text nodes
  *
  * @param actual {String} a HTML string containing text nodes with markers
  * @return {String} string with highlighting tags around the text node parts
  */
 function formatActualResult(actual) {
+  if (typeof actual != 'string')
+    return formatValueOrString(actual);
+
   // Fade attributes (or just style) if not actually tested for
   if (!getTestParameter(PARAM_CHECK_ATTRIBUTES)) {
     actual = actual.replace(/([^ =]+)=\x22([^\x22]*)\x22/g, '<span class="fade">$1="$2"</span>');
@@ -81,35 +111,10 @@ function formatActualResult(actual) {
   }
   // Highlight selection markers and text nodes.
   actual = highlightSelectionMarkers(actual);
-  actual = actual.replace(/\x60/g,  '<span class="txt">');
-  actual = actual.replace(/\xb4/g,  '</span>');
+  actual = actual.replace(/\x60/g, '<span class="txt">');
+  actual = actual.replace(/\xb4/g, '</span>');
 
   return actual;
-}
-
-/**
- * Function to format output according to type
- *
- * @param value {String/Boolean} string or value to format
- * @return {String} HTML-formatted string
- */
-function formatValueOrString(value) {
-  switch (typeof value) {
-    case 'undefined':
-      return '<i>undefined</i>';
-
-    case 'boolean':
-      return '<i>' + value.toString() + '</i>';
-      
-    case 'number':
-      return value.toString();
-      
-    case 'string':
-      return "'" + escapeOutput(value.toString()) + "'";
-      
-    default:
-      return '<i>(' + escapeOutput(value.toString()) + ')</i>';
-  } 
 }
 
 /**
@@ -119,7 +124,7 @@ function formatValueOrString(value) {
  * @return {String} the escaped HTML
  */
 function escapeOutput(str) {
-  return str.replace(/\</g, '&lt;').replace(/\>/g, '&gt;');
+  return str ? str.replace(/\</g, '&lt;').replace(/\>/g, '&gt;') : '';
 }
 
 /**
@@ -307,19 +312,19 @@ function outputSingleTestResult(actual) {
   var expectedArr = getExpectationArray(getTestParameter(PARAM_EXPECTED));
   for (var idx = 0; idx < expectedArr.length; ++idx) {
     if (expectedOutput) {
-      expectedOutput = expectedOutput + '\xA0\xA0\xA0<i>or</i><br>';
+      expectedOutput += '\xA0\xA0\xA0<i>or</i><br>';
     }
-    expectedOutput = expectedOutput + (usesHTML ? highlightSelectionMarkers(escapeOutput(expectedArr[idx]))
-                                                : formatValueOrString(expectedArr[idx]));
+    expectedOutput += usesHTML ? highlightSelectionMarkers(escapeOutput(expectedArr[idx]))
+                               : formatValueOrString(expectedArr[idx]);
   }
   var acceptedSpec = getTestParameter(PARAM_ACCEPT);
   if (acceptedSpec) {
     var acceptedArr = getExpectationArray(acceptedSpec);    
     for (var idx = 0; idx < acceptedArr.length; ++idx) {
-      expectedOutput = expectedOutput + '<span class="accexp">\xA0\xA0\xA0<i>or</i></span><br><span class="accexp">';
-      expectedOutput = expectedOutput + (usesHTML ? highlightSelectionMarkers(escapeOutput(acceptedArr[idx]))
-                                                  : formatValueOrString(acceptedArr[idx]))
-                                      + '</span>';
+      expectedOutput += '<span class="accexp">\xA0\xA0\xA0<i>or</i></span><br><span class="accexp">';
+      expectedOutput += usesHTML ? highlightSelectionMarkers(escapeOutput(acceptedArr[idx]))
+                                 : formatValueOrString(acceptedArr[idx]);
+      expectedOutput += '</span>';
     }
   }
   setTD(IDOUT_EXPECTED, expectedOutput);
@@ -327,7 +332,7 @@ function outputSingleTestResult(actual) {
   // Column "Actual": actual result
   switch (currentResultHTML) {
     case RESULTHTML_SETUP_EXCEPTION:
-      setTD(IDOUT_ACTUAL, formatValueOrString(actual));
+      setTD(IDOUT_ACTUAL, escapeOutput(actual));
       break;
     case RESULTHTML_EXECUTION_EXCEPTION:
       setTD(IDOUT_ACTUAL, EXECUTION_EXCEPTION, escapeOutput(actual.toString()));

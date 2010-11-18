@@ -197,13 +197,15 @@ function Color(value) {
       return false;
     }
     if (this.alpha == 0.0) {
-      // fully transparent -> ignore the specific color information
+      // both are fully transparent -> ignore the specific color information
       return true;
     }
     // TODO(rolandsteiner): handle hsl/hsla values
     return this.red == other.red && this.green == other.green && this.blue == other.blue;
   }
   this.parse = function(value) {
+    if (!value)
+      return false;
     value = String(value).toLowerCase();
     var match;
     // '#' + 6 hex digits, e.g., #ff3300
@@ -280,9 +282,11 @@ function Color(value) {
     return false;
   }
   this.toString = function() {
-    return this.red + ',' + this.green + ',' + this.blue;
+    return this.valid ? this.red + ',' + this.green + ',' + this.blue : '(invalid)';
   }
   this.toHexString = function() {
+    if (!this.valid)
+      return '(invalid)';
     return ((this.red < 16) ? '0' : '') + this.red.toString(16) +
            ((this.green < 16) ? '0' : '') + this.green.toString(16) +
            ((this.blue < 16) ? '0' : '') + this.blue.toString(16);
@@ -299,70 +303,78 @@ function Color(value) {
  * @param value {String} original value
  */
 function FontSize(value) {
-  var match;
-  if (match = String(value).match(/([0-9]+)px/)) {
-    var px = Number(match[1]);
-    if (px <= 10) {
-      this.size = '1';
-    } else if (px <= 13) {
-      this.size = '2';
-    } else if (px <= 16) {
-      this.size = '3';
-    } else if (px <= 18) {
-      this.size = '4';
-    } else if (px <= 24) {
-      this.size = '5';
-    } else if (px <= 32) {
-      this.size = '6';
-    } else if (px <= 47) {
-      this.size = '7';
-    } else {
-      this.size = NaN;
+  this.parse = function(str) {
+    if (!str)
+      this.valid = false;
+    var match;
+    if (match = String(str).match(/([0-9]+)px/)) {
+      var px = Number(match[1]);
+      if (px <= 0 || px > 47)
+        return false;
+      if (px <= 10) {
+        this.size = '1';
+      } else if (px <= 13) {
+        this.size = '2';
+      } else if (px <= 16) {
+        this.size = '3';
+      } else if (px <= 18) {
+        this.size = '4';
+      } else if (px <= 24) {
+        this.size = '5';
+      } else if (px <= 32) {
+        this.size = '6';
+      } else {
+        this.size = '7';
+      }
+      return true;
+    } 
+    if (match = String(str).match(/([+-][0-9]+)/)) {
+      this.size = match[1];
+      return this.size >= 1 && this.size <= 7;
+    } 
+    if (Number(str)) {
+      this.size = String(Number(str));
+      return this.size >= 1 && this.size <= 7;
     }
-  } else if (match = String(value).match(/([+-][0-9]+)/)) {
-    this.size = match[1];
-  } else if (Number(value)) {
-    this.size = String(Number(value));
-  } else {
-    switch (value) {
+    switch (str) {
       case 'x-small':
         this.size = '1';
-        break;
+        return true;
       case 'small':
         this.size = '2';
-        break;
+        return true;
       case 'medium':
         this.size = '3';
-        break;
+        return true;
       case 'large':
         this.size = '4';
-        break;
+        return true;
       case 'x-large':
         this.size = '5';
-        break;
+        return true;
       case 'xx-large':
         this.size = '6';
-        break;
+        return true;
       case 'xxx-large':
       case '-webkit-xxx-large':
         this.size = '7';
-        break;
+        return true;
       case 'larger':
         this.size = '+1';
-        break;
+        return true;
       case 'smaller':
         this.size = '-1';
-        break;
-      default:
-        this.size = null;
+        return true;
     }
+    return false;
   }
   this.compare = function(other) {
-    return this.size == other.size;
+    return this.valid && other.valid && this.size === other.size;
   }
   this.toString = function() {
-    return this.size;
+    return this.valid ? this.size : '(invalid)';
   }
+  this.valid = this.parse(value);
 }
 
 /**
@@ -372,26 +384,31 @@ function FontSize(value) {
  * @param value {String} original value
  */
 function FontName(value) {
-  value = String(value).toLowerCase();
-  switch (value) {
-    case 'arial new':
-      this.fontname = 'arial';
-      break;
-    case 'courier new':
-      this.fontname = 'courier';
-      break;
-    case 'times new':
-    case 'times roman':
-    case 'times new roman':
-      this.fontname = 'times';
-      break;
-    default:
-      this.fontname = value;
+  this.parse = function(str) {
+    if (!str)
+      return false;
+    str = String(str).toLowerCase();
+    switch (str) {
+      case 'arial new':
+        this.fontname = 'arial';
+        return true;
+      case 'courier new':
+        this.fontname = 'courier';
+        return true;
+      case 'times new':
+      case 'times roman':
+      case 'times new roman':
+        this.fontname = 'times';
+        return true;
+    }
+    this.fontname = value;
+    return true;
   }
   this.compare = function(other) {
-    return this.fontname == other.fontname;
+    return this.valid && other.valid && this.fontname === other.fontname;
   }
   this.toString = function() {
-    return this.fontname;
+    return this.valid ? this.fontname : '(invalid)';
   }
+  this.valid = this.parse(value);
 }

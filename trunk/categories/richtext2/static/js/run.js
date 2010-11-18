@@ -73,7 +73,7 @@ function runSingleTest() {
   try {
     initEditorElement();
   } catch(ex) {
-    outputSingleTestResult('Setup exception: ' + ex.toString());
+    outputSingleTestResult('SETUP EXCEPTION: ' + ex.toString());
     return;
   }
 
@@ -119,15 +119,12 @@ function runSingleTest() {
                                                        canonicalizeUnits: false });
         } catch (ex) {
           output = 'Verification exception: ' + ex.toString();
-          currentResultHTML = RESULT_VERIFICATION_EXCEPTION;
+          currentResultHTML = RESULTHTML_VERIFICATION_EXCEPTION;
         }
       } else {
         if (output === false && getTestParameter(PARAM_QUERYCOMMANDVALUE)) {
           // A return value of boolean 'false' for queryCommandValue means
           // 'not supported'.
-          //
-          // TODO(rolandsteiner): Color such a result purple? 
-          // However, no exception was thrown...
           output = '<i>false</i> (UNSUPPORTED)';
           currentResultHTML = RESULTHTML_UNSUPPORTED;
         } else {
