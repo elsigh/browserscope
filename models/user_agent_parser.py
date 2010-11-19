@@ -103,6 +103,9 @@ USER_AGENT_PARSERS = (
   # RockMelt
   _P(r'(RockMelt)/(\d+)\.(\d+)\.(\d+)'),
 
+  # Blackberry Torch
+  #_P(r'(RockMelt)/(\d+)\.(\d+)\.(\d+)'),
+
   # e.g.: Fennec/0.9pre
   _P(r'(Fennec)/(\d+)\.(\d+)(pre)'),
   _P(r'(Navigator)/(\d+)\.(\d+)\.(\d+)', 'Netscape'),

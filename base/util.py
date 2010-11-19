@@ -957,7 +957,8 @@ def FormatStatsDataAsGviz(params, tqx):
     data.append(row_data)
 
   data_table.LoadData(data)
-  return data_table.ToResponse(tqx=tqx)
+  return http.HttpResponse(data_table.ToResponse(tqx=tqx),
+                           mimetype='text/javascript')
 
 
 def FormatStatsDataAsGvizTimeLine(params, tqx):
