@@ -31,6 +31,12 @@ TEST_STRINGS = (
     # ((family, v1, v2, v3), user_agent_string, js_user_agent_string={})
     #(('', '', '', '').
     #  '', {}),
+    (('Blackberry Torch', '6', '0', '0').
+      'Mozilla/5.0 (BlackBerry; U; BlackBerry 9800; en-US) AppleWebKit/534.1  '
+      '(KHTML, like Gecko) Version/6.0.0.91 Mobile Safari/534.1 '
+      ',gzip(gfe),gzip(gfe)', {}),
+
+
     (('RockMelt', '0', '8', '34'),
       'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/534.3 '
       '(KHTML, like Gecko) RockMelt/0.8.34.841 Chrome/6.0.472.63 '
