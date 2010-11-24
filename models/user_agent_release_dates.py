@@ -61,6 +61,8 @@ IE,2008-08-27,8.0 Beta 2
 IE,2008-12-11,8.0 Pre-RC1
 IE,2009-01-26,8.0 RC1
 IE,2009-03-19,8.0
+IE Platform Preview,2010-10-28,9.0.6
+IE Platform Preview,2009-11-17,9.0.7
 """
 
 # http://en.wikipedia.org/wiki/Safari_version_history
@@ -119,6 +121,7 @@ Safari,2009-08-11,4.0.3,531.9,Mac OS X
 Safari,2009-08-11,4.0.3,531.9.1,Windows
 Safari,2009-11-11,4.0.4,531.21.10,Mac OS X
 Safari,2009-11-11,4.0.4,531.21.10,Windows
+Safari,2010-06-07,5.0,531.21.10,Mac OS X
 """
 
 OPERA_CSV = """Product,Date,Version
@@ -200,6 +203,7 @@ Opera,2009-10-28,10.01
 Opera,2009-11-23,10.10
 Opera,2010-02-11,10.50 beta 1
 Opera,2010-02-24,10.50 beta 2
+Opera,2010-10-12,10.63
 """
 
 FIREFOX_CSV = """Product,Date,Version
@@ -346,8 +350,12 @@ Firefox,2010-02,3.6.2
 Firefox,2010-03,3.6.x
 Firefox,2010-02-10,3.7a1
 Firefox,2010-03,3.7a2
+Firefox Beta,2010-09,4.0b6
+Firefox Beta,2010-10,4.0b7
 """
 
+
+# too much, see version below
 CHROME_CSV = """Product,Date,Version,Channel
 Chrome,2007-05-10,0.0.81.0,Dev
 Chrome,2007-05-14,0.0.82.0,Dev
@@ -554,6 +562,19 @@ Chrome,2010-03-01,4.1.249.1021,Beta
 Chrome,2010-03-05,4.1.249.1025,Beta
 Chrome,2010-03-05,5.0.342.2,Dev
 """
+# NOTE - See where the list starts above a 0.2? This is a shorter
+# version of this list that is useful for the default timeline.
+CHROME_FOO_CSV ="""Product,Date,Version
+Chrome,2008-09-08,0.2
+Chrome,2008-12-11,1.0
+Chrome,2009-05-24,2.0
+Chrome,2009-10-12,3.0
+Chrome,2010-01-25,4.0
+Chrome,2010-05-25,5.0
+Chrome,2010-09-02,6.0
+Chrome,2010-10-21,7.0
+Chrome,2010-11-22,8.0
+"""
 
 CHROME_TEST = """0.2.149
 0.2.151
@@ -756,6 +777,7 @@ def ParseSafariReleaseCsv(csv_data):
 releases = ParseReleaseCsv(IE_CSV)
 releases.update(ParseReleaseCsv(FIREFOX_CSV))
 releases.update(ParseReleaseCsv(OPERA_CSV))
+releases.update(ParseReleaseCsv(CHROME_FOO_CSV))
 releases.update(ParseSafariReleaseCsv(SAFARI_CSV))
 releases.update(ParseChromeReleaseCsv(CHROME_CSV))
 def ReleaseDate(browser, version):

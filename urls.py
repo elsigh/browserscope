@@ -29,6 +29,7 @@ urlpatterns = patterns('',
   (r'^resource',  'third_party.resource-cgi.resource.Handler'),
   (r'^set_cookie',  'base.util.SetCookieAndRedirect'),
   (r'^timeline$', 'base.util.BrowserTimeLine'),
+  (r'^timeline_data$', 'base.util.BrowserTimeLineData'),
   (r'^results$', 'base.util.GetResults'),
   (r'^gviz_table_data$', 'base.util.GvizTableData'),
 

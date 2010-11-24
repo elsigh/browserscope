@@ -403,13 +403,36 @@ def GvizTableData(request):
 
 
 def BrowserTimeLine(request):
-  category = request.GET.get('category') or settings.CATEGORIES[0]
+  category = request.GET.get('category', 'summary')
+
+  uas = ('Firefox 2.0', 'Firefox 3.0', 'Firefox 3.5', 'Firefox 3.6',
+         'Firefox Beta 4.0b6',
+         'IE 6.0', 'IE 7.0', 'IE 8.0',
+         'IE Platform Preview 9.0.6',
+         'Chrome 1.0', 'Chrome 2.0', 'Chrome 3.0', 'Chrome 4.0', 'Chrome 5.0',
+         'Chrome 6.0', 'Chrome 7.0', 'Chrome 8.0',
+         'Safari 3.0', 'Safari 4.0', 'Safari 5.0',
+         'Opera 7.0', 'Opera 8.0', 'Opera 9.0', 'Opera 9.64', 'Opera 10.63')
   params = {
       'category': category,
-      'ua_params': request.GET.get('ua', 'Chrome*,IE*,Firefox*,Opera*,Safari*'),
+      'ua': request.GET.get('ua', ','.join(uas)),
       'page_title': 'Browser Time Line',
     }
   return Render(request, 'timeline.html', params)
+
+
+def BrowserTimeLineData(request):
+  """Returns a string formatted for consumption by a Google Viz table."""
+  test_set = None
+  category = request.GET.get('category', 'summary')
+
+  test_set = all_test_sets.GetTestSet(category)
+  if not test_set:
+    return http.HttpResponseBadRequest(
+        'No test set was found for category=%s' % category)
+
+  formatted_gviz_table_data = GetStats(request, test_set, 'gviz_timeline_data')
+  return http.HttpResponse(formatted_gviz_table_data)
 
 
 def BrowseResults(request):
@@ -972,8 +995,17 @@ def FormatStatsDataAsGvizTimeLine(params, tqx):
   Returns:
     A JSON string as content in a text/plain HttpResponse.
   """
+
+  # If specific versions are passed in, as opposed to * globbing.
+  if params['ua_by_param'].find('*') == -1:
+    families = list(set([x.split(' ', 1)[0]
+                    for x in params['ua_by_param'].split(',')]))
+  # i.e. Chrome* for all versions of Chrome.
+  else:
+    families = [x.split('*', 1)[0] for x in params['ua_by_param'].split(',')]
+  logging.info('FAMILIES: %s' % families)
+
   data = []
-  families = [x.split('*', 1)[0] for x in params['ua_by_param'].split(',')]
   description = [('date', 'date')]
   for family_index, family in enumerate(families):
     description.extend([
@@ -987,8 +1019,7 @@ def FormatStatsDataAsGvizTimeLine(params, tqx):
     ua_stats = params['stats'].get(user_agent, {})
     score = ua_stats.get('summary_score', None)
     total_runs = ua_stats.get('total_runs', 0)
-    min_total_runs = settings.BUILD == 'production' and 5 or 0
-    if score is not None and total_runs and total_runs > min_total_runs:
+    if score is not None and total_runs > 0:
       browser, version_string = user_agent.rsplit(' ', 1)
       date = user_agent_release_dates.ReleaseDate(browser, version_string)
       if date:
@@ -1008,6 +1039,11 @@ def FormatStatsDataAsGvizTimeLine(params, tqx):
               families[family_index], version_string)
           row[family_index * 3 + 2] = "%s score; %s tests" % (
               summary_display, total_runs)
+      # For UA* requests, we don't care if we don't have a release date.
+      elif params['ua_by_param'].find('*') == -1:
+        return http.HttpResponseBadRequest(
+            'We do not have a release date for %s %s' %
+            (browser, version_string))
   data = [[date] + row for date, row in sorted(date_data.items())]
   data_table = gviz_api.DataTable(description, data)
   return data_table.ToResponse(tqx=tqx)
