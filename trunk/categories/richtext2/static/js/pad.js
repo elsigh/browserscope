@@ -247,17 +247,17 @@ function initEditorDoc() {
   // on older browsers.
   try {
     editorElem = document.getElementById('editor');
-/*
+
     // version using IFRAME
     editorWin = editorElem.contentWindow;
     editorDoc = editorWin.document;
     contentEditableElem = editorDoc.body;
-*/
+/*
     // version using DIV
     editorWin = window;
     editorDoc = document;
     contentEditableElem = editorElem;
-
+*/
     win = editorWin;
     doc = editorDoc;
 

@@ -95,7 +95,6 @@ goog.require = function(rule) {
 };
 goog.basePath = "";
 goog.global.CLOSURE_BASE_PATH;
-goog.global.CLOSURE_NO_DEPS;
 goog.nullFunction = function() {
 };
 goog.identityFunction = function(var_args) {
@@ -195,9 +194,6 @@ if(!COMPILED) {
     }
   };
   goog.findBasePath_();
-  if(!goog.global.CLOSURE_NO_DEPS) {
-    goog.writeScriptTag_(goog.basePath + "deps.js")
-  }
 }
 goog.typeOf = function(value) {
   var s = typeof value;
