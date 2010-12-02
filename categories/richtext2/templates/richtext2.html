@@ -24,6 +24,7 @@
   <!-- new tests -->
   <script type="text/javascript">
     {% autoescape off %}
+
     var True = true;
     var False = false;
     var commonIDPrefix = '{{ commonIDPrefix }}';
@@ -43,8 +44,9 @@
       {% endfor %}
 
       // Remove testing IFrame once all tests have finished.
-      var e = document.getElementById('editor');
-      e.parentNode.removeChild(e);
+// Opera 10.63 doesn't like this for some reason.
+//      var e = document.getElementById('editor');
+//      e.parentNode.removeChild(e);
 
       fillResults();
       parent.sendScore(beacon, categoryTotals);
@@ -53,10 +55,10 @@
   </script>  
 </head> 
 
-<body onload="runTests();">
+<body>
   {% include "richtext2/templates/output.html" %}
   <hr>
-  <!--<iframe name="editor" id="editor" src="static/editable.html"></iframe>-->
-  <div id="editor" contenteditable="true"></div>
+  <iframe name="editor" id="editor" src="static/editable.html"></iframe>
+  <!--<div id="editor" contenteditable="true"></div>-->
 </body> 
-</html> 
+</html>

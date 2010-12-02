@@ -7,11 +7,16 @@
   <link rel="stylesheet" href="editable.css" type="text/css">
 
   <script> 
-    function load(){
+    function init(){
       window.document.designMode = "On";
     }
   </script> 
 </head> 
-<body contentEditable="true" onload="load()"> 
+<body contentEditable="true" onload="init()"> 
+  <!-- roundabout calling of the test suite to make IE9 happy -->
+  <script>
+    document.body.innerHTML='';
+    parent.runTests();
+  </script>
 </body> 
 </html>
