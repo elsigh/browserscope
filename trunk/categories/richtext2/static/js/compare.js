@@ -28,32 +28,6 @@ var RESULT_SEL   = 1;  // actual result matches expectation in HTML only
 var RESULT_EQUAL = 2;  // actual result matches expectation in both HTML and selection
 
 /**
- * Compare a test result to a single expectation string.
- *
- * FIXME: add support for optional elements/attributes.
- *
- * @param expected {String} the already canonicalized (with the exception of selection marks) expectation string
- * @param actual {String} the already canonicalized (with the exception of selection marks) actual result
- * @return {Integer} one of the RESULT_... return values
- * @see variables.js for return values
- */
-function compareHTMLTestResultToSingleHTMLExpectation(expected, actual) {
-  // If the test checks the selection, then the actual string must match the
-  // expectation exactly.
-  if (expected == actual) {
-    return RESULT_EQUAL;
-  }
-
-  // Remove selection markers and see if strings match then.
-  expected = expected.replace(/ [{}\|]>/g, '>');     // intra-tag
-  expected = expected.replace(/[\[\]\^{}\|]/g, '');  // outside tag
-  actual = actual.replace(/ [{}\|]>/g, '>');         // intra-tag
-  actual = actual.replace(/[\[\]\^{}\|]/g, '');      // outside tag
-
-  return (expected == actual) ? RESULT_SEL : RESULT_DIFF;
-}
-
-/**
  * Gets the test expectations as an array from the passed-in field.
  *
  * @param {Array|String} the test expectation(s) as string or array.
@@ -70,30 +44,54 @@ function getExpectationArray(expected) {
 }
 
 /**
- * Compare the current HTMLtest result to the expectation string(s).
+ * Compare a test result to a single expectation string.
  *
- * @param {String/Boolean} actual value
- * @param {String/Array} expectation(s)
- * @param {Object} flags to use for canonicalization
+ * FIXME: add support for optional elements/attributes.
+ *
+ * @param expected {String} the already canonicalized (with the exception of selection marks) expectation string
+ * @param actual {String} the already canonicalized (with the exception of selection marks) actual result
  * @return {Integer} one of the RESULT_... return values
  * @see variables.js for return values
  */
-function compareHTMLTestResultWith(actual, expected, emitFlags) {
+function compareHTMLToSingleExpectation(expected, actual) {
+  // If the test checks the selection, then the actual string must match the
+  // expectation exactly.
+  if (expected == actual) {
+    return RESULT_EQUAL;
+  }
+
+  // Remove selection markers and see if strings match then.
+  expected = expected.replace(/ [{}\|]>/g, '>');     // intra-tag
+  expected = expected.replace(/[\[\]\^{}\|]/g, '');  // outside tag
+  actual = actual.replace(/ [{}\|]>/g, '>');         // intra-tag
+  actual = actual.replace(/[\[\]\^{}\|]/g, '');      // outside tag
+
+  return (expected == actual) ? RESULT_SEL : RESULT_DIFF;
+}
+
+/**
+ * Compare the current HTMLtest result to the expectation string(s).
+ *
+ * @param actual {String/Boolean} actual value
+ * @param expected {String/Array} expectation(s)
+ * @param emitFlags {Object} flags to use for canonicalization
+ * @return {Integer} one of the RESULT_... return values
+ * @see variables.js for return values
+ */
+function compareHTMLToExpectation(actual, expected, emitFlags) {
   // Find the most favorable result among the possible expectation strings.
-  var expectedArr  = getExpectationArray(expected);
+  var expectedArr = getExpectationArray(expected);
   var count = expectedArr.length;
   var best = RESULT_DIFF;
-  for (var idx = 0; idx < count; ++idx) {
-    var expected = canonicalizeSpaces(expectedArr[idx]);
+
+  for (var idx = 0; idx < count && best < RESULT_EQUAL; ++idx) {
+    var expected = expectedArr[idx];
+    expected = canonicalizeSpaces(expected);
     expected = canonicalizeElementsAndAttributes(expected, emitFlags);
-    var result = compareHTMLTestResultToSingleHTMLExpectation(expected, actual);
-    if (result == RESULT_EQUAL) {
-      // Shortcut: it doesn't get any better.
-      return RESULT_EQUAL;
-    }
-    if (result > best) {
-      best = result;
-    }
+
+    var singleResult = compareHTMLToSingleExpectation(expected, actual);
+
+    best = Math.max(best, singleResult);
   }
   return best;
 }
@@ -102,158 +100,73 @@ function compareHTMLTestResultWith(actual, expected, emitFlags) {
  * Compare the current HTMLtest result to the expectation string(s).
  * Sets the global result variables.
  *
+ * @param suite {Object} the test suite as object reference
+ * @param test {Object} the test as object reference
+ * @param actual {String} the actual, canonicalized innerHTML with selection markers
+ * @return {Object} a pair with 'valresult' and 'selresult' fields.
  * @see variables.js for result values
  */
-function compareHTMLTestResult() {
-  var emitFlags = {emitAttrs:         getTestParameter(PARAM_CHECK_ATTRIBUTES),
-                   emitStyle:         getTestParameter(PARAM_CHECK_STYLE),
-                   emitClass:         getTestParameter(PARAM_CHECK_CLASS),
-                   emitID:            getTestParameter(PARAM_CHECK_ID),
-                   lowercase:         true,
-                   canonicalizeUnits: true};
+function compareHTMLTestResult(suite, test, actual) {
+  var emitFlags = {
+      emitAttrs:         getParameter(suite, test, PARAM_CHECK_ATTRIBUTES),
+      emitStyle:         getParameter(suite, test, PARAM_CHECK_STYLE),
+      emitClass:         getParameter(suite, test, PARAM_CHECK_CLASS),
+      emitID:            getParameter(suite, test, PARAM_CHECK_ID),
+      lowercase:         true,
+      canonicalizeUnits: true
+  };
   
-  var actual = currentActualHTML;
-  // Remove closing tags </hr>, </br> for comparison.
-  actual = actual.replace(/<\/[hb]r>/g, '');
-  // Remove text node markers for comparison.
-  actual = actual.replace(/[\x60\xb4]/g, '');
-  // Canonicalize result.
   actual = canonicalizeElementsAndAttributes(actual, emitFlags);
 
-  var expected = getTestParameter(PARAM_EXPECTED);
-  var bestExpected = compareHTMLTestResultWith(actual, expected, emitFlags);
+  var expected = getParameter(suite, test, PARAM_EXPECTED);
+  var bestExpected = compareHTMLToExpectation(actual, expected, emitFlags);
+
   if (bestExpected == RESULT_EQUAL) {
-    // Shortcut - it doesn't get any better 
-    currentResultHTML      = RESULTHTML_EQUAL;
-    currentResultSelection = RESULTSEL_EQUAL;
-    return;
+    // Shortcut - it doesn't get any better
+    return {valresult: VALRESULT_EQUAL, selresult: SELRESULT_EQUAL};
   }
-  var accepted = getTestParameter(PARAM_ACCEPT);
-  var bestAccepted = accepted ? compareHTMLTestResultWith(actual, accepted, emitFlags)
+
+  var accepted = getParameter(suite, test, PARAM_ACCEPT);
+  var bestAccepted = accepted ? compareHTMLToExpectation(actual, accepted, emitFlags)
                               : RESULT_DIFF;
+
   switch (bestExpected) {
     case RESULT_SEL:
       switch (bestAccepted) {
         case RESULT_EQUAL:
-          // Since the HTML was equal on the/an expected result,
-          // it has to be equal with the accepted result as well.
-          // Therefore, the difference can only lie in the selection.
-          currentResultHTML      = RESULTHTML_EQUAL;
-          currentResultSelection = RESULTSEL_ACCEPT;
-          break;
+          // The HTML was equal to the/an expected HTML result as well
+          // (just not the selection there), therefore the difference
+          // between expected and accepted can only lie in the selection.
+          return {valresult: VALRESULT_EQUAL, selresult: SELRESULT_ACCEPT};
 
         case RESULT_SEL:
-          // Since the HTML was equal on the/an expected result,
-          // it has to be equal with the accepted result as well.
-          // The selection however, matches neither.
-          currentResultHTML      = RESULTHTML_EQUAL;
-          currentResultSelection = RESULTSEL_DIFF;
-          break;
+          // The HTML matches both an expected and an accepted entry
+          // -> go with the better (i.e., expected).
+          // The selection, however, matches neither.
+          return {valresult: VALRESULT_EQUAL, selresult: SELRESULT_DIFF};
 
         case RESULT_DIFF:
-        default:
           // The acceptable expectations all have different HTML
           // -> stay with the original result.
-          currentResultHTML      = RESULTHTML_EQUAL;
-          currentResultSelection = RESULTSEL_DIFF;
-          break;
+          return {valresult: VALRESULT_EQUAL, selresult: SELRESULT_DIFF};
       }
       break;
 
     case RESULT_DIFF:
-    default:
       switch (bestAccepted) {
         case RESULT_EQUAL:
-          currentResultHTML      = RESULTHTML_ACCEPT;
-          currentResultSelection = RESULTSEL_EQUAL;
-          break;
+          return {valresult: VALRESULT_ACCEPT, selresult: SELRESULT_EQUAL};
 
         case RESULT_SEL:
-          currentResultHTML      = RESULTHTML_ACCEPT;
-          currentResultSelection = RESULTSEL_DIFF;
-          break;
+          return {valresult: VALRESULT_ACCEPT, selresult: SELRESULT_DIFF};
 
         default:
-          currentResultHTML      = RESULTHTML_DIFFS;
-          currentResultSelection = RESULTSEL_NA;
-          break;
+          return {valresult: VALRESULT_DIFFS, selresult: SELRESULT_NA};
       }
       break;
   }
-}
-
-/**
- * Compare a text test result to the expectation string(s).
- *
- * @param {String/Boolean} actual value
- * @param {String/Array} expectation(s)
- * @return {Boolean} whether we found a match
- */
-function compareTextTestResultWith(actual, expected) {
-  var expectedArr = getExpectationArray(expected);
-  // Find the most favorable result among the possible expectation strings.
-  var count = expectedArr.length;
-
-  // If the value matches the expectation exactly, then we're fine.  
-  for (var idx = 0; idx < count; ++idx) {
-    if (actual === expectedArr[idx])
-      return true;
-  }
   
-  // Otherwise see if we should canonicalize specific value types.
-  //
-  // We only need to look at font name, color and size units if the originating
-  // test was both a) queryCommandValue and b) querying a font name/color/size
-  // specific criterion.
-  //
-  // TODO(rolandsteiner): This is ugly! Refactor!
-  switch (getTestParameter(PARAM_QUERYCOMMANDVALUE)) {
-    case 'backcolor':
-    case 'forecolor':
-    case 'hilitecolor':
-      for (var idx = 0; idx < count; ++idx) {
-        if (new Color(actual).compare(new Color(expectedArr[idx])))
-          return true;
-      }
-      return false;
-    
-    case 'fontname':
-      for (var idx = 0; idx < count; ++idx) {
-        if (new FontName(actual).compare(new FontName(expectedArr[idx])))
-          return true;
-      }
-      return false;
-    
-    case 'fontsize':
-      for (var idx = 0; idx < count; ++idx) {
-        if (new FontSize(actual).compare(new FontSize(expectedArr[idx])))
-          return true;
-      }
-      return false;
-  }
-  
-  return false;
-}
-
-/**
- * Compare the passed-in text test result to the expectation string(s).
- * Sets the global result variables.
- *
- * @param {String/Boolean} actual value
- * @see variables.js for result values
- */
-function compareTextTestResult(actual) {
-  var expected = getTestParameter(PARAM_EXPECTED);
-  if (compareTextTestResultWith(actual, expected)) {
-    currentResultHTML = RESULTHTML_EQUAL;
-    return;
-  }
-  var accepted = getTestParameter(PARAM_ACCEPT);
-  if (accepted && compareTextTestResultWith(actual, accepted)) {
-    currentResultHTML = RESULTHTML_ACCEPT;
-    return;
-  }
-  currentResultHTML = RESULTHTML_DIFFS;
+  throw INTERNAL_ERR + HTML_COMPARISON;
 }
 
 /**
@@ -309,25 +222,33 @@ function insertSelectionIndicator(node, offs, textInd, elemInd) {
 
 /**
  * Retrieve the result of a test run and do some preliminary canonicalization.
+ *
+ * @param container {Object} the container where to retrieve the result from as object reference
+ * @param result {Object} object reference that contains the result data
+ * @return {String} a preliminarily canonicalized innerHTML with selection markers
  */
-function prepareTestResult() {
+function prepareHTMLTestResult(container, result) {
   // 1.) insert selection markers
-  var selRange = createFromWindow(editorWin);
+  var selRange = createFromWindow(container.win);
   if (selRange) {
     // save values, since range object gets auto-modified
     var node1 = selRange.getAnchorNode();
     var offs1 = selRange.getAnchorOffset();
     var node2 = selRange.getFocusNode();
     var offs2 = selRange.getFocusOffset();
+/*
     // do some sanity checking
-    if (node1 != contentEditableElem && !goog.dom.contains(contentEditableElem, node1)) {
+    if (node1 != container.editor && !goog.dom.contains(container.editor, node1)) {
       node1 = null;
       offs1 = 0;
+      result.selresult = SELRESULT_CANARY;
     }
-    if (node2 != contentEditableElem && !goog.dom.contains(contentEditableElem, node2)) {
+    if (node2 != container.editor && !goog.dom.contains(container.editor, node2)) {
       node2 = null;
       offs2 = 0;
+      result.selresult = SELRESULT_CANARY;
     }
+*/
     // add markers
     if (node1 && node1 == node2 && offs1 == offs2) {
       // collapsed selection
@@ -350,13 +271,147 @@ function prepareTestResult() {
   }
 
   // 2.) insert markers for text node boundaries;
-  encloseTextNodesWithQuotes(contentEditableElem);
+  encloseTextNodesWithQuotes(container.editor);
   
-  // 3.) retrieve innerHTML, canonicalize spacing
-  currentActualHTML = canonicalizeSpaces(contentEditableElem.innerHTML);
-
-  // 4a.) remove comment start and end comment tags, retain only {, } and |
-  currentActualHTML = currentActualHTML.replace(/ ?<!-- ?/g, '');
-  currentActualHTML = currentActualHTML.replace(/ ?--> ?/g, '');
+  // 3.) retrieve innerHTML, canonicalize spacing,
+  result.actual = container.editor.innerHTML;
+  result.actual = canonicalizeSpaces(result.actual);
+  // Remove comment start and end comment tags, retain only {, } and |
+  result.actual = result.actual.replace(/ ?<!-- ?/g, '');
+  result.actual = result.actual.replace(/ ?--> ?/g, '');
+  // Remove closing tags </hr>, </br> for later comparison.
+  result.actual = result.actual.replace(/<\/[bh]r>/g, '');
+  
+  if (container.canary) {
+    result.outer = container.body.innerHTML;
+    result.outer = canonicalizeSpaces(result.outer);
+    // Remove comment start and end comment tags, retain only {, } and |
+    result.outer = result.outer.replace(/ ?<!-- ?/g, '');
+    result.outer = result.outer.replace(/ ?--> ?/g, '');
+    // Remove closing tags </hr>, </br> for later comparison.
+    result.outer = result.outer.replace(/<\/[bh]r>/g, '');
+  }
 }
 
+/**
+ * Compare a text test result to the expectation string(s).
+ *
+ * @param suite {Object} the test suite as object reference
+ * @param test {Object} the test as object reference
+ * @param actual {String/Boolean} actual value
+ * @param expected {String/Array} expectation(s)
+ * @return {Boolean} whether we found a match
+ */
+function compareTextTestResultWith(suite, test, actual, expected) {
+  var expectedArr = getExpectationArray(expected);
+  // Find the most favorable result among the possible expectation strings.
+  var count = expectedArr.length;
+
+  // If the value matches the expectation exactly, then we're fine.  
+  for (var idx = 0; idx < count; ++idx) {
+    if (actual === expectedArr[idx])
+      return true;
+  }
+  
+  // Otherwise see if we should canonicalize specific value types.
+  //
+  // We only need to look at font name, color and size units if the originating
+  // test was both a) queryCommandValue and b) querying a font name/color/size
+  // specific criterion.
+  //
+  // TODO(rolandsteiner): This is ugly! Refactor!
+  switch (getParameter(suite, test, PARAM_QUERYCOMMANDVALUE)) {
+    case 'backcolor':
+    case 'forecolor':
+    case 'hilitecolor':
+      for (var idx = 0; idx < count; ++idx) {
+        if (new Color(actual).compare(new Color(expectedArr[idx])))
+          return true;
+      }
+      return false;
+    
+    case 'fontname':
+      for (var idx = 0; idx < count; ++idx) {
+        if (new FontName(actual).compare(new FontName(expectedArr[idx])))
+          return true;
+      }
+      return false;
+    
+    case 'fontsize':
+      for (var idx = 0; idx < count; ++idx) {
+        if (new FontSize(actual).compare(new FontSize(expectedArr[idx])))
+          return true;
+      }
+      return false;
+  }
+  
+  return false;
+}
+
+/**
+ * Compare the passed-in text test result to the expectation string(s).
+ * Sets the global result variables.
+ *
+ * @param suite {Object} the test suite as object reference
+ * @param test {Object} the test as object reference
+ * @param actual {String/Boolean} actual value
+ * @return {Integer} a RESUTLHTML... result value
+ * @see variables.js for result values
+ */
+function compareTextTestResult(suite, test, actual) {
+  var expected = getParameter(suite, test, PARAM_EXPECTED);
+  if (compareTextTestResultWith(suite, test, actual, expected)) {
+    return VALRESULT_EQUAL;
+  }
+  var accepted = getParameter(suite, test, PARAM_ACCEPT);
+  if (accepted && compareTextTestResultWith(suite, test, actual, accepted)) {
+    return VALRESULT_ACCEPT;
+  }
+  return VALRESULT_DIFFS;
+}
+
+/**
+ * Verify that the canaries are unviolated.
+ *
+ * @param str {String} innerHTML of the body, including the canaries
+ * @param container {Object} the test container descriptor as object reference
+ * @param result {Object} object reference that contains the result data
+ * @return {Boolean} whether the canaries are OK
+ */
+function verifyCanaries(str, container, result) {
+  if (!container.canary) {
+    return;
+  }
+
+  str = canonicalizeElementsAndAttributes(str, emitFlagsForCanary);
+
+  var lengthBefore = container.canary.length + container.tagOpen.length;
+  var lengthAfter = container.tagClose.length + container.canary.length;
+
+  if (str.length < lengthBefore + lengthAfter) {
+    result.valresult = VALRESULT_CANARY;
+    result.selresult = SELRESULT_NA;
+    return;
+  }
+
+  var strBefore = str.substr(0, lengthBefore);
+  var strAfter = str.substr(str.length - lengthAfter);
+
+  // Verify that the canary stretch doesn't contain any selection markers
+  if (SELECTION_MARKERS.test(strBefore) || SELECTION_MARKERS.test(strAfter)) {
+    str = str.replace(SELECTION_MARKERS, '');
+    if (str.length < lengthBefore + lengthAfter) {
+      result.valresult = VALRESULT_CANARY;
+      result.selresult = SELRESULT_NA;
+      return;
+    }
+    result.selresult = SELRESULT_CANARY;
+    strBefore = str.substr(0, lengthBefore);
+    strAfter = str.substr(str.length - lengthAfter);
+  }
+
+  if (strBefore !== container.canary + container.tagOpen ||
+      strAfter !== container.tagClose + container.canary) {
+    result.valresult = VALRESULT_CANARY;
+  }
+}

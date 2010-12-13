@@ -6,17 +6,13 @@
 
   <link rel="stylesheet" href="editable.css" type="text/css">
 
-  <script> 
-    function init(){
-      window.document.designMode = "On";
-    }
-  </script> 
-</head> 
-<body contentEditable="true" onload="init()"> 
-  <!-- roundabout calling of the test suite to make IE9 happy -->
   <script>
-    document.body.innerHTML='';
-    parent.runTests();
+    function flagDMReady() {
+      window.document.designMode = "On";
+      parent.loaded_dM = true;
+    }
   </script>
+</head> 
+<body onload="flagDMReady()"> 
 </body> 
 </html>

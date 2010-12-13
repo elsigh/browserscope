@@ -33,32 +33,79 @@
     {% endfor %} 
     
     /**
-     * Runs all tests in all suites.
+     * Stuff to do after all tests are run:
+     *   - write a nice "DONE!" at the end of the progress meter
+     *   - beacon the results
+     *   - remove the testing <iframe>s
      */
-    function runTests() {
-      initEditorDoc();
-
-      // The test suites to be run.
-      {% for s in suites %}
-      runTestSuite({{ s.id }}_TESTS);
-      {% endfor %}
-
-      // Remove testing IFrame once all tests have finished.
-// Opera 10.63 doesn't like this for some reason.
-//      var e = document.getElementById('editor');
-//      e.parentNode.removeChild(e);
+    function finish() {
+      var span = document.getElementById('done');
+      if (span)
+        span.innerHTML = ' ... DONE!';
 
       fillResults();
       parent.sendScore(beacon, categoryTotals);
+
+      cleanUp();
+    }
+
+{% for s in suites %}
+  {% if not forloop.first %}
+      setTimeout("runSuite{{ s.id }}()", 100);
+    }
+  {% endif %}
+
+    function runSuite{{ s.id }}() {
+      runAndOutputTestSuite({{ s.id }}_TESTS);
+{% endfor %}
+      finish();
+    }
+    
+    /**
+     * Runs all tests in all suites.
+     */
+    function doRunTests() {
+      initVariables();
+      initEditorDocs();
+
+      // Start with the first test suite
+      runSuite{{ suites.0.id }}();
+    }
+
+    var loaded_dM = false;
+    var loaded_body = false;
+    var loaded_div = false;
+    
+    /**
+     * Waits for all documents to be loaded before proceeding.
+     */
+    function waitForLoad() {
+      if (loaded_dM && loaded_body && loaded_div)
+        doRunTests();
+      else
+        setTimeout("waitForLoad()", 100);
+    }
+
+    /**
+     * Removes the <iframe>s after all tests are finished
+     */
+    function cleanUp() {
+      var e = document.getElementById('iframe-dM');
+      e.parentNode.removeChild(e);
+      e = document.getElementById('iframe-body');
+      e.parentNode.removeChild(e);
+      e = document.getElementById('iframe-div');
+      e.parentNode.removeChild(e);
     }
     {% endautoescape %}
   </script>  
 </head> 
 
-<body>
+<body onload="waitForLoad()">
   {% include "richtext2/templates/output.html" %}
   <hr>
-  <iframe name="editor" id="editor" src="static/editable.html"></iframe>
-  <!--<div id="editor" contenteditable="true"></div>-->
+  <iframe name="iframe-dM" id="iframe-dM" src="static/editable-dM.html"></iframe>
+  <iframe name="iframe-body" id="iframe-body" src="static/editable-body.html"></iframe>
+  <iframe name="iframe-div" id="iframe-div" src="static/editable-div.html"></iframe>
 </body> 
 </html>

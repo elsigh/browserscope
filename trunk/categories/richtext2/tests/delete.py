@@ -273,10 +273,10 @@ DELETE_TESTS = {
                       '<table><tbody><tr><td>A</td><td rowspan="2">R</td></tr><tr><td>B^</td></tr></tbody></table>'] },
 
     # nested non-editable
-    { 'id':          '',
-      'desc':        'Delete with selection including contentEditable="false"',
-      'pad':         '',
-      'expected':    '' },
+#    { 'id':          '',
+#      'desc':        'Delete with selection including contentEditable="false"',
+#      'pad':         '',
+#      'expected':    '' }
   ]
 }
 
