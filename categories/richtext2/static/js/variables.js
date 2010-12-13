@@ -22,37 +22,71 @@
 
 // Constant for indicating a test setup is unsupported or incorrect
 // (threw exception).
-var SETUP_BAD_SELECTION_SPEC  = 'BAD SELECTION SPECIFICATION IN TEST OR EXPECTATION STRING';
-var SETUP_HTML_EXCEPTION      = 'EXCEPTION WHEN SETTING TEST HTML';
-var SETUP_SELECTION_EXCEPTION = 'EXCEPTION WHEN SETTING SELECTION';
-var SETUP_NOCOMMAND_EXCEPTION = 'NO COMMAND, GENERAL FUNCTION OR QUERY FUNCTION GIVEN';
+var INTERNAL_ERR           = 'INTERNAL ERROR: ';
+var SETUP_EXCEPTION        = 'SETUP EXCEPTION: ';
+var EXECUTION_EXCEPTION    = 'EXECUTION EXCEPTION: ';
+var VERIFICATION_EXCEPTION = 'VERIFICATION EXCEPTION: ';
 
-// Constants for indicating a test action is unsupported (threw exception).
-var UNSUPPORTED_COMMAND_EXCEPTION = 'UNSUPPORTED COMMAND';
-var EXECUTION_EXCEPTION           = 'EXCEPTION';
-var VERIFICATION_EXCEPTION        = 'EXCEPTION DURING TEST VERIFICATION';
-
-// Constants for indicating an exception in score handling.
-var SCORE_EXCEPTION = 'EXCEPTION WHEN WRITING TEST SCORES';
+var SETUP_CONTAINER          = 'WHEN INITIALIZING TEST CONTAINER';
+var SETUP_BAD_SELECTION_SPEC = 'BAD SELECTION SPECIFICATION IN TEST OR EXPECTATION STRING';
+var SETUP_HTML               = 'WHEN SETTING TEST HTML';
+var SETUP_SELECTION          = 'WHEN SETTING SELECTION';
+var SETUP_NOCOMMAND          = 'NO COMMAND, GENERAL FUNCTION OR QUERY FUNCTION GIVEN';
+var HTML_COMPARISON          = 'WHEN COMPARING OUTPUT HTML';
 
 // Exceptiona to be thrown on unsupported selection operations
 var SELMODIFY_UNSUPPORTED      = 'UNSUPPORTED selection.modify()';
 var SELALLCHILDREN_UNSUPPORTED = 'UNSUPPORTED selection.selectAllChildren()';
 
+// Output string for unsupported functions
+// (returning bool 'false' as opposed to throwing an exception)
+var UNSUPPORTED = '<i>false</i> (UNSUPPORTED)';
+
 // HTML comparison result contants.
-var RESULTHTML_SETUP_EXCEPTION        = 0;
-var RESULTHTML_EXECUTION_EXCEPTION    = 1;
-var RESULTHTML_VERIFICATION_EXCEPTION = 2;
-var RESULTHTML_UNSUPPORTED            = 3;
-var RESULTHTML_DIFFS                  = 4;
-var RESULTHTML_ACCEPT                 = 6;  // HTML technically correct, but not ideal.
-var RESULTHTML_EQUAL                  = 7;
+var VALRESULT_NOT_RUN                = 0;  // test hasn't been run yet
+var VALRESULT_SETUP_EXCEPTION        = 1;
+var VALRESULT_EXECUTION_EXCEPTION    = 2;
+var VALRESULT_VERIFICATION_EXCEPTION = 3;
+var VALRESULT_UNSUPPORTED            = 4;
+var VALRESULT_CANARY                 = 5;  // HTML changes bled into the canary.
+var VALRESULT_DIFFS                  = 6;
+var VALRESULT_ACCEPT                 = 7;  // HTML technically correct, but not ideal.
+var VALRESULT_EQUAL                  = 8;
+
+var VALOUTPUT = [  // IMPORTANT: this array MUST be coordinated with the values above!!
+    {css: 'grey',        output: '???',    title: 'The test has not been run yet.'},                                            // VALRESULT_NOT_RUN                    
+    {css: 'exception',   output: 'EXC.',   title: 'Exception was thrown during setup.'},                                        // VALRESULT_SETUP_EXCEPTION       
+    {css: 'exception',   output: 'EXC.',   title: 'Exception was thrown during execution.'},                                    // VALRESULT_EXECUTION_EXCEPTION   
+    {css: 'exception',   output: 'EXC.',   title: 'Exception was thrown during result verification.'},                          // VALRESULT_VERIFICATION_EXCEPTION
+    {css: 'unsupported', output: 'UNS.',   title: 'Unsupported command or value'},                                              // VALRESULT_UNSUPPORTED           
+    {css: 'canary',      output: 'CANARY', title: 'The command affected the contentEditable root element, or outside HTML.'},   // VALRESULT_CANARY                
+    {css: 'fail',        output: 'FAIL',   title: 'The result differs from the expectation(s).'},                               // VALRESULT_DIFFS                 
+    {css: 'accept',      output: 'ACC.',   title: 'The result is technically correct, but sub-optimal.'},                       // VALRESULT_ACCEPT                
+    {css: 'pass',        output: 'PASS',   title: 'The test result matches the expectation.'}                                   // VALRESULT_EQUAL                 
+]
 
 // Selection comparison result contants.
-var RESULTSEL_DIFF   = 0;
-var RESULTSEL_NA     = 1;
-var RESULTSEL_ACCEPT = 2;  // Selection is acceptable, but not ideal.
-var RESULTSEL_EQUAL  = 3;
+var SELRESULT_NOT_RUN = 0;  // test hasn't been run yet
+var SELRESULT_CANARY  = 1;  // selection escapes the contentEditable element
+var SELRESULT_DIFF    = 2;
+var SELRESULT_NA      = 3;
+var SELRESULT_ACCEPT  = 4;  // Selection is acceptable, but not ideal.
+var SELRESULT_EQUAL   = 5;
+
+var SELOUTPUT = [  // IMPORTANT: this array MUST be coordinated with the values above!!
+    {css: 'grey',   output: 'grey',   title: 'The test has not been run yet.'},                           // SELRESULT_NOT_RUN
+    {css: 'canary', output: 'CANARY', title: 'The selection escaped the contentEditable boundary!'},      // SELRESULT_CANARY
+    {css: 'fail',   output: 'FAIL',   title: 'The selection differs from the expectation(s).'},           // SELRESULT_DIFF   
+    {css: 'na',     output: 'N/A',    title: 'The correctness of the selection could not be verified.'},  // SELRESULT_NA     
+    {css: 'accept', output: 'ACC.',   title: 'The selection is technically correct, but sub-optimal.'},   // SELRESULT_ACCEPT 
+    {css: 'pass',   output: 'PASS',   title: 'The selection matches the expectation.'}                    // SELRESULT_EQUAL  
+];
+
+// What to use for the canary
+var CANARY = 'CAN<br>ARY';
+
+// RegExp for selection markers
+var SELECTION_MARKERS = /[\[\]\{\}\|\^]/;
 
 // Special attributes used to mark selections within elements that otherwise
 // have no children. Important: attribute name MUST be lower case!
@@ -67,7 +101,7 @@ var DOM_NODE_TYPE_COMMENT = 8;
 // Test parameter names
 var PARAM_DESCRIPTION           = 'desc';
 var PARAM_PAD                   = 'pad';
-var PARAM_COMMAND               = 'command';
+var PARAM_EXECCOMMAND           = 'command';
 var PARAM_FUNCTION              = 'function';
 var PARAM_QUERYCOMMANDSUPPORTED = 'qcsupported';
 var PARAM_QUERYCOMMANDENABLED   = 'qcenabled';
@@ -82,59 +116,68 @@ var PARAM_CHECK_STYLE           = 'checkStyle';
 var PARAM_CHECK_CLASS           = 'checkClass';
 var PARAM_CHECK_ID              = 'checkID';
 var PARAM_STYLE_WITH_CSS        = 'styleWithCSS';
-var PARAM_ALLOW_EXCEPTION       = 'allowException';
 
 // ID suffixes for the output columns
-var IDOUT_COMMAND    = '_:cmd';
-var IDOUT_VALUE      = '_:val';
-var IDOUT_CHECKATTRS = '_:att';
-var IDOUT_CHECKSTYLE = '_:sty';
-var IDOUT_STATUSHTML = '_:htm';
-var IDOUT_STATUSSEL  = '_:sel';
-var IDOUT_PAD        = '_:pad';
-var IDOUT_EXPECTED   = '_:exp';
-var IDOUT_ACTUAL     = '_:act';
+var IDOUT_TR         = '_:TR:';   // per container
+var IDOUT_TESTID     = '_:tid';   // per test
+var IDOUT_COMMAND    = '_:cmd';   // per test
+var IDOUT_VALUE      = '_:val';   // per test
+var IDOUT_CHECKATTRS = '_:att';   // per test
+var IDOUT_CHECKSTYLE = '_:sty';   // per test
+var IDOUT_STATUSVAL  = '_:sta:';  // per container
+var IDOUT_STATUSSEL  = '_:sel:';  // per container
+var IDOUT_PAD        = '_:pad';   // per test
+var IDOUT_EXPECTED   = '_:exp';   // per test
+var IDOUT_ACTUAL     = '_:act:';  // per container
 
 // Output strings to use for yes/no/NA
 var OUTSTR_YES = '&#x25CF;'; 
 var OUTSTR_NO  = '&#x25CB;'; 
 var OUTSTR_NA  = '-'; 
 
-// DOM elements used for the tests.
-var editorElem = null;
-var editorWin  = null;
-var editorDoc  = null;
-var contentEditableElem = null;
+// Containers for tests, and their associated DOM elements:
+// iframe, win, doc, body, elem
+var containers = {};
+var containerIDs = ['dM', 'body', 'div'];
+var containerCount = containerIDs.length;
 
 // Helper variables to use in test functions
-var win = null;  // window object to use for test functions
-var doc = null;  // document object to use for test functions
-var sel = null;  // The current selection after the pad is set up
+var win = null;     // window object to use for test functions
+var doc = null;     // document object to use for test functions
+var body = null;    // The <body> element of the current document
+var editor = null;  // The contentEditable element (i.e., the <body> or <div>)
+var sel = null;     // The current selection after the pad is set up
 
-// Variables holding the current suite and test for simplicity.
-var currentSuite           = null;  // object specifiying the current test suite
-var currentSuiteID         = '';    // ID of the current suite
-var currentSuiteScoreID    = '';    // ID of the element showing the final score for the suite
-var currentSuiteSelScoreID = '';    // ID of the element showing the final selection score for the suite
-var currentClass           = null;  // sub-object of currentSuite, specifying the current class
-var currentClassID         = '';    // ID string of the current class - one of testClasses, below
-var currentClassScoreID    = '';    // ID of the element showing the final scores for the class
-var currentClassSelScoreID = '';    // ID of the element showing the final selection scores for the class
-var currentTest            = null;  // sub-object of currentClass, specifying the current test
-var currentTestID          = '';    // ID of the current test
-var currentActualHTML      = '';    // HTML string after executing the/all command(s)
-var currentResultHTML      = 0;     // Result value (integer) for the actual HTML - see RESULTHTML_... above
-var currentResultSelection = 0;     // Result value (integer) for the selection - see RESULTSEL_... above
-var currentOutputTable     = null;  // HTML table for the current suite + class
-var currentBackgroundShade = 'Hi';  // to facilitate alternating table row shading
+// Canonicalization emit flags for various purposes
+var emitFlagsForCanary = { 
+    emitAttrs:         true,
+    emitStyle:         true,
+    emitClass:         true,
+    emitID:            true,
+    lowercase:         true,
+    canonicalizeUnits: true
+};
+var emitFlagsForOutput = { 
+    emitAttrs:         true,
+    emitStyle:         true,
+    emitClass:         true,
+    emitID:            true,
+    lowercase:         false,
+    canonicalizeUnits: false
+};
+
+// Shades of output colors
+var colorShades = ['Lo', 'Hi'];
 
 // Classes of tests
 var testClassIDs = ['Finalized', 'RFC', 'Proposed'];
+var testClassCount = testClassIDs.length;
 
-// Dictionaries storing the numeric results.
-var counts          = {};
-var scoresHTML      = {};
-var scoresSelection = {};
+// Dictionary storing the detailed test results.
+var results = {
+    count: 0,
+    score: 0
+};
 
 // Results - populated by the fillResults() function.
 var categoryResults = [];

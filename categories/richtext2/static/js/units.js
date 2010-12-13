@@ -356,6 +356,8 @@ function FontSize(value) {
         this.size = '6';
         return true;
       case 'xxx-large':
+        this.size = '7';
+        return true;
       case '-webkit-xxx-large':
         this.size = '7';
         return true;

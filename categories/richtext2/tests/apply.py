@@ -132,9 +132,9 @@ APPLY_TESTS = {
       'rte1-id':    'a-createlink-0',
       'desc':       'create a link around the selection',
       'command':    'createlink',
-      'value':      '#CL-url:TEXT-1_SI',
+      'value':      '#foo',
       'pad':        'foo[bar]baz',
-      'expected':   'foo<a href="#CL-url:TEXT-1_SI">[bar]</a>baz' },
+      'expected':   'foo<a href="#foo">[bar]</a>baz' },
 
     # formatBlock
     { 'id':         'FB:H1_TEXT-1_SI',

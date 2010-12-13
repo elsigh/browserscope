@@ -296,7 +296,7 @@ function canonicalizeElementTag(str, emitFlags) {
         continue;
     }
 
-    if (emitFlags.emitAttrs) {
+    if (emitFlags.emitAttrs || attrName == "contenteditable") {
       attrValue = canonicalizeEntities(attrValue);
       attrValue = canonicalizeSingleAttribute(elemName, attrName, attrValue, emitFlags);
       if (attrName && attrValue != null) {
@@ -374,11 +374,36 @@ function canonicalizeSpaces(str) {
   // Collapse sequential whitespace.
   str = str.replace(/\s+/g, ' ');
 
-  // Remove spaces before and after angle brackets <, >, </ and />.
+  // Remove spaces immediately inside angle brackets <, >, </ and />.
   // While doing this also canonicalize <.../> to <...>.
-  str = str.replace(/ ?\< ?/g, '<');
-  str = str.replace(/ ?\<\/ ?/g, '</');
-  str = str.replace(/ ?\/?\> ?/g, '>');
+  str = str.replace(/\< ?/g, '<');
+  str = str.replace(/\<\/ ?/g, '</');
+  str = str.replace(/ ?\/?\>/g, '>');
   
+  return str;
+}
+
+/**
+ * Canonicalize a HTML string for comparison.
+ *
+ * @param suite {Object} the test suite as object reference
+ * @param test {Object} the test as object reference
+ * @param str {String} the HTML string to canonicalize
+ * @return {String} the canonicalized string
+ */
+function canonicalizeHTMLForComparison(suite, test, str) {
+  var emitFlags = {
+      emitAttrs:         getParameter(suite, test, PARAM_CHECK_ATTRIBUTES),
+      emitStyle:         getParameter(suite, test, PARAM_CHECK_STYLE),
+      emitClass:         getParameter(suite, test, PARAM_CHECK_CLASS),
+      emitID:            getParameter(suite, test, PARAM_CHECK_ID),
+      lowercase:         true,
+      canonicalizeUnits: true
+  };
+
+  str = canonicalizeSpaces(str);
+  str = str.replace(/<\/[bh]r>/g, '');    // Remove closing tags </hr>, </br>.
+  str = str.replace(/[\x60\xb4]/g, '');   // Remove text node markers.
+  str = canonicalizeElementsAndAttributes(str, emitFlags);
   return str;
 }

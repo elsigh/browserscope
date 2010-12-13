@@ -23,19 +23,21 @@
 /**
  * Info function: returns true if the suite (mainly) tests the result HTML/Text.
  *
+ * @param suite {String} the test suite
  * @return {boolean} Whether the suite main focus is the output HTML/Text
  */
-function suiteChecksHTMLOrText() {
-  return currentSuiteID[0] != 'S';
+function suiteChecksHTMLOrText(suite) {
+  return suite.id[0] != 'S';
 }
 
 /**
  * Info function: returns true if the suite checks the result selection.
  *
+ * @param suite {String} the test suite
  * @return {boolean} Whether the suite checks the selection
  */
-function suiteChecksSelection() {
-  return currentSuiteID[0] != 'Q';
+function suiteChecksSelection(suite) {
+  return suite.id[0] != 'Q';
 }
 
 /**
@@ -53,259 +55,277 @@ function generateTestID(suiteID, testID) {
 /**
  * Helper function returning the effective value of a test parameter.
  *
- * @param {String} the test parameter to be checked
+ * @param suite {String} the test suite
+ * @param test {String} the test
+ * @param param {String} the test parameter to be checked
  * @return {Any} the effective value of the parameter (can be undefined)
  */
-function getTestParameter(param) {
-  return (currentTest[param] === undefined) ? currentSuite[param]
-                                            : currentTest[param];
+function getParameter(suite, test, param) {
+  var val = test[param];
+  return (val === undefined) ? suite[param] : val;
+}
+
+/**
+ * Initializes the global variables before any tests are run.
+ */
+function initVariables() {
+  results = {
+      count: 0,
+      valscore: 0,
+      selscore: 0
+  };
 }
 
 /**
  * Runs a single test - outputs and sets the result variables.
- * @see variables.js for result values
+ *
+ * @param suite {Object} suite that test originates in as object reference
+ * @param test {Object} test to be run as object reference
+ * @param container {Object} container descriptor as object reference
+ * @see variables.js for RESULT... values
  */
-function runSingleTest() {
-  currentResultHTML      = RESULTHTML_SETUP_EXCEPTION;
-  currentResultSelection = RESULTSEL_NA; 
+function runSingleTest(suite, test, container) {
+  var result = {
+    valscore: 0,
+    selscore: 0,
+    valresult: VALRESULT_NOT_RUN,
+    selresult: SELRESULT_NOT_RUN,
+    actual: ''
+  };
 
   // 1.) Populate the editor element with the initial test setup HTML.
   try {
-    initEditorElement();
+    initContainer(suite, test, container);
   } catch(ex) {
-    outputSingleTestResult('SETUP EXCEPTION: ' + ex.toString());
-    return;
+    result.valresult = VALRESULT_SETUP_EXCEPTION;
+    result.selresult = SELRESULT_NA;
+    result.actual = SETUP_EXCEPTION + ex.toString();
+    return result;
   }
 
   // 2.) Run the test command, general function or query function.
-  var cmd    = undefined;
-  var output = SETUP_NOCOMMAND_EXCEPTION;
+  var isHTMLTest = false;
 
   try {
-    if (cmd = getTestParameter(PARAM_COMMAND)) {
-      // Note: "getTestParameter(PARAM_VALUE) || null" doesn't work, since
+    var cmd = undefined;
+
+    if (cmd = getParameter(suite, test, PARAM_EXECCOMMAND)) {
+      isHTMLTest = true;
+      // Note: "getParameter(suite, test, PARAM_VALUE) || null" doesn't work, since
       // value might be the empty string - e.g., for 'insertText'!
-      var value = getTestParameter(PARAM_VALUE);
+      var value = getParameter(suite, test, PARAM_VALUE);
       if (value === undefined) {
         value = null;
       }
-      editorDoc.execCommand(cmd, false, value);
-    } else if (cmd = getTestParameter(PARAM_FUNCTION)) {
+      container.doc.execCommand(cmd, false, value);
+    } else if (cmd = getParameter(suite, test, PARAM_FUNCTION)) {
+      isHTMLTest = true;
       eval(cmd);
-    } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDSUPPORTED)) {
-      output = editorDoc.queryCommandSupported(cmd);
-    } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDENABLED)) {
-      output = editorDoc.queryCommandEnabled(cmd);
-    } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDINDETERM)) {
-      output = editorDoc.queryCommandIndeterm(cmd);
-    } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDSTATE)) {
-      output = editorDoc.queryCommandState(cmd);
-    } else if (cmd = getTestParameter(PARAM_QUERYCOMMANDVALUE)) {
-      output = editorDoc.queryCommandValue(cmd);
+    } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDSUPPORTED)) {
+      result.actual = container.doc.queryCommandSupported(cmd);
+    } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDENABLED)) {
+      result.actual = container.doc.queryCommandEnabled(cmd);
+    } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDINDETERM)) {
+      result.actual = container.doc.queryCommandIndeterm(cmd);
+    } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDSTATE)) {
+      result.actual = container.doc.queryCommandState(cmd);
+    } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDVALUE)) {
+      result.actual = container.doc.queryCommandValue(cmd);
+      if (result.actual === false) {
+        // A return value of boolean 'false' for queryCommandValue means 'not supported'.
+        result.valresult = VALRESULT_UNSUPPORTED;
+        result.selresult = SELRESULT_NA;
+        result.actual = UNSUPPORTED;
+        return result;
+      }
+    } else {
+      result.valresult = VALRESULT_SETUP_EXCEPTION;
+      result.selresult = SELRESULT_NA;
+      result.actual = SETUP_EXCEPTION + SETUP_NOCOMMAND;
+      return result;
     }
+  } catch (ex) {
+    result.valresult = VALRESULT_EXECUTION_EXCEPTION;
+    result.selresult = SELRESULT_NA;
+    result.actual = EXECUTION_EXCEPTION + ex.toString();
+    return result;
+  }
+  
+  // 3.) Get HTML in case of execCommand or function tests
+  try {
+    if (isHTMLTest) {
+      prepareHTMLTestResult(container, result);
+    }
+  } catch (ex) {
+    result.valresult = VALRESULT_VERIFICATION_EXCEPTION;
+    result.selresult = SELRESULT_NA;
+    result.actual = VERIFICATION_EXCEPTION + ex.toString();
+    return result;
+  }
 
-    // 3.) Verify test result
-    if (cmd) {
-      if (getTestParameter(PARAM_COMMAND) || getTestParameter(PARAM_FUNCTION)) {
-        try {
-          prepareTestResult();
-          compareHTMLTestResult();
-          output = canonicalizeElementsAndAttributes(currentActualHTML,
-                                                     { emitAttrs:         true,
-                                                       emitStyle:         true,
-                                                       emitClass:         true,
-                                                       emitID:            true,
-                                                       lowercase:         false,
-                                                       canonicalizeUnits: false });
-        } catch (ex) {
-          output = 'Verification exception: ' + ex.toString();
-          currentResultHTML = RESULTHTML_VERIFICATION_EXCEPTION;
-        }
-      } else {
-        if (output === false && getTestParameter(PARAM_QUERYCOMMANDVALUE)) {
-          // A return value of boolean 'false' for queryCommandValue means
-          // 'not supported'.
-          output = '<i>false</i> (UNSUPPORTED)';
-          currentResultHTML = RESULTHTML_UNSUPPORTED;
-        } else {
-          compareTextTestResult(output);
+  // 4.) Verify test result
+  try {
+    if (isHTMLTest) {
+      // Verify canaries (if any)
+      if (result.outer) {
+        verifyCanaries(result.outer, container, result);
+      }
+
+      // Compare result to expectations
+      // Remove text node markers for comparison for this purpose.
+      var actual = result.actual.replace(/[\x60\xb4]/g, '');
+      var cmp = compareHTMLTestResult(suite, test, actual);
+
+      // Set result values only if they haven't been set by the canary test.
+      if (result.valresult === VALRESULT_NOT_RUN) {
+        result.valresult = cmp.valresult;
+      }
+      if (result.selresult === SELRESULT_NOT_RUN) {
+        result.selresult = cmp.selresult;
+      }
+      result.valscore = (result.valresult === VALRESULT_EQUAL) ? 1 : 0;
+      result.selscore = (result.selresult === SELRESULT_EQUAL) ? 1 : 0;
+    } else {
+      result.valresult = compareTextTestResult(suite, test, result.actual);
+      result.selresult = SELRESULT_NA;
+      result.valscore = (result.valresult === VALRESULT_EQUAL) ? 1 : 0;
+    }
+  } catch (ex) {
+    result.valresult = VALRESULT_VERIFICATION_EXCEPTION;
+    result.selresult = SELRESULT_NA;
+    result.actual = VERIFICATION_EXCEPTION + ex.toString();
+    return result;
+  }
+  
+  return result;
+}
+
+/**
+ * Initializes the results dictionary for a given test suite.
+ * (for all classes -> tests -> containers)
+ *
+ * @param {Object} suite as object reference
+ */
+function initTestSuiteResults(suite) {
+  var suiteID = suite.id;
+
+  // Initialize results entries for this suite
+  results[suiteID] = {
+      count: 0,
+      valscore: 0,
+      selscore: 0,
+      time: 0
+  };
+  var totalTestCount = 0;
+  for (var clsIdx = 0; clsIdx < testClassCount; ++clsIdx) {
+    var clsID = testClassIDs[clsIdx];
+    var cls = suite[clsID];
+    if (!cls)
+      continue;
+
+    var testCount = cls.length;
+
+    results[suiteID][clsID] = {
+        count: testCount,
+        valscore: 0,
+        selscore: 0
+    };
+    totalTestCount += testCount;
+
+    for (var testIdx = 0; testIdx < testCount; ++testIdx) {
+      var test = cls[testIdx];
+      var testID = generateTestID(suiteID, test.id);
+      
+      results[suiteID][clsID ][testID] = {
+          valscore: 0,
+          selscore: 0,
+          valresult: VALRESULT_NOT_RUN,
+          selresult: SELRESULT_NOT_RUN
+      };
+      for (var cntIdx = 0; cntIdx < containerCount; ++cntIdx) {
+        var cntID = containerIDs[cntIdx];
+
+        results[suiteID][clsID][testID][cntID] = {
+          valscore: 0,
+          selscore: 0,
+          valresult: VALRESULT_NOT_RUN,
+          selresult: SELRESULT_NOT_RUN,
+          actual: ''
         }
       }
     }
-  } catch (ex) {
-    output = ex.toString()
-    if (getTestParameter(PARAM_ALLOW_EXCEPTION)) {
-      currentResultHTML      = RESULTHTML_EQUAL;
-      currentResultSelection = RESULTSEL_EQUAL;
-    } else {
-      currentResultHTML      = RESULTHTML_EXECUTION_EXCEPTION;
-      currentResultSelection = RESULTSEL_NA;
-    }
   }
-  
-  // 4.) Output the result
-  try {
-    outputSingleTestResult(output);
-  } catch (ex) {
-    // An exception shouldn't really happen here!
-    writeFatalError('Exception on output when running ' + currentClassID + ' tests of the suite "' +
-                    currentSuiteID + '" ("' + currentSuite.caption + '"): ' + ex.toString());
-  }
+  results[suiteID].count = totalTestCount;
 }
 
 /**
  * Runs a single test suite (such as DELETE tests or INSERT tests).
  *
- * @param {Object} suite as object reference
+ * @param suite {Object} suite as object reference
  */
 function runTestSuite(suite) {
-  currentSuite = suite;
-  currentSuiteID = suite.id;
-  currentSuiteScoreID = currentSuiteID + '-score';
-  currentSuiteSelScoreID = currentSuiteID + '-selscore';
+  var suiteID = suite.id;
+  var suiteStartTime = new Date().getTime();
 
-  try {
-    var classCount = testClassIDs.length;
+  initTestSuiteResults(suite);
 
-    // Reset count and score for this suite - set count to 0 for all (!) classes.
-    counts[currentSuiteID]          = {total: 0};
-    scoresHTML[currentSuiteID]      = {total: 0};
-    scoresSelection[currentSuiteID] = {total: 0};
-    for (var cls = 0; cls < classCount; ++cls) {
-      var testClassID = testClassIDs[cls];
-      counts[currentSuiteID][testClassID]          = {total: 0};
-      scoresHTML[currentSuiteID][testClassID]      = {total: 0};
-      scoresSelection[currentSuiteID][testClassID] = {total: 0};
-    }
-    
-    for (var cls = 0; cls < classCount; ++cls) {
-      currentClassID = testClassIDs[cls];
-      currentClassScoreID = currentSuiteID + '-' + currentClassID + '-score';
-      currentClassSelScoreID = currentSuiteID + '-' + currentClassID + '-selscore';
-
-      try {
-        currentClass = currentSuite[currentClassID];
-        if (!currentClass) {
-          continue;
-        }
-
-        currentBackgroundShade = 'Lo';
-        for (testIdx = 0; testIdx < currentClass.length; ++testIdx) {
-          currentBackgroundShade = (currentBackgroundShade == 'Lo') ? 'Hi' : 'Lo';
-          currentTest = currentClass[testIdx];
-          currentTestID = generateTestID(currentSuiteID, currentTest.id);
-          ++counts[currentSuiteID].total;
-          ++counts[currentSuiteID][currentClassID].total;
-
-          runSingleTest();
-
-          switch (currentResultHTML) {
-            case RESULTHTML_EQUAL:
-              scoresHTML[currentSuiteID][currentClassID][currentTestID] = 1;
-              break;
-
-            case RESULTHTML_ACCEPT:
-              scoresHTML[currentSuiteID][currentClassID][currentTestID] = 0;
-              break;
-
-            default:
-              scoresHTML[currentSuiteID][currentClassID][currentTestID] = 0;
-              currentResultSelection = RESULTSEL_NA;
-          }
-          switch (currentResultSelection) {
-            case RESULTSEL_EQUAL:
-              scoresSelection[currentSuiteID][currentClassID][currentTestID] = 1;
-              break;
-
-            default:
-              scoresSelection[currentSuiteID][currentClassID][currentTestID] = 0;
-          }
-          scoresHTML[currentSuiteID].total += scoresHTML[currentSuiteID][currentClassID][currentTestID]
-          scoresSelection[currentSuiteID].total += scoresSelection[currentSuiteID][currentClassID][currentTestID]
-          scoresHTML[currentSuiteID][currentClassID].total += scoresHTML[currentSuiteID][currentClassID][currentTestID];
-          scoresSelection[currentSuiteID][currentClassID].total += scoresSelection[currentSuiteID][currentClassID][currentTestID];
-          
-          resetEditorElement();
-        }
-
-        outputTestClassScores();
-      } catch (ex) {
-        // An exception shouldn't really happen here!
-        writeFatalError('Exception when running ' + currentClassID + ' tests of the suite "' +
-                        currentSuiteID + '" ("' + currentSuite.caption + '"): ' + ex.toString());
-      }
-    }
-
-    outputTestSuiteScores();
-    } catch (ex) {
-      // An exception shouldn't really happen here!
-      writeFatalError('Exception when running the suite "' + currentSuiteID +
-                      '" ("' + currentSuite.caption + '"): ' + ex.toString());
-  }
-}
-
-/**
- * Fills the beacon with the test results of a given suite
- *
- * @param suiteResults {Object} results for a single suite as object reference
- * @param suffix (String, optional} ID suffix 
- */
-function fillBeaconForSuite(suiteResults, suffix) {
-  if (!suiteResults) {
-    return;
-  }
-  if (!suffix) {
-    suffix = '';
-  }
-  for (var cls = 0; cls < testClassIDs.length; ++cls) {
-    var classID = testClassIDs[cls];
-    var classResults = suiteResults[classID];
-    if (!classResults) {
+  for (var clsIdx = 0; clsIdx < testClassCount; ++clsIdx) {
+    var clsID = testClassIDs[clsIdx];
+    var cls = suite[clsID];
+    if (!cls)
       continue;
-    }
-    for (testID in classResults) {
-      if (testID == 'total') {
-        continue;
-      }
-      beacon.push(testID + suffix + '=' + classResults[testID]);
+
+    var testCount = cls.length;
+
+    for (var testIdx = 0; testIdx < testCount; ++testIdx) {
+      var test = cls[testIdx];
+      var testID = generateTestID(suiteID, test.id);
+
+      var valscore = 1;
+      var selscore = 1;
+      var valresult = VALRESULT_EQUAL;
+      var selresult = SELRESULT_EQUAL;
+
+      for (var cntIdx = 0; cntIdx < containerCount; ++cntIdx) {
+        var cntID = containerIDs[cntIdx];
+        var container = containers[cntID];
+
+        var result = runSingleTest(suite, test, container);
+
+        results[suiteID][clsID][testID][cntID] = result;
+
+        valscore = Math.min(valscore, result.valscore);
+         selscore = Math.min(selscore, result.selscore);
+        valresult = Math.min(valresult, result.valresult);
+        selresult = Math.min(selresult, result.selresult);
+      }          
+
+      results[suiteID][clsID][testID].valscore = valscore;
+      results[suiteID][clsID][testID].selscore = selscore;
+      results[suiteID][clsID][testID].valresult = valresult;
+      results[suiteID][clsID][testID].selresult = selresult;
+
+      results[suiteID][clsID].valscore += valscore;
+      results[suiteID][clsID].selscore += selscore;
+      results[suiteID].valscore += valscore;
+      results[suiteID].selscore += selscore;
+      results.valscore += valscore;
+      results.selscore += selscore;
     }
   }
+
+  results[suiteID].time = new Date().getTime() - suiteStartTime;
 }
 
 /**
- * Fills the beacon with the results for individual tests.
+ * Runs a single test suite (such as DELETE tests or INSERT tests)
+ * and updates the output HTML.
+ *
+ * @param {Object} suite as object reference
  */
-function fillIndividualTestResults() { 
-  // selection suite
-  fillBeaconForSuite(scoresSelection['S']);
-  // DOM modifying suites
-  fillBeaconForSuite(scoresHTML['A']);
-  fillBeaconForSuite(scoresHTML['AC']);
-  fillBeaconForSuite(scoresHTML['C']);
-  fillBeaconForSuite(scoresHTML['CC']);
-  fillBeaconForSuite(scoresHTML['U']);
-  fillBeaconForSuite(scoresHTML['UC']);
-  fillBeaconForSuite(scoresHTML['D']);
-  fillBeaconForSuite(scoresHTML['FD']);
-  fillBeaconForSuite(scoresHTML['I']);
-  // selection results for DOM modifying suites
-  fillBeaconForSuite(scoresSelection['A'], '_SEL');
-  fillBeaconForSuite(scoresSelection['AC'], '_SEL');
-  fillBeaconForSuite(scoresSelection['C'], '_SEL');
-  fillBeaconForSuite(scoresSelection['CC'], '_SEL');
-  fillBeaconForSuite(scoresSelection['U'], '_SEL');
-  fillBeaconForSuite(scoresSelection['UC'], '_SEL');
-  fillBeaconForSuite(scoresSelection['D'], '_SEL');
-  fillBeaconForSuite(scoresSelection['FD'], '_SEL');
-  fillBeaconForSuite(scoresSelection['I'], '_SEL');
-  // query suites
-  fillBeaconForSuite(scoresHTML['Q']);
-  fillBeaconForSuite(scoresHTML['QE']);
-  fillBeaconForSuite(scoresHTML['QI']);
-  fillBeaconForSuite(scoresHTML['QS']);
-  fillBeaconForSuite(scoresHTML['QSC']);
-  fillBeaconForSuite(scoresHTML['QV']);
-  fillBeaconForSuite(scoresHTML['QVC']);
+function runAndOutputTestSuite(suite) {
+  runTestSuite(suite);
+  outputTestSuiteResults(suite);
 }
 
 /**
@@ -314,36 +334,35 @@ function fillIndividualTestResults() {
 function fillResults() {
   // Result totals of the individual categories
   categoryTotals = [
-    'selection='        + scoresSelection['S'].total,
-    'apply='            + scoresHTML['A'].total,
-    'applyCSS='         + scoresHTML['AC'].total,
-    'change='           + scoresHTML['C'].total,
-    'changeCSS='        + scoresHTML['CC'].total,
-    'unapply='          + scoresHTML['U'].total,
-    'unapplyCSS='       + scoresHTML['UC'].total,
-    'delete='           + scoresHTML['D'].total,
-    'forwarddelete='    + scoresHTML['FD'].total,
-    'insert='           + scoresHTML['I'].total,
-    'selectionResult='  + (scoresSelection['A'].total +
-                           scoresSelection['AC'].total +
-                           scoresSelection['C'].total +
-                           scoresSelection['CC'].total +
-                           scoresSelection['U'].total +
-                           scoresSelection['UC'].total +
-                           scoresSelection['D'].total +
-                           scoresSelection['FD'].total +
-                           scoresSelection['I'].total),
-    'querySupported='   + scoresHTML['Q'].total,
-    'queryEnabled='     + scoresHTML['QE'].total,
-    'queryIndeterm='    + scoresHTML['QI'].total,
-    'queryState='       + scoresHTML['QS'].total,
-    'queryStateCSS='    + scoresHTML['QSC'].total,
-    'queryValue='       + scoresHTML['QV'].total,
-    'queryValueCSS='    + scoresHTML['QVC'].total
+    'selection='        + results['S'].selscore,
+    'apply='            + results['A'].valscore,
+    'applyCSS='         + results['AC'].valscore,
+    'change='           + results['C'].valscore,
+    'changeCSS='        + results['CC'].valscore,
+    'unapply='          + results['U'].valscore,
+    'unapplyCSS='       + results['UC'].valscore,
+    'delete='           + results['D'].valscore,
+    'forwarddelete='    + results['FD'].valscore,
+    'insert='           + results['I'].valscore,
+    'selectionResult='  + (results['A'].selscore +
+                           results['AC'].selscore +
+                           results['C'].selscore +
+                           results['CC'].selscore +
+                           results['U'].selscore +
+                           results['UC'].selscore +
+                           results['D'].selscore +
+                           results['FD'].selscore +
+                           results['I'].selscore),
+    'querySupported='   + results['Q'].valscore,
+    'queryEnabled='     + results['QE'].valscore,
+    'queryIndeterm='    + results['QI'].valscore,
+    'queryState='       + results['QS'].valscore,
+    'queryStateCSS='    + results['QSC'].valscore,
+    'queryValue='       + results['QV'].valscore,
+    'queryValueCSS='    + results['QVC'].valscore
   ];
   
   // Beacon copies category results
   beacon = categoryTotals.slice(0);
-  // fillIndividualTestResults()
 }
 

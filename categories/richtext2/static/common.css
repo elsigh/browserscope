@@ -25,6 +25,9 @@ table.legend {
 .passBkLo {
   background-color: #d4ffc0;
 }
+.canaryBkLo {
+  background-color: #ffcccc;
+}
 .failBkLo {
   background-color: #ffcccc;
 }
@@ -40,6 +43,9 @@ table.legend {
 }
 .passBkHi {
   background-color: #e0ffdc;
+}
+.canaryBkHi {
+  background-color: #ffd8d8;
 }
 .failBkHi {
   background-color: #ffd8d8;
