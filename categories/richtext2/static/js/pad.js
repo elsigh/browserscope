@@ -145,104 +145,95 @@ function deriveSelectionPoint(root, marker) {
  * @param container {Object} container descriptor as object reference
  */
 function initContainer(suite, test, container) {
-  var pad = getParameter(suite, test, PARAM_PAD);
+  var pad = getTestParameter(suite, test, PARAM_PAD);
   pad = canonicalizeSpaces(pad);
   pad = convertSelectionIndicators(pad);
 
-  var selection = {
-    anchor: null,
-    focus:  null,
-    range:  null
-  };
+  if (container.editorID) {
+    container.body.innerHTML = container.canary + container.tagOpen + pad + container.tagClose + container.canary;
+    container.editor = container.doc.getElementById(container.editorID);
+  } else {
+    container.body.innerHTML = pad;
+    container.editor = container.body;
+  }
 
   win = container.win;
   doc = container.doc;
   body = container.body;
-
-  body.innerHTML = container.canary + container.tagOpen + pad + container.tagClose + container.canary;
-
-  editor = container.contentEditableID ? doc.getElementById(container.contentEditableID)
-                                       : body;
-  container.editor = editor;
+  editor = container.editor;
+  sel = null;
 
   if (!editor) {
     throw SETUP_CONTAINER;
   }
 
-  if (getParameter(suite, test, PARAM_STYLE_WITH_CSS)) {
+  if (getTestParameter(suite, test, PARAM_STYLE_WITH_CSS)) {
+    // Some browsers require a selection to go with their 'styleWithCSS'.
     try {
-      doc.execCommand('styleWithCSS', false, true);
+      container.win.getSelection().selectAllChildren(editor);
+    } catch (ex) {
+      // ignore exception if unsupported
+    }
+    try {
+      container.doc.execCommand('styleWithCSS', false, true);
     } catch (ex) {
       // ignore exception if unsupported
     }
   }
 
-  selection.anchor = deriveSelectionPoint(editor, '[');
-  selection.focus = deriveSelectionPoint(editor, ']');
-  selection.range = null;
+  var selAnchor = deriveSelectionPoint(editor, '[');
+  var selFocus  = deriveSelectionPoint(editor, ']');
 
   // sanity check
-  if (!selection.anchor || !selection.focus) {
+  if (!selAnchor || !selFocus) {
     throw SETUP_SELECTION;
   }
 
-  if (!selection.anchor.node || !selection.focus.node) {
-    if (selection.anchor.node || selection.focus.node) {
+  if (!selAnchor.node || !selFocus.node) {
+    if (selAnchor.node || selFocus.node) {
       // Broken test: only one selection point was specified
       throw SETUP_BAD_SELECTION_SPEC;
     }
+    sel = null;
     return;
   }
 
-  if (selection.anchor.node === selection.focus.node) {
-    if (selection.anchor.offs > selection.focus.offs) {
+  if (selAnchor.node === selFocus.node) {
+    if (selAnchor.offs > selFocus.offs) {
       // Both selection points are within the same node, the selection was
       // specified inline (thus the end indicator element or character was
       // removed), and the end point is before the start (reversed selection).
       // Start offset that was derived is now off by 1 and needs adjustment.
-      --selection.anchor.offs;
+      --selAnchor.offs;
     }
 
-    if (selection.anchor.offs === selection.focus.offs) {
-      selection.range = createCaret(
-          selection.anchor.node,
-          selection.anchor.offs
-      );
+    if (selAnchor.offs === selFocus.offs) {
+      createCaret(selAnchor.node, selAnchor.offs).select();
+      sel = win.getSelection();
+      return;
     }
   }
 
-  if (!selection.range) {
-    selection.range = createFromNodes(
-        selection.anchor.node,
-        selection.anchor.offs,
-        selection.focus.node,
-        selection.focus.offs
-    );
-  }
-
-  selection.range.select();
+  createFromNodes(selAnchor.node, selAnchor.offs, selFocus.node, selFocus.offs).select();
   sel = win.getSelection();
 }
 
 /**
  * Reset the editor element after a test is run.
+ *
+ * @param container {Object} container descriptor as object reference
  */
-function resetEditorElements() {
-  // Clean errant styles on body of all containers
-  for (var c = 0; c < containerIDs.length; ++c) {
-    var id = containerIDs[c];
+function resetContainer(container) {
+  // Remove errant styles and attributes that may have been set on the <body>.
+  container.body.removeAttribute('style');
+  container.body.removeAttribute('color');
+  container.body.removeAttribute('bgcolor');
 
-    containers[id].body.setAttribute('style', '');
-    containers[id].body.setAttribute('bgcolor', '');
-
-    try {
-      containers[id].doc.execCommand('styleWithCSS', false, false);
-    } catch (ex) {
-      // ignore exception if unsupported
-    }
+  try {
+    container.doc.execCommand('styleWithCSS', false, false);
+  } catch (ex) {
+    // Ignore exception if unsupported.
   }
-
-  selection = null;
 }
 
 /**
@@ -252,38 +243,28 @@ function initEditorDocs() {
   // Wrap initialization code in a try/catch so we can fail gracefully
   // on older browsers.
   try {
-    for (var c = 0; c < containerIDs.length; ++c) {
-      var id = containerIDs[c];
+    for (var c = 0; c < containers.length; ++c) {
+      var container = containers[c];
 
-      containers[id] = {
-        iframe: null,
-        win:    null,
-        doc:    null,
-        body:   null,
-        editor: null,
-        tagOpen: '',
-        tagClose: '',
-        canary: ''
-      };
-      containers[id].iframe = document.getElementById('iframe-' + id);
-      containers[id].win = containers[id].iframe.contentWindow;
-      containers[id].doc = containers[id].win.document;
-      containers[id].body = containers[id].doc.body;
+      container.iframe = document.getElementById('iframe-' + container.id);
+      container.win = container.iframe.contentWindow;
+      container.doc = container.win.document;
+      container.body = container.doc.body;
+      // container.editor is set per test (changes on embedded editor elements).
 
-      // Default styleWithCSS to false, since it's not supported by IE.
+      // Some browsers require a selection to go with their 'styleWithCSS'.
       try {
-        containers[id].doc.execCommand('styleWithCSS', false, false);
+        container.win.getSelection().selectAllChildren(editor);
       } catch (ex) {
-        // Not supported by IE.
+        // ignore exception if unsupported
+      }
+      // Default styleWithCSS to false.
+      try {
+        container.doc.execCommand('styleWithCSS', false, false);
+      } catch (ex) {
+        // ignore exception if unsupported
       }
     }
-    
-    // IMPORTANT: the tagOpen/Close and canary fields are NOT canonicalized before comparison!
-    // So make sure they are correct!
-    containers['div'].contentEditableID = 'editor-div';
-    containers['div'].tagOpen = '<div contenteditable="true" id="' + containers['div'].contentEditableID + '">';
-    containers['div'].tagClose = '</div>';
-    containers['div'].canary = CANARY;
   } catch (ex) {
     writeFatalError("Exception setting up the environment: " + ex.toString());
   }

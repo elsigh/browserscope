@@ -66,13 +66,13 @@
     <THEAD>
       <TR>
         <TH TITLE="Unique ID of the test" ALIGN="LEFT">ID</TH>
-        <TH TITLE="Testing HTML Element">Env.</TH>
         <TH TITLE="Command or function used in the test" ALIGN="LEFT">Command</TH>
         <TH TITLE="Value field for commands" ALIGN="LEFT">Value</TH>
         {% ifnotequal s.id.0 "S" %}{% ifnotequal s.id.0 "Q" %}{% comment %} Don't output attribute and style columns for selection and "queryCommand..." tests. {% endcomment %}
         <TH TITLE="check Atributes?">A</TH>
         <TH TITLE="check Style">S</TH>
         {% endifnotequal %}{% endifnotequal %}
+        <TH TITLE="Testing HTML Element">Env.</TH>
         {% ifnotequal s.id.0 "S" %}{% comment %} Don't output HTML status column for selection tests. {% endcomment %}
         <TH TITLE="State of the test">Status</TH>
         {% endifnotequal %}
@@ -89,13 +89,13 @@
       {% for t in pv %}
       <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:dM" CLASS="greyBk{% cycle 'Lo' 'Lo' 'Lo' 'Hi' 'Hi' 'Hi' as shade %}">
         <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:tid"><A CLASS="idLabel" NAME="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}" HREF="#{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}">{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}</A></TD>
-        <TD TITLE="designMode=&quot;on&quot;" ALIGN="CENTER">dM</TD>
         <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cmd">&nbsp;</TD>
         <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:val">&nbsp;</TD>
         {% ifnotequal s.id.0 "S" %}{% ifnotequal s.id.0 "Q" %}{% comment %} Don't output attribute and style columns for selection and "queryCommand..." tests. {% endcomment %}
         <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:att" ALIGN="CENTER">&nbsp;</TD>
         <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sty" ALIGN="CENTER">&nbsp;</TD>
         {% endifnotequal %}{% endifnotequal %}
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cnt:dM" TITLE="designMode=&quot;on&quot;" ALIGN="CENTER">dM</TD>
         {% ifnotequal s.id.0 "S" %}
         <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta:dM" ALIGN="CENTER">NONE</TD>
         {% endifnotequal %}
@@ -108,7 +108,7 @@
         <TD ROWSPAN=3>{{ t.desc|default:"&nbsp;" }}</TD>
       </TR>
       <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:body" CLASS="greyBk{% cycle shade %}">
-        <TD TITLE="&lt;body contentEditable=&quot;true&quot;&gt;" ALIGN="CENTER">body</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cnt:body" TITLE="&lt;body contentEditable=&quot;true&quot;&gt;" ALIGN="CENTER">body</TD>
         {% ifnotequal s.id.0 "S" %}
         <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta:body" ALIGN="CENTER">NONE</TD>
         {% endifnotequal %}
@@ -118,7 +118,7 @@
         <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:act:body"><I>Processing...</I></TD>
       </TR>
       <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:div" CLASS="greyBk{% cycle shade %}">
-        <TD TITLE="&lt;div contentEditable=&quot;true&quot;&gt;" ALIGN="CENTER">div</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cnt:div" TITLE="&lt;div contentEditable=&quot;true&quot;&gt;" ALIGN="CENTER">div</TD>
         {% ifnotequal s.id.0 "S" %}
         <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta:div" ALIGN="CENTER">NONE</TD>
         {% endifnotequal %}

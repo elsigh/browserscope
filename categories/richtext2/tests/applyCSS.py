@@ -196,7 +196,9 @@ APPLY_TESTS_CSS = {
       'command':    'justifycenter',
       'pad':        'foo^bar',
       'expected':   [ '<p style="text-align: center">foo^bar</p>',
-                      '<div style="text-align: center">foo^bar</div>' ] },
+                      '<div style="text-align: center">foo^bar</div>' ],
+      'div': {
+        'expOuter': '<div contenteditable="true" style="text-align: center">foo^bar</div>' } },
 
     # justifyfull
     { 'id':         'JF_TEXT-1_SC',
@@ -205,7 +207,9 @@ APPLY_TESTS_CSS = {
       'command':    'justifyfull',
       'pad':        'foo^bar',
       'expected':   [ '<p style="text-align: justify">foo^bar</p>',
-                      '<div style="text-align: justify">foo^bar</div>' ] },
+                      '<div style="text-align: justify">foo^bar</div>' ],
+      'div': {
+        'expOuter': '<div contenteditable="true" style="text-align: justify">foo^bar</div>' } },
 
     # justifyleft
     { 'id':         'JL_TEXT-1_SC',
@@ -214,7 +218,9 @@ APPLY_TESTS_CSS = {
       'command':    'justifyleft',
       'pad':        'foo^bar',
       'expected':   [ '<p style="text-align: left">foo^bar</p>',
-                      '<div style="text-align: left">foo^bar</div>' ] },
+                      '<div style="text-align: left">foo^bar</div>' ],
+      'div': {
+        'expOuter': '<div contenteditable="true" style="text-align: left">foo^bar</div>' } },
 
     # justifyright
     { 'id':         'JR_TEXT-1_SC',
@@ -223,7 +229,9 @@ APPLY_TESTS_CSS = {
       'command':    'justifyright',
       'pad':        'foo^bar',
       'expected':   [ '<p style="text-align: right">foo^bar</p>',
-                      '<div style="text-align: right">foo^bar</div>' ] }
+                      '<div style="text-align: right">foo^bar</div>' ],
+      'div': {
+        'expOuter': '<div contenteditable="true" style="text-align: right">foo^bar</div>' } }
   ]
 }
 

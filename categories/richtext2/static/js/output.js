@@ -129,19 +129,25 @@ function formatActualResult(suite, test, actual) {
   actual = escapeOutput(actual);
 
   // Fade attributes (or just style) if not actually tested for
-  if (!getParameter(suite, test, PARAM_CHECK_ATTRIBUTES)) {
+  if (!getTestParameter(suite, test, PARAM_CHECK_ATTRIBUTES)) {
     actual = actual.replace(/([^ =]+)=\x22([^\x22]*)\x22/g, '<span class="fade">$1="$2"</span>');
   } else {
     // NOTE: convert 'class="..."' first, before adding other <span class="fade">...</span> !!!
-    if (!getParameter(suite, test, PARAM_CHECK_CLASS)) {
+    if (!getTestParameter(suite, test, PARAM_CHECK_CLASS)) {
       actual = actual.replace(/class=\x22([^\x22]*)\x22/g, '<span class="fade">class="$1"</span>');
     }
-    if (!getParameter(suite, test, PARAM_CHECK_STYLE)) {
+    if (!getTestParameter(suite, test, PARAM_CHECK_STYLE)) {
       actual = actual.replace(/style=\x22([^\x22]*)\x22/g, '<span class="fade">style="$1"</span>');
     }
-    if (!getParameter(suite, test, PARAM_CHECK_ID)) {
+    if (!getTestParameter(suite, test, PARAM_CHECK_ID)) {
       actual = actual.replace(/id=\x22([^\x22]*)\x22/g, '<span class="fade">id="$1"</span>');
+    } else {
+      // fade out contenteditable host element's 'editor-<xyz>' ID.
+      actual = actual.replace(/id=\x22editor-([^\x22]*)\x22/g, '<span class="fade">id="editor-$1"</span>');
     }
+    // grey out 'xmlns' and 'onload'
+    actual = actual.replace(/xmlns=\x22([^\x22]*)\x22/g, '<span class="fade">xmlns="$1"</span>');
+    actual = actual.replace(/onload=\x22([^\x22]*)\x22/g, '<span class="fade">onload="$1"</span>');
   }
   // Highlight selection markers and text nodes.
   actual = highlightSelectionMarkersAndTextNodes(actual);
@@ -197,8 +203,8 @@ function outputTestResults(suite, clsID, testIdx) {
   var testSelOut = SELOUTPUT[testResult.selresult];
 
   var suiteChecksSelOnly = !suiteChecksHTMLOrText(suite);
-  var testUsesHTML = !!getParameter(suite, test, PARAM_EXECCOMMAND) ||
-                     !!getParameter(suite, test, PARAM_FUNCTION);
+  var testUsesHTML = !!getTestParameter(suite, test, PARAM_EXECCOMMAND) ||
+                     !!getTestParameter(suite, test, PARAM_FUNCTION);
 
   var shade = colorShades[testIdx % 2];
 
@@ -213,27 +219,27 @@ function outputTestResults(suite, clsID, testIdx) {
   var cmdOutput = '&nbsp;';
   var valOutput = '&nbsp;';
 
-  if (cmd = getParameter(suite, test, PARAM_EXECCOMMAND)) {
+  if (cmd = getTestParameter(suite, test, PARAM_EXECCOMMAND)) {
     cmdOutput = escapeOutput(cmd);
-    var val = getParameter(suite, test, PARAM_VALUE);
+    var val = getTestParameter(suite, test, PARAM_VALUE);
     if (val !== undefined) {
       valOutput = formatValueOrString(val);
     }
-  } else if (cmd = getParameter(suite, test, PARAM_FUNCTION)) {
+  } else if (cmd = getTestParameter(suite, test, PARAM_FUNCTION)) {
     cmdOutput = '<i>' + escapeOutput(cmd) + '</i>';
-  } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDSUPPORTED)) {
+  } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDSUPPORTED)) {
     cmdOutput = '<i>queryCommandSupported</i>';
     valOutput = escapeOutput(cmd);
-  } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDENABLED)) {
+  } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDENABLED)) {
     cmdOutput = '<i>queryCommandEnabled</i>';
     valOutput = escapeOutput(cmd);
-  } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDINDETERM)) {
+  } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDINDETERM)) {
     cmdOutput = '<i>queryCommandIndeterm</i>';
     valOutput = escapeOutput(cmd);
-  } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDSTATE)) {
+  } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDSTATE)) {
     cmdOutput = '<i>queryCommandState</i>';
     valOutput = escapeOutput(cmd);
-  } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDVALUE)) {
+  } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDVALUE)) {
     cmdOutput = '<i>queryCommandValue</i>';
     valOutput = escapeOutput(cmd);
   } else {
@@ -244,8 +250,8 @@ function outputTestResults(suite, clsID, testIdx) {
 
   // Fill in "Attribute checked?" and "Style checked?" cells
   if (testUsesHTML) {
-    var checkAttrs = getParameter(suite, test, PARAM_CHECK_ATTRIBUTES);
-    var checkStyle = getParameter(suite, test, PARAM_CHECK_STYLE);
+    var checkAttrs = getTestParameter(suite, test, PARAM_CHECK_ATTRIBUTES);
+    var checkStyle = getTestParameter(suite, test, PARAM_CHECK_STYLE);
 
     setTD(testID + IDOUT_CHECKATTRS,
           checkAttrs ? OUTSTR_YES : OUTSTR_NO,
@@ -264,11 +270,11 @@ function outputTestResults(suite, clsID, testIdx) {
   }
   
   // Fill in test pad specification cell (initial HTML + selection markers)
-  setTD(testID + IDOUT_PAD, highlightSelectionMarkers(escapeOutput(getParameter(suite, test, PARAM_PAD))));
+  setTD(testID + IDOUT_PAD, highlightSelectionMarkers(escapeOutput(getTestParameter(suite, test, PARAM_PAD))));
 
   // Fill in expected result(s) cell
   var expectedOutput = '';
-  var expectedArr = getExpectationArray(getParameter(suite, test, PARAM_EXPECTED));
+  var expectedArr = getExpectationArray(getTestParameter(suite, test, PARAM_EXPECTED));
   for (var idx = 0; idx < expectedArr.length; ++idx) {
     if (expectedOutput) {
       expectedOutput += '\xA0\xA0\xA0<i>or</i><br>';
@@ -276,26 +282,48 @@ function outputTestResults(suite, clsID, testIdx) {
     expectedOutput += testUsesHTML ? highlightSelectionMarkers(escapeOutput(expectedArr[idx]))
                                    : formatValueOrString(expectedArr[idx]);
   }
-  var acceptedSpec = getParameter(suite, test, PARAM_ACCEPT);
-  if (acceptedSpec) {
-    var acceptedArr = getExpectationArray(acceptedSpec);    
-    for (var idx = 0; idx < acceptedArr.length; ++idx) {
-      expectedOutput += '<span class="accexp">\xA0\xA0\xA0<i>or</i></span><br><span class="accexp">';
-      expectedOutput += testUsesHTML ? highlightSelectionMarkers(escapeOutput(acceptedArr[idx]))
-                                     : formatValueOrString(acceptedArr[idx]);
-      expectedOutput += '</span>';
+  var acceptedArr = getExpectationArray(getTestParameter(suite, test, PARAM_ACCEPT));    
+  for (var idx = 0; idx < acceptedArr.length; ++idx) {
+    expectedOutput += '<span class="accexp">\xA0\xA0\xA0<i>or</i></span><br><span class="accexp">';
+    expectedOutput += testUsesHTML ? highlightSelectionMarkers(escapeOutput(acceptedArr[idx]))
+                                   : formatValueOrString(acceptedArr[idx]);
+    expectedOutput += '</span>';
+  }
+  // TODO(rolandsteiner): THIS IS UGLY, relying on 'div' container being index 2,
+  // AND not allowing other containers to have 'outer' results - change!!!
+  var outerOutput = '';
+  expectedArr = getExpectationArray(getContainerParameter(suite, test, containers[2], PARAM_EXPECTED_OUTER));
+  for (var idx = 0; idx < expectedArr.length; ++idx) {
+    if (outerOutput) {
+      outerOutput += '\xA0\xA0\xA0<i>or</i><br>';
     }
+    outerOutput += testUsesHTML ? highlightSelectionMarkers(escapeOutput(expectedArr[idx]))
+                                : formatValueOrString(expectedArr[idx]);
+  }
+  acceptedArr = getExpectationArray(getContainerParameter(suite, test, containers[2], PARAM_ACCEPT_OUTER));
+  for (var idx = 0; idx < acceptedArr.length; ++idx) {
+    if (outerOutput) {
+      outerOutput += '<span class="accexp">\xA0\xA0\xA0<i>or</i></span><br><span class="accexp">';
+    }
+    outerOutput += testUsesHTML ? highlightSelectionMarkers(escapeOutput(acceptedArr[idx]))
+                                : formatValueOrString(acceptedArr[idx]);
+    outerOutput += '</span>';
+  }
+  if (outerOutput) {
+    expectedOutput += '<hr>' + outerOutput;
   }
   setTD(testID + IDOUT_EXPECTED, expectedOutput);
 
   // Iterate over the individual container results
-  for (var cntIdx = 0; cntIdx < containerCount; ++cntIdx) {
-    var cntID = containerIDs[cntIdx];
+  for (var cntIdx = 0; cntIdx < containers.length; ++cntIdx) {
+    var cntID = containers[cntIdx].id;
+    var cntTD = document.getElementById(testID + IDOUT_CONTAINER + cntID);
     var cntResult = testResult[cntID];
     var cntValOut = VALOUTPUT[cntResult.valresult];
     var cntSelOut = SELOUTPUT[cntResult.selresult];
     var cssVal = cntValOut.css + 'Bk' + shade;
     var cssSel = (!suiteChecksSelOnly || cntResult.selresult != SELRESULT_NA) ? (cntSelOut.css + 'Bk' + shade) : cssVal;
+    var cssCnt = cssVal;
 
     // Fill in result status cell ("PASS", "ACC.", "FAIL", "EXC.", etc.)
     setTD(testID + IDOUT_STATUSVAL + cntID, cntValOut.output, cntValOut.title, cssVal);
@@ -308,64 +336,71 @@ function outputTestResults(suite, clsID, testIdx) {
       case VALRESULT_SETUP_EXCEPTION:
         setTD(testID + IDOUT_ACTUAL + cntID,
               SETUP_EXCEPTION + '(mouseover)',
-              escapeOutput(cntResult.actual),
+              escapeOutput(cntResult.output),
               cssVal);
         break;
 
       case VALRESULT_EXECUTION_EXCEPTION:
         setTD(testID + IDOUT_ACTUAL + cntID,
               EXECUTION_EXCEPTION + '(mouseover)',
-              escapeOutput(cntResult.actual.toString()),
+              escapeOutput(cntResult.output.toString()),
               cssVal);
         break;
 
       case VALRESULT_VERIFICATION_EXCEPTION:
         setTD(testID + IDOUT_ACTUAL + cntID,
-        VERIFICATION_EXCEPTION + '(mouseover)',
-        escapeOutput(cntResult.actual.toString()),
-        cssVal);
+              VERIFICATION_EXCEPTION + '(mouseover)',
+              escapeOutput(cntResult.output.toString()),
+              cssVal);
         break;
 
       case VALRESULT_UNSUPPORTED:
         setTD(testID + IDOUT_ACTUAL + cntID,
-              escapeOutput(cntResult.actual),
+              escapeOutput(cntResult.output),
               '',
               cssVal);
         break;
 
       case VALRESULT_CANARY:
         setTD(testID + IDOUT_ACTUAL + cntID,
-              highlightSelectionMarkersAndTextNodes(escapeOutput(cntResult.outer)),
+              highlightSelectionMarkersAndTextNodes(escapeOutput(cntResult.output)),
               '',
               cssVal);
         break;
 
-      case VALRESULT_DIFFS:
+      case VALRESULT_DIFF:
       case VALRESULT_ACCEPT:
       case VALRESULT_EQUAL:
         if (!testUsesHTML) {
           setTD(testID + IDOUT_ACTUAL + cntID,
-                formatValueOrString(cntResult.actual),
+                formatValueOrString(cntResult.output),
                 '',
                 cssVal);
         } else if (cntResult.selresult == SELRESULT_CANARY) {
+          cssCnt = suiteChecksSelOnly ? cssSel : cssVal;
           setTD(testID + IDOUT_ACTUAL + cntID, 
-                highlightSelectionMarkersAndTextNodes(escapeOutput(cntResult.outer)),
+                highlightSelectionMarkersAndTextNodes(escapeOutput(cntResult.output)),
                 '',
-                suiteChecksSelOnly ? cssSel : cssVal);
+                cssCnt);
         } else {
+          cssCnt = suiteChecksSelOnly ? cssSel : cssVal;
           setTD(testID + IDOUT_ACTUAL + cntID, 
-                formatActualResult(suite, test, cntResult.actual),
+                formatActualResult(suite, test, cntResult.output),
                 '',
-                suiteChecksSelOnly ? cssSel : cssVal);
+                cssCnt);
         }
         break;
 
       default:
+        cssCnt = 'exceptionBk' + shade;
         setTD(testID + IDOUT_ACTUAL + cntID,
               INTERNAL_ERR + 'UNKNOWN RESULT VALUE',
               '',
-              'exceptionBk' + shade);
+              cssCnt);
+    }
+
+    if (cntTD) {
+      cntTD.className = cssCnt;
     }
   }          
 }

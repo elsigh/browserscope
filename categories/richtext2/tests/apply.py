@@ -263,19 +263,23 @@ APPLY_TESTS = {
                       'foo<small>[bar]</small>baz' ] },
 
     # indent
+    # Note: accept the de-facto standard indent of 40px
+    # TODO(rolandsteiner): find a way to check indent generically
     { 'id':         'IND_TEXT-1_SI',
       'rte1-id':    'a-indent-0',
-      'desc':       'Indent the text',
+      'desc':       'Indent the text (accept the de-facto standard of 40px indent)',
       'command':    'indent',
       'pad':        'foo[bar]baz',
-      # TODO(rolandsteiner): find a way to check indent generically
       'checkAttrs': False,
-      'expected':   '<blockquote>foo[bar]baz</blockquote>' },
+      'expected':   [ '<blockquote>foo[bar]baz</blockquote>',
+                      '<div style="margin-left: 40px">foo[bar]baz</div>' ],
+      'div': {
+        'expOuter': '<div contenteditable="true" style="margin-left: 40px">foo[bar]baz</div>' } },
 
     # outdent -> unapply tests
 
     # justifycenter
-   { 'id':          'JC_TEXT-1_SC',
+    { 'id':         'JC_TEXT-1_SC',
       'rte1-id':    'a-justifycenter-0',
       'desc':       'justify the text centrally',
       'command':    'justifycenter',
@@ -284,7 +288,10 @@ APPLY_TESTS = {
                       '<p align="center">foo^bar</p>',
                       '<p align="middle">foo^bar</p>',
                       '<div align="center">foo^bar</div>',
-                      '<div align="middle">foo^bar</div>' ] },
+                      '<div align="middle">foo^bar</div>' ],
+      'div': {
+        'expOuter': [ '<div align="center" contenteditable="true">foo^bar</div>',
+                      '<div align="middle" contenteditable="true">foo^bar</div>' ] } },
 
     # justifyfull
     { 'id':         'JF_TEXT-1_SC',
@@ -293,7 +300,9 @@ APPLY_TESTS = {
       'command':    'justifyfull',
       'pad':        'foo^bar',
       'expected':   [ '<p align="justify">foo^bar</p>',
-                      '<div align="justify">foo^bar</div>' ] },
+                      '<div align="justify">foo^bar</div>' ],
+      'div': {
+        'expOuter': '<div align="justify" contenteditable="true">foo^bar</div>' } },
 
     # justifyleft
     { 'id':         'JL_TEXT-1_SC',
@@ -302,7 +311,9 @@ APPLY_TESTS = {
       'command':    'justifyleft',
       'pad':        'foo^bar',
       'expected':   [ '<p align="left">foo^bar</p>',
-                      '<div align="left">foo^bar</div>' ] },
+                      '<div align="left">foo^bar</div>' ],
+      'div': {
+        'expOuter': '<div align="left" contenteditable="true">foo^bar</div>' } },
 
     # justifyright
     { 'id':         'JR_TEXT-1_SC',
@@ -311,7 +322,9 @@ APPLY_TESTS = {
       'command':    'justifyright',
       'pad':        'foo^bar',
       'expected':   [ '<p align="right">foo^bar</p>',
-                      '<div align="right">foo^bar</div>' ] },
+                      '<div align="right">foo^bar</div>' ],
+      'div': {
+        'expOuter': '<div align="right" contenteditable="true">foo^bar</div>' } },
 
     # heading
     { 'id':         'H:H1_TEXT-1_SC',
