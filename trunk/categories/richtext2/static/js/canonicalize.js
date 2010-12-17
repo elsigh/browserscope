@@ -138,7 +138,13 @@ function canonicalizeSingleAttribute(elemName, attrName, attrValue, emitFlags) {
       return emitFlags.emitClass ? attrValue : null;
 
     case 'id':
-      return emitFlags.emitID ? attrValue : null;
+      if (!emitFlags.emitID) {
+        return null;
+      }
+      if (attrValue && attrValue.substr(0, 7) == 'editor-') {
+        return null;
+      }
+      return attrValue;
 
     // Remove empty style attributes, canonicalize the contents otherwise,
     // provided the test cares for styles.
@@ -150,6 +156,9 @@ function canonicalizeSingleAttribute(elemName, attrName, attrValue, emitFlags) {
     // Canonicalize colors.
     case 'bgcolor':
     case 'color':
+      if (!attrValue) {
+        return null;
+      }
       return emitFlags.canonicalizeUnits ? new Color(attrValue).toString() : attrValue;
 
     // Canonicalize font names.
@@ -158,6 +167,9 @@ function canonicalizeSingleAttribute(elemName, attrName, attrValue, emitFlags) {
       
     // Canonicalize font sizes (leave other 'size' attributes as-is).
     case 'size':
+      if (!attrValue) {
+        return null;
+      }
       switch (elemName) {
         case 'basefont':
         case 'font':
@@ -170,7 +182,7 @@ function canonicalizeSingleAttribute(elemName, attrName, attrValue, emitFlags) {
     case 'colspan':
     case 'rowspan':
     case 'span':
-      return (attrValue == '1') ? null : attrValue;
+      return (attrValue == '1' || attrValue === '') ? null : attrValue;
       
     // Boolean attributes: presence equals true. If present, the value must be
     // the empty string or the attribute's canonical name.
@@ -268,12 +280,14 @@ function canonicalizeElementTag(str, emitFlags) {
           case '"':
           case "'":
             pos = str.indexOf(str.charAt(0), 1);
+            pos = (pos < 0) ? str.length : pos;
             attrValue = str.substring(1, pos);
             ++pos;
             break;
 
           default:
             pos = str.indexOf(' ', 0);
+            pos = (pos < 0) ? str.length : pos;
             attrValue = (pos == -1) ? str : str.substr(0, pos);
             break;
         }
@@ -296,12 +310,24 @@ function canonicalizeElementTag(str, emitFlags) {
         continue;
     }
 
-    if (emitFlags.emitAttrs || attrName == "contenteditable") {
-      attrValue = canonicalizeEntities(attrValue);
-      attrValue = canonicalizeSingleAttribute(elemName, attrName, attrValue, emitFlags);
-      if (attrName && attrValue != null) {
-        attrs.push(attrName + '="' + attrValue + '"');
-      }
+    switch (attrName) {
+      case '':
+      case 'onload':
+      case 'xmlns':
+        break;
+        
+      default:
+        if (!emitFlags.emitAttrs) {
+          break;
+        }
+        // >>> fall through >>>
+        
+      case 'contenteditable':
+        attrValue = canonicalizeEntities(attrValue);
+        attrValue = canonicalizeSingleAttribute(elemName, attrName, attrValue, emitFlags);
+        if (attrValue !== null) {
+          attrs.push(attrName + '="' + attrValue + '"');
+        }
     }
   }
 
@@ -349,6 +375,9 @@ function canonicalizeElementsAndAttributes(str, emitFlags) {
     }
     result = result + canonicalizeEntities(str.substring(tagEnd, tagStart));
     tagEnd = str.indexOf('>', tagStart);
+    if (tagEnd < 0) {
+      tagEnd = str.length - 1;  
+    }
     if (str.charAt(tagEnd - 1) == '/') {
       --tagEnd;
     }
@@ -362,7 +391,6 @@ function canonicalizeElementsAndAttributes(str, emitFlags) {
 
 /**
  * Canonicalize an innerHTML string to uniform single whitespaces.
- * Also remove comments to retain only embedded selection markers.
  *
  * FIXME: running this prevents testing for pre-formatted content
  * and the CSS 'white-space' attribute.
@@ -384,26 +412,21 @@ function canonicalizeSpaces(str) {
 }
 
 /**
- * Canonicalize a HTML string for comparison.
+ * Canonicalize an innerHTML string to uniform single whitespaces.
+ * Also remove comments to retain only embedded selection markers, and
+ * remove </br> and </hr> if present.
  *
- * @param suite {Object} the test suite as object reference
- * @param test {Object} the test as object reference
- * @param str {String} the HTML string to canonicalize
+ * FIXME: running this prevents testing for pre-formatted content
+ * and the CSS 'white-space' attribute.
+ *
+ * @param str {String} the HTML string to be canonicalized
  * @return {String} the canonicalized string
  */
-function canonicalizeHTMLForComparison(suite, test, str) {
-  var emitFlags = {
-      emitAttrs:         getParameter(suite, test, PARAM_CHECK_ATTRIBUTES),
-      emitStyle:         getParameter(suite, test, PARAM_CHECK_STYLE),
-      emitClass:         getParameter(suite, test, PARAM_CHECK_CLASS),
-      emitID:            getParameter(suite, test, PARAM_CHECK_ID),
-      lowercase:         true,
-      canonicalizeUnits: true
-  };
-
+function initialCanonicalizationOf(str) {
   str = canonicalizeSpaces(str);
-  str = str.replace(/<\/[bh]r>/g, '');    // Remove closing tags </hr>, </br>.
-  str = str.replace(/[\x60\xb4]/g, '');   // Remove text node markers.
-  str = canonicalizeElementsAndAttributes(str, emitFlags);
+  str = str.replace(/ ?<!-- ?/g, '');
+  str = str.replace(/ ?--> ?/g, '');
+  str = str.replace(/<\/[bh]r>/g, '');
+  
   return str;
 }

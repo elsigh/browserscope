@@ -49,20 +49,20 @@ var VALRESULT_EXECUTION_EXCEPTION    = 2;
 var VALRESULT_VERIFICATION_EXCEPTION = 3;
 var VALRESULT_UNSUPPORTED            = 4;
 var VALRESULT_CANARY                 = 5;  // HTML changes bled into the canary.
-var VALRESULT_DIFFS                  = 6;
+var VALRESULT_DIFF                   = 6;
 var VALRESULT_ACCEPT                 = 7;  // HTML technically correct, but not ideal.
 var VALRESULT_EQUAL                  = 8;
 
 var VALOUTPUT = [  // IMPORTANT: this array MUST be coordinated with the values above!!
-    {css: 'grey',        output: '???',    title: 'The test has not been run yet.'},                                            // VALRESULT_NOT_RUN                    
-    {css: 'exception',   output: 'EXC.',   title: 'Exception was thrown during setup.'},                                        // VALRESULT_SETUP_EXCEPTION       
-    {css: 'exception',   output: 'EXC.',   title: 'Exception was thrown during execution.'},                                    // VALRESULT_EXECUTION_EXCEPTION   
+    {css: 'grey',        output: '???',    title: 'The test has not been run yet.'},                                            // VALRESULT_NOT_RUN
+    {css: 'exception',   output: 'EXC.',   title: 'Exception was thrown during setup.'},                                        // VALRESULT_SETUP_EXCEPTION
+    {css: 'exception',   output: 'EXC.',   title: 'Exception was thrown during execution.'},                                    // VALRESULT_EXECUTION_EXCEPTION
     {css: 'exception',   output: 'EXC.',   title: 'Exception was thrown during result verification.'},                          // VALRESULT_VERIFICATION_EXCEPTION
-    {css: 'unsupported', output: 'UNS.',   title: 'Unsupported command or value'},                                              // VALRESULT_UNSUPPORTED           
-    {css: 'canary',      output: 'CANARY', title: 'The command affected the contentEditable root element, or outside HTML.'},   // VALRESULT_CANARY                
-    {css: 'fail',        output: 'FAIL',   title: 'The result differs from the expectation(s).'},                               // VALRESULT_DIFFS                 
-    {css: 'accept',      output: 'ACC.',   title: 'The result is technically correct, but sub-optimal.'},                       // VALRESULT_ACCEPT                
-    {css: 'pass',        output: 'PASS',   title: 'The test result matches the expectation.'}                                   // VALRESULT_EQUAL                 
+    {css: 'unsupported', output: 'UNS.',   title: 'Unsupported command or value'},                                              // VALRESULT_UNSUPPORTED
+    {css: 'canary',      output: 'CANARY', title: 'The command affected the contentEditable root element, or outside HTML.'},   // VALRESULT_CANARY
+    {css: 'fail',        output: 'FAIL',   title: 'The result differs from the expectation(s).'},                               // VALRESULT_DIFF
+    {css: 'accept',      output: 'ACC.',   title: 'The result is technically correct, but sub-optimal.'},                       // VALRESULT_ACCEPT
+    {css: 'pass',        output: 'PASS',   title: 'The test result matches the expectation.'}                                   // VALRESULT_EQUAL
 ]
 
 // Selection comparison result contants.
@@ -81,9 +81,6 @@ var SELOUTPUT = [  // IMPORTANT: this array MUST be coordinated with the values 
     {css: 'accept', output: 'ACC.',   title: 'The selection is technically correct, but sub-optimal.'},   // SELRESULT_ACCEPT 
     {css: 'pass',   output: 'PASS',   title: 'The selection matches the expectation.'}                    // SELRESULT_EQUAL  
 ];
-
-// What to use for the canary
-var CANARY = 'CAN<br>ARY';
 
 // RegExp for selection markers
 var SELECTION_MARKERS = /[\[\]\{\}\|\^]/;
@@ -110,7 +107,9 @@ var PARAM_QUERYCOMMANDSTATE     = 'qcstate';
 var PARAM_QUERYCOMMANDVALUE     = 'qcvalue';
 var PARAM_VALUE                 = 'value';
 var PARAM_EXPECTED              = 'expected';
+var PARAM_EXPECTED_OUTER        = 'expOuter';
 var PARAM_ACCEPT                = 'accept';
+var PARAM_ACCEPT_OUTER          = 'accOuter';
 var PARAM_CHECK_ATTRIBUTES      = 'checkAttrs';
 var PARAM_CHECK_STYLE           = 'checkStyle';
 var PARAM_CHECK_CLASS           = 'checkClass';
@@ -124,6 +123,7 @@ var IDOUT_COMMAND    = '_:cmd';   // per test
 var IDOUT_VALUE      = '_:val';   // per test
 var IDOUT_CHECKATTRS = '_:att';   // per test
 var IDOUT_CHECKSTYLE = '_:sty';   // per test
+var IDOUT_CONTAINER  = '_:cnt:';  // per container
 var IDOUT_STATUSVAL  = '_:sta:';  // per container
 var IDOUT_STATUSSEL  = '_:sel:';  // per container
 var IDOUT_PAD        = '_:pad';   // per test
@@ -133,13 +133,53 @@ var IDOUT_ACTUAL     = '_:act:';  // per container
 // Output strings to use for yes/no/NA
 var OUTSTR_YES = '&#x25CF;'; 
 var OUTSTR_NO  = '&#x25CB;'; 
-var OUTSTR_NA  = '-'; 
+var OUTSTR_NA  = '-';
+
+// Tags at the start of HTML strings where they were taken from
+var HTMLTAG_BODY  = 'B:';
+var HTMLTAG_OUTER = 'O:';
+var HTMLTAG_INNER = 'I:';
+
+// What to use for the canary
+var CANARY = 'CAN<br>ARY';
 
 // Containers for tests, and their associated DOM elements:
 // iframe, win, doc, body, elem
-var containers = {};
-var containerIDs = ['dM', 'body', 'div'];
-var containerCount = containerIDs.length;
+var containers = [
+  { id:       'dM',
+    iframe:   null,
+    win:      null,
+    doc:      null,
+    body:     null,
+    editor:   null,
+    tagOpen:  '<body>',
+    tagClose: '</body>',
+    editorID: null,
+    canary:   '',
+  },
+  { id:       'body',
+    iframe:   null,
+    win:      null,
+    doc:      null,
+    body:     null,
+    editor:   null,
+    tagOpen:  '<body contenteditable="true">',
+    tagClose: '</body>',
+    editorID: null,
+    canary:   ''
+  },
+  { id:       'div',
+    iframe:   null,
+    win:      null,
+    doc:      null,
+    body:     null,
+    editor:   null,
+    tagOpen:  '<div contenteditable="true" id="editor-div">',
+    tagClose: '</div>',
+    editorID: 'editor-div',
+    canary:   CANARY
+  },
+];
 
 // Helper variables to use in test functions
 var win = null;     // window object to use for test functions

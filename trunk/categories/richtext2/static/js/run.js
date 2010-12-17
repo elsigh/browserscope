@@ -55,14 +55,37 @@ function generateTestID(suiteID, testID) {
 /**
  * Helper function returning the effective value of a test parameter.
  *
- * @param suite {String} the test suite
- * @param test {String} the test
+ * @param suite {Object} the test suite
+ * @param test {Object} the test
  * @param param {String} the test parameter to be checked
  * @return {Any} the effective value of the parameter (can be undefined)
  */
-function getParameter(suite, test, param) {
+function getTestParameter(suite, test, param) {
   var val = test[param];
   return (val === undefined) ? suite[param] : val;
+}
+
+/**
+ * Helper function returning the effective value of a container/test parameter.
+ *
+ * @param suite {Object} the test suite
+ * @param test {Object} the test
+ * @param container {Object} the container descriptor object
+ * @param param {String} the test parameter to be checked
+ * @return {Any} the effective value of the parameter (can be undefined)
+ */
+function getContainerParameter(suite, test, container, param) {
+  var val = undefined;
+  if (test[container.id]) {
+    val = test[container.id][param];
+  }
+  if (val === undefined) {
+    val = test[param];
+  }
+  if (val === undefined) {
+    val = suite[param];
+  }
+  return val;
 }
 
 /**
@@ -90,7 +113,7 @@ function runSingleTest(suite, test, container) {
     selscore: 0,
     valresult: VALRESULT_NOT_RUN,
     selresult: SELRESULT_NOT_RUN,
-    actual: ''
+    output: ''
   };
 
   // 1.) Populate the editor element with the initial test setup HTML.
@@ -99,7 +122,7 @@ function runSingleTest(suite, test, container) {
   } catch(ex) {
     result.valresult = VALRESULT_SETUP_EXCEPTION;
     result.selresult = SELRESULT_NA;
-    result.actual = SETUP_EXCEPTION + ex.toString();
+    result.output = SETUP_EXCEPTION + ex.toString();
     return result;
   }
 
@@ -109,91 +132,69 @@ function runSingleTest(suite, test, container) {
   try {
     var cmd = undefined;
 
-    if (cmd = getParameter(suite, test, PARAM_EXECCOMMAND)) {
+    if (cmd = getTestParameter(suite, test, PARAM_EXECCOMMAND)) {
       isHTMLTest = true;
-      // Note: "getParameter(suite, test, PARAM_VALUE) || null" doesn't work, since
+      // Note: "getTestParameter(suite, test, PARAM_VALUE) || null" doesn't work, since
       // value might be the empty string - e.g., for 'insertText'!
-      var value = getParameter(suite, test, PARAM_VALUE);
+      var value = getTestParameter(suite, test, PARAM_VALUE);
       if (value === undefined) {
         value = null;
       }
       container.doc.execCommand(cmd, false, value);
-    } else if (cmd = getParameter(suite, test, PARAM_FUNCTION)) {
+    } else if (cmd = getTestParameter(suite, test, PARAM_FUNCTION)) {
       isHTMLTest = true;
       eval(cmd);
-    } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDSUPPORTED)) {
-      result.actual = container.doc.queryCommandSupported(cmd);
-    } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDENABLED)) {
-      result.actual = container.doc.queryCommandEnabled(cmd);
-    } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDINDETERM)) {
-      result.actual = container.doc.queryCommandIndeterm(cmd);
-    } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDSTATE)) {
-      result.actual = container.doc.queryCommandState(cmd);
-    } else if (cmd = getParameter(suite, test, PARAM_QUERYCOMMANDVALUE)) {
-      result.actual = container.doc.queryCommandValue(cmd);
-      if (result.actual === false) {
+    } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDSUPPORTED)) {
+      result.output = container.doc.queryCommandSupported(cmd);
+    } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDENABLED)) {
+      result.output = container.doc.queryCommandEnabled(cmd);
+    } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDINDETERM)) {
+      result.output = container.doc.queryCommandIndeterm(cmd);
+    } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDSTATE)) {
+      result.output = container.doc.queryCommandState(cmd);
+    } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDVALUE)) {
+      result.output = container.doc.queryCommandValue(cmd);
+      if (result.output === false) {
         // A return value of boolean 'false' for queryCommandValue means 'not supported'.
         result.valresult = VALRESULT_UNSUPPORTED;
         result.selresult = SELRESULT_NA;
-        result.actual = UNSUPPORTED;
+        result.output = UNSUPPORTED;
         return result;
       }
     } else {
       result.valresult = VALRESULT_SETUP_EXCEPTION;
       result.selresult = SELRESULT_NA;
-      result.actual = SETUP_EXCEPTION + SETUP_NOCOMMAND;
+      result.output = SETUP_EXCEPTION + SETUP_NOCOMMAND;
       return result;
     }
   } catch (ex) {
     result.valresult = VALRESULT_EXECUTION_EXCEPTION;
     result.selresult = SELRESULT_NA;
-    result.actual = EXECUTION_EXCEPTION + ex.toString();
+    result.output = EXECUTION_EXCEPTION + ex.toString();
     return result;
   }
   
-  // 3.) Get HTML in case of execCommand or function tests
-  try {
-    if (isHTMLTest) {
-      prepareHTMLTestResult(container, result);
-    }
-  } catch (ex) {
-    result.valresult = VALRESULT_VERIFICATION_EXCEPTION;
-    result.selresult = SELRESULT_NA;
-    result.actual = VERIFICATION_EXCEPTION + ex.toString();
-    return result;
-  }
-
   // 4.) Verify test result
   try {
     if (isHTMLTest) {
-      // Verify canaries (if any)
-      if (result.outer) {
-        verifyCanaries(result.outer, container, result);
-      }
+      // First, retrieve HTML from container
+      prepareHTMLTestResult(container, result);
 
       // Compare result to expectations
-      // Remove text node markers for comparison for this purpose.
-      var actual = result.actual.replace(/[\x60\xb4]/g, '');
-      var cmp = compareHTMLTestResult(suite, test, actual);
+      compareHTMLTestResult(suite, test, container, result);
 
-      // Set result values only if they haven't been set by the canary test.
-      if (result.valresult === VALRESULT_NOT_RUN) {
-        result.valresult = cmp.valresult;
-      }
-      if (result.selresult === SELRESULT_NOT_RUN) {
-        result.selresult = cmp.selresult;
-      }
       result.valscore = (result.valresult === VALRESULT_EQUAL) ? 1 : 0;
       result.selscore = (result.selresult === SELRESULT_EQUAL) ? 1 : 0;
     } else {
-      result.valresult = compareTextTestResult(suite, test, result.actual);
+      compareTextTestResult(suite, test, result);
+
       result.selresult = SELRESULT_NA;
       result.valscore = (result.valresult === VALRESULT_EQUAL) ? 1 : 0;
     }
   } catch (ex) {
     result.valresult = VALRESULT_VERIFICATION_EXCEPTION;
     result.selresult = SELRESULT_NA;
-    result.actual = VERIFICATION_EXCEPTION + ex.toString();
+    result.output = VERIFICATION_EXCEPTION + ex.toString();
     return result;
   }
   
@@ -242,15 +243,15 @@ function initTestSuiteResults(suite) {
           valresult: VALRESULT_NOT_RUN,
           selresult: SELRESULT_NOT_RUN
       };
-      for (var cntIdx = 0; cntIdx < containerCount; ++cntIdx) {
-        var cntID = containerIDs[cntIdx];
+      for (var cntIdx = 0; cntIdx < containers.length; ++cntIdx) {
+        var cntID = containers[cntIdx].id;
 
         results[suiteID][clsID][testID][cntID] = {
           valscore: 0,
           selscore: 0,
           valresult: VALRESULT_NOT_RUN,
           selresult: SELRESULT_NOT_RUN,
-          actual: ''
+          output: ''
         }
       }
     }
@@ -286,18 +287,20 @@ function runTestSuite(suite) {
       var valresult = VALRESULT_EQUAL;
       var selresult = SELRESULT_EQUAL;
 
-      for (var cntIdx = 0; cntIdx < containerCount; ++cntIdx) {
-        var cntID = containerIDs[cntIdx];
-        var container = containers[cntID];
+      for (var cntIdx = 0; cntIdx < containers.length; ++cntIdx) {
+        var container = containers[cntIdx];
+        var cntID = container.id;
 
         var result = runSingleTest(suite, test, container);
 
         results[suiteID][clsID][testID][cntID] = result;
 
         valscore = Math.min(valscore, result.valscore);
-         selscore = Math.min(selscore, result.selscore);
+        selscore = Math.min(selscore, result.selscore);
         valresult = Math.min(valresult, result.valresult);
         selresult = Math.min(selresult, result.selresult);
+
+        resetContainer(container);
       }          
 
       results[suiteID][clsID][testID].valscore = valscore;
