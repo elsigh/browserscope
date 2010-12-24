@@ -76,6 +76,10 @@ handlers:
 #   upload: /categories/static/.*
 #   expiration: '3650d'
 
+- url: /uaparser/js_override
+  static_files: third_party/uaparser/resources/user_agent_overrides.js
+  upload: /uaparser/js_override
+
 #TODO(elsigh): tmp fix????
 #http://code.google.com/p/browserscope/issues/detail?id=34
 - url: /richtext/static

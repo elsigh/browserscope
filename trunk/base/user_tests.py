@@ -320,6 +320,7 @@ def FormatUserTestsAsGviz(request):
 
 @decorators.provide_csrf
 def BeaconJs(request, key):
+
   test = models.user_test.Test.get_mem(key)
   if not test:
     return http.HttpResponseServerError('No test key sent or no tests match.')
@@ -337,12 +338,18 @@ def BeaconJs(request, key):
       logging.info(msg)
       return http.HttpResponseServerError(msg)
 
+  # Get the ua-parser project's js override functionality.
+  f = open('third_party/uaparser/resources/user_agent_overrides.js', 'r')
+  js_ua_override = f.read()
+  f.close()
+
   params = {
     'test_key': test.key(),
     'csrf_token': request.session.get('csrf_token'),
     'server': util.GetServer(request),
     'sandboxid': request.GET.get('sandboxid', ''),
     'epoch': int(time.time()),
+    'js_ua_override': js_ua_override,
   }
 
   # Does the user want a callback?

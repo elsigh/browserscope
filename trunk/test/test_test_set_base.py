@@ -37,7 +37,6 @@ class TestParseResults(unittest.TestCase):
     results = test_set.ParseResults(results_str)
     self.assertEqual(expected_results, results)
 
-
   def testNonIntegerValueRaises(self):
     results_str = 'apple=0,banana=10.00001,coconut=100'
     test_set = mock_data.MockTestSet()

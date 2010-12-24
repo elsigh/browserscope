@@ -175,70 +175,6 @@ Util.createChromeFrameCheckbox = function(serverUaString, opt_reloadOnChange) {
 };
 
 /**
- * Performs additional client side user agent detection for overriding
- * the server-side UA detection.
- * @return {?Array.<string>}
- */
-Util.getJsUaOverrides = function() {
-  var jsUa, jsFamilyName, jsV1, jsV2, jsV3;
-  var isIE = navigator.userAgent.indexOf('MSIE') != -1;
-  if (isIE && typeof document.documentMode != 'undefined') {
-    var matches = /MSIE (\d+)\.(\d+)/.exec(navigator.userAgent); // MSIE x.x;
-    if (!window.external) {
-        jsFamilyName = 'IE Platform Preview';
-        jsV1 = '9';
-        jsV2 = '0';
-
-      var tempDiv = document.createElement('div');
-
-      // Based on the code at
-      // http://ie.microsoft.com/testdrive/Graphics/Transform2D/animation.js
-      if (typeof tempDiv.style['msTransform'] != 'undefined') {
-        jsV3 = '6';
-      }
-      // Based on the code at
-      // http://ie.microsoft.com/testdrive/HTML5/DOMCapabilities/demo.js
-      else if (Object.getPrototypeOf(tempDiv) == HTMLDivElement.prototype) {
-        jsV3 = '4';
-      } else if (typeof Array.prototype.indexOf != 'undefined') {
-        jsV3 = '3';
-      } else if (typeof document.getElementsByClassName != 'undefined') {
-        jsV3 = '2';
-      } else {
-        jsV3 = '1';
-      }
-    }
-    else if (document.documentMode == 9) {
-      if (window.navigator.appMinorVersion.indexOf('beta') > -1) {
-        jsFamilyName = 'IE Beta';
-        jsV1 = '9';
-        jsV2 = '0';
-        jsV3 = 'beta';
-      }
-
-    // IE 8 in "compatibility" mode.
-    } else if (Number(matches[1]) == 7 && document.documentMode == 8) {
-      jsFamilyName = 'IE 8 Compatibility Mode'
-      jsV1 = matches[1];
-      jsV2 = matches[2];
-      jsV3 = '0';
-    }
-  }
-  // Keys match the params that our server expects.
-  if (jsFamilyName) {
-    jsUa = {
-      'js_user_agent_family': jsFamilyName,
-      'js_user_agent_v1': jsV1,
-      'js_user_agent_v2': jsV2,
-      'js_user_agent_v3': jsV3
-    };
-  }
-
-  return jsUa;
-};
-
-
-/**
  * @param {string} httpUserAgent A full user agent string - HTTP_USER_AGENT
  * @param {string} userAgentPretty A parsed Family v1.v2.v3 string
  */
@@ -252,11 +188,13 @@ Util.reconcileClientServerUaPretty = function(httpUserAgent, userAgentPretty) {
       ua.indexOf('chromeframe') == -1) {
     reconciledUa = 'Chrome Frame (' + userAgentPretty + ')';
   } else {
-    var jsUa = Util.getJsUaOverrides();
+    // @see third_party/uaparser/resources/user_agent_overrides.js
+    var jsUa = uap.getJsUaOverrides();
     if (jsUa) {
       reconciledUa = jsUa['js_user_agent_family'] + ' ' +
           jsUa['js_user_agent_v1'] + '.' +
           jsUa['js_user_agent_v2'] + '.' + jsUa['js_user_agent_v3'];
+      reconciledUa = reconciledUa.replace('0.0', '0');
     }
   }
   return reconciledUa;
