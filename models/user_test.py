@@ -311,32 +311,36 @@ def update_test_meta(key, test_scores):
     meta.test = test
     dirty = True
 
-  for test_key, test_value in test_scores:
-    min_key = '%s_min_value' % test_key
-    max_key = '%s_max_value' % test_key
+  #logging.info('update_test_meta test_scores: %s' % test_scores)
+  try:
+    for test_key, test_value in test_scores:
+      min_key = '%s_min_value' % test_key
+      max_key = '%s_max_value' % test_key
 
-    # Convert test_value into an int from a string.
-    try:
-      test_value = int(test_value)
-    except ValueError:
-      logging.info('ValueError for key:%s, val:%s' % (test_key, test_value))
-      continue
+      # Convert test_value into an int from a string.
+      try:
+        test_value = int(test_value)
+      except ValueError:
+        logging.info('ValueError for key:%s, val:%s' % (test_key, test_value))
+        continue
 
-    if not hasattr(meta, min_key):
-      setattr(meta, min_key, test_value)
-      setattr(meta, max_key, test_value)
-      dirty = True
-    else:
-      if test_value < getattr(meta, min_key):
+      if not hasattr(meta, min_key):
         setattr(meta, min_key, test_value)
-        dirty = True
-      elif test_value > getattr(meta, max_key):
         setattr(meta, max_key, test_value)
         dirty = True
+      else:
+        if test_value < getattr(meta, min_key):
+          setattr(meta, min_key, test_value)
+          dirty = True
+        elif test_value > getattr(meta, max_key):
+          setattr(meta, max_key, test_value)
+          dirty = True
 
-      #logging.info('finally %s %s: %s, %s: %s' %
-      #             (test_key, getattr(meta, min_key), min_key,
-      #              getattr(meta, max_key), max_key))
+        #logging.info('finally %s %s: %s, %s: %s' %
+        #             (test_key, getattr(meta, min_key), min_key,
+        #              getattr(meta, max_key), max_key))
+  except ValueError:
+    logging.info('ValueError trying to unpack malformed test_scores, bailing.')
 
   if dirty:
     meta.save_memcache(test)

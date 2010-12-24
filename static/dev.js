@@ -21,6 +21,7 @@
  *
  */
 
+
 /**
  * @define {boolean} Overridden to true by the compiler when --closure_pass
  *     or --mark_as_compiled is specified.
@@ -198,7 +199,7 @@ goog.getObjectByName = function(name, opt_obj) {
   var parts = name.split('.');
   var cur = opt_obj || goog.global;
   for (var part; part = parts.shift(); ) {
-    if (cur[part]) {
+    if (goog.isDefAndNotNull(cur[part])) {
       cur = cur[part];
     } else {
       return null;
@@ -312,6 +313,18 @@ goog.global.CLOSURE_NO_DEPS;
 
 
 /**
+ * A function to import a single script. This is meant to be overridden when
+ * Closure is being run in non-HTML contexts, such as web workers. It's defined
+ * in the global scope so that it can be set before base.js is loaded, which
+ * allows deps.js to be imported properly.
+ *
+ * The function is passed the script source, which is a relative URI. It should
+ * return true if the script was imported, false otherwise.
+ */
+goog.global.CLOSURE_IMPORT_SCRIPT;
+
+
+/**
  * Null function used for default values of callbacks, etc.
  * @return {void} Nothing.
  */
@@ -408,21 +421,21 @@ if (!COMPILED) {
    * @private
    */
   goog.findBasePath_ = function() {
-    if (!goog.inHtmlDocument_()) {
-      return;
-    }
-    var doc = goog.global.document;
     if (goog.global.CLOSURE_BASE_PATH) {
       goog.basePath = goog.global.CLOSURE_BASE_PATH;
       return;
+    } else if (!goog.inHtmlDocument_()) {
+      return;
     }
+    var doc = goog.global.document;
     var scripts = doc.getElementsByTagName('script');
     // Search backwards since the current script is in almost all cases the one
     // that has base.js.
     for (var i = scripts.length - 1; i >= 0; --i) {
       var src = scripts[i].src;
-      var l = src.length;
-      if (src.substr(l - 7) == 'base.js') {
+      var qmark = src.lastIndexOf('?');
+      var l = qmark == -1 ? src.length : qmark;
+      if (src.substr(l - 7, 7) == 'base.js') {
         goog.basePath = src.substr(0, l - 7);
         return;
       }
@@ -431,25 +444,43 @@ if (!COMPILED) {
 
 
   /**
-   * Writes a script tag if, and only if, that script hasn't already been added
-   * to the document.  (Must be called at execution time)
+   * Imports a script if, and only if, that script hasn't already been imported.
+   * (Must be called at execution time)
    * @param {string} src Script source.
    * @private
    */
-  goog.writeScriptTag_ = function(src) {
-    if (goog.inHtmlDocument_() &&
-        !goog.dependencies_.written[src]) {
+  goog.importScript_ = function(src) {
+    var importScript = goog.global.CLOSURE_IMPORT_SCRIPT ||
+        goog.writeScriptTag_;
+    if (!goog.dependencies_.written[src] && importScript(src)) {
       goog.dependencies_.written[src] = true;
+    }
+  };
+
+
+  /**
+   * The default implementation of the import function. Writes a script tag to
+   * import the script.
+   *
+   * @param {string} src The script source.
+   * @return {boolean} True if the script was imported, false otherwise.
+   * @private
+   */
+  goog.writeScriptTag_ = function(src) {
+    if (goog.inHtmlDocument_()) {
       var doc = goog.global.document;
-      doc.write('<script type="text/javascript" src="' +
-                src + '"></' + 'script>');
+      doc.write(
+          '<script type="text/javascript" src="' + src + '"></' + 'script>');
+      return true;
+    } else {
+      return false;
     }
   };
 
 
   /**
    * Resolves dependencies based on the dependencies added using addDependency
-   * and calls writeScriptTag_ in the correct order.
+   * and calls importScript_ in the correct order.
    * @private
    */
   goog.writeScripts_ = function() {
@@ -502,7 +533,7 @@ if (!COMPILED) {
 
     for (var i = 0; i < scripts.length; i++) {
       if (scripts[i]) {
-        goog.writeScriptTag_(goog.basePath + scripts[i]);
+        goog.importScript_(goog.basePath + scripts[i]);
       } else {
         throw Error('Undefined script input');
       }
@@ -529,7 +560,7 @@ if (!COMPILED) {
 
   // Allow projects to manage the deps files themselves.
   if (!goog.global.CLOSURE_NO_DEPS) {
-    goog.writeScriptTag_(goog.basePath + 'deps.js');
+    goog.importScript_(goog.basePath + 'deps.js');
   }
 }
 
@@ -940,8 +971,7 @@ Object.prototype.clone;
  *     Only the pure-JS version is truly deprecated.
  */
 goog.bindNative_ = function(fn, selfObj, var_args) {
-  return /** @type {!Function} */ (Function.prototype.call.apply(
-      Function.prototype.bind, arguments));
+  return /** @type {!Function} */ (fn.call.apply(fn.bind, arguments));
 };
 
 
@@ -1826,6 +1856,7 @@ goog.string.numerateCompare = function(str1, str2) {
  */
 goog.string.encodeUriRegExp_ = /^[a-zA-Z0-9\-_.!~*'()]*$/;
 
+
 /**
  * URL-encodes a string
  * @param {*} str The string to url-encode.
@@ -2063,6 +2094,7 @@ goog.string.unescapePureXmlEntities_ = function(str) {
   });
 };
 
+
 /**
  * String name for the node.normalize function. Anti-virus programs use this as
  * a signature for some viruses so we need a work around (temporary).
@@ -2070,6 +2102,7 @@ goog.string.unescapePureXmlEntities_ = function(str) {
  * @type {string}
  */
 goog.string.NORMALIZE_FN_ = 'normalize';
+
 
 /**
  * Do escaping of whitespace to preserve spatial formatting. We use character
@@ -2626,10 +2659,12 @@ goog.provide('goog.asserts.AssertionError');
 goog.require('goog.debug.Error');
 goog.require('goog.string');
 
+
 /**
  * @define {boolean} Whether to strip out asserts or to leave them in.
  */
 goog.asserts.ENABLE_ASSERTS = goog.DEBUG;
+
 
 
 /**
@@ -2883,7 +2918,6 @@ goog.asserts.assertInstanceof = function(value, type, opt_message, var_args) {
 goog.provide('goog.array');
 
 goog.require('goog.asserts');
-
 
 
 /**
@@ -4126,6 +4160,33 @@ goog.array.zip = function(var_args) {
     result.push(value);
   }
 };
+
+
+/**
+ * Shuffles the values in the specified array using the Fisher-Yates in-place
+ * shuffle (also known as the Knuth Shuffle). By default, calls Math.random()
+ * and so resets the state of that random number generator. Similarly, may reset
+ * the state of the any other specified random number generator.
+ *
+ * Runtime: O(n)
+ *
+ * @param {!Array} arr The array to be shuffled.
+ * @param {Function=} opt_randFn Optional random function to use for shuffling.
+ *     Takes no arguments, and returns a random number on the interval [0, 1).
+ *     Defaults to Math.random() using JavaScript's built-in Math library.
+ */
+goog.array.shuffle = function(arr, opt_randFn) {
+  var randFn = opt_randFn || Math.random;
+
+  for (var i = arr.length - 1; i > 0; i--) {
+    // Choose a random array index in [0, i] (inclusive with i).
+    var j = Math.floor(randFn() * (i + 1));
+
+    var tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+  }
+};
 // Copyright 2006 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -4661,6 +4722,7 @@ goog.dom.BrowserFeature = {
  */
 goog.provide('goog.dom.TagName');
 
+
 /**
  * Enum of all html tag names specified by the W3C HTML 4.01 Specification.
  * Reference http://www.w3.org/TR/html401/index/elements.html
@@ -5013,6 +5075,7 @@ goog.dom.classes.toggle = function(element, className) {
 
 
 goog.provide('goog.math.Coordinate');
+
 
 
 /**
@@ -6319,6 +6382,7 @@ goog.dom.getDocumentHeight = function() {
   return goog.dom.getDocumentHeight_(window);
 };
 
+
 /**
  * Calculates the height of the document of the given window.
  *
@@ -6496,6 +6560,7 @@ goog.dom.getWindow_ = function(doc) {
 goog.dom.createDom = function(tagName, opt_attributes, var_args) {
   return goog.dom.createDom_(document, arguments);
 };
+
 
 /**
  * Helper for {@code createDom}.
@@ -7672,6 +7737,7 @@ goog.dom.getAncestor = function(
 };
 
 
+
 /**
  * Create an instance of a DOM helper with a new document object.
  * @param {Document=} opt_document Document object to associate with this
@@ -8382,6 +8448,7 @@ goog.debug.entryPointRegistry.unmonitorAllIfPossible = function(monitor) {
 
 goog.provide('goog.debug.errorHandlerWeakDep');
 
+
 /**
  * Dummy object to work around undefined properties compiler warning.
  * @type {Object}
@@ -8461,6 +8528,7 @@ goog.events.BrowserFeature = {
 
 goog.provide('goog.Disposable');
 goog.provide('goog.dispose');
+
 
 
 /**
@@ -8570,6 +8638,7 @@ goog.dispose = function(obj) {
 goog.provide('goog.events.Event');
 
 goog.require('goog.Disposable');
+
 
 
 /**
@@ -8686,13 +8755,13 @@ goog.events.Event.preventDefault = function(e) {
 /**
  * @fileoverview Event Types.
  *
- *
  */
 
 
 goog.provide('goog.events.EventType');
 
 goog.require('goog.userAgent');
+
 
 /**
  * Constants for event names.
@@ -8718,8 +8787,14 @@ goog.events.EventType = {
   BLUR: 'blur',
   FOCUS: 'focus',
   DEACTIVATE: 'deactivate', // IE only
-  // TODO(user): Test these. I experienced problems with DOMFocusIn, the event
-  // just wasn't firing.
+  // NOTE: The following two events are not stable in cross-browser usage.
+  //     WebKit and Opera implement DOMFocusIn/Out.
+  //     IE implements focusin/out.
+  //     Gecko implements neither see bug at
+  //     https://bugzilla.mozilla.org/show_bug.cgi?id=396927.
+  // The DOM Events Level 3 Draft deprecates DOMFocusIn in favor of focusin:
+  //     http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html
+  // You can use FOCUS in Capture phase until implementations converge.
   FOCUSIN: goog.userAgent.IE ? 'focusin' : 'DOMFocusIn',
   FOCUSOUT: goog.userAgent.IE ? 'focusout' : 'DOMFocusOut',
 
@@ -8755,10 +8830,67 @@ goog.events.EventType = {
   UNLOAD: 'unload',
 
   // HTML 5 History events
+  // See http://www.w3.org/TR/html5/history.html#event-definitions
   HASHCHANGE: 'hashchange',
-  POPSTATE: 'popstate'
+  PAGEHIDE: 'pagehide',
+  PAGESHOW: 'pageshow',
+  POPSTATE: 'popstate',
+
+  // Copy and Paste
+  COPY: 'copy',
+  PASTE: 'paste',
+  CUT: 'cut'
+};
+// Copyright 2009 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Useful compiler idioms.
+ *
+ */
+
+goog.provide('goog.reflect');
+
+
+/**
+ * Syntax for object literal casts.
+ * @see http://go/jscompiler-renaming
+ * @see http://code.google.com/p/closure-compiler/wiki/
+ *      ExperimentalTypeBasedPropertyRenaming
+ *
+ * Use this if you have an object literal whose keys need to have the same names
+ * as the properties of some class even after they are renamed by the compiler.
+ *
+ * @param {!Function} type Type to cast to.
+ * @param {Object} object Object literal to cast.
+ * @return {Object} The object literal.
+ */
+goog.reflect.object = function(type, object) {
+  return object;
 };
 
+
+/**
+ * To assert to the compiler that an operation is needed when it would other
+ * wise be stripped. For example:
+ * <code>
+ *     // Force a layout
+ *     goog.reflect.sinkValue(dialog.offsetHeight);
+ * </code>
+ * @type {Function}
+ */
+goog.reflect.sinkValue = new Function('a', 'return a');
 // Copyright 2005 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -8809,6 +8941,7 @@ goog.provide('goog.events.BrowserEvent.MouseButton');
 goog.require('goog.events.BrowserFeature');
 goog.require('goog.events.Event');
 goog.require('goog.events.EventType');
+goog.require('goog.reflect');
 goog.require('goog.userAgent');
 
 
@@ -8845,9 +8978,8 @@ goog.events.BrowserEvent.MouseButton = {
 /**
  * Static data for mapping mouse buttons.
  * @type {Array.<number>}
- * @private
  */
-goog.events.BrowserEvent.IEButtonMap_ = [
+goog.events.BrowserEvent.IEButtonMap = [
   1, // LEFT
   4, // MIDDLE
   2  // RIGHT
@@ -9000,7 +9132,10 @@ goog.events.BrowserEvent.prototype.event_ = null;
  */
 goog.events.BrowserEvent.prototype.init = function(e, opt_currentTarget) {
   var type = this.type = e.type;
-  this.target = e.target || e.srcElement;
+
+  // TODO(nicksantos): Change this.target to type EventTarget.
+  this.target = /** @type {Node} */ (e.target) || e.srcElement;
+
   this.currentTarget = opt_currentTarget;
 
   var relatedTarget = /** @type {Node} */ (e.relatedTarget);
@@ -9012,7 +9147,7 @@ goog.events.BrowserEvent.prototype.init = function(e, opt_currentTarget) {
     if (goog.userAgent.GECKO) {
       /** @preserveTry */
       try {
-        relatedTarget = relatedTarget.nodeName && relatedTarget;
+        goog.reflect.sinkValue(relatedTarget.nodeName);
       } catch (err) {
         relatedTarget = null;
       }
@@ -9049,6 +9184,7 @@ goog.events.BrowserEvent.prototype.init = function(e, opt_currentTarget) {
   delete this.propagationStopped_;
 };
 
+
 /**
  * Tests to see which button was pressed during the event. This is really only
  * useful in IE and Gecko browsers. And in IE, it's only useful for
@@ -9071,7 +9207,7 @@ goog.events.BrowserEvent.prototype.isButton = function(button) {
       return button == goog.events.BrowserEvent.MouseButton.LEFT;
     } else {
       return !!(this.event_.button &
-          goog.events.BrowserEvent.IEButtonMap_[button]);
+          goog.events.BrowserEvent.IEButtonMap[button]);
     }
   } else {
     return this.event_.button == button;
@@ -9172,6 +9308,7 @@ goog.events.BrowserEvent.prototype.disposeInternal = function() {
 goog.provide('goog.events.EventWrapper');
 
 
+
 /**
  * Interface for event wrappers.
  * @interface
@@ -9235,10 +9372,13 @@ goog.events.EventWrapper.prototype.unlisten = function(src, listener, opt_capt,
  * @see ../demos/events.html
  */
 
+
 /**
  * Namespace for events
  */
 goog.provide('goog.events.Listener');
+
+
 
 /**
  * Simple class that stores information about a listener
@@ -9400,6 +9540,7 @@ goog.events.Listener.prototype.handleEvent = function(eventObject) {
 goog.provide('goog.structs.SimplePool');
 
 goog.require('goog.Disposable');
+
 
 
 /**
@@ -9640,6 +9781,7 @@ goog.userAgent.jscript.init_ = function() {
 if (!goog.userAgent.jscript.ASSUME_NO_JSCRIPT) {
   goog.userAgent.jscript.init_();
 }
+
 
 /**
  * Whether we detect that the user agent is using Microsoft JScript.
@@ -11132,6 +11274,7 @@ goog.debug.entryPointRegistry.register(
  * @see ../demos/eventtarget.html
  */
 
+
 /**
  * Namespace for events
  */
@@ -11139,6 +11282,7 @@ goog.provide('goog.events.EventTarget');
 
 goog.require('goog.Disposable');
 goog.require('goog.events');
+
 
 
 /**
@@ -11461,7 +11605,7 @@ goog.Timer.prototype.setInterval = function(interval) {
 
 
 /**
- * Callback for the setInterval used by the timer
+ * Callback for the setTimeout used by the timer
  * @private
  */
 goog.Timer.prototype.tick_ = function() {
@@ -11957,6 +12101,11 @@ goog.provide('goog.iter.Iterator');
 goog.provide('goog.iter.StopIteration');
 
 goog.require('goog.array');
+goog.require('goog.asserts');
+
+
+// TODO(user): Add more functions from Python's itertools.
+// http://docs.python.org/library/itertools.html
 
 
 /**
@@ -12017,7 +12166,6 @@ goog.iter.Iterator.prototype.next = function() {
 goog.iter.Iterator.prototype.__iterator__ = function(opt_keys) {
   return this;
 };
-
 
 
 /**
@@ -12493,6 +12641,69 @@ goog.iter.nextOrValue = function(iterable, defaultValue) {
     return defaultValue;
   }
 };
+
+
+/**
+ * Cartesian product of zero or more sets.  Gives an iterator that gives every
+ * combination of one element chosen from each set.  For example,
+ * ([1, 2], [3, 4]) gives ([1, 3], [1, 4], [2, 3], [2, 4]).
+ * @see http://docs.python.org/library/itertools.html#itertools.product
+ * @param {...!goog.array.ArrayLike.<*>} var_args Zero or more sets, as arrays.
+ * @return {!goog.iter.Iterator} An iterator that gives each n-tuple (as an
+ *     array).
+ */
+goog.iter.product = function(var_args) {
+  var someArrayEmpty = goog.array.some(arguments, function(arr) {
+    return !arr.length;
+  });
+
+  // An empty set in a cartesian product gives an empty set.
+  if (someArrayEmpty || !arguments.length) {
+    return new goog.iter.Iterator();
+  }
+
+  var iter = new goog.iter.Iterator();
+  var arrays = arguments;
+
+  // The first indicies are [0, 0, ...]
+  var indicies = goog.array.repeat(0, arrays.length);
+
+  iter.next = function() {
+
+    if (indicies) {
+      var retVal = goog.array.map(indicies, function(valueIndex, arrayIndex) {
+        return arrays[arrayIndex][valueIndex];
+      });
+
+      // Generate the next-largest indicies for the next call.
+      // Increase the rightmost index. If it goes over, increase the next
+      // rightmost (like carry-over addition).
+      for (var i = indicies.length - 1; i >= 0; i--) {
+        // Assertion prevents compiler warning below.
+        goog.asserts.assert(indicies);
+        if (indicies[i] < arrays[i].length - 1) {
+          indicies[i]++;
+          break;
+        }
+
+        // We're at the last indicies (the last element of every array), so
+        // the iteration is over on the next call.
+        if (i == 0) {
+          indicies = null;
+          break;
+        }
+        // Reset the index in this column and loop back to increment the
+        // next one.
+        indicies[i] = 0;
+      }
+      return retVal;
+    }
+
+    throw goog.iter.StopIteration;
+  };
+
+  return iter;
+};
 // Copyright 2006 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12524,6 +12735,7 @@ goog.require('goog.iter.Iterator');
 goog.require('goog.iter.StopIteration');
 goog.require('goog.object');
 goog.require('goog.structs');
+
 
 
 /**
@@ -12587,6 +12799,7 @@ goog.structs.Map.prototype.count_ = 0;
  * @type {number}
  */
 goog.structs.Map.prototype.version_ = 0;
+
 
 /**
  * @return {number} The number of key-value pairs in the map.
@@ -12706,6 +12919,7 @@ goog.structs.Map.prototype.clear = function() {
   this.count_ = 0;
   this.version_ = 0;
 };
+
 
 /**
  * Removes a key-value pair based on the key. This is O(logN) amortized due to
@@ -12965,6 +13179,7 @@ goog.provide('goog.structs.Set');
 
 goog.require('goog.structs');
 goog.require('goog.structs.Map');
+
 
 
 /**
@@ -13639,6 +13854,8 @@ goog.debug.fnNameCache_ = {};
 
 goog.provide('goog.debug.LogRecord');
 
+
+
 /**
  * LogRecord objects are used to pass logging requests between
  * the logging framework and individual log Handlers.
@@ -13687,7 +13904,6 @@ goog.debug.LogRecord.prototype.msg_;
  * @private
  */
 goog.debug.LogRecord.prototype.loggerName_;
-
 
 
 /**
@@ -13928,6 +14144,7 @@ goog.debug.LogBuffer = function() {
   this.clear();
 };
 
+
 /**
  * A static method that always returns the same instance of LogBuffer.
  * @return {!goog.debug.LogBuffer} The LogBuffer singleton instance.
@@ -13941,6 +14158,7 @@ goog.debug.LogBuffer.getInstance = function() {
   }
   return goog.debug.LogBuffer.instance_;
 };
+
 
 /**
  * @define {number} The number of log records to buffer. 0 means disable
@@ -14063,6 +14281,8 @@ goog.require('goog.debug');
 goog.require('goog.debug.LogBuffer');
 goog.require('goog.debug.LogRecord');
 
+
+
 /**
  * The Logger is an object used for logging debug messages. Loggers are
  * normally named, using a hierarchical dot-separated namespace. Logger names
@@ -14147,6 +14367,7 @@ if (!goog.debug.Logger.ENABLE_HIERARCHY) {
 }
 
 
+
 /**
  * The Level class defines a set of standard logging levels that
  * can be used to control logging output.  The logging Level objects
@@ -14205,6 +14426,7 @@ goog.debug.Logger.Level.prototype.toString = function() {
 goog.debug.Logger.Level.OFF =
     new goog.debug.Logger.Level('OFF', Infinity);
 
+
 /**
  * SHOUT is a message level for extra debugging loudness.
  * This level is initialized to <CODE>1200</CODE>.
@@ -14212,12 +14434,14 @@ goog.debug.Logger.Level.OFF =
  */
 goog.debug.Logger.Level.SHOUT = new goog.debug.Logger.Level('SHOUT', 1200);
 
+
 /**
  * SEVERE is a message level indicating a serious failure.
  * This level is initialized to <CODE>1000</CODE>.
  * @type {!goog.debug.Logger.Level}
  */
 goog.debug.Logger.Level.SEVERE = new goog.debug.Logger.Level('SEVERE', 1000);
+
 
 /**
  * WARNING is a message level indicating a potential problem.
@@ -14250,6 +14474,7 @@ goog.debug.Logger.Level.CONFIG = new goog.debug.Logger.Level('CONFIG', 700);
  */
 goog.debug.Logger.Level.FINE = new goog.debug.Logger.Level('FINE', 500);
 
+
 /**
  * FINER indicates a fairly detailed tracing message.
  * This level is initialized to <CODE>400</CODE>.
@@ -14264,6 +14489,7 @@ goog.debug.Logger.Level.FINER = new goog.debug.Logger.Level('FINER', 400);
  */
 
 goog.debug.Logger.Level.FINEST = new goog.debug.Logger.Level('FINEST', 300);
+
 
 /**
  * ALL indicates that all messages should be logged.
@@ -14651,11 +14877,25 @@ goog.debug.Logger.prototype.logRecord = function(logRecord) {
 
 
 /**
+ * Logs the message to speed tracer, if it is available.
+ * {@see http://code.google.com/webtoolkit/speedtracer/logging-api.html}
+ * @param {string} msg The message to log.
+ * @private
+ */
+goog.debug.Logger.prototype.logToSpeedTracer_ = function(msg) {
+  if (goog.global['console'] && goog.global['console']['markTimeline']) {
+    goog.global['console']['markTimeline'](msg);
+  }
+};
+
+
+/**
  * Log a LogRecord.
  * @param {goog.debug.LogRecord} logRecord A log record to log.
  * @private
  */
 goog.debug.Logger.prototype.doLogRecord_ = function(logRecord) {
+  this.logToSpeedTracer_('log:' + logRecord.getMessage());
   if (goog.debug.Logger.ENABLE_HIERARCHY) {
     var target = this;
     while (target) {
@@ -14712,6 +14952,7 @@ goog.debug.Logger.prototype.addChild_ = function(name, logger) {
  */
 goog.debug.LogManager = {};
 
+
 /**
  * Map of logger names to logger objects
  *
@@ -14720,12 +14961,14 @@ goog.debug.LogManager = {};
  */
 goog.debug.LogManager.loggers_ = {};
 
+
 /**
  * The root logger which is the root of the logger tree.
  * @type {goog.debug.Logger}
  * @private
  */
 goog.debug.LogManager.rootLogger_ = null;
+
 
 /**
  * Initialize the LogManager if not already initialized
@@ -14737,6 +14980,7 @@ goog.debug.LogManager.initialize = function() {
     goog.debug.LogManager.rootLogger_.setLevel(goog.debug.Logger.Level.CONFIG);
   }
 };
+
 
 /**
  * Returns all the loggers
@@ -14837,7 +15081,6 @@ goog.provide('goog.json');
 goog.provide('goog.json.Serializer');
 
 
-
 /**
  * Tests if a string is an invalid JSON string. This only ensures that we are
  * not using any invalid characters
@@ -14920,6 +15163,7 @@ goog.json.parse = function(s) {
 goog.json.unsafeParse = function(s) {
   return eval('(' + s + ')');
 };
+
 
 /**
  * Serializes an object or a value to a JSON string.
@@ -15440,7 +15684,6 @@ goog.require('goog.net.WrapperXmlHttpFactory');
 goog.require('goog.net.XmlHttpFactory');
 
 
-
 /**
  * Static class for creating XMLHttpRequest objects.
  * @return {!(XMLHttpRequest|GearsHttpRequest)} A new XMLHttpRequest object.
@@ -15542,6 +15785,7 @@ goog.net.XmlHttp.setFactory = function(factory, optionsFactory) {
 goog.net.XmlHttp.setGlobalFactory = function(factory) {
   goog.net.XmlHttp.factory_ = factory;
 };
+
 
 
 /**
@@ -15666,6 +15910,7 @@ goog.provide('goog.net.xhrMonitor');
 goog.require('goog.array');
 goog.require('goog.debug.Logger');
 goog.require('goog.userAgent');
+
 
 
 /**
@@ -16910,6 +17155,7 @@ goog.require('goog.structs.Map');
 goog.require('goog.uri.utils');
 
 
+
 /**
  * Basic class for handling XMLHttpRequests.
  * @param {goog.net.XmlHttpFactory=} opt_xmlHttpFactory Factory to use when
@@ -16935,6 +17181,7 @@ goog.net.XhrIo = function(opt_xmlHttpFactory) {
   this.xmlHttpFactory_ = opt_xmlHttpFactory || null;
 };
 goog.inherits(goog.net.XhrIo, goog.events.EventTarget);
+
 
 /**
  * A reference to the XhrIo logger
@@ -17975,8 +18222,11 @@ goog.net.cookies.isValidValue = function(value) {
  *     a domain attribute (browser will use the full request host name). If not
  *     provided, the default is null (i.e. let browser use full request host
  *     name).
+ * @param {boolean=} opt_secure Whether the cookie should only be sent over
+ *     a secure channel.
  */
-goog.net.cookies.set = function(name, value, opt_maxAge, opt_path, opt_domain) {
+goog.net.cookies.set = function(
+    name, value, opt_maxAge, opt_path, opt_domain, opt_secure) {
   if (!goog.net.cookies.isValidName(name)) {
     throw Error('Invalid cookie name "' + name + '"');
   }
@@ -17990,6 +18240,7 @@ goog.net.cookies.set = function(name, value, opt_maxAge, opt_path, opt_domain) {
 
   var domainStr = opt_domain ? ';domain=' + opt_domain : '';
   var pathStr = opt_path ? ';path=' + opt_path : '';
+  var secureStr = opt_secure ? ';secure' : '';
 
   var expiresStr;
 
@@ -18014,7 +18265,7 @@ goog.net.cookies.set = function(name, value, opt_maxAge, opt_path, opt_domain) {
   }
 
   goog.net.cookies.setCookie_(name + '=' + value + domainStr + pathStr +
-                              expiresStr);
+                              expiresStr + secureStr);
 };
 
 
@@ -18134,6 +18385,7 @@ goog.net.cookies.clear = function() {
     goog.net.cookies.remove(keys[i]);
   }
 };
+
 
 /**
  * Private helper function to allow testing cookies without depending on the
@@ -18471,6 +18723,7 @@ goog.require('goog.object');
 goog.require('goog.structs.SimplePool');
 
 
+
 /**
  * Super class for objects that want to easily manage a number of event
  * listeners.  It allows a short cut to listen and also provides a quick way
@@ -18534,6 +18787,16 @@ goog.events.EventHandler.key_ = null;
 
 
 /**
+ * Utility array used to unify the cases of listening for an array of types
+ * and listening for a single event, without using recursion or allocating
+ * an array each time.
+ * @type {Array.<string>}
+ * @private
+ */
+goog.events.EventHandler.typeArray_ = [];
+
+
+/**
  * Listen to an event on a DOM node or EventTarget.  If the function is omitted
  * then the EventHandler's handleEvent method will be used.
  * @param {goog.events.EventTarget|EventTarget} src Event source.
@@ -18549,13 +18812,13 @@ goog.events.EventHandler.key_ = null;
 goog.events.EventHandler.prototype.listen = function(src, type, opt_fn,
                                                      opt_capture,
                                                      opt_handler) {
-  if (goog.isArray(type)) {
-    for (var i = 0; i < type.length; i++) {
-      this.listen(src, type[i], opt_fn, opt_capture, opt_handler);
-    }
-  } else {
+  if (!goog.isArray(type)) {
+    goog.events.EventHandler.typeArray_[0] = /** @type {string} */(type);
+    type = goog.events.EventHandler.typeArray_;
+  }
+  for (var i = 0; i < type.length; i++) {
     var key = (/** @type {number} */
-        goog.events.listen(src, type, opt_fn || this,
+        goog.events.listen(src, type[i], opt_fn || this,
                            opt_capture || false,
                            opt_handler || this.handler_ || this));
     this.recordListenerKey_(key);
@@ -19001,6 +19264,8 @@ goog.provide('goog.math.Rect');
 goog.require('goog.math.Box');
 goog.require('goog.math.Size');
 
+
+
 /**
  * Class for representing rectangular regions.
  * @param {number} x Left.
@@ -19282,6 +19547,7 @@ goog.math.Rect.boundingRect = function(a, b) {
 
   return clone;
 };
+
 
 /**
  * Tests whether this rectangle entirely contains another rectangle or
@@ -20161,7 +20427,6 @@ goog.style.setHeight = function(element, height) {
 goog.style.setWidth = function(element, width) {
   element.style.width = goog.style.getPixelStyleValue_(width, true);
 };
-
 
 
 /**
@@ -21151,6 +21416,7 @@ goog.style.getScrollbarWidth = function() {
 goog.provide('goog.ui.IdGenerator');
 
 
+
 /**
  * Creates a new id generator.
  * @constructor
@@ -21158,6 +21424,7 @@ goog.provide('goog.ui.IdGenerator');
 goog.ui.IdGenerator = function() {
 };
 goog.addSingletonGetter(goog.ui.IdGenerator);
+
 
 /**
  * Next unique ID to use
@@ -21174,6 +21441,7 @@ goog.ui.IdGenerator.prototype.nextId_ = 0;
 goog.ui.IdGenerator.prototype.getNextUniqueId = function() {
   return ':' + (this.nextId_++).toString(36);
 };
+
 
 /**
  * Default instance for id generation. Done as an instance instead of statics
@@ -21220,6 +21488,7 @@ goog.require('goog.events.EventTarget');
 goog.require('goog.object');
 goog.require('goog.style');
 goog.require('goog.ui.IdGenerator');
+
 
 
 /**
@@ -22403,6 +22672,7 @@ goog.require('goog.functions');
 goog.require('goog.ui.Component');
 
 
+
 /**
  * A table sorter allows for sorting of a table by column.  This component can
  * be used to decorate an already existing TABLE element with sorting
@@ -22542,7 +22812,8 @@ goog.ui.TableSorter.prototype.setSortFunction = function(column, sortFunction) {
 goog.ui.TableSorter.prototype.sort_ = function(e) {
   // Determine what column was clicked.
   // TODO(robbyw): If this table cell contains another table, this could break.
-  var th = goog.dom.getAncestorByTagNameAndClass(e.target,
+  var target = /** @type {Node} */ (e.target);
+  var th = goog.dom.getAncestorByTagNameAndClass(target,
       goog.dom.TagName.TH);
   var col = th.cellIndex;
 
@@ -22702,7 +22973,6 @@ goog.require('goog.math.Box');
 goog.require('goog.math.Coordinate');
 goog.require('goog.math.Size');
 goog.require('goog.style');
-
 
 
 /**
@@ -23221,6 +23491,7 @@ goog.require('goog.positioning');
 goog.require('goog.positioning.AbstractPosition');
 
 
+
 /**
  * Encapsulates a popup position where the popup is anchored at a corner of
  * an element.
@@ -23437,10 +23708,11 @@ goog.require('goog.positioning.Overflow');
 goog.require('goog.positioning.OverflowStatus');
 
 
+
 /**
  * Encapsulates a popup position where the popup is anchored at a corner of
  * an element. The corners are swapped if dictated by the viewport. For instance
- * if a popup is anchored with it's top left corner to the bottom left corner of
+ * if a popup is anchored with its top left corner to the bottom left corner of
  * the anchor the popup is either displayed below the anchor (as specified) or
  * above it if there's not enough room to display it below.
  *
@@ -24057,6 +24329,7 @@ goog.require('goog.style');
 goog.require('goog.userAgent');
 
 
+
 /**
  * The PopupBase class provides functionality for showing and hiding a generic
  * container element. It also provides the option for hiding the popup element
@@ -24082,6 +24355,7 @@ goog.ui.PopupBase = function(opt_element, opt_type) {
 };
 goog.inherits(goog.ui.PopupBase, goog.events.EventTarget);
 
+
 /**
  * Constants for type of Popup
  * @enum {string}
@@ -24091,12 +24365,14 @@ goog.ui.PopupBase.Type = {
   MOVE_OFFSCREEN: 'move_offscreen'
 };
 
+
 /**
  * The popup dom element that this Popup wraps.
  * @type {Element}
  * @private
  */
 goog.ui.PopupBase.prototype.element_ = null;
+
 
 /**
  * Whether the Popup dismisses itself it the user clicks outside of it or the
@@ -24105,6 +24381,7 @@ goog.ui.PopupBase.prototype.element_ = null;
  * @private
  */
 goog.ui.PopupBase.prototype.autoHide_ = true;
+
 
 /**
  * Clicks outside the popup but inside this element will cause the popup to
@@ -24116,12 +24393,14 @@ goog.ui.PopupBase.prototype.autoHide_ = true;
  */
 goog.ui.PopupBase.prototype.autoHideRegion_ = null;
 
+
 /**
  * Whether the popup is currently being shown.
  * @type {boolean}
  * @private
  */
 goog.ui.PopupBase.prototype.isVisible_ = false;
+
 
 /**
  * Whether the popup should hide itself asynchrously. This was added because
@@ -24133,12 +24412,14 @@ goog.ui.PopupBase.prototype.isVisible_ = false;
  */
 goog.ui.PopupBase.prototype.shouldHideAsync_ = false;
 
+
 /**
  * The time when the popup was last shown.
  * @type {number}
  * @private
  */
 goog.ui.PopupBase.prototype.lastShowTime_ = -1;
+
 
 /**
  * The time when the popup was last hidden.
@@ -24147,12 +24428,14 @@ goog.ui.PopupBase.prototype.lastShowTime_ = -1;
  */
 goog.ui.PopupBase.prototype.lastHideTime_ = -1;
 
+
 /**
  * Whether to hide when the escape key is pressed.
  * @type {boolean}
  * @private
  */
 goog.ui.PopupBase.prototype.hideOnEscape_ = false;
+
 
 /**
  * Whether to enable cross-iframe dismissal.
@@ -24161,12 +24444,14 @@ goog.ui.PopupBase.prototype.hideOnEscape_ = false;
  */
 goog.ui.PopupBase.prototype.enableCrossIframeDismissal_ = true;
 
+
 /**
  * The type of popup
  * @type {goog.ui.PopupBase.Type}
  * @private
  */
 goog.ui.PopupBase.prototype.type_ = goog.ui.PopupBase.Type.TOGGLE_DISPLAY;
+
 
 /**
  * Constants for event type fired by Popup
@@ -24197,6 +24482,7 @@ goog.ui.PopupBase.EventType = {
  * @type {number}
  */
 goog.ui.PopupBase.DEBOUNCE_DELAY_MS = 150;
+
 
 /**
  * @return {goog.ui.PopupBase.Type} The type of popup this is.
@@ -24365,6 +24651,7 @@ goog.ui.PopupBase.prototype.ensureNotVisible_ = function() {
     throw Error('Can not change this state of the popup while showing.');
   }
 };
+
 
 /**
  * Returns whether the popup is currently visible.
@@ -24649,7 +24936,7 @@ goog.ui.PopupBase.prototype.onHide_ = function(opt_target) {
  * @private
  */
 goog.ui.PopupBase.prototype.onDocumentMouseDown_ = function(e) {
-  var target = e.target;
+  var target = /** @type {Node} */ (e.target);
   if (!goog.dom.contains(this.element_, target) &&
       (!this.autoHideRegion_ || goog.dom.contains(
       this.autoHideRegion_, target)) &&
@@ -24995,7 +25282,6 @@ goog.ui.Popup.positionPopup = function(anchorElement, anchorElementCorner,
 };
 
 
-
 /**
  * Positions the specified corner of the movable element at the
  * specified coordinate.
@@ -25041,6 +25327,7 @@ goog.ui.Popup.positionAtCoordinate = function(absolutePos, movableElement,
 goog.ui.Popup.AnchoredPosition = goog.positioning.AnchoredPosition;
 
 
+
 /**
  * Encapsulates a popup position where the popup is anchored at a corner of
  * an element. The corners are swapped if dictated by the viewport. For instance
@@ -25068,6 +25355,7 @@ goog.ui.Popup.AnchoredViewPortPosition =
     goog.positioning.AnchoredViewportPosition;
 
 
+
 /**
  * Encapsulates a popup position where the popup absolutely positioned by
  * setting the left/top style elements directly to the specified values.
@@ -25084,6 +25372,7 @@ goog.ui.Popup.AnchoredViewPortPosition =
  *     will be removed at the end of Q1 2009.
  */
 goog.ui.Popup.AbsolutePosition = goog.positioning.AbsolutePosition;
+
 
 
 /**
@@ -25103,6 +25392,7 @@ goog.ui.Popup.AbsolutePosition = goog.positioning.AbsolutePosition;
 goog.ui.Popup.ViewPortPosition = goog.positioning.ViewportPosition;
 
 
+
 /**
  * Encapsulates a popup position where the popup is positioned relative to the
  * window (client) coordinates. This calculates the correct position to
@@ -25120,6 +25410,7 @@ goog.ui.Popup.ViewPortPosition = goog.positioning.ViewportPosition;
  *     will be removed at the end of Q1 2009.
  */
 goog.ui.Popup.ClientPosition = goog.positioning.ClientPosition;
+
 
 
 /**

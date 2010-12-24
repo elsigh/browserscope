@@ -266,7 +266,12 @@ def UaParser(request):
 
   # JS snippet
   elif output == 'js':
-    params = {'mimetype': 'text/javascript'}
+    # Get the ua-parser project's js override functionality.
+    f = open('third_party/uaparser/resources/user_agent_overrides.js', 'r')
+    js_ua_override = f.read()
+    f.close()
+    params['js_ua_override'] = js_ua_override
+    params['mimetype'] = 'text/javascript'
     return Render(request, 'user_agent.js', params)
   else:
     raise NotImplementedError
@@ -665,6 +670,8 @@ def Beacon(request, category_id=None):
   """Records result times in the datastore.
   This is the handler for after a test is done.
   ex: /beacon?category=reflow&csrf_token=number&results=tes1=150,test2=300
+  params:
+    category_id: A string, the same as category in the request, simply for logs.
   """
   ip = request.META.get('REMOTE_ADDR')
   ip_hash = hashlib.md5(ip).hexdigest()

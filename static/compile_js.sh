@@ -4,4 +4,4 @@
 ../third_party/closure-library/closure/bin/calcdeps.py -i util.js -p ../third_party/closure-library/ -o list | grep closure | xargs cat > dev.js
 
 # Compiled for production
-../third_party/closure-library/closure/bin/calcdeps.py -i util.js -p ../third_party/closure-library/ -o compiled -c ../third_party/closure-compiler/compiler.jar -f ADVANCED_OPTIMIZATIONS > browserscope.js;
+../third_party/closure-library/closure/bin/calcdeps.py -i util.js third_party/uaparser/resources/user_agent_overrides.js -p ../third_party/closure-library/ -o compiled -c ../third_party/closure-compiler/compiler.jar -f ADVANCED_OPTIMIZATIONS > browserscope.js;
