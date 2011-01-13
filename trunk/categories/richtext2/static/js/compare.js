@@ -34,16 +34,19 @@ var RESULT_EQUAL = 2;  // actual result matches expectation in both HTML and sel
  * @return {Array} test expectations as an array.
  */
 function getExpectationArray(expected) {
-  if (!expected) {
+  if (expected === undefined) {
     return [];
   }
-
-  // Treat a single test expectation string or bool as an array of 1 expectation.
+  if (expected === null) {
+    return [null];
+  }
   switch (typeof expected) {
     case 'string':
     case 'boolean':
+    case 'number':
       return [expected];
   }
+  // Assume it's already an array.
   return expected;
 }
 
