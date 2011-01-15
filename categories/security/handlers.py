@@ -115,8 +115,8 @@ def XContentSecurityPolicyTest(request):
   <html>
   <body>
   <!-- the Eval inside xcsp.js should not work -->
-  <script src='../static/xcsp.js'></script>
   <div id="csp">PASS</div>
+  <script src='../static/xcsp.js'></script>
   <!-- The following inline script should not work -->
   <script>
   document.getElementById('csp').firstChild.nodeValue='FAIL'
