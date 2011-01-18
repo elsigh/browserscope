@@ -166,7 +166,6 @@ DELETE_TESTS = {
     },
 
     { 'desc':       'delete with strange selections',
-      'command':    '',
       'tests':      [
         { 'id':          'HR.BR-1_SM',
           'desc':        'Delete selection that starts and ends within nodes that don\'t have children',
