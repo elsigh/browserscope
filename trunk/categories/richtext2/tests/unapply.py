@@ -349,7 +349,7 @@ UNAPPLY_TESTS = {
         { 'id':         'UNLINK_Ahref:url-1_SW',
           'rte1-id':    'u-unlink-0',
           'desc':       'unlink an <a> element with href attribute where all children are selected',
-          'pad':        'foo<a href="http://www.foo.com">[bar]</a>baz' },
+          'pad':        'foo<a href="http://www.goo.gl">[bar]</a>baz' },
 
         { 'id':         'UNLINK_A-1_SC',
           'desc':       'unlink an <a> element that contains the collapsed selection',
@@ -437,7 +437,7 @@ UNAPPLY_TESTS = {
         { 'id':         'REMOVEFORMAT_Ahref:url-1_SW',
           'rte1-id':    'u-removeformat-0',
           'desc':       'remove a link using "removeformat"',
-          'pad':        'foo<a href="http://www.foo.com">[bar]</a>baz' },
+          'pad':        'foo<a href="http://www.goo.gl">[bar]</a>baz' },
 
         { 'id':         'REMOVEFORMAT_TABLE-TBODY-TR-TD-1_SW',
           'rte1-id':    'u-removeformat-2',

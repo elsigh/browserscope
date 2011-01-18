@@ -218,13 +218,13 @@ QUERYSTATE_TESTS = {
         { 'id':         'U_Ah:url-1_SI',
           'rte1-id':    'q-underline-2',
           'desc':       'query the "underline" state',
-          'pad':        '<a href="http://www.foo.com">foo[bar]baz</a>',
+          'pad':        '<a href="http://www.goo.gl">foo[bar]baz</a>',
           'expected':   True },
 
         { 'id':         'U_Ah:url.s:td:n-1_SI',
           'rte1-id':    'q-underline-5',
           'desc':       'query the "underline" state',
-          'pad':        '<a href="http://www.foo.com" style="text-decoration: none">foo[bar]baz</a>',
+          'pad':        '<a href="http://www.goo.gl" style="text-decoration: none">foo[bar]baz</a>',
           'expected':   False },
 
         { 'id':         'U_SPANs:td:u-1_SI',

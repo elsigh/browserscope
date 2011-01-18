@@ -16,7 +16,7 @@ UNAPPLY_TESTS_CSS = {
     },
 
     { 'desc':       'remove bold',
-      'command':    '',
+      'command':    'bold',
       'tests':      [
         { 'id':         'B_B-1_SW',
           'desc':       'Selection within tags; remove <b> tags',
