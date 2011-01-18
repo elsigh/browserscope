@@ -1,7 +1,10 @@
-.legend {
+.framed {
   vertical-align: top;
   margin: 8px;
   border: 1px solid black;
+}
+
+.legend {
   padding: 12px;
   background-color: #f8f8ff;
 }
