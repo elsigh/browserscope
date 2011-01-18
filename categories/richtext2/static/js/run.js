@@ -41,46 +41,45 @@ function suiteChecksSelection(suite) {
 }
 
 /**
- * Generates a unique ID for a given single test out of the suite ID and
- * test ID.
- *
- * @param suiteID {string}
- * @param testID {string}
- * @return {string} globally unique ID
- */
-function generateTestID(suiteID, testID) {
-  return commonIDPrefix + '-' + suiteID + '_' + testID;
-}
-
-/**
  * Helper function returning the effective value of a test parameter.
  *
  * @param suite {Object} the test suite
+ * @param group {Object} group of tests within the suite the test belongs to
  * @param test {Object} the test
  * @param param {String} the test parameter to be checked
  * @return {Any} the effective value of the parameter (can be undefined)
  */
-function getTestParameter(suite, test, param) {
+function getTestParameter(suite, group, test, param) {
   var val = test[param];
-  return (val === undefined) ? suite[param] : val;
+  if (val === undefined) {
+    val = group[param];
+  }
+  if (val === undefined) {
+    val = suite[param];
+  }
+  return val;
 }
 
 /**
  * Helper function returning the effective value of a container/test parameter.
  *
  * @param suite {Object} the test suite
+ * @param group {Object} group of tests within the suite the test belongs to
  * @param test {Object} the test
  * @param container {Object} the container descriptor object
  * @param param {String} the test parameter to be checked
  * @return {Any} the effective value of the parameter (can be undefined)
  */
-function getContainerParameter(suite, test, container, param) {
+function getContainerParameter(suite, group, test, container, param) {
   var val = undefined;
   if (test[container.id]) {
     val = test[container.id][param];
   }
   if (val === undefined) {
     val = test[param];
+  }
+  if (val === undefined) {
+    val = group[param];
   }
   if (val === undefined) {
     val = suite[param];
@@ -103,11 +102,12 @@ function initVariables() {
  * Runs a single test - outputs and sets the result variables.
  *
  * @param suite {Object} suite that test originates in as object reference
+ * @param group {Object} group of tests within the suite the test belongs to
  * @param test {Object} test to be run as object reference
  * @param container {Object} container descriptor as object reference
  * @see variables.js for RESULT... values
  */
-function runSingleTest(suite, test, container) {
+function runSingleTest(suite, group, test, container) {
   var result = {
     valscore: 0,
     selscore: 0,
@@ -118,7 +118,7 @@ function runSingleTest(suite, test, container) {
 
   // 1.) Populate the editor element with the initial test setup HTML.
   try {
-    initContainer(suite, test, container);
+    initContainer(suite, group, test, container);
   } catch(ex) {
     result.valresult = VALRESULT_SETUP_EXCEPTION;
     result.selresult = SELRESULT_NA;
@@ -132,27 +132,27 @@ function runSingleTest(suite, test, container) {
   try {
     var cmd = undefined;
 
-    if (cmd = getTestParameter(suite, test, PARAM_EXECCOMMAND)) {
+    if (cmd = getTestParameter(suite, group, test, PARAM_EXECCOMMAND)) {
       isHTMLTest = true;
-      // Note: "getTestParameter(suite, test, PARAM_VALUE) || null" doesn't work, since
-      // value might be the empty string - e.g., for 'insertText'!
-      var value = getTestParameter(suite, test, PARAM_VALUE);
+      // Note: "getTestParameter(suite, group, test, PARAM_VALUE) || null"
+      // doesn't work, since value might be the empty string, e.g., for 'insertText'!
+      var value = getTestParameter(suite, group, test, PARAM_VALUE);
       if (value === undefined) {
         value = null;
       }
       container.doc.execCommand(cmd, false, value);
-    } else if (cmd = getTestParameter(suite, test, PARAM_FUNCTION)) {
+    } else if (cmd = getTestParameter(suite, group, test, PARAM_FUNCTION)) {
       isHTMLTest = true;
       eval(cmd);
-    } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDSUPPORTED)) {
+    } else if (cmd = getTestParameter(suite, group, test, PARAM_QUERYCOMMANDSUPPORTED)) {
       result.output = container.doc.queryCommandSupported(cmd);
-    } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDENABLED)) {
+    } else if (cmd = getTestParameter(suite, group, test, PARAM_QUERYCOMMANDENABLED)) {
       result.output = container.doc.queryCommandEnabled(cmd);
-    } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDINDETERM)) {
+    } else if (cmd = getTestParameter(suite, group, test, PARAM_QUERYCOMMANDINDETERM)) {
       result.output = container.doc.queryCommandIndeterm(cmd);
-    } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDSTATE)) {
+    } else if (cmd = getTestParameter(suite, group, test, PARAM_QUERYCOMMANDSTATE)) {
       result.output = container.doc.queryCommandState(cmd);
-    } else if (cmd = getTestParameter(suite, test, PARAM_QUERYCOMMANDVALUE)) {
+    } else if (cmd = getTestParameter(suite, group, test, PARAM_QUERYCOMMANDVALUE)) {
       result.output = container.doc.queryCommandValue(cmd);
       if (result.output === false) {
         // A return value of boolean 'false' for queryCommandValue means 'not supported'.
@@ -181,12 +181,12 @@ function runSingleTest(suite, test, container) {
       prepareHTMLTestResult(container, result);
 
       // Compare result to expectations
-      compareHTMLTestResult(suite, test, container, result);
+      compareHTMLTestResult(suite, group, test, container, result);
 
       result.valscore = (result.valresult === VALRESULT_EQUAL) ? 1 : 0;
       result.selscore = (result.selresult === SELRESULT_EQUAL) ? 1 : 0;
     } else {
-      compareTextTestResult(suite, test, result);
+      compareTextTestResult(suite, group, test, result);
 
       result.selresult = SELRESULT_NA;
       result.valscore = (result.valresult === VALRESULT_EQUAL) ? 1 : 0;
@@ -218,43 +218,51 @@ function initTestSuiteResults(suite) {
       time: 0
   };
   var totalTestCount = 0;
+
   for (var clsIdx = 0; clsIdx < testClassCount; ++clsIdx) {
     var clsID = testClassIDs[clsIdx];
     var cls = suite[clsID];
     if (!cls)
       continue;
 
-    var testCount = cls.length;
-
     results[suiteID][clsID] = {
-        count: testCount,
+        count: 0,
         valscore: 0,
         selscore: 0
     };
-    totalTestCount += testCount;
+    var clsTestCount = 0;
 
-    for (var testIdx = 0; testIdx < testCount; ++testIdx) {
-      var test = cls[testIdx];
-      var testID = generateTestID(suiteID, test.id);
-      
-      results[suiteID][clsID ][testID] = {
-          valscore: 0,
-          selscore: 0,
-          valresult: VALRESULT_NOT_RUN,
-          selresult: SELRESULT_NOT_RUN
-      };
-      for (var cntIdx = 0; cntIdx < containers.length; ++cntIdx) {
-        var cntID = containers[cntIdx].id;
+    var groupCount = cls.length;
+    for (var groupIdx = 0; groupIdx < groupCount; ++groupIdx) {
+      var group = cls[groupIdx];
+      var testCount = group.tests.length;
 
-        results[suiteID][clsID][testID][cntID] = {
-          valscore: 0,
-          selscore: 0,
-          valresult: VALRESULT_NOT_RUN,
-          selresult: SELRESULT_NOT_RUN,
-          output: ''
+      clsTestCount += testCount;
+      totalTestCount += testCount;
+
+      for (var testIdx = 0; testIdx < testCount; ++testIdx) {
+        var test = group.tests[testIdx];
+        
+        results[suiteID][clsID ][test.id] = {
+            valscore: 0,
+            selscore: 0,
+            valresult: VALRESULT_NOT_RUN,
+            selresult: SELRESULT_NOT_RUN
+        };
+        for (var cntIdx = 0; cntIdx < containers.length; ++cntIdx) {
+          var cntID = containers[cntIdx].id;
+
+          results[suiteID][clsID][test.id][cntID] = {
+            valscore: 0,
+            selscore: 0,
+            valresult: VALRESULT_NOT_RUN,
+            selresult: SELRESULT_NOT_RUN,
+            output: ''
+          }
         }
       }
     }
+    results[suiteID][clsID].count = clsTestCount;
   }
   results[suiteID].count = totalTestCount;
 }
@@ -276,44 +284,48 @@ function runTestSuite(suite) {
     if (!cls)
       continue;
 
-    var testCount = cls.length;
+    var groupCount = cls.length;
 
-    for (var testIdx = 0; testIdx < testCount; ++testIdx) {
-      var test = cls[testIdx];
-      var testID = generateTestID(suiteID, test.id);
+    for (var groupIdx = 0; groupIdx < groupCount; ++groupIdx) {
+      var group = cls[groupIdx];
+      var testCount = group.tests.length;
 
-      var valscore = 1;
-      var selscore = 1;
-      var valresult = VALRESULT_EQUAL;
-      var selresult = SELRESULT_EQUAL;
+      for (var testIdx = 0; testIdx < testCount; ++testIdx) {
+        var test = group.tests[testIdx];
 
-      for (var cntIdx = 0; cntIdx < containers.length; ++cntIdx) {
-        var container = containers[cntIdx];
-        var cntID = container.id;
+        var valscore = 1;
+        var selscore = 1;
+        var valresult = VALRESULT_EQUAL;
+        var selresult = SELRESULT_EQUAL;
 
-        var result = runSingleTest(suite, test, container);
+        for (var cntIdx = 0; cntIdx < containers.length; ++cntIdx) {
+          var container = containers[cntIdx];
+          var cntID = container.id;
 
-        results[suiteID][clsID][testID][cntID] = result;
+          var result = runSingleTest(suite, group, test, container);
 
-        valscore = Math.min(valscore, result.valscore);
-        selscore = Math.min(selscore, result.selscore);
-        valresult = Math.min(valresult, result.valresult);
-        selresult = Math.min(selresult, result.selresult);
+          results[suiteID][clsID][test.id][cntID] = result;
 
-        resetContainer(container);
-      }          
+          valscore = Math.min(valscore, result.valscore);
+          selscore = Math.min(selscore, result.selscore);
+          valresult = Math.min(valresult, result.valresult);
+          selresult = Math.min(selresult, result.selresult);
 
-      results[suiteID][clsID][testID].valscore = valscore;
-      results[suiteID][clsID][testID].selscore = selscore;
-      results[suiteID][clsID][testID].valresult = valresult;
-      results[suiteID][clsID][testID].selresult = selresult;
+          resetContainer(container);
+        }          
 
-      results[suiteID][clsID].valscore += valscore;
-      results[suiteID][clsID].selscore += selscore;
-      results[suiteID].valscore += valscore;
-      results[suiteID].selscore += selscore;
-      results.valscore += valscore;
-      results.selscore += selscore;
+        results[suiteID][clsID][test.id].valscore = valscore;
+        results[suiteID][clsID][test.id].selscore = selscore;
+        results[suiteID][clsID][test.id].valresult = valresult;
+        results[suiteID][clsID][test.id].selresult = selresult;
+
+        results[suiteID][clsID].valscore += valscore;
+        results[suiteID][clsID].selscore += selscore;
+        results[suiteID].valscore += valscore;
+        results[suiteID].selscore += selscore;
+        results.valscore += valscore;
+        results.selscore += selscore;
+      }
     }
   }
 

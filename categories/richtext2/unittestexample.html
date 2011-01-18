@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+  <title>Rich Text 2 Unit Test Example</title>
+
+  <!-- utility scripts -->
+  <script type="text/javascript" src="static/js/variables.js"></script> 
+  <script type="text/javascript" src="static/js/canonicalize.js"></script> 
+  <script type="text/javascript" src="static/js/compare.js"></script> 
+  <script type="text/javascript" src="static/js/pad.js"></script> 
+  <script type="text/javascript" src="static/js/range.js"></script> 
+  <script type="text/javascript" src="static/js/units.js"></script> 
+  <script type="text/javascript" src="static/js/run.js"></script> 
+  <!-- you do not need static/js/output.js -->
+
+  <!-- 
+    Tests - note that those have the extensions .py, 
+    but can be used as JS files directly.
+  -->
+  <script type="text/javascript" src="tests/selection.py"></script> 
+  <script type="text/javascript" src="tests/apply.py"></script> 
+  <script type="text/javascript" src="tests/applyCSS.py"></script> 
+  <script type="text/javascript" src="tests/change.py"></script> 
+  <script type="text/javascript" src="tests/changeCSS.py"></script> 
+  <script type="text/javascript" src="tests/unapply.py"></script> 
+  <script type="text/javascript" src="tests/unapplyCSS.py"></script> 
+  <script type="text/javascript" src="tests/delete.py"></script> 
+  <script type="text/javascript" src="tests/forwarddelete.py"></script> 
+  <script type="text/javascript" src="tests/insert.py"></script> 
+  <script type="text/javascript" src="tests/querySupported.py"></script> 
+  <script type="text/javascript" src="tests/queryEnabled.py"></script> 
+  <script type="text/javascript" src="tests/queryIndeterm.py"></script> 
+  <script type="text/javascript" src="tests/queryState.py"></script> 
+  <script type="text/javascript" src="tests/queryValue.py"></script> 
+
+  <!-- Do something -->
+  <script type="text/javascript">
+    function runTest() {
+      initVariables();
+      initEditorDocs();
+
+      runTestSuite(UNAPPLY_TESTS);
+      alert("Result of 'Apply' tests:\nOut of " + 
+            results[UNAPPLY_TESTS.id].count + " tests\n" +
+            results[UNAPPLY_TESTS.id].valscore + " had correct HTML, and\n" +
+            results[UNAPPLY_TESTS.id].selscore + " had a correct result selection\n(in all testing containers).");
+    }
+  </script>  
+</head> 
+
+<body onload="runTest()">
+  <iframe name="iframe-dM" id="iframe-dM" src="static/editable-dM.html"></iframe>
+  <iframe name="iframe-body" id="iframe-body" src="static/editable-body.html"></iframe>
+  <iframe name="iframe-div" id="iframe-div" src="static/editable-div.html"></iframe>
+</body> 
+</html>

@@ -220,6 +220,8 @@ var results = {
 };
 
 // Results - populated by the fillResults() function.
-var categoryResults = [];
 var beacon = [];
 
+// "compatibility" between Python and JS for test quines
+var True = true;
+var False = false;
