@@ -1091,7 +1091,7 @@ Util.TestDriver.prototype.sendScore = function(testResults,
       testResults.join(',') + '&csrf_token=' + this.csrfToken +
       '&js_ua=' + escape(uaString);
   // Needed to detect IE 9 preview.
-  var jsUa = Util.getJsUaOverrides();
+  var jsUa = uap.getJsUaOverrides();
   if (jsUa) {
     for (var key in jsUa) {
       data += '&' + key + '=' + escape(jsUa[key]);
@@ -1255,5 +1255,4 @@ goog.exportSymbol('Util.TestDriver.prototype.runTest',
 goog.exportSymbol('Util.TestDriver.prototype.sendScore',
     Util.TestDriver.prototype.sendScore);
 goog.exportSymbol('goog.net.XhrIo.send', goog.net.XhrIo.send);
-goog.exportSymbol('Util.getJsUaOverrides', Util.getJsUaOverrides);
 
