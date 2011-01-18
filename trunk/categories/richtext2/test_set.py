@@ -18,6 +18,30 @@
 
 __author__ = 'rolandsteiner@google.com (Roland Steiner)'
 
+# Selection specifications used in test files:
+#
+# Caret/collapsed selections:
+#
+# SC: 'caret'    caret/collapsed selection
+# SB: 'before'   caret/collapsed selection before element
+# SA: 'after'    caret/collapsed selection after element
+# SS: 'start'    caret/collapsed selection at the start of the element (before first child/at text pos. 0)
+# SE: 'end'      caret/collapsed selection at the end of the element (after last child/at text pos. n)
+# SX: 'betwixt'  collapsed selection between elements
+#
+# Range selections:
+#
+# SO: 'outside'  selection wraps element in question
+# SI: 'inside'   selection is inside of element in question
+# SW: 'wrap'     as SI, but also wraps all children of element
+# SL: 'left'     oblique selection - starts outside element and ends inside
+# SR: 'right'    oblique selection - starts inside element and ends outside
+# SM: 'mixed'    selection starts and ends in different elements
+#
+# SxR: selection is reversed
+#
+# Sxn or SxRn    selection applies to element #n of several identical
+
 import logging
 
 from categories import test_set_base
@@ -37,24 +61,24 @@ from categories.richtext2.tests.selection     import SELECTION_TESTS
 from categories.richtext2.tests.unapply       import UNAPPLY_TESTS
 from categories.richtext2.tests.unapplyCSS    import UNAPPLY_TESTS_CSS
 
-from categories.richtext2.tests.querySupported      import QUERYSUPPORTED_TESTS
-from categories.richtext2.tests.queryEnabled        import QUERYENABLED_TESTS
-from categories.richtext2.tests.queryIndeterminate  import QUERYINDETERM_TESTS
-from categories.richtext2.tests.queryState          import QUERYSTATE_TESTS, QUERYSTATE_TESTS_CSS
-from categories.richtext2.tests.queryValue          import QUERYVALUE_TESTS, QUERYVALUE_TESTS_CSS
+from categories.richtext2.tests.querySupported import QUERYSUPPORTED_TESTS
+from categories.richtext2.tests.queryEnabled   import QUERYENABLED_TESTS
+from categories.richtext2.tests.queryIndeterm  import QUERYINDETERM_TESTS
+from categories.richtext2.tests.queryState     import QUERYSTATE_TESTS, QUERYSTATE_TESTS_CSS
+from categories.richtext2.tests.queryValue     import QUERYVALUE_TESTS, QUERYVALUE_TESTS_CSS
 
 
-_SELECTION_TESTS_COUNT      = len([t['id'] for c in common.CLASSES for t in SELECTION_TESTS.get(c, {})])
+_SELECTION_TESTS_COUNT      = len([t['id'] for c in common.CLASSES for g in SELECTION_TESTS.get(c, []) for t in g['tests']])
 
-_APPLY_TESTS_COUNT          = len([t['id'] for c in common.CLASSES for t in APPLY_TESTS.get(c, {})])
-_APPLY_TESTS_CSS_COUNT      = len([t['id'] for c in common.CLASSES for t in APPLY_TESTS_CSS.get(c, {})])
-_CHANGE_TESTS_COUNT         = len([t['id'] for c in common.CLASSES for t in CHANGE_TESTS.get(c, {})])
-_CHANGE_TESTS_CSS_COUNT     = len([t['id'] for c in common.CLASSES for t in CHANGE_TESTS_CSS.get(c, {})])
-_UNAPPLY_TESTS_COUNT        = len([t['id'] for c in common.CLASSES for t in UNAPPLY_TESTS.get(c, {})])
-_UNAPPLY_TESTS_CSS_COUNT    = len([t['id'] for c in common.CLASSES for t in UNAPPLY_TESTS_CSS.get(c, {})])
-_DELETE_TESTS_COUNT         = len([t['id'] for c in common.CLASSES for t in DELETE_TESTS.get(c, {})])
-_FORWARDDELETE_TESTS_COUNT  = len([t['id'] for c in common.CLASSES for t in FORWARDDELETE_TESTS.get(c, {})])
-_INSERT_TESTS_COUNT         = len([t['id'] for c in common.CLASSES for t in INSERT_TESTS.get(c, {})])
+_APPLY_TESTS_COUNT          = len([t['id'] for c in common.CLASSES for g in APPLY_TESTS.get(c, []) for t in g['tests']])
+_APPLY_TESTS_CSS_COUNT      = len([t['id'] for c in common.CLASSES for g in APPLY_TESTS_CSS.get(c, []) for t in g['tests']])
+_CHANGE_TESTS_COUNT         = len([t['id'] for c in common.CLASSES for g in CHANGE_TESTS.get(c, []) for t in g['tests']])
+_CHANGE_TESTS_CSS_COUNT     = len([t['id'] for c in common.CLASSES for g in CHANGE_TESTS_CSS.get(c, []) for t in g['tests']])
+_UNAPPLY_TESTS_COUNT        = len([t['id'] for c in common.CLASSES for g in UNAPPLY_TESTS.get(c, []) for t in g['tests']])
+_UNAPPLY_TESTS_CSS_COUNT    = len([t['id'] for c in common.CLASSES for g in UNAPPLY_TESTS_CSS.get(c, []) for t in g['tests']])
+_DELETE_TESTS_COUNT         = len([t['id'] for c in common.CLASSES for g in DELETE_TESTS.get(c, []) for t in g['tests']])
+_FORWARDDELETE_TESTS_COUNT  = len([t['id'] for c in common.CLASSES for g in FORWARDDELETE_TESTS.get(c, []) for t in g['tests']])
+_INSERT_TESTS_COUNT         = len([t['id'] for c in common.CLASSES for g in INSERT_TESTS.get(c, []) for t in g['tests']])
 
 _SELECTION_RESULTS_COUNT    = _APPLY_TESTS_COUNT + \
                               _APPLY_TESTS_CSS_COUNT + \
@@ -66,13 +90,13 @@ _SELECTION_RESULTS_COUNT    = _APPLY_TESTS_COUNT + \
                               _FORWARDDELETE_TESTS_COUNT + \
                               _INSERT_TESTS_COUNT       
 
-_QUERYSUPPORTED_TESTS_COUNT = len([t['id'] for c in common.CLASSES for t in QUERYSUPPORTED_TESTS.get(c, {})])
-_QUERYENABLED_TESTS_COUNT   = len([t['id'] for c in common.CLASSES for t in QUERYENABLED_TESTS.get(c, {})])
-_QUERYINDETERM_TESTS_COUNT  = len([t['id'] for c in common.CLASSES for t in QUERYINDETERM_TESTS.get(c, {})])
-_QUERYSTATE_TESTS_COUNT     = len([t['id'] for c in common.CLASSES for t in QUERYSTATE_TESTS.get(c, {})])
-_QUERYSTATE_TESTS_CSS_COUNT = len([t['id'] for c in common.CLASSES for t in QUERYSTATE_TESTS_CSS.get(c, {})])
-_QUERYVALUE_TESTS_COUNT     = len([t['id'] for c in common.CLASSES for t in QUERYVALUE_TESTS.get(c, {})])
-_QUERYVALUE_TESTS_CSS_COUNT = len([t['id'] for c in common.CLASSES for t in QUERYVALUE_TESTS_CSS.get(c, {})])
+_QUERYSUPPORTED_TESTS_COUNT = len([t['id'] for c in common.CLASSES for g in QUERYSUPPORTED_TESTS.get(c, []) for t in g['tests']])
+_QUERYENABLED_TESTS_COUNT   = len([t['id'] for c in common.CLASSES for g in QUERYENABLED_TESTS.get(c, []) for t in g['tests']])
+_QUERYINDETERM_TESTS_COUNT  = len([t['id'] for c in common.CLASSES for g in QUERYINDETERM_TESTS.get(c, []) for t in g['tests']])
+_QUERYSTATE_TESTS_COUNT     = len([t['id'] for c in common.CLASSES for g in QUERYSTATE_TESTS.get(c, []) for t in g['tests']])
+_QUERYSTATE_TESTS_CSS_COUNT = len([t['id'] for c in common.CLASSES for g in QUERYSTATE_TESTS_CSS.get(c, []) for t in g['tests']])
+_QUERYVALUE_TESTS_COUNT     = len([t['id'] for c in common.CLASSES for g in QUERYVALUE_TESTS.get(c, []) for t in g['tests']])
+_QUERYVALUE_TESTS_CSS_COUNT = len([t['id'] for c in common.CLASSES for g in QUERYVALUE_TESTS_CSS.get(c, []) for t in g['tests']])
 
 TEST_CATEGORIES = {
   'selection':        { 'count':  _SELECTION_TESTS_COUNT,

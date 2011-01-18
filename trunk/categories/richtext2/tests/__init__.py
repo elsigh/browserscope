@@ -7,7 +7,7 @@ __all__ = [
   'forwarddelete',
   'insert',
   'queryEnabled',
-  'queryIndeterminate',
+  'queryIndeterm',
   'queryState',
   'querySupported',
   'queryValue',

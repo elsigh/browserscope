@@ -1,46 +1,3 @@
-#!/usr/bin/python2.5
-#
-# Copyright 2010 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the 'License')
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an 'AS IS' BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""queryCommandValue tests"""
-
-__author__ = 'rolandsteiner@google.com (Roland Steiner)'
-
-# Selection specifications used in 'id':
-#
-# Caret/collapsed selections:
-#
-# SC: 'caret'    caret/collapsed selection
-# SB: 'before'   caret/collapsed selection before element
-# SA: 'after'    caret/collapsed selection after element
-# SS: 'start'    caret/collapsed selection at the start of the element (before first child/at text pos. 0)
-# SE: 'end'      caret/collapsed selection at the end of the element (after last child/at text pos. n)
-# SX: 'betwixt'  collapsed selection between elements
-#
-# Range selections:
-#
-# SO: 'outside'  selection wraps element in question
-# SI: 'inside'   selection is inside of element in question
-# SW: 'wrap'     as SI, but also wraps all children of element
-# SL: 'left'     oblique selection - starts outside element and ends inside
-# SR: 'right'    oblique selection - starts inside element and ends outside
-# SM: 'mixed'    selection starts and ends in different elements
-#
-# SxR: selection is reversed
-#
-# Sxn or SxRn    selection applies to element #n of several identical
 
 QUERYVALUE_TESTS = {
   'id':            'QV',
@@ -50,424 +7,413 @@ QUERYVALUE_TESTS = {
   'styleWithCSS':  False,
 
   'Proposed': [
-    # --- HTML5 spec ---
+    { 'desc':       '',
+      'tests':      [
+      ]
+    },
 
-    # bold
-    { 'id':         'B_TEXT_SI',
-      'desc':       'query the "bold" value',
+    { 'desc':       '[HTML5] query bold value',
       'qcvalue':    'bold',
-      'pad':        'foo[bar]baz',
-      'expected':   'false' },
+      'tests':      [
+        { 'id':         'B_TEXT_SI',
+          'desc':       'query the "bold" value',
+          'pad':        'foo[bar]baz',
+          'expected':   'false' },
 
-    { 'id':         'B_B-1_SI',
-      'desc':       'query the "bold" value',
-      'qcvalue':    'bold',
-      'pad':        '<b>foo[bar]baz</b>',
-      'expected':   'true' },
+        { 'id':         'B_B-1_SI',
+          'desc':       'query the "bold" value',
+          'pad':        '<b>foo[bar]baz</b>',
+          'expected':   'true' },
 
-    { 'id':         'B_STRONG-1_SI',
-      'desc':       'query the "bold" value',
-      'qcvalue':    'bold',
-      'pad':        '<strong>foo[bar]baz</strong>',
-      'expected':   'true' },
+        { 'id':         'B_STRONG-1_SI',
+          'desc':       'query the "bold" value',
+          'pad':        '<strong>foo[bar]baz</strong>',
+          'expected':   'true' },
 
-    { 'id':         'B_SPANs:fw:b-1_SI',
-      'desc':       'query the "bold" value',
-      'qcvalue':    'bold',
-      'pad':        '<span style="font-weight: bold">foo[bar]baz</span>',
-      'expected':   'true' },
+        { 'id':         'B_SPANs:fw:b-1_SI',
+          'desc':       'query the "bold" value',
+          'pad':        '<span style="font-weight: bold">foo[bar]baz</span>',
+          'expected':   'true' },
 
-    { 'id':         'B_SPANs:fw:n-1_SI',
-      'desc':       'query the "bold" value',
-      'qcvalue':    'bold',
-      'pad':        '<span style="font-weight: normal">foo[bar]baz</span>',
-      'expected':   'false' },
+        { 'id':         'B_SPANs:fw:n-1_SI',
+          'desc':       'query the "bold" value',
+          'pad':        '<span style="font-weight: normal">foo[bar]baz</span>',
+          'expected':   'false' },
 
-    { 'id':         'B_Bs:fw:n-1_SI',
-      'desc':       'query the "bold" value',
-      'qcvalue':    'bold',
-      'pad':        '<b><span style="font-weight: normal">foo[bar]baz</span></b>',
-      'expected':   'false' },
+        { 'id':         'B_Bs:fw:n-1_SI',
+          'desc':       'query the "bold" value',
+          'pad':        '<b><span style="font-weight: normal">foo[bar]baz</span></b>',
+          'expected':   'false' },
 
-    { 'id':         'B_SPAN.b-1_SI',
-      'desc':       'query the "bold" value',
-      'qcvalue':    'bold',
-      'pad':        '<span class="b">foo[bar]baz</span>',
-      'expected':   'true' },
+        { 'id':         'B_SPAN.b-1_SI',
+          'desc':       'query the "bold" value',
+          'pad':        '<span class="b">foo[bar]baz</span>',
+          'expected':   'true' },
 
-    { 'id':         'B_MYB-1-SI',
-      'desc':       'query the "bold" value',
-      'qcvalue':    'bold',
-      'pad':        '<myb>foo[bar]baz</myb>',
-      'expected':   'true' },
+        { 'id':         'B_MYB-1-SI',
+          'desc':       'query the "bold" value',
+          'pad':        '<myb>foo[bar]baz</myb>',
+          'expected':   'true' }
+      ]
+    },
 
-    # italic
-    { 'id':         'I_TEXT_SI',
-      'desc':       'query the "bold" value',
+    { 'desc':       '[HTML5] query italic value',
       'qcvalue':    'italic',
-      'pad':        'foo[bar]baz',
-      'expected':   'false' },
+      'tests':      [
+        { 'id':         'I_TEXT_SI',
+          'desc':       'query the "bold" value',
+          'pad':        'foo[bar]baz',
+          'expected':   'false' },
 
-    { 'id':         'I_I-1_SI',
-      'desc':       'query the "bold" value',
-      'qcvalue':    'italic',
-      'pad':        '<i>foo[bar]baz</i>',
-      'expected':   'true' },
+        { 'id':         'I_I-1_SI',
+          'desc':       'query the "bold" value',
+          'pad':        '<i>foo[bar]baz</i>',
+          'expected':   'true' },
 
-    { 'id':         'I_EM-1_SI',
-      'desc':       'query the "bold" value',
-      'qcvalue':    'italic',
-      'pad':        '<em>foo[bar]baz</em>',
-      'expected':   'true' },
+        { 'id':         'I_EM-1_SI',
+          'desc':       'query the "bold" value',
+          'pad':        '<em>foo[bar]baz</em>',
+          'expected':   'true' },
 
-    { 'id':         'I_SPANs:fs:i-1_SI',
-      'desc':       'query the "bold" value',
-      'qcvalue':    'italic',
-      'pad':        '<span style="font-style: italic">foo[bar]baz</span>',
-      'expected':   'true' },
+        { 'id':         'I_SPANs:fs:i-1_SI',
+          'desc':       'query the "bold" value',
+          'pad':        '<span style="font-style: italic">foo[bar]baz</span>',
+          'expected':   'true' },
 
-    { 'id':         'I_SPANs:fs:n-1_SI',
-      'desc':       'query the "bold" value',
-      'qcvalue':    'italic',
-      'pad':        '<span style="font-style: normal">foo[bar]baz</span>',
-      'expected':   'false' },
+        { 'id':         'I_SPANs:fs:n-1_SI',
+          'desc':       'query the "bold" value',
+          'pad':        '<span style="font-style: normal">foo[bar]baz</span>',
+          'expected':   'false' },
 
-    { 'id':         'I_I-SPANs:fs:n-1_SI',
-      'desc':       'query the "bold" value',
-      'qcvalue':    'italic',
-      'pad':        '<i><span style="font-style: normal">foo[bar]baz</span></i>',
-      'expected':   'false' },
+        { 'id':         'I_I-SPANs:fs:n-1_SI',
+          'desc':       'query the "bold" value',
+          'pad':        '<i><span style="font-style: normal">foo[bar]baz</span></i>',
+          'expected':   'false' },
 
-    { 'id':         'I_SPAN.i-1_SI',
-      'desc':       'query the "italic" value',
-      'qcvalue':    'italic',
-      'pad':        '<span class="i">foo[bar]baz</span>',
-      'expected':   'true' },
+        { 'id':         'I_SPAN.i-1_SI',
+          'desc':       'query the "italic" value',
+          'pad':        '<span class="i">foo[bar]baz</span>',
+          'expected':   'true' },
 
-    { 'id':         'I_MYI-1-SI',
-      'desc':       'query the "italic" value',
-      'qcvalue':    'italic',
-      'pad':        '<myi>foo[bar]baz</myi>',
-      'expected':   'true' },
+        { 'id':         'I_MYI-1-SI',
+          'desc':       'query the "italic" value',
+          'pad':        '<myi>foo[bar]baz</myi>',
+          'expected':   'true' }
+      ]
+    },
 
-    # formatblock
-    { 'id':         'FB_TEXT-1_SC',
-      'desc':       'query the "formatBlock" value',
+    { 'desc':       '[HTML5] query block formatting value',
       'qcvalue':    'formatblock',
-      'pad':        'foobar^baz',
-      'expected':   '',
-      'accept':     'normal' },
+      'tests':      [
+        { 'id':         'FB_TEXT-1_SC',
+          'desc':       'query the "formatBlock" value',
+          'pad':        'foobar^baz',
+          'expected':   '',
+          'accept':     'normal' },
 
-    { 'id':         'FB_H1-1_SC',
-      'desc':       'query the "formatBlock" value',
-      'qcvalue':    'formatblock',
-      'pad':        '<h1>foobar^baz</h1>',
-      'expected':   'h1' },
+        { 'id':         'FB_H1-1_SC',
+          'desc':       'query the "formatBlock" value',
+          'pad':        '<h1>foobar^baz</h1>',
+          'expected':   'h1' },
 
-    { 'id':         'FB_PRE-1_SC',
-      'desc':       'query the "formatBlock" value',
-      'qcvalue':    'formatblock',
-      'pad':        '<pre>foobar^baz</pre>',
-      'expected':   'pre' },
+        { 'id':         'FB_PRE-1_SC',
+          'desc':       'query the "formatBlock" value',
+          'pad':        '<pre>foobar^baz</pre>',
+          'expected':   'pre' },
 
-    { 'id':         'FB_BQ-1_SC',
-      'desc':       'query the "formatBlock" value',
-      'qcvalue':    'formatblock',
-      'pad':        '<blockquote>foobar^baz</blockquote>',
-      'expected':   'blockquote' },
+        { 'id':         'FB_BQ-1_SC',
+          'desc':       'query the "formatBlock" value',
+          'pad':        '<blockquote>foobar^baz</blockquote>',
+          'expected':   'blockquote' },
 
-    { 'id':         'FB_ADDRESS-1_SC',
-      'desc':       'query the "formatBlock" value',
-      'qcvalue':    'formatblock',
-      'pad':        '<address>foobar^baz</address>',
-      'expected':   'address' },
+        { 'id':         'FB_ADDRESS-1_SC',
+          'desc':       'query the "formatBlock" value',
+          'pad':        '<address>foobar^baz</address>',
+          'expected':   'address' },
 
-    { 'id':         'FB_H1-H2-1_SC',
-      'desc':       'query the "formatBlock" value',
-      'qcvalue':    'formatblock',
-      'pad':        '<h1>foo<h2>ba^r</h2>baz</h1>',
-      'expected':   'h2' },
+        { 'id':         'FB_H1-H2-1_SC',
+          'desc':       'query the "formatBlock" value',
+          'pad':        '<h1>foo<h2>ba^r</h2>baz</h1>',
+          'expected':   'h2' },
 
-    { 'id':         'FB_H1-H2-1_SL',
-      'desc':       'query the "formatBlock" value on oblique selection (outermost formatting expected)',
-      'qcvalue':    'formatblock',
-      'pad':        '<h1>fo[o<h2>ba]r</h2>baz</h1>',
-      'expected':   'h1' },
+        { 'id':         'FB_H1-H2-1_SL',
+          'desc':       'query the "formatBlock" value on oblique selection (outermost formatting expected)',
+          'pad':        '<h1>fo[o<h2>ba]r</h2>baz</h1>',
+          'expected':   'h1' },
 
-    { 'id':         'FB_H1-H2-1_SR',
-      'desc':       'query the "formatBlock" value on oblique selection (outermost formatting expected)',
-      'qcvalue':    'formatblock',
-      'pad':        '<h1>foo<h2>b[ar</h2>ba]z</h1>',
-      'expected':   'h1' },
+        { 'id':         'FB_H1-H2-1_SR',
+          'desc':       'query the "formatBlock" value on oblique selection (outermost formatting expected)',
+          'pad':        '<h1>foo<h2>b[ar</h2>ba]z</h1>',
+          'expected':   'h1' },
 
-    { 'id':         'FB_TEXT-ADDRESS-1_SL',
-      'desc':       'query the "formatBlock" value on oblique selection (outermost formatting expected)',
-      'qcvalue':    'formatblock',
-      'pad':        'fo[o<ADDRESS>ba]r</ADDRESS>baz',
-      'expected':   '',
-      'accept':     'normal' },
+        { 'id':         'FB_TEXT-ADDRESS-1_SL',
+          'desc':       'query the "formatBlock" value on oblique selection (outermost formatting expected)',
+          'pad':        'fo[o<ADDRESS>ba]r</ADDRESS>baz',
+          'expected':   '',
+          'accept':     'normal' },
 
-    { 'id':         'FB_TEXT-ADDRESS-1_SR',
-      'desc':       'query the "formatBlock" value on oblique selection (outermost formatting expected)',
-      'qcvalue':    'formatblock',
-      'pad':        'foo<ADDRESS>b[ar</ADDRESS>ba]z',
-      'expected':   '',
-      'accept':     'normal' },
+        { 'id':         'FB_TEXT-ADDRESS-1_SR',
+          'desc':       'query the "formatBlock" value on oblique selection (outermost formatting expected)',
+          'pad':        'foo<ADDRESS>b[ar</ADDRESS>ba]z',
+          'expected':   '',
+          'accept':     'normal' },
 
-    { 'id':         'FB_H1-H2.TEXT.H2-1_SM',
-      'desc':       'query the "formatBlock" value on oblique selection (outermost formatting expected)',
-      'qcvalue':    'formatblock',
-      'pad':        '<h1><h2>fo[o</h2>bar<h2>b]az</h2></h1>',
-      'expected':   'h1' },
+        { 'id':         'FB_H1-H2.TEXT.H2-1_SM',
+          'desc':       'query the "formatBlock" value on oblique selection (outermost formatting expected)',
+          'pad':        '<h1><h2>fo[o</h2>bar<h2>b]az</h2></h1>',
+          'expected':   'h1' }
+      ]
+    },
 
-    # --- MIDAS spec ---
-
-
-    # heading
-    { 'id':         'H_H1-1_SC',
-      'desc':       'query the "heading" value',
+    { 'desc':       '[MIDAS] query heading type',
       'qcvalue':    'heading',
-      'pad':        '<h1>foobar^baz</h1>',
-      'expected':   'h1',
-      'accept':     '<h1>' },
+      'tests':      [
+        { 'id':         'H_H1-1_SC',
+          'desc':       'query the "heading" type',
+          'pad':        '<h1>foobar^baz</h1>',
+          'expected':   'h1',
+          'accept':     '<h1>' },
 
-    # fontname
-    { 'id':         'FN_FONTf:a-1_SI',
-      'rte1-id':    'q-fontname-0',
-      'desc':       'query the "fontname" value',
+        { 'id':         'H_H3-1_SC',
+          'desc':       'query the "heading" type',
+          'pad':        '<h3>foobar^baz</h3>',
+          'expected':   'h3',
+          'accept':     '<h3>' },
+
+        { 'id':         'H_H1-H2-H3-H4-1_SC',
+          'desc':       'query the "heading" type within nested heading tags',
+          'pad':        '<h1><h2><h3><h4>foobar^baz</h4></h3></h2></h1>',
+          'expected':   'h4',
+          'accept':     '<h4>' },
+
+        { 'id':         'H_P-1_SC',
+          'desc':       'query the "heading" type outside of a heading',
+          'pad':        '<p>foobar^baz</p>',
+          'expected':   '' }
+      ]
+    },
+
+    { 'desc':       '[MIDAS] query font name',
       'qcvalue':    'fontname',
-      'pad':        '<font face="arial">foo[bar]baz</font>',
-      'expected':   'arial' },
+      'tests':      [
+        { 'id':         'FN_FONTf:a-1_SI',
+          'rte1-id':    'q-fontname-0',
+          'desc':       'query the "fontname" value',
+          'pad':        '<font face="arial">foo[bar]baz</font>',
+          'expected':   'arial' },
 
-    { 'id':         'FN_SPANs:ff:a-1_SI',
-      'rte1-id':    'q-fontname-1',
-      'desc':       'query the "fontname" value',
-      'qcvalue':    'fontname',
-      'pad':        '<span style="font-family: arial">foo[bar]baz</span>',
-      'expected':   'arial' },
+        { 'id':         'FN_SPANs:ff:a-1_SI',
+          'rte1-id':    'q-fontname-1',
+          'desc':       'query the "fontname" value',
+          'pad':        '<span style="font-family: arial">foo[bar]baz</span>',
+          'expected':   'arial' },
 
-    { 'id':         'FN_FONTf:a.s:ff:c-1_SI',
-      'rte1-id':    'q-fontname-2',
-      'desc':       'query the "fontname" value',
-      'qcvalue':    'fontname',
-      'pad':        '<font face="arial" style="font-family: courier">foo[bar]baz</font>',
-      'expected':   'courier' },
+        { 'id':         'FN_FONTf:a.s:ff:c-1_SI',
+          'rte1-id':    'q-fontname-2',
+          'desc':       'query the "fontname" value',
+          'pad':        '<font face="arial" style="font-family: courier">foo[bar]baz</font>',
+          'expected':   'courier' },
 
-    { 'id':         'FN_FONTf:a-FONTf:c-1_SI',
-      'rte1-id':    'q-fontname-3',
-      'desc':       'query the "fontname" value',
-      'qcvalue':    'fontname',
-      'pad':        '<font face="arial"><font face="courier">foo[bar]baz</font></font>',
-      'expected':   'courier' },
+        { 'id':         'FN_FONTf:a-FONTf:c-1_SI',
+          'rte1-id':    'q-fontname-3',
+          'desc':       'query the "fontname" value',
+          'pad':        '<font face="arial"><font face="courier">foo[bar]baz</font></font>',
+          'expected':   'courier' },
 
-    { 'id':         'FN_SPANs:ff:c-FONTf:a-1_SI',
-      'rte1-id':    'q-fontname-4',
-      'desc':       'query the "fontname" value',
-      'qcvalue':    'fontname',
-      'pad':        '<span style="font-family: courier"><font face="arial">foo[bar]baz</font></span>',
-      'expected':   'arial' },
+        { 'id':         'FN_SPANs:ff:c-FONTf:a-1_SI',
+          'rte1-id':    'q-fontname-4',
+          'desc':       'query the "fontname" value',
+          'pad':        '<span style="font-family: courier"><font face="arial">foo[bar]baz</font></span>',
+          'expected':   'arial' },
 
-    { 'id':         'FN_SPAN.fs18px-1_SI',
-      'desc':       'query the "fontname" value',
-      'qcvalue':    'fontname',
-      'pad':        '<span class="courier">foo[bar]baz</span>',
-      'expected':   'courier' },
+        { 'id':         'FN_SPAN.fs18px-1_SI',
+          'desc':       'query the "fontname" value',
+          'pad':        '<span class="courier">foo[bar]baz</span>',
+          'expected':   'courier' },
 
-    { 'id':         'FN_MYCOURIER-1-SI',
-      'desc':       'query the "fontname" value',
-      'qcvalue':    'fontname',
-      'pad':        '<mycourier>foo[bar]baz</mycourier>',
-      'expected':   'courier' },
+        { 'id':         'FN_MYCOURIER-1-SI',
+          'desc':       'query the "fontname" value',
+          'pad':        '<mycourier>foo[bar]baz</mycourier>',
+          'expected':   'courier' }
+      ]
+    },
 
-    # fontsize
-    { 'id':         'FS_FONTsz:4-1_SI',
-      'rte1-id':    'q-fontsize-0',
-      'desc':       'query the "fontsize" value',
+    { 'desc':       '[MIDAS] query font size',
       'qcvalue':    'fontsize',
-      'pad':        '<font size=4>foo[bar]baz</font>',
-      'expected':   '18px' },
+      'tests':      [
+        { 'id':         'FS_FONTsz:4-1_SI',
+          'rte1-id':    'q-fontsize-0',
+          'desc':       'query the "fontsize" value',
+          'pad':        '<font size=4>foo[bar]baz</font>',
+          'expected':   '18px' },
 
-    { 'id':         'FS_FONTs:fs:l-1_SI',
-      'desc':       'query the "fontsize" value',
-      'qcvalue':    'fontsize',
-      'pad':        '<font style="font-size: large">foo[bar]baz</font>',
-      'expected':   '18px' },
+        { 'id':         'FS_FONTs:fs:l-1_SI',
+          'desc':       'query the "fontsize" value',
+          'pad':        '<font style="font-size: large">foo[bar]baz</font>',
+          'expected':   '18px' },
 
-    { 'id':         'FS_FONT.ass.s:fs:l-1_SI',
-      'rte1-id':    'q-fontsize-1',
-      'desc':       'query the "fontsize" value',
-      'qcvalue':    'fontsize',
-      'pad':        '<font class="Apple-style-span" style="font-size: large">foo[bar]baz</font>',
-      'expected':   '18px' },
+        { 'id':         'FS_FONT.ass.s:fs:l-1_SI',
+          'rte1-id':    'q-fontsize-1',
+          'desc':       'query the "fontsize" value',
+          'pad':        '<font class="Apple-style-span" style="font-size: large">foo[bar]baz</font>',
+          'expected':   '18px' },
 
-    { 'id':         'FS_FONTsz:1.s:fs:xl-1_SI',
-      'rte1-id':    'q-fontsize-2',
-      'desc':       'query the "fontsize" value',
-      'qcvalue':    'fontsize',
-      'pad':        '<font size=1 style="font-size: x-large">foo[bar]baz</font>',
-      'expected':   '24px' },
+        { 'id':         'FS_FONTsz:1.s:fs:xl-1_SI',
+          'rte1-id':    'q-fontsize-2',
+          'desc':       'query the "fontsize" value',
+          'pad':        '<font size=1 style="font-size: x-large">foo[bar]baz</font>',
+          'expected':   '24px' },
 
-    { 'id':         'FS_SPAN.large-1_SI',
-      'desc':       'query the "fontsize" value',
-      'qcvalue':    'fontsize',
-      'pad':        '<span class="large">foo[bar]baz</span>',
-      'expected':   'large' },
+        { 'id':         'FS_SPAN.large-1_SI',
+          'desc':       'query the "fontsize" value',
+          'pad':        '<span class="large">foo[bar]baz</span>',
+          'expected':   'large' },
 
-    { 'id':         'FS_SPAN.fs18px-1_SI',
-      'desc':       'query the "fontsize" value',
-      'qcvalue':    'fontsize',
-      'pad':        '<span class="fs18px">foo[bar]baz</span>',
-      'expected':   '18px' },
+        { 'id':         'FS_SPAN.fs18px-1_SI',
+          'desc':       'query the "fontsize" value',
+          'pad':        '<span class="fs18px">foo[bar]baz</span>',
+          'expected':   '18px' },
 
-    { 'id':         'FA_MYLARGE-1-SI',
-      'desc':       'query the "fontsize" value',
-      'qcvalue':    'fontsize',
-      'pad':        '<mylarge>foo[bar]baz</mylarge>',
-      'expected':   'large' },
+        { 'id':         'FA_MYLARGE-1-SI',
+          'desc':       'query the "fontsize" value',
+          'pad':        '<mylarge>foo[bar]baz</mylarge>',
+          'expected':   'large' },
 
-    { 'id':         'FA_MYFS18PX-1-SI',
-      'desc':       'query the "fontsize" value',
-      'qcvalue':    'fontsize',
-      'pad':        '<myfs18px>foo[bar]baz</myfs18px>',
-      'expected':   '18px' },
+        { 'id':         'FA_MYFS18PX-1-SI',
+          'desc':       'query the "fontsize" value',
+          'pad':        '<myfs18px>foo[bar]baz</myfs18px>',
+          'expected':   '18px' }
+      ]
+    },
 
-    # backcolor
-    { 'id':         'BC_FONTs:bc:fca-1_SI',
-      'rte1-id':    'q-backcolor-0',
-      'desc':       'query the "backcolor" value',
+    { 'desc':       '[MIDAS] query background color',
       'qcvalue':    'backcolor',
-      'pad':        '<font style="background-color: #ffccaa">foo[bar]baz</font>',
-      'expected':   '#ffccaa' },
+      'tests':      [
+        { 'id':         'BC_FONTs:bc:fca-1_SI',
+          'rte1-id':    'q-backcolor-0',
+          'desc':       'query the "backcolor" value',
+          'pad':        '<font style="background-color: #ffccaa">foo[bar]baz</font>',
+          'expected':   '#ffccaa' },
 
-    { 'id':         'BC_SPANs:bc:abc-1_SI',
-      'rte1-id':    'q-backcolor-2',
-      'desc':       'query the "backcolor" value',
-      'qcvalue':    'backcolor',
-      'pad':        '<span style="background-color: #aabbcc">foo[bar]baz</span>',
-      'expected':   '#aabbcc' },
+        { 'id':         'BC_SPANs:bc:abc-1_SI',
+          'rte1-id':    'q-backcolor-2',
+          'desc':       'query the "backcolor" value',
+          'pad':        '<span style="background-color: #aabbcc">foo[bar]baz</span>',
+          'expected':   '#aabbcc' },
 
-    { 'id':         'BC_FONTs:bc:084-SPAN-1_SI',
-      'desc':       'query the "backcolor" value, where the color was set on an ancestor',
-      'qcvalue':    'backcolor',
-      'pad':        '<font style="background-color: #008844"><span>foo[bar]baz</span></font>',
-      'expected':   '#008844' },
+        { 'id':         'BC_FONTs:bc:084-SPAN-1_SI',
+          'desc':       'query the "backcolor" value, where the color was set on an ancestor',
+          'pad':        '<font style="background-color: #008844"><span>foo[bar]baz</span></font>',
+          'expected':   '#008844' },
 
-    { 'id':         'BC_SPANs:bc:cde-SPAN-1_SI',
-      'desc':       'query the "backcolor" value, where the color was set on an ancestor',
-      'qcvalue':    'backcolor',
-      'pad':        '<span style="background-color: #ccddee"><span>foo[bar]baz</span></span>',
-      'expected':   '#ccddee' },
+        { 'id':         'BC_SPANs:bc:cde-SPAN-1_SI',
+          'desc':       'query the "backcolor" value, where the color was set on an ancestor',
+          'pad':        '<span style="background-color: #ccddee"><span>foo[bar]baz</span></span>',
+          'expected':   '#ccddee' },
 
-    { 'id':         'BC_SPAN.ass.s:bc:rgb-1_SI',
-      'rte1-id':    'q-backcolor-1',
-      'desc':       'query the "backcolor" value',
-      'qcvalue':    'backcolor',
-      'pad':        '<span class="Apple-style-span" style="background-color: rgb(255, 0, 0)">foo[bar]baz</span>',
-      'expected':   '#ff0000' },
+        { 'id':         'BC_SPAN.ass.s:bc:rgb-1_SI',
+          'rte1-id':    'q-backcolor-1',
+          'desc':       'query the "backcolor" value',
+          'pad':        '<span class="Apple-style-span" style="background-color: rgb(255, 0, 0)">foo[bar]baz</span>',
+          'expected':   '#ff0000' },
 
-    { 'id':         'BC_SPAN.bcred-1_SI',
-      'desc':       'query the "backcolor" value',
-      'qcvalue':    'backcolor',
-      'pad':        '<span class="bcred">foo[bar]baz</span>',
-      'expected':   'red' },
+        { 'id':         'BC_SPAN.bcred-1_SI',
+          'desc':       'query the "backcolor" value',
+          'pad':        '<span class="bcred">foo[bar]baz</span>',
+          'expected':   'red' },
 
-    { 'id':         'BC_MYBCRED-1-SI',
-      'desc':       'query the "backcolor" value',
-      'qcvalue':    'backcolor',
-      'pad':        '<mybcred>foo[bar]baz</mybcred>',
-      'expected':   'red' },
+        { 'id':         'BC_MYBCRED-1-SI',
+          'desc':       'query the "backcolor" value',
+          'pad':        '<mybcred>foo[bar]baz</mybcred>',
+          'expected':   'red' }
+      ]
+    },
 
-    # forecolor
-    { 'id':         'FC_FONTc:f00-1_SI',
-      'rte1-id':    'q-forecolor-0',
-      'desc':       'query the "forecolor" value',
+    { 'desc':       '[MIDAS] query text color',
       'qcvalue':    'forecolor',
-      'pad':        '<font color="#ff0000">foo[bar]baz</font>',
-      'expected':   '#ff0000' },
+      'tests':      [
+        { 'id':         'FC_FONTc:f00-1_SI',
+          'rte1-id':    'q-forecolor-0',
+          'desc':       'query the "forecolor" value',
+          'pad':        '<font color="#ff0000">foo[bar]baz</font>',
+          'expected':   '#ff0000' },
 
-    { 'id':         'FC_SPANs:c:0f0-1_SI',
-      'rte1-id':    'q-forecolor-1',
-      'desc':       'query the "forecolor" value',
-      'qcvalue':    'forecolor',
-      'pad':        '<span style="color: #00ff00">foo[bar]baz</span>',
-      'expected':   '#00ff00' },
+        { 'id':         'FC_SPANs:c:0f0-1_SI',
+          'rte1-id':    'q-forecolor-1',
+          'desc':       'query the "forecolor" value',
+          'pad':        '<span style="color: #00ff00">foo[bar]baz</span>',
+          'expected':   '#00ff00' },
 
-    { 'id':         'FC_FONTc:333.s:c:999-1_SI',
-      'rte1-id':    'q-forecolor-2',
-      'desc':       'query the "forecolor" value',
-      'qcvalue':    'forecolor',
-      'pad':        '<font color="#333333" style="color: #999999">foo[bar]baz</font>',
-      'expected':   '#999999' },
+        { 'id':         'FC_FONTc:333.s:c:999-1_SI',
+          'rte1-id':    'q-forecolor-2',
+          'desc':       'query the "forecolor" value',
+          'pad':        '<font color="#333333" style="color: #999999">foo[bar]baz</font>',
+          'expected':   '#999999' },
 
-    { 'id':         'FC_FONTc:641-SPAN-1_SI',
-      'desc':       'query the "forecolor" value, where the color was set on an ancestor',
-      'qcvalue':    'forecolor',
-      'pad':        '<font color="#664411"><span>foo[bar]baz</span></font>',
-      'expected':   '#664411' },
+        { 'id':         'FC_FONTc:641-SPAN-1_SI',
+          'desc':       'query the "forecolor" value, where the color was set on an ancestor',
+          'pad':        '<font color="#664411"><span>foo[bar]baz</span></font>',
+          'expected':   '#664411' },
 
-    { 'id':         'FC_SPANs:c:d95-SPAN-1_SI',
-      'desc':       'query the "forecolor" value, where the color was set on an ancestor',
-      'qcvalue':    'forecolor',
-      'pad':        '<span style="color: #dd9955"><span>foo[bar]baz</span></span>',
-      'expected':   '#dd9955' },
+        { 'id':         'FC_SPANs:c:d95-SPAN-1_SI',
+          'desc':       'query the "forecolor" value, where the color was set on an ancestor',
+          'pad':        '<span style="color: #dd9955"><span>foo[bar]baz</span></span>',
+          'expected':   '#dd9955' },
 
-    { 'id':         'FC_SPAN.red-1_SI',
-      'desc':       'query the "forecolor" value',
-      'qcvalue':    'forecolor',
-      'pad':        '<span class="red">foo[bar]baz</span>',
-      'expected':   'red' },
+        { 'id':         'FC_SPAN.red-1_SI',
+          'desc':       'query the "forecolor" value',
+          'pad':        '<span class="red">foo[bar]baz</span>',
+          'expected':   'red' },
 
-    { 'id':         'FC_MYRED-1-SI',
-      'desc':       'query the "forecolor" value',
-      'qcvalue':    'forecolor',
-      'pad':        '<myred>foo[bar]baz</myred>',
-      'expected':   'red' },
+        { 'id':         'FC_MYRED-1-SI',
+          'desc':       'query the "forecolor" value',
+          'pad':        '<myred>foo[bar]baz</myred>',
+          'expected':   'red' }
+      ]
+    },
 
-    # hilitecolor
-    { 'id':         'HC_FONTs:bc:fc0-1_SI',
-      'rte1-id':    'q-hilitecolor-0',
-      'desc':       'query the "hilitecolor" value',
+    { 'desc':       '[MIDAS] query hilight color (same as background color)',
       'qcvalue':    'hilitecolor',
-      'pad':        '<font style="background-color: #ffcc00">foo[bar]baz</font>',
-      'expected':   '#ffcc00' },
+      'tests':      [
+        { 'id':         'HC_FONTs:bc:fc0-1_SI',
+          'rte1-id':    'q-hilitecolor-0',
+          'desc':       'query the "hilitecolor" value',
+          'pad':        '<font style="background-color: #ffcc00">foo[bar]baz</font>',
+          'expected':   '#ffcc00' },
 
-    { 'id':         'HC_SPANs:bc:a0c-1_SI',
-      'rte1-id':    'q-hilitecolor-2',
-      'desc':       'query the "hilitecolor" value',
-      'qcvalue':    'hilitecolor',
-      'pad':        '<span style="background-color: #aa00cc">foo[bar]baz</span>',
-      'expected':   '#aa00cc' },
+        { 'id':         'HC_SPANs:bc:a0c-1_SI',
+          'rte1-id':    'q-hilitecolor-2',
+          'desc':       'query the "hilitecolor" value',
+          'pad':        '<span style="background-color: #aa00cc">foo[bar]baz</span>',
+          'expected':   '#aa00cc' },
 
-    { 'id':         'HC_SPAN.ass.s:bc:rgb-1_SI',
-      'rte1-id':    'q-hilitecolor-1',
-      'desc':       'query the "hilitecolor" value',
-      'qcvalue':    'hilitecolor',
-      'pad':        '<span class="Apple-style-span" style="background-color: rgb(255, 0, 0)">foo[bar]baz</span>',
-      'expected':   '#ff0000' },
+        { 'id':         'HC_SPAN.ass.s:bc:rgb-1_SI',
+          'rte1-id':    'q-hilitecolor-1',
+          'desc':       'query the "hilitecolor" value',
+          'pad':        '<span class="Apple-style-span" style="background-color: rgb(255, 0, 0)">foo[bar]baz</span>',
+          'expected':   '#ff0000' },
 
-    { 'id':         'HC_FONTs:bc:83e-SPAN-1_SI',
-      'desc':       'query the "hilitecolor" value, where the color was set on an ancestor',
-      'qcvalue':    'hilitecolor',
-      'pad':        '<font style="background-color: #8833ee"><span>foo[bar]baz</span></font>',
-      'expected':   '#8833ee' },
+        { 'id':         'HC_FONTs:bc:83e-SPAN-1_SI',
+          'desc':       'query the "hilitecolor" value, where the color was set on an ancestor',
+          'pad':        '<font style="background-color: #8833ee"><span>foo[bar]baz</span></font>',
+          'expected':   '#8833ee' },
 
-    { 'id':         'HC_SPANs:bc:b12-SPAN-1_SI',
-      'desc':       'query the "hilitecolor" value, where the color was set on an ancestor',
-      'qcvalue':    'hilitecolor',
-      'pad':        '<span style="background-color: #bb1122"><span>foo[bar]baz</span></span>',
-      'expected':   '#bb1122' },
+        { 'id':         'HC_SPANs:bc:b12-SPAN-1_SI',
+          'desc':       'query the "hilitecolor" value, where the color was set on an ancestor',
+          'pad':        '<span style="background-color: #bb1122"><span>foo[bar]baz</span></span>',
+          'expected':   '#bb1122' },
 
-    { 'id':         'HC_SPAN.bcred-1_SI',
-      'desc':       'query the "hilitecolor" value',
-      'qcvalue':    'hilitecolor',
-      'pad':        '<span class="bcred">foo[bar]baz</span>',
-      'expected':   'red' },
+        { 'id':         'HC_SPAN.bcred-1_SI',
+          'desc':       'query the "hilitecolor" value',
+          'pad':        '<span class="bcred">foo[bar]baz</span>',
+          'expected':   'red' },
 
-    { 'id':         'HC_MYBCRED-1-SI',
-      'desc':       'query the "hilitecolor" value',
-      'qcvalue':    'hilitecolor',
-      'pad':        '<mybcred>foo[bar]baz</mybcred>',
-      'expected':   'red' }
+        { 'id':         'HC_MYBCRED-1-SI',
+          'desc':       'query the "hilitecolor" value',
+          'pad':        '<mybcred>foo[bar]baz</mybcred>',
+          'expected':   'red' }
+      ]
+    }
   ]
 }
 
@@ -480,7 +426,4 @@ QUERYVALUE_TESTS_CSS = {
   
   'Proposed':     QUERYVALUE_TESTS['Proposed']
 }
-
-
-
 

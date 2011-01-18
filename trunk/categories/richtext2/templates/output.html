@@ -86,8 +86,8 @@
       </TR>
     </THEAD>
     <TBODY>
-      {% for t in pv %}
-      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:dM" CLASS="greyBk{% cycle 'Lo' 'Lo' 'Lo' 'Hi' 'Hi' 'Hi' as shade %}">
+      {% for g in pv %}{% for t in g.tests %}
+      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:dM" CLASS="{% cycle 'lo' 'lo' 'lo' 'hi' 'hi' 'hi' as shade %}">
         <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:tid"><A CLASS="idLabel" NAME="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}" HREF="#{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}">{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}</A></TD>
         <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cmd">&nbsp;</TD>
         <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:val">&nbsp;</TD>
@@ -107,7 +107,7 @@
         <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:act:dM"><I>Processing...</I></TD>
         <TD ROWSPAN=3>{{ t.desc|default:"&nbsp;" }}</TD>
       </TR>
-      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:body" CLASS="greyBk{% cycle shade %}">
+      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:body" CLASS="{% cycle shade %}">
         <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cnt:body" TITLE="&lt;body contentEditable=&quot;true&quot;&gt;" ALIGN="CENTER">body</TD>
         {% ifnotequal s.id.0 "S" %}
         <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta:body" ALIGN="CENTER">NONE</TD>
@@ -117,7 +117,7 @@
         {% endifnotequal %}
         <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:act:body"><I>Processing...</I></TD>
       </TR>
-      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:div" CLASS="greyBk{% cycle shade %}">
+      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:div" CLASS="{% cycle shade %}">
         <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cnt:div" TITLE="&lt;div contentEditable=&quot;true&quot;&gt;" ALIGN="CENTER">div</TD>
         {% ifnotequal s.id.0 "S" %}
         <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta:div" ALIGN="CENTER">NONE</TD>
@@ -127,7 +127,7 @@
         {% endifnotequal %}
         <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:act:div"><I>Processing...</I></TD>
       </TR>
-      {% endfor %}
+      {% endfor %}{% endfor %}
     </TBODY>
   </TABLE>
   {% endifequal %}{% endfor %}{% endfor %} 

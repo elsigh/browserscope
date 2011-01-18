@@ -1,46 +1,3 @@
-#!/usr/bin/python2.5
-#
-# Copyright 2010 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the 'License')
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an 'AS IS' BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""queryCommandEnabled tests"""
-
-__author__ = 'rolandsteiner@google.com (Roland Steiner)'
-
-# Selection specifications used in 'id':
-#
-# Caret/collapsed selections:
-#
-# SC: 'caret'    caret/collapsed selection
-# SB: 'before'   caret/collapsed selection before element
-# SA: 'after'    caret/collapsed selection after element
-# SS: 'start'    caret/collapsed selection at the start of the element (before first child/at text pos. 0)
-# SE: 'end'      caret/collapsed selection at the end of the element (after last child/at text pos. n)
-# SX: 'betwixt'  collapsed selection between elements
-#
-# Range selections:
-#
-# SO: 'outside'  selection wraps element in question
-# SI: 'inside'   selection is inside of element in question
-# SW: 'wrap'     as SI, but also wraps all children of element
-# SL: 'left'     oblique selection - starts outside element and ends inside
-# SR: 'right'    oblique selection - starts inside element and ends outside
-# SM: 'mixed'    selection starts and ends in different elements
-#
-# SxR: selection is reversed
-#
-# Sxn or SxRn    selection applies to element #n of several identical
 
 QUERYENABLED_TESTS = {
   'id':           'QE',
@@ -52,190 +9,207 @@ QUERYENABLED_TESTS = {
   'expected':     True,
 
   'Proposed': [
-    { 'id':         'STYLEWITHCSS_TEXT-1',
-      'desc':       'check whether the "styleWithCSS" command is enabled',
-      'qcenabled':  'styleWithCSS' },
+    { 'desc':       '',
+      'tests':      [
+      ]
+    },
 
-    { 'id':         'CONTENTREADONLY_TEXT-1',
-      'desc':       'check whether the "contentreadonly" command is enabled',
-      'qcenabled':  'contentreadonly' },
+    { 'desc':       'HTML5 commands',
+      'tests':      [
+        { 'id':         'SELECTALL_TEXT-1',
+          'desc':       'check whether the "selectall" command is enabled',
+          'qcenabled':  'selectall' },
 
-    { 'id':         'BOLD_TEXT-1',
-      'desc':       'check whether the "bold" command is enabled',
-      'qcenabled':  'bold' },
+        { 'id':         'UNSELECT_TEXT-1',
+          'desc':       'check whether the "unselect" command is enabled',
+          'qcenabled':  'unselect' },
 
-    { 'id':         'ITALIC_TEXT-1',
-      'desc':       'check whether the "italic" command is enabled',
-      'qcenabled':  'italic' },
+        { 'id':         'UNDO_TEXT-1',
+          'desc':       'check whether the "undo" command is enabled',
+          'qcenabled':  'undo' },
 
-    { 'id':         'UNDERLINE_TEXT-1',
-      'desc':       'check whether the "underline" command is enabled',
-      'qcenabled':  'underline' },
+        { 'id':         'REDO_TEXT-1',
+          'desc':       'check whether the "redo" command is enabled',
+          'qcenabled':  'redo' },
 
-    { 'id':         'STRIKETHROUGH_TEXT-1',
-      'desc':       'check whether the "strikethrough" command is enabled',
-      'qcenabled':  'strikethrough' },
+        { 'id':         'BOLD_TEXT-1',
+          'desc':       'check whether the "bold" command is enabled',
+          'qcenabled':  'bold' },
 
-    { 'id':         'SUBSCRIPT_TEXT-1',
-      'desc':       'check whether the "subscript" command is enabled',
-      'qcenabled':  'subscript' },
+        { 'id':         'ITALIC_TEXT-1',
+          'desc':       'check whether the "italic" command is enabled',
+          'qcenabled':  'italic' },
 
-    { 'id':         'SUPERSCRIPT_TEXT-1',
-      'desc':       'check whether the "superscript" command is enabled',
-      'qcenabled':  'superscript' },
+        { 'id':         'UNDERLINE_TEXT-1',
+          'desc':       'check whether the "underline" command is enabled',
+          'qcenabled':  'underline' },
 
-    { 'id':         'BACKCOLOR_TEXT-1',
-      'desc':       'check whether the "backcolor" command is enabled',
-      'qcenabled':  'backcolor' },
+        { 'id':         'STRIKETHROUGH_TEXT-1',
+          'desc':       'check whether the "strikethrough" command is enabled',
+          'qcenabled':  'strikethrough' },
 
-    { 'id':         'FORECOLOR_TEXT-1',
-      'desc':       'check whether the "forecolor" command is enabled',
-      'qcenabled':  'forecolor' },
+        { 'id':         'SUBSCRIPT_TEXT-1',
+          'desc':       'check whether the "subscript" command is enabled',
+          'qcenabled':  'subscript' },
 
-    { 'id':         'HILITECOLOR_TEXT-1',
-      'desc':       'check whether the "hilitecolor" command is enabled',
-      'qcenabled':  'hilitecolor' },
+        { 'id':         'SUPERSCRIPT_TEXT-1',
+          'desc':       'check whether the "superscript" command is enabled',
+          'qcenabled':  'superscript' },
+          
+        { 'id':         'FORMATBLOCK_TEXT-1',
+          'desc':       'check whether the "formatblock" command is enabled',
+          'qcenabled':  'formatblock' },
 
-    { 'id':         'FONTNAME_TEXT-1',
-      'desc':       'check whether the "fontname" command is enabled',
-      'qcenabled':  'fontname' },
+        { 'id':         'CREATELINK_TEXT-1',
+          'desc':       'check whether the "createlink" command is enabled',
+          'qcenabled':  'createlink' },
+          
+        { 'id':         'UNLINK_TEXT-1',
+          'desc':       'check whether the "unlink" command is enabled',
+          'qcenabled':  'unlink' },
 
-    { 'id':         'FONTSIZE_TEXT-1',
-      'desc':       'check whether the "fontsize" command is enabled',
-      'qcenabled':  'fontsize' },
+        { 'id':         'INSERTHTML_TEXT-1',
+          'desc':       'check whether the "inserthtml" command is enabled',
+          'qcenabled':  'inserthtml' },
 
-    { 'id':         'INCREASEFONTSIZE_TEXT-1',
-      'desc':       'check whether the "increasefontsize" command is enabled',
-      'qcenabled':  'increasefontsize' },
+        { 'id':         'INSERTHORIZONTALRULE_TEXT-1',
+          'desc':       'check whether the "inserthorizontalrule" command is enabled',
+          'qcenabled':  'inserthorizontalrule' },
 
-    { 'id':         'DECREASEFONTSIZE_TEXT-1',
-      'desc':       'check whether the "decreasefontsize" command is enabled',
-      'qcenabled':  'decreasefontsize' },
+        { 'id':         'INSERTIMAGE_TEXT-1',
+          'desc':       'check whether the "insertimage" command is enabled',
+          'qcenabled':  'insertimage' },
 
-    { 'id':         'HEADING_TEXT-1',
-      'desc':       'check whether the "heading" command is enabled',
-      'qcenabled':  'heading' },
+        { 'id':         'INSERTLINEBREAK_TEXT-1',
+          'desc':       'check whether the "insertlinebreak" command is enabled',
+          'qcenabled':  'insertlinebreak' },
 
-    { 'id':         'FORMATBLOCK_TEXT-1',
-      'desc':       'check whether the "formatblock" command is enabled',
-      'qcenabled':  'formatblock' },
+        { 'id':         'INSERTPARAGRAPH_TEXT-1',
+          'desc':       'check whether the "insertparagraph" command is enabled',
+          'qcenabled':  'insertparagraph' },
 
-    { 'id':         'INDENT_TEXT-1',
-      'desc':       'check whether the "indent" command is enabled',
-      'qcenabled':  'indent' },
+        { 'id':         'INSERTORDEREDLIST_TEXT-1',
+          'desc':       'check whether the "insertorderedlist" command is enabled',
+          'qcenabled':  'insertorderedlist' },
 
-    { 'id':         'OUTDENT_TEXT-1',
-      'desc':       'check whether the "outdent" command is enabled',
-      'qcenabled':  'outdent' },
+        { 'id':         'INSERTUNORDEREDLIST_TEXT-1',
+          'desc':       'check whether the "insertunorderedlist" command is enabled',
+          'qcenabled':  'insertunorderedlist' },
 
-    { 'id':         'CREATELINK_TEXT-1',
-      'desc':       'check whether the "createlink" command is enabled',
-      'qcenabled':  'createlink' },
+        { 'id':         'INSERTTEXT_TEXT-1',
+          'desc':       'check whether the "inserttext" command is enabled',
+          'qcenabled':  'inserttext' },
 
-    { 'id':         'UNLINK_TEXT-1',
-      'desc':       'check whether the "unlink" command is enabled',
-      'qcenabled':  'unlink' },
+        { 'id':         'DELETE_TEXT-1',
+          'desc':       'check whether the "delete" command is enabled',
+          'qcenabled':  'delete' },
 
-    { 'id':         'CREATEBOOKMARK_TEXT-1',
-      'desc':       'check whether the "createbookmark" command is enabled',
-      'qcenabled':  'createbookmark' },
+        { 'id':         'FORWARDDELETE_TEXT-1',
+          'desc':       'check whether the "forwarddelete" command is enabled',
+          'qcenabled':  'forwarddelete' }
+      ]
+    },
 
-    { 'id':         'UNBOOKMARK_TEXT-1',
-      'desc':       'check whether the "unbookmark" command is enabled',
-      'qcenabled':  'unbookmark' },
+    { 'desc':       'MIDAS commands',
+      'tests':      [
+        { 'id':         'STYLEWITHCSS_TEXT-1',
+          'desc':       'check whether the "styleWithCSS" command is enabled',
+          'qcenabled':  'styleWithCSS' },
 
-    { 'id':         'JUSTIFYCENTER_TEXT-1',
-      'desc':       'check whether the "justifycenter" command is enabled',
-      'qcenabled':  'justifycenter' },
+        { 'id':         'CONTENTREADONLY_TEXT-1',
+          'desc':       'check whether the "contentreadonly" command is enabled',
+          'qcenabled':  'contentreadonly' },
 
-    { 'id':         'JUSTIFYFULL_TEXT-1',
-      'desc':       'check whether the "justifyfull" command is enabled',
-      'qcenabled':  'justifyfull' },
+        { 'id':         'BACKCOLOR_TEXT-1',
+          'desc':       'check whether the "backcolor" command is enabled',
+          'qcenabled':  'backcolor' },
 
-    { 'id':         'JUSTIFYLEFT_TEXT-1',
-      'desc':       'check whether the "justifyleft" command is enabled',
-      'qcenabled':  'justifyleft' },
+        { 'id':         'FORECOLOR_TEXT-1',
+          'desc':       'check whether the "forecolor" command is enabled',
+          'qcenabled':  'forecolor' },
 
-    { 'id':         'JUSTIFYRIGHT_TEXT-1',
-      'desc':       'check whether the "justifyright" command is enabled',
-      'qcenabled':  'justifyright' },
+        { 'id':         'HILITECOLOR_TEXT-1',
+          'desc':       'check whether the "hilitecolor" command is enabled',
+          'qcenabled':  'hilitecolor' },
 
-    { 'id':         'DELETE_TEXT-1',
-      'desc':       'check whether the "delete" command is enabled',
-      'qcenabled':  'delete' },
+        { 'id':         'FONTNAME_TEXT-1',
+          'desc':       'check whether the "fontname" command is enabled',
+          'qcenabled':  'fontname' },
 
-    { 'id':         'FORWARDDELETE_TEXT-1',
-      'desc':       'check whether the "forwarddelete" command is enabled',
-      'qcenabled':  'forwarddelete' },
+        { 'id':         'FONTSIZE_TEXT-1',
+          'desc':       'check whether the "fontsize" command is enabled',
+          'qcenabled':  'fontsize' },
 
-    { 'id':         'INSERTHTML_TEXT-1',
-      'desc':       'check whether the "inserthtml" command is enabled',
-      'qcenabled':  'inserthtml' },
+        { 'id':         'INCREASEFONTSIZE_TEXT-1',
+          'desc':       'check whether the "increasefontsize" command is enabled',
+          'qcenabled':  'increasefontsize' },
 
-    { 'id':         'INSERTHORIZONTALRULE_TEXT-1',
-      'desc':       'check whether the "inserthorizontalrule" command is enabled',
-      'qcenabled':  'inserthorizontalrule' },
+        { 'id':         'DECREASEFONTSIZE_TEXT-1',
+          'desc':       'check whether the "decreasefontsize" command is enabled',
+          'qcenabled':  'decreasefontsize' },
 
-    { 'id':         'INSERTIMAGE_TEXT-1',
-      'desc':       'check whether the "insertimage" command is enabled',
-      'qcenabled':  'insertimage' },
+        { 'id':         'HEADING_TEXT-1',
+          'desc':       'check whether the "heading" command is enabled',
+          'qcenabled':  'heading' },
 
-    { 'id':         'INSERTLINEBREAK_TEXT-1',
-      'desc':       'check whether the "insertlinebreak" command is enabled',
-      'qcenabled':  'insertlinebreak' },
+        { 'id':         'INDENT_TEXT-1',
+          'desc':       'check whether the "indent" command is enabled',
+          'qcenabled':  'indent' },
 
-    { 'id':         'INSERTPARAGRAPH_TEXT-1',
-      'desc':       'check whether the "insertparagraph" command is enabled',
-      'qcenabled':  'insertparagraph' },
+        { 'id':         'OUTDENT_TEXT-1',
+          'desc':       'check whether the "outdent" command is enabled',
+          'qcenabled':  'outdent' },
 
-    { 'id':         'INSERTORDEREDLIST_TEXT-1',
-      'desc':       'check whether the "insertorderedlist" command is enabled',
-      'qcenabled':  'insertorderedlist' },
+        { 'id':         'CREATEBOOKMARK_TEXT-1',
+          'desc':       'check whether the "createbookmark" command is enabled',
+          'qcenabled':  'createbookmark' },
 
-    { 'id':         'INSERTUNORDEREDLIST_TEXT-1',
-      'desc':       'check whether the "insertunorderedlist" command is enabled',
-      'qcenabled':  'insertunorderedlist' },
+        { 'id':         'UNBOOKMARK_TEXT-1',
+          'desc':       'check whether the "unbookmark" command is enabled',
+          'qcenabled':  'unbookmark' },
 
-    { 'id':         'INSERTTEXT_TEXT-1',
-      'desc':       'check whether the "inserttext" command is enabled',
-      'qcenabled':  'inserttext' },
+        { 'id':         'JUSTIFYCENTER_TEXT-1',
+          'desc':       'check whether the "justifycenter" command is enabled',
+          'qcenabled':  'justifycenter' },
 
-    { 'id':         'REMOVEFORMAT_TEXT-1',
-      'desc':       'check whether the "removeformat" command is enabled',
-      'qcenabled':  'removeformat' },
+        { 'id':         'JUSTIFYFULL_TEXT-1',
+          'desc':       'check whether the "justifyfull" command is enabled',
+          'qcenabled':  'justifyfull' },
 
-    { 'id':         'COPY_TEXT-1',
-      'desc':       'check whether the "copy" command is enabled',
-      'qcenabled':  'copy' },
+        { 'id':         'JUSTIFYLEFT_TEXT-1',
+          'desc':       'check whether the "justifyleft" command is enabled',
+          'qcenabled':  'justifyleft' },
 
-    { 'id':         'CUT_TEXT-1',
-      'desc':       'check whether the "cut" command is enabled',
-      'qcenabled':  'cut' },
+        { 'id':         'JUSTIFYRIGHT_TEXT-1',
+          'desc':       'check whether the "justifyright" command is enabled',
+          'qcenabled':  'justifyright' },
 
-    { 'id':         'PASTE_TEXT-1',
-      'desc':       'check whether the "paste" command is enabled',
-      'qcenabled':  'paste' },
+        { 'id':         'REMOVEFORMAT_TEXT-1',
+          'desc':       'check whether the "removeformat" command is enabled',
+          'qcenabled':  'removeformat' },
 
-    { 'id':         'UNDO_TEXT-1',
-      'desc':       'check whether the "undo" command is enabled',
-      'qcenabled':  'undo' },
+        { 'id':         'COPY_TEXT-1',
+          'desc':       'check whether the "copy" command is enabled',
+          'qcenabled':  'copy' },
 
-    { 'id':         'REDO_TEXT-1',
-      'desc':       'check whether the "redo" command is enabled',
-      'qcenabled':  'redo' },
+        { 'id':         'CUT_TEXT-1',
+          'desc':       'check whether the "cut" command is enabled',
+          'qcenabled':  'cut' },
 
-    { 'id':         'SELECTALL_TEXT-1',
-      'desc':       'check whether the "selectall" command is enabled',
-      'qcenabled':  'selectall' },
+        { 'id':         'PASTE_TEXT-1',
+          'desc':       'check whether the "paste" command is enabled',
+          'qcenabled':  'paste' }
+      ]
+    },
 
-    { 'id':         'UNSELECT_TEXT-1',
-      'desc':       'check whether the "unselect" command is enabled',
-      'qcenabled':  'unselect' },
-
-    { 'id':         'garbage-1_TEXT-1',
-      'desc':       'check correct return value with garbage input',
-      'qcenabled':  '#!#@7',
-      'expected':   False }
+    { 'desc':       'Other tests',
+      'tests':      [
+        { 'id':         'garbage-1_TEXT-1',
+          'desc':       'check correct return value with garbage input',
+          'qcenabled':  '#!#@7',
+          'expected':   False }
+      ]
+    }
   ]
 }
 

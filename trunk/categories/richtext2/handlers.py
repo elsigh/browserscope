@@ -51,11 +51,11 @@ from categories.richtext2.tests.selection     import SELECTION_TESTS
 from categories.richtext2.tests.unapply       import UNAPPLY_TESTS
 from categories.richtext2.tests.unapplyCSS    import UNAPPLY_TESTS_CSS
 
-from categories.richtext2.tests.querySupported      import QUERYSUPPORTED_TESTS
-from categories.richtext2.tests.queryEnabled        import QUERYENABLED_TESTS
-from categories.richtext2.tests.queryIndeterminate  import QUERYINDETERM_TESTS
-from categories.richtext2.tests.queryState          import QUERYSTATE_TESTS, QUERYSTATE_TESTS_CSS
-from categories.richtext2.tests.queryValue          import QUERYVALUE_TESTS, QUERYVALUE_TESTS_CSS
+from categories.richtext2.tests.querySupported  import QUERYSUPPORTED_TESTS
+from categories.richtext2.tests.queryEnabled    import QUERYENABLED_TESTS
+from categories.richtext2.tests.queryIndeterm   import QUERYINDETERM_TESTS
+from categories.richtext2.tests.queryState      import QUERYSTATE_TESTS, QUERYSTATE_TESTS_CSS
+from categories.richtext2.tests.queryValue      import QUERYVALUE_TESTS, QUERYVALUE_TESTS_CSS
 
 
 def About(request):

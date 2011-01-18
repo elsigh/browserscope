@@ -141,11 +141,12 @@ function deriveSelectionPoint(root, marker) {
  * that start or end point, respectively, and must contain either both or none.
  *
  * @param suite {Object} suite that test originates in as object reference
+ * @param group {Object} group of tests within the suite the test belongs to
  * @param test {Object} test to be run as object reference
  * @param container {Object} container descriptor as object reference
  */
-function initContainer(suite, test, container) {
-  var pad = getTestParameter(suite, test, PARAM_PAD);
+function initContainer(suite, group, test, container) {
+  var pad = getTestParameter(suite, group, test, PARAM_PAD);
   pad = canonicalizeSpaces(pad);
   pad = convertSelectionIndicators(pad);
 
@@ -167,7 +168,7 @@ function initContainer(suite, test, container) {
     throw SETUP_CONTAINER;
   }
 
-  if (getTestParameter(suite, test, PARAM_STYLE_WITH_CSS)) {
+  if (getTestParameter(suite, group, test, PARAM_STYLE_WITH_CSS)) {
     // Some browsers require a selection to go with their 'styleWithCSS'.
     try {
       container.win.getSelection().selectAllChildren(editor);
@@ -240,32 +241,26 @@ function resetContainer(container) {
  * Initialize the editor document.
  */
 function initEditorDocs() {
-  // Wrap initialization code in a try/catch so we can fail gracefully
-  // on older browsers.
-  try {
-    for (var c = 0; c < containers.length; ++c) {
-      var container = containers[c];
+  for (var c = 0; c < containers.length; ++c) {
+    var container = containers[c];
 
-      container.iframe = document.getElementById('iframe-' + container.id);
-      container.win = container.iframe.contentWindow;
-      container.doc = container.win.document;
-      container.body = container.doc.body;
-      // container.editor is set per test (changes on embedded editor elements).
+    container.iframe = document.getElementById('iframe-' + container.id);
+    container.win = container.iframe.contentWindow;
+    container.doc = container.win.document;
+    container.body = container.doc.body;
+    // container.editor is set per test (changes on embedded editor elements).
 
-      // Some browsers require a selection to go with their 'styleWithCSS'.
-      try {
-        container.win.getSelection().selectAllChildren(editor);
-      } catch (ex) {
-        // ignore exception if unsupported
-      }
-      // Default styleWithCSS to false.
-      try {
-        container.doc.execCommand('styleWithCSS', false, false);
-      } catch (ex) {
-        // ignore exception if unsupported
-      }
+    // Some browsers require a selection to go with their 'styleWithCSS'.
+    try {
+      container.win.getSelection().selectAllChildren(editor);
+    } catch (ex) {
+      // ignore exception if unsupported
     }
-  } catch (ex) {
-    writeFatalError("Exception setting up the environment: " + ex.toString());
+    // Default styleWithCSS to false.
+    try {
+      container.doc.execCommand('styleWithCSS', false, false);
+    } catch (ex) {
+      // ignore exception if unsupported
+    }
   }
 }

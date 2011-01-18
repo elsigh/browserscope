@@ -226,21 +226,22 @@ function verifyCanaries(container, result) {
  * Sets the global result variables.
  *
  * @param suite {Object} the test suite as object reference
+ * @param group {Object} group of tests within the suite the test belongs to
  * @param test {Object} the test as object reference
  * @param container {Object} the test container description
  * @param result {Object} [in/out] the result description, incl. HTML strings
  * @see variables.js for result values
  */
-function compareHTMLTestResult(suite, test, container, result) {
+function compareHTMLTestResult(suite, group, test, container, result) {
   if (!verifyCanaries(container, result)) {
     return;
   }
 
   var emitFlags = {
-      emitAttrs:         getTestParameter(suite, test, PARAM_CHECK_ATTRIBUTES),
-      emitStyle:         getTestParameter(suite, test, PARAM_CHECK_STYLE),
-      emitClass:         getTestParameter(suite, test, PARAM_CHECK_CLASS),
-      emitID:            getTestParameter(suite, test, PARAM_CHECK_ID),
+      emitAttrs:         getTestParameter(suite, group, test, PARAM_CHECK_ATTRIBUTES),
+      emitStyle:         getTestParameter(suite, group, test, PARAM_CHECK_STYLE),
+      emitClass:         getTestParameter(suite, group, test, PARAM_CHECK_CLASS),
+      emitID:            getTestParameter(suite, group, test, PARAM_CHECK_ID),
       lowercase:         true,
       canonicalizeUnits: true
   };
@@ -256,16 +257,16 @@ function compareHTMLTestResult(suite, test, container, result) {
   if (tagCmp == RESULT_EQUAL) {
     result.output = result.innerHTML;
     compareHTMLTestResultTo(
-        getTestParameter(suite, test, PARAM_EXPECTED),
-        getTestParameter(suite, test, PARAM_ACCEPT),
+        getTestParameter(suite, group, test, PARAM_EXPECTED),
+        getTestParameter(suite, group, test, PARAM_ACCEPT),
         result.innerHTML,
         emitFlags,
         result)
   } else {
     result.output = result.outerHTML;
     compareHTMLTestResultTo(
-        getContainerParameter(suite, test, container, PARAM_EXPECTED_OUTER),
-        getContainerParameter(suite, test, container, PARAM_ACCEPT_OUTER),
+        getContainerParameter(suite, group, test, container, PARAM_EXPECTED_OUTER),
+        getContainerParameter(suite, group, test, container, PARAM_ACCEPT_OUTER),
         result.outerHTML,
         emitFlags,
         result)
@@ -319,6 +320,27 @@ function insertSelectionIndicator(node, offs, textInd, elemInd) {
             break;
         }
       }
+      break;
+  }
+}
+
+/**
+ * Adds quotes around all text nodes to show cases with non-normalized
+ * text nodes. Those are not a bug, but may still be usefil in helping to
+ * debug erroneous cases.
+ *
+ * @param node {DOMNode} root node from which to descend
+ */
+function encloseTextNodesWithQuotes(node) {
+  switch (node.nodeType) {
+    case DOM_NODE_TYPE_ELEMENT:
+      for (var i = 0; i < node.childNodes.length; ++i) {
+        encloseTextNodesWithQuotes(node.childNodes[i]);
+      }
+      break;
+      
+    case DOM_NODE_TYPE_TEXT:
+      node.data = '\x60' + node.data + '\xb4';
       break;
   }
 }
@@ -379,12 +401,13 @@ function prepareHTMLTestResult(container, result) {
  * Compare a text test result to the expectation string(s).
  *
  * @param suite {Object} the test suite as object reference
+ * @param group {Object} group of tests within the suite the test belongs to
  * @param test {Object} the test as object reference
  * @param actual {String/Boolean} actual value
  * @param expected {String/Array} expectation(s)
  * @return {Boolean} whether we found a match
  */
-function compareTextTestResultWith(suite, test, actual, expected) {
+function compareTextTestResultWith(suite, group, test, actual, expected) {
   var expectedArr = getExpectationArray(expected);
   // Find the most favorable result among the possible expectation strings.
   var count = expectedArr.length;
@@ -402,7 +425,7 @@ function compareTextTestResultWith(suite, test, actual, expected) {
   // specific criterion.
   //
   // TODO(rolandsteiner): This is ugly! Refactor!
-  switch (getTestParameter(suite, test, PARAM_QUERYCOMMANDVALUE)) {
+  switch (getTestParameter(suite, group, test, PARAM_QUERYCOMMANDVALUE)) {
     case 'backcolor':
     case 'forecolor':
     case 'hilitecolor':
@@ -435,19 +458,20 @@ function compareTextTestResultWith(suite, test, actual, expected) {
  * Sets the global result variables.
  *
  * @param suite {Object} the test suite as object reference
+ * @param group {Object} group of tests within the suite the test belongs to
  * @param test {Object} the test as object reference
  * @param actual {String/Boolean} actual value
  * @return {Integer} a RESUTLHTML... result value
  * @see variables.js for result values
  */
-function compareTextTestResult(suite, test, result) {
-  var expected = getTestParameter(suite, test, PARAM_EXPECTED);
-  if (compareTextTestResultWith(suite, test, result.output, expected)) {
+function compareTextTestResult(suite, group, test, result) {
+  var expected = getTestParameter(suite, group, test, PARAM_EXPECTED);
+  if (compareTextTestResultWith(suite, group, test, result.output, expected)) {
     result.valresult = VALRESULT_EQUAL;
     return;
   }
-  var accepted = getTestParameter(suite, test, PARAM_ACCEPT);
-  if (accepted && compareTextTestResultWith(suite, test, result.output, accepted)) {
+  var accepted = getTestParameter(suite, group, test, PARAM_ACCEPT);
+  if (accepted && compareTextTestResultWith(suite, group, test, result.output, accepted)) {
     result.valresult = VALRESULT_ACCEPT;
     return;
   }

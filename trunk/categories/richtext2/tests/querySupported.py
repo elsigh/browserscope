@@ -1,22 +1,3 @@
-#!/usr/bin/python2.5
-#
-# Copyright 2010 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the 'License')
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an 'AS IS' BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""queryCommandSupported tests"""
-
-__author__ = 'rolandsteiner@google.com (Roland Steiner)'
 
 QUERYSUPPORTED_TESTS = {
   'id':            'Q',
@@ -28,200 +9,217 @@ QUERYSUPPORTED_TESTS = {
   'expected':      True,
 
   'Proposed': [
-    { 'id':          'STYLEWITHCSS_TEXT-1',
-      'desc':        'check whether the "styleWithCSS" command is supported',
-      'qcsupported': 'styleWithCSS' },
+    { 'desc':       '',
+      'tests':      [
+      ]
+    },
 
-    { 'id':          'CONTENTREADONLY_TEXT-1',
-      'desc':        'check whether the "contentreadonly" command is supported',
-      'qcsupported': 'contentreadonly' },
+    { 'desc':       'HTML5 commands',
+      'tests':      [
+        { 'id':          'SELECTALL_TEXT-1',
+          'desc':        'check whether the "selectall" command is supported',
+          'qcsupported': 'selectall' },
 
-    { 'id':          'BOLD_TEXT-1',
-      'desc':        'check whether the "bold" command is supported',
-      'qcsupported': 'bold' },
+        { 'id':          'UNSELECT_TEXT-1',
+          'desc':        'check whether the "unselect" command is supported',
+          'qcsupported': 'unselect' },
 
-    { 'id':          'BOLD_B',
-      'desc':        'check whether the "bold" command is supported',
-      'qcsupported': 'bold',
-      'pad':         '<b>foo[bar]baz</b>' },
+        { 'id':          'UNDO_TEXT-1',
+          'desc':        'check whether the "undo" command is supported',
+          'qcsupported': 'undo' },
 
-    { 'id':          'ITALIC_TEXT-1',
-      'desc':        'check whether the "italic" command is supported',
-      'qcsupported': 'italic' },
+        { 'id':          'REDO_TEXT-1',
+          'desc':        'check whether the "redo" command is supported',
+          'qcsupported': 'redo' },
 
-    { 'id':          'ITALIC_I',
-      'desc':        'check whether the "italic" command is supported',
-      'qcsupported': 'italic',
-      'pad':         '<i>foo[bar]baz</i>' },
+        { 'id':          'BOLD_TEXT-1',
+          'desc':        'check whether the "bold" command is supported',
+          'qcsupported': 'bold' },
 
-    { 'id':          'UNDERLINE_TEXT-1',
-      'desc':        'check whether the "underline" command is supported',
-      'qcsupported': 'underline' },
+        { 'id':          'BOLD_B',
+          'desc':        'check whether the "bold" command is supported',
+          'qcsupported': 'bold',
+          'pad':         '<b>foo[bar]baz</b>' },
 
-    { 'id':          'STRIKETHROUGH_TEXT-1',
-      'desc':        'check whether the "strikethrough" command is supported',
-      'qcsupported': 'strikethrough' },
+        { 'id':          'ITALIC_TEXT-1',
+          'desc':        'check whether the "italic" command is supported',
+          'qcsupported': 'italic' },
 
-    { 'id':          'SUBSCRIPT_TEXT-1',
-      'desc':        'check whether the "subscript" command is supported',
-      'qcsupported': 'subscript' },
+        { 'id':          'ITALIC_I',
+          'desc':        'check whether the "italic" command is supported',
+          'qcsupported': 'italic',
+          'pad':         '<i>foo[bar]baz</i>' },
 
-    { 'id':          'SUPERSCRIPT_TEXT-1',
-      'desc':        'check whether the "superscript" command is supported',
-      'qcsupported': 'superscript' },
+        { 'id':          'UNDERLINE_TEXT-1',
+          'desc':        'check whether the "underline" command is supported',
+          'qcsupported': 'underline' },
 
-    { 'id':          'BACKCOLOR_TEXT-1',
-      'desc':        'check whether the "backcolor" command is supported',
-      'qcsupported': 'backcolor' },
+        { 'id':          'STRIKETHROUGH_TEXT-1',
+          'desc':        'check whether the "strikethrough" command is supported',
+          'qcsupported': 'strikethrough' },
 
-    { 'id':          'FORECOLOR_TEXT-1',
-      'desc':        'check whether the "forecolor" command is supported',
-      'qcsupported': 'forecolor' },
+        { 'id':          'SUBSCRIPT_TEXT-1',
+          'desc':        'check whether the "subscript" command is supported',
+          'qcsupported': 'subscript' },
 
-    { 'id':          'HILITECOLOR_TEXT-1',
-      'desc':        'check whether the "hilitecolor" command is supported',
-      'qcsupported': 'hilitecolor' },
+        { 'id':          'SUPERSCRIPT_TEXT-1',
+          'desc':        'check whether the "superscript" command is supported',
+          'qcsupported': 'superscript' },
 
-    { 'id':          'FONTNAME_TEXT-1',
-      'desc':        'check whether the "fontname" command is supported',
-      'qcsupported': 'fontname' },
+        { 'id':          'FORMATBLOCK_TEXT-1',
+          'desc':        'check whether the "formatblock" command is supported',
+          'qcsupported': 'formatblock' },
 
-    { 'id':          'FONTSIZE_TEXT-1',
-      'desc':        'check whether the "fontsize" command is supported',
-      'qcsupported': 'fontsize' },
+        { 'id':          'CREATELINK_TEXT-1',
+          'desc':        'check whether the "createlink" command is supported',
+          'qcsupported': 'createlink' },
 
-    { 'id':          'INCREASEFONTSIZE_TEXT-1',
-      'desc':        'check whether the "increasefontsize" command is supported',
-      'qcsupported': 'increasefontsize' },
+        { 'id':          'UNLINK_TEXT-1',
+          'desc':        'check whether the "unlink" command is supported',
+          'qcsupported': 'unlink' },
 
-    { 'id':          'DECREASEFONTSIZE_TEXT-1',
-      'desc':        'check whether the "decreasefontsize" command is supported',
-      'qcsupported': 'decreasefontsize' },
+        { 'id':          'INSERTHTML_TEXT-1',
+          'desc':        'check whether the "inserthtml" command is supported',
+          'qcsupported': 'inserthtml' },
 
-    { 'id':          'HEADING_TEXT-1',
-      'desc':        'check whether the "heading" command is supported',
-      'qcsupported': 'heading' },
+        { 'id':          'INSERTHORIZONTALRULE_TEXT-1',
+          'desc':        'check whether the "inserthorizontalrule" command is supported',
+          'qcsupported': 'inserthorizontalrule' },
 
-    { 'id':          'FORMATBLOCK_TEXT-1',
-      'desc':        'check whether the "formatblock" command is supported',
-      'qcsupported': 'formatblock' },
+        { 'id':          'INSERTIMAGE_TEXT-1',
+          'desc':        'check whether the "insertimage" command is supported',
+          'qcsupported': 'insertimage' },
 
-    { 'id':          'INDENT_TEXT-1',
-      'desc':        'check whether the "indent" command is supported',
-      'qcsupported': 'indent' },
+        { 'id':          'INSERTLINEBREAK_TEXT-1',
+          'desc':        'check whether the "insertlinebreak" command is supported',
+          'qcsupported': 'insertlinebreak' },
 
-    { 'id':          'OUTDENT_TEXT-1',
-      'desc':        'check whether the "outdent" command is supported',
-      'qcsupported': 'outdent' },
+        { 'id':          'INSERTPARAGRAPH_TEXT-1',
+          'desc':        'check whether the "insertparagraph" command is supported',
+          'qcsupported': 'insertparagraph' },
 
-    { 'id':          'CREATELINK_TEXT-1',
-      'desc':        'check whether the "createlink" command is supported',
-      'qcsupported': 'createlink' },
+        { 'id':          'INSERTORDEREDLIST_TEXT-1',
+          'desc':        'check whether the "insertorderedlist" command is supported',
+          'qcsupported': 'insertorderedlist' },
 
-    { 'id':          'UNLINK_TEXT-1',
-      'desc':        'check whether the "unlink" command is supported',
-      'qcsupported': 'unlink' },
+        { 'id':          'INSERTUNORDEREDLIST_TEXT-1',
+          'desc':        'check whether the "insertunorderedlist" command is supported',
+          'qcsupported': 'insertunorderedlist' },
 
-    { 'id':          'CREATEBOOKMARK_TEXT-1',
-      'desc':        'check whether the "createbookmark" command is supported',
-      'qcsupported': 'createbookmark' },
+        { 'id':          'INSERTTEXT_TEXT-1',
+          'desc':        'check whether the "inserttext" command is supported',
+          'qcsupported': 'inserttext' },
 
-    { 'id':          'UNBOOKMARK_TEXT-1',
-      'desc':        'check whether the "unbookmark" command is supported',
-      'qcsupported': 'unbookmark' },
+        { 'id':          'DELETE_TEXT-1',
+          'desc':        'check whether the "delete" command is supported',
+          'qcsupported': 'delete' },
 
-    { 'id':          'JUSTIFYCENTER_TEXT-1',
-      'desc':        'check whether the "justifycenter" command is supported',
-      'qcsupported': 'justifycenter' },
+        { 'id':          'FORWARDDELETE_TEXT-1',
+          'desc':        'check whether the "forwarddelete" command is supported',
+          'qcsupported': 'forwarddelete' }
+      ]
+    },
 
-    { 'id':          'JUSTIFYFULL_TEXT-1',
-      'desc':        'check whether the "justifyfull" command is supported',
-      'qcsupported': 'justifyfull' },
+    { 'desc':       'MIDAS commands',
+      'tests':      [
+        { 'id':          'STYLEWITHCSS_TEXT-1',
+          'desc':        'check whether the "styleWithCSS" command is supported',
+          'qcsupported': 'styleWithCSS' },
 
-    { 'id':          'JUSTIFYLEFT_TEXT-1',
-      'desc':        'check whether the "justifyleft" command is supported',
-      'qcsupported': 'justifyleft' },
+        { 'id':          'CONTENTREADONLY_TEXT-1',
+          'desc':        'check whether the "contentreadonly" command is supported',
+          'qcsupported': 'contentreadonly' },
 
-    { 'id':          'JUSTIFYRIGHT_TEXT-1',
-      'desc':        'check whether the "justifyright" command is supported',
-      'qcsupported': 'justifyright' },
+        { 'id':          'BACKCOLOR_TEXT-1',
+          'desc':        'check whether the "backcolor" command is supported',
+          'qcsupported': 'backcolor' },
 
-    { 'id':          'DELETE_TEXT-1',
-      'desc':        'check whether the "delete" command is supported',
-      'qcsupported': 'delete' },
+        { 'id':          'FORECOLOR_TEXT-1',
+          'desc':        'check whether the "forecolor" command is supported',
+          'qcsupported': 'forecolor' },
 
-    { 'id':          'FORWARDDELETE_TEXT-1',
-      'desc':        'check whether the "forwarddelete" command is supported',
-      'qcsupported': 'forwarddelete' },
+        { 'id':          'HILITECOLOR_TEXT-1',
+          'desc':        'check whether the "hilitecolor" command is supported',
+          'qcsupported': 'hilitecolor' },
 
-    { 'id':          'INSERTHTML_TEXT-1',
-      'desc':        'check whether the "inserthtml" command is supported',
-      'qcsupported': 'inserthtml' },
+        { 'id':          'FONTNAME_TEXT-1',
+          'desc':        'check whether the "fontname" command is supported',
+          'qcsupported': 'fontname' },
 
-    { 'id':          'INSERTHORIZONTALRULE_TEXT-1',
-      'desc':        'check whether the "inserthorizontalrule" command is supported',
-      'qcsupported': 'inserthorizontalrule' },
+        { 'id':          'FONTSIZE_TEXT-1',
+          'desc':        'check whether the "fontsize" command is supported',
+          'qcsupported': 'fontsize' },
 
-    { 'id':          'INSERTIMAGE_TEXT-1',
-      'desc':        'check whether the "insertimage" command is supported',
-      'qcsupported': 'insertimage' },
+        { 'id':          'INCREASEFONTSIZE_TEXT-1',
+          'desc':        'check whether the "increasefontsize" command is supported',
+          'qcsupported': 'increasefontsize' },
 
-    { 'id':          'INSERTLINEBREAK_TEXT-1',
-      'desc':        'check whether the "insertlinebreak" command is supported',
-      'qcsupported': 'insertlinebreak' },
+        { 'id':          'DECREASEFONTSIZE_TEXT-1',
+          'desc':        'check whether the "decreasefontsize" command is supported',
+          'qcsupported': 'decreasefontsize' },
 
-    { 'id':          'INSERTPARAGRAPH_TEXT-1',
-      'desc':        'check whether the "insertparagraph" command is supported',
-      'qcsupported': 'insertparagraph' },
+        { 'id':          'HEADING_TEXT-1',
+          'desc':        'check whether the "heading" command is supported',
+          'qcsupported': 'heading' },
 
-    { 'id':          'INSERTORDEREDLIST_TEXT-1',
-      'desc':        'check whether the "insertorderedlist" command is supported',
-      'qcsupported': 'insertorderedlist' },
+        { 'id':          'INDENT_TEXT-1',
+          'desc':        'check whether the "indent" command is supported',
+          'qcsupported': 'indent' },
 
-    { 'id':          'INSERTUNORDEREDLIST_TEXT-1',
-      'desc':        'check whether the "insertunorderedlist" command is supported',
-      'qcsupported': 'insertunorderedlist' },
+        { 'id':          'OUTDENT_TEXT-1',
+          'desc':        'check whether the "outdent" command is supported',
+          'qcsupported': 'outdent' },
 
-    { 'id':          'INSERTTEXT_TEXT-1',
-      'desc':        'check whether the "inserttext" command is supported',
-      'qcsupported': 'inserttext' },
+        { 'id':          'CREATEBOOKMARK_TEXT-1',
+          'desc':        'check whether the "createbookmark" command is supported',
+          'qcsupported': 'createbookmark' },
 
-    { 'id':          'REMOVEFORMAT_TEXT-1',
-      'desc':        'check whether the "removeformat" command is supported',
-      'qcsupported': 'removeformat' },
+        { 'id':          'UNBOOKMARK_TEXT-1',
+          'desc':        'check whether the "unbookmark" command is supported',
+          'qcsupported': 'unbookmark' },
 
-    { 'id':          'COPY_TEXT-1',
-      'desc':        'check whether the "copy" command is supported',
-      'qcsupported': 'copy' },
+        { 'id':          'JUSTIFYCENTER_TEXT-1',
+          'desc':        'check whether the "justifycenter" command is supported',
+          'qcsupported': 'justifycenter' },
 
-    { 'id':          'CUT_TEXT-1',
-      'desc':        'check whether the "cut" command is supported',
-      'qcsupported': 'cut' },
+        { 'id':          'JUSTIFYFULL_TEXT-1',
+          'desc':        'check whether the "justifyfull" command is supported',
+          'qcsupported': 'justifyfull' },
 
-    { 'id':          'PASTE_TEXT-1',
-      'desc':        'check whether the "paste" command is supported',
-      'qcsupported': 'paste' },
+        { 'id':          'JUSTIFYLEFT_TEXT-1',
+          'desc':        'check whether the "justifyleft" command is supported',
+          'qcsupported': 'justifyleft' },
 
-    { 'id':          'UNDO_TEXT-1',
-      'desc':        'check whether the "undo" command is supported',
-      'qcsupported': 'undo' },
+        { 'id':          'JUSTIFYRIGHT_TEXT-1',
+          'desc':        'check whether the "justifyright" command is supported',
+          'qcsupported': 'justifyright' },
 
-    { 'id':          'REDO_TEXT-1',
-      'desc':        'check whether the "redo" command is supported',
-      'qcsupported': 'redo' },
+        { 'id':          'REMOVEFORMAT_TEXT-1',
+          'desc':        'check whether the "removeformat" command is supported',
+          'qcsupported': 'removeformat' },
 
-    { 'id':          'SELECTALL_TEXT-1',
-      'desc':        'check whether the "selectall" command is supported',
-      'qcsupported': 'selectall' },
+        { 'id':          'COPY_TEXT-1',
+          'desc':        'check whether the "copy" command is supported',
+          'qcsupported': 'copy' },
 
-    { 'id':          'UNSELECT_TEXT-1',
-      'desc':        'check whether the "unselect" command is supported',
-      'qcsupported': 'unselect' },
-      
-    { 'id':          'garbage-1_TEXT-1',
-      'desc':        'check correct return value with garbage input',
-      'qcsupported': '#!#@7',
-      'expected':    False }
+        { 'id':          'CUT_TEXT-1',
+          'desc':        'check whether the "cut" command is supported',
+          'qcsupported': 'cut' },
+
+        { 'id':          'PASTE_TEXT-1',
+          'desc':        'check whether the "paste" command is supported',
+          'qcsupported': 'paste' }
+      ]
+    },
+    
+    { 'desc':       'Other tests',
+      'tests':      [
+        { 'id':          'garbage-1_TEXT-1',
+          'desc':        'check correct return value with garbage input',
+          'qcsupported': '#!#@7',
+          'expected':    False }
+      ]
+    }
   ]
 }
 
