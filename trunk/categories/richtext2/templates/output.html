@@ -1,27 +1,27 @@
 ﻿<!-- Legend -->
-<TABLE CLASS="legend">
+<TABLE CLASS="legend framed">
   <THEAD>
     <TR><TH COLSPAN=3 CLASS="legendHdr">Result Description</TH></TR>
     <TR><TH>Status</TH><TH ALIGN="LEFT">Meaning</TH><TH ALIGN="LEFT">Explanation</TH><TH>Scoring</TH></TR>
   </THEAD>
   <TBODY>
-    <TR><TD CLASS="passBkLo" ALIGN="CENTER">&nbsp;PASS&nbsp;</TD><TD ROWSPAN=2>Passed</TD><TD ROWSPAN=2>The result matches the expectation.</TD><TD ROWSPAN=2 ALIGN="CENTER" CLASS="passBkHi">PASS (+1)</TD></TR>
-    <TR><TD CLASS="passBkHi" ALIGN="CENTER">&nbsp;PASS&nbsp;</TD></TR>
-    <TR><TD CLASS="acceptBkLo" ALIGN="CENTER">&nbsp;ACC.&nbsp;</TD><TD ROWSPAN=2>Acceptable</TD><TD ROWSPAN=2>The result is technically correct, but not ideal (too verbose, deprecated usage, etc.) - for informative purposes only.</TD><TD ROWSPAN=2 ALIGN="CENTER" CLASS="failBkHi">FAIL (+0)</TD></TR>
-    <TR><TD CLASS="acceptBkHi" ALIGN="CENTER">&nbsp;ACC.&nbsp;</TD></TR>
-    <TR><TD CLASS="failBkLo" ALIGN="CENTER">&nbsp;FAIL&nbsp;</TD><TD ROWSPAN=2>Failure</TD><TD ROWSPAN=2>The result does not match any given expectation.</TD><TD ROWSPAN=2 ALIGN="CENTER" CLASS="failBkHi">FAIL (+0)</TD></TR>
-    <TR><TD CLASS="failBkHi" ALIGN="CENTER">&nbsp;FAIL&nbsp;</TD></TR>
-    <TR><TD CLASS="canaryBkLo" ALIGN="CENTER">&nbsp;CANARY&nbsp;</TD><TD ROWSPAN=2>Canary</TD><TD ROWSPAN=2>The result changes HTML other than children of the contentEditable element.</TD><TD ROWSPAN=2 ALIGN="CENTER" CLASS="failBkHi">FAIL (+0)</TD></TR>
-    <TR><TD CLASS="canaryBkHi" ALIGN="CENTER">&nbsp;CANARY&nbsp;</TD></TR>
-    <TR><TD CLASS="unsupportedBkLo" ALIGN="CENTER">&nbsp;UNS.&nbsp;</TD><TD ROWSPAN=2>Unsupported</TD><TD ROWSPAN=2>The specific function or value is unsupported (returned boolean 'false').</TD><TD ROWSPAN=2 ALIGN="CENTER" CLASS="failBkHi">FAIL (+0)</TD></TR>
-    <TR><TD CLASS="unsupportedBkHi" ALIGN="CENTER">&nbsp;UNS.&nbsp;</TD></TR>
-    <TR><TD CLASS="exceptionBkLo" ALIGN="CENTER">&nbsp;EXC.&nbsp;</TD><TD ROWSPAN=2>Exception</TD><TD ROWSPAN=2>An unexpected exception was thrown during the execution of the test.</TD><TD ROWSPAN=2 ALIGN="CENTER" CLASS="failBkHi">FAIL (+0)</TD></TR>
-    <TR><TD CLASS="exceptionBkHi" ALIGN="CENTER">&nbsp;EXC.&nbsp;</TD></TR>
-    <TR><TD CLASS="naBkLo" ALIGN="CENTER">&nbsp;N/A&nbsp;</TD><TD ROWSPAN=2>Not Applicable</TD><TD ROWSPAN=2>The selection could not be tested, because the tested function failed to return a known result.</TD><TD ROWSPAN=2 ALIGN="CENTER" CLASS="failBkHi">FAIL (+0)</TD></TR>
-    <TR><TD CLASS="naBkHi" ALIGN="CENTER">&nbsp;N/A&nbsp;</TD></TR>
+    <TR CLASS="lo"><TD CLASS="pass" ALIGN="CENTER">&nbsp;PASS&nbsp;</TD><TD CLASS="legend" ROWSPAN=2>Passed</TD><TD CLASS="legend" ROWSPAN=2>The result matches the expectation.</TD><TD ROWSPAN=2 ALIGN="CENTER" CLASS="pass">PASS (+1)</TD></TR>
+    <TR CLASS="hi"><TD CLASS="pass" ALIGN="CENTER">&nbsp;PASS&nbsp;</TD></TR>
+    <TR CLASS="lo"><TD CLASS="accept" ALIGN="CENTER">&nbsp;ACC.&nbsp;</TD><TD CLASS="legend" ROWSPAN=2>Acceptable</TD><TD CLASS="legend" ROWSPAN=2>The result is technically correct, but not ideal (too verbose, deprecated usage, etc.) - for informative purposes only.</TD><TD ROWSPAN=2 ALIGN="CENTER" CLASS="fail">FAIL (+0)</TD></TR>
+    <TR CLASS="hi"><TD CLASS="accept" ALIGN="CENTER">&nbsp;ACC.&nbsp;</TD></TR>
+    <TR CLASS="lo"><TD CLASS="fail" ALIGN="CENTER">&nbsp;FAIL&nbsp;</TD><TD CLASS="legend" ROWSPAN=2>Failure</TD><TD CLASS="legend" ROWSPAN=2>The result does not match any given expectation.</TD><TD ROWSPAN=2 ALIGN="CENTER" CLASS="fail">FAIL (+0)</TD></TR>
+    <TR CLASS="hi"><TD CLASS="fail" ALIGN="CENTER">&nbsp;FAIL&nbsp;</TD></TR>
+    <TR CLASS="lo"><TD CLASS="canary" ALIGN="CENTER">&nbsp;CANARY&nbsp;</TD><TD CLASS="legend" ROWSPAN=2>Canary</TD><TD CLASS="legend" ROWSPAN=2>The result changes HTML other than children of the contentEditable element.</TD><TD ROWSPAN=2 ALIGN="CENTER" CLASS="fail">FAIL (+0)</TD></TR>
+    <TR CLASS="hi"><TD CLASS="canary" ALIGN="CENTER">&nbsp;CANARY&nbsp;</TD></TR>
+    <TR CLASS="lo"><TD CLASS="unsupported" ALIGN="CENTER">&nbsp;UNS.&nbsp;</TD><TD CLASS="legend" ROWSPAN=2>Unsupported</TD><TD CLASS="legend" ROWSPAN=2>The specific function or value is unsupported (returned boolean 'false').</TD><TD ROWSPAN=2 ALIGN="CENTER" CLASS="fail">FAIL (+0)</TD></TR>
+    <TR CLASS="hi"><TD CLASS="unsupported" ALIGN="CENTER">&nbsp;UNS.&nbsp;</TD></TR>
+    <TR CLASS="lo"><TD CLASS="exception" ALIGN="CENTER">&nbsp;EXC.&nbsp;</TD><TD CLASS="legend" ROWSPAN=2>Exception</TD><TD CLASS="legend" ROWSPAN=2>An unexpected exception was thrown during the execution of the test.</TD><TD ROWSPAN=2 ALIGN="CENTER" CLASS="fail">FAIL (+0)</TD></TR>
+    <TR CLASS="hi"><TD CLASS="exception" ALIGN="CENTER">&nbsp;EXC.&nbsp;</TD></TR>
+    <TR CLASS="lo"><TD CLASS="na" ALIGN="CENTER">&nbsp;N/A&nbsp;</TD><TD CLASS="legend" ROWSPAN=2>Not Applicable</TD><TD CLASS="legend" ROWSPAN=2>The selection could not be tested, because the tested function failed to return a known result.</TD><TD ROWSPAN=2 ALIGN="CENTER" CLASS="fail">FAIL (+0)</TD></TR>
+    <TR CLASS="hi"><TD CLASS="na" ALIGN="CENTER">&nbsp;N/A&nbsp;</TD></TR>
   </TBODY>
 </TABLE>
-<TABLE CLASS="legend">
+<TABLE CLASS="legend framed">
   <THEAD>
     <TR><TH COLSPAN=2 CLASS="legendHdr">Selection and Result Display</TH></TR>
     <TR><TH>Character</TH><TH ALIGN="LEFT">Explanation</TH></TR>
