@@ -47,6 +47,10 @@
       cleanUp();
     }
 
+    /**
+     * Run every individual suite, with a a brief timeout in between
+     * to allow for screen updates.
+     */
 {% for s in suites %}
   {% if not forloop.first %}
       setTimeout("runSuite{{ s.id }}()", 100);
@@ -62,12 +66,20 @@
     /**
      * Runs all tests in all suites.
      */
-    function runTests() {
+    function doRunTests() {
       initVariables();
       initEditorDocs();
 
       // Start with the first test suite
       runSuite{{ suites.0.id }}();
+    }
+
+    /**
+     * Runs after allowing for some time to have everything loaded
+     * (aka. horrible IE9 kludge)
+     */
+    function runTests() {
+      setTimeout("doRunTests()", 1500);
     }
 
     /**
