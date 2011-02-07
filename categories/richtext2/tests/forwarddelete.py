@@ -239,8 +239,74 @@ FORWARDDELETE_TESTS = {
       ]
     },
 
-    { 'desc':       'forward-delete with nested non-editable content',
+    { 'desc':       'delete with non-editable nested content',
       'tests':      [
+        { 'id':         'DIV:ce:false-1_SO',
+          'desc':       'Delete nested non-editable <div>',
+          'pad':        'foo[bar<div contenteditable="false">NESTED</div>baz]qoz',
+          'expected':   'foo^qoz' },
+
+        { 'id':         'DIV:ce:false-1_SB',
+          'desc':       'Delete from immediately before a nested non-editable <div> (should be no-op)',
+          'pad':        'foobar^<div contenteditable="false">NESTED</div>bazqoz',
+          'expected':   'foobar^<div contenteditable="false">NESTED</div>bazqoz' },
+
+        { 'id':         'DIV:ce:false-1_SL',
+          'desc':       'Delete nested non-editable <div> with oblique selection',
+          'pad':        'foo[bar<div contenteditable="false">NES]TED</div>bazqoz',
+          'expected':   [ 'foo^<div contenteditable="false">NESTED</div>bazqoz',
+                          'foo<div contenteditable="false">[NES]TED</div>bazqoz' ] },
+
+        { 'id':         'DIV:ce:false-1_SR',
+          'desc':       'Delete nested non-editable <div> with oblique selection',
+          'pad':        'foobar<div contenteditable="false">NES[TED</div>baz]qoz',
+          'expected':   [ 'foobar<div contenteditable="false">NESTED</div>^qoz',
+                          'foobar<div contenteditable="false">NES[TED]</div>qoz' ] },
+
+        { 'id':         'DIV:ce:false-1_SI',
+          'desc':       'Delete inside nested non-editable <div> (should be no-op)',
+          'pad':        'foobar<div contenteditable="false">NE[ST]ED</div>bazqoz',
+          'expected':   'foobar<div contenteditable="false">NE[ST]ED</div>bazqoz' }
+      ]
+    },
+
+    { 'desc':       'Delete with display:inline-block',
+      'checkStyle':  True,
+      'tests':      [
+        { 'id':         'SPAN:d:ib-1_SC',
+          'desc':       'Delete inside an inline-block <span>',
+          'pad':        'foo<span style="display: inline-block">bar^baz</span>qoz',
+          'expected':   'foo<span style="display: inline-block">bar^az</span>qoz' },
+
+        { 'id':         'SPAN:d:ib-1_SA',
+          'desc':       'Delete from immediately before an inline-block <span>',
+          'pad':        'foo^<span style="display: inline-block">barbaz</span>qoz',
+          'expected':   'foo^<span style="display: inline-block">arbaz</span>qoz' },
+
+        { 'id':         'SPAN:d:ib-2_SL',
+          'desc':       'Delete with nested inline-block <span>, oblique selection',
+          'pad':        'foo[DEL<span style="display: inline-block">ETE]bar</span>baz',
+          'expected':   'foo^<span style="display: inline-block">bar</span>baz' },
+
+        { 'id':         'SPAN:d:ib-3_SR',
+          'desc':       'Delete with nested inline-block <span>, oblique selection',
+          'pad':        'foo<span style="display: inline-block">bar[DEL</span>ETE]baz',
+          'expected':   'foo<span style="display: inline-block">bar^</span>baz' },
+
+        { 'id':         'SPAN:d:ib-4i_SI',
+          'desc':       'Delete with nested inline-block <span>, oblique selection',
+          'pad':        'foo<span style="display: inline-block">bar[DELETE]baz</span>qoz',
+          'expected':   'foo<span style="display: inline-block">bar^baz</span>qoz' },
+
+        { 'id':         'SPAN:d:ib-4l_SI',
+          'desc':       'Delete with nested inline-block <span>, oblique selection',
+          'pad':        'foo<span style="display: inline-block">[DELETE]barbaz</span>qoz',
+          'expected':   'foo<span style="display: inline-block">^barbaz</span>qoz' },
+
+        { 'id':         'SPAN:d:ib-4r_SI',
+          'desc':       'Delete with nested inline-block <span>, oblique selection',
+          'pad':        'foo<span style="display: inline-block">barbaz[DELETE]</span>qoz',
+          'expected':   'foo<span style="display: inline-block">barbaz^</span>qoz' }
       ]
     }
   ]

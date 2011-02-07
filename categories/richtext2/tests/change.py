@@ -64,7 +64,7 @@ CHANGE_TESTS = {
           'rte1-id':    'c-backcolor-2',
           'desc':       'Change background color to new color',
           'value':      '#0000ff',
-          'pad':        '<span style="background-color: #ff0000">foo bar baz</span>',
+          'pad':        '<span style="background-color: #ff0000">[foobarbaz]</span>',
           'expected':   [ '<font style="background-color: #0000ff">[foobarbaz]</font>',
                           '<span style="background-color: #0000ff">[foobarbaz]</span>' ] },
 
@@ -72,7 +72,7 @@ CHANGE_TESTS = {
           'rte1-id':    'c-backcolor-1',
           'desc':       'Change background color in styled span to new color',
           'value':      '#aaccee',
-          'pad':        '<span class="Apple-style-span" style="background-color: rgb(255, 0, 0)">foo bar baz</span>[foobarbaz]</span>',
+          'pad':        '<span class="Apple-style-span" style="background-color: rgb(255, 0, 0)">[foobarbaz]</span>',
           'expected':   [ '<font style="background-color: #aaccee">[foobarbaz]</font>',
                           '<span style="background-color: #aaccee">[foobarbaz]</span>' ] }
       ]
@@ -189,7 +189,7 @@ CHANGE_TESTS = {
           'value':      'courier',
           'pad':        '<span style="font-family: verdana"><font face="arial">[foobarbaz]</font></span>',
           'expected':   '<font face="courier">[foobarbaz]</font>',
-          'accept':     '<span style="font-family: verdana"><font face="verdana"><font face="courier">[foobarbaz]</font></span>' }
+          'accept':     '<span style="font-family: verdana"><font face="courier">[foobarbaz]</font></span>' }
       ]
     },
 
