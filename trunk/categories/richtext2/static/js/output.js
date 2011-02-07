@@ -139,9 +139,10 @@ function formatActualResult(suite, group, test, actual) {
       // fade out contenteditable host element's 'editor-<xyz>' ID.
       actual = actual.replace(/id=\x22editor-([^\x22]*)\x22/g, '<span class="fade">id="editor-$1"</span>');
     }
-    // grey out 'xmlns' and 'onload'
+    // grey out 'xmlns'
     actual = actual.replace(/xmlns=\x22([^\x22]*)\x22/g, '<span class="fade">xmlns="$1"</span>');
-    actual = actual.replace(/onload=\x22([^\x22]*)\x22/g, '<span class="fade">onload="$1"</span>');
+    // remove 'onload'
+    actual = actual.replace(/onload=\x22[^\x22]*\x22 ?/g, '');
   }
   // Highlight selection markers and text nodes.
   actual = highlightSelectionMarkersAndTextNodes(actual);
@@ -295,8 +296,9 @@ function outputTestResults(suite, clsID, group, test) {
   acceptedArr = getExpectationArray(getContainerParameter(suite, group, test, containers[2], PARAM_ACCEPT_OUTER));
   for (var idx = 0; idx < acceptedArr.length; ++idx) {
     if (outerOutput) {
-      outerOutput += '<span class="accexp">\xA0\xA0\xA0<i>or</i></span><br><span class="accexp">';
+      outerOutput += '<span class="accexp">\xA0\xA0\xA0<i>or</i></span><br>';
     }
+    outerOutput += '<span class="accexp">';
     outerOutput += testUsesHTML ? highlightSelectionMarkers(escapeOutput(acceptedArr[idx]))
                                 : formatValueOrString(acceptedArr[idx]);
     outerOutput += '</span>';

@@ -43,10 +43,19 @@
       initEditorDocs();
 
       runTestSuite(UNAPPLY_TESTS);
+      
+      
+      
       alert("Result of 'Apply' tests:\nOut of " + 
             results[UNAPPLY_TESTS.id].count + " tests\n" +
             results[UNAPPLY_TESTS.id].valscore + " had correct HTML, and\n" +
-            results[UNAPPLY_TESTS.id].selscore + " had a correct result selection\n(in all testing containers).");
+            results[UNAPPLY_TESTS.id].selscore + " had a correct result selection\n(in all testing containers)." +
+            "\n\n" +
+            "Test RTE2-U_B_B-1_SW results with a contenteditable <body>:\n" +
+            results['U']['Proposed']['B_B-1_SW']['body'].valscore + " points for the value result, and\n" +
+            results['U']['Proposed']['B_B-1_SW']['body'].selscore + " points for the selection" +
+            ""
+      );
     }
   </script>  
 </head> 

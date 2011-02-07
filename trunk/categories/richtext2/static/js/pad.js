@@ -169,12 +169,6 @@ function initContainer(suite, group, test, container) {
   }
 
   if (getTestParameter(suite, group, test, PARAM_STYLE_WITH_CSS)) {
-    // Some browsers require a selection to go with their 'styleWithCSS'.
-    try {
-      container.win.getSelection().selectAllChildren(editor);
-    } catch (ex) {
-      // ignore exception if unsupported
-    }
     try {
       container.doc.execCommand('styleWithCSS', false, true);
     } catch (ex) {

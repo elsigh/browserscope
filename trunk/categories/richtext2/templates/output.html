@@ -41,7 +41,7 @@
 </TABLE>
 <!-- progress meter -->
 <HR ID="divider">
-<H1>Running Test Suites: {% for s in suites %}<SPAN ID="{{ s.id }}-progress" STYLE="color: #eeeeee">{{ s.id }}</SPAN> {% endfor %}<SPAN ID="done">&nbsp;</SPAN></H1>
+<H1>Running Test Suites: {% for s in suites %}<A HREF="#{{ s.id }}" ID="{{ s.id }}-progress" STYLE="color: #eeeeee">{{ s.id }}</A> {% endfor %}<SPAN ID="done">&nbsp;</SPAN></H1>
 <HR>
 <!-- main output -->
 {% for s in suites %}

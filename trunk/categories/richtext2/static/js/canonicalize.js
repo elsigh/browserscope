@@ -152,7 +152,11 @@ function canonicalizeSingleAttribute(elemName, attrName, attrValue, emitFlags) {
       return (emitFlags.emitStyle && attrValue) 
                  ? canonicalizeStyle(attrValue, emitFlags)
                  : null;
-      
+
+    // Never output onload handlers as they are set by the test environment.
+    case 'onload':
+        return null;
+
     // Canonicalize colors.
     case 'bgcolor':
     case 'color':

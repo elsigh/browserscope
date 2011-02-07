@@ -164,12 +164,15 @@ APPLY_TESTS_CSS = {
       'tests':      [
         { 'id':         'IND_TEXT-1_SI',
           'rte1-id':    'a-indent-1',
-          'desc':       'Indent the text',
+          'desc':       'Indent the text (assume "standard" 40px)',
           'pad':        'foo[bar]baz',
-          'expected':   ['<div style="margin-left: 40px">foo[bar]baz</div>',
-                         '<div style="margin: 0 0 0 40px">foo[bar]baz</div>',
-                         '<blockquote style="margin-left: 40px">foo[bar]baz</blockquote>',
-                         '<blockquote style="margin: 0 0 0 40px">foo[bar]baz</blockquote>' ] }
+          'expected':   [ '<div style="margin-left: 40px">foo[bar]baz</div>',
+                          '<div style="margin: 0 0 0 40px">foo[bar]baz</div>',
+                          '<blockquote style="margin-left: 40px">foo[bar]baz</blockquote>',
+                          '<blockquote style="margin: 0 0 0 40px">foo[bar]baz</blockquote>' ],
+          'div': {
+            'accOuter': [ '<div contenteditable="true" style="margin-left: 40px">foo[bar]baz</div>',
+                          '<div contenteditable="true" style="margin: 0 0 0 40px">foo[bar]baz</div>' ] } }
       ]
     },
 
@@ -189,7 +192,7 @@ APPLY_TESTS_CSS = {
           'expected':   [ '<p style="text-align: center">foo^bar</p>',
                           '<div style="text-align: center">foo^bar</div>' ],
           'div': {
-            'expOuter': '<div contenteditable="true" style="text-align: center">foo^bar</div>' } }
+            'accOuter': '<div contenteditable="true" style="text-align: center">foo^bar</div>' } }
       ]
     },
 
@@ -203,7 +206,7 @@ APPLY_TESTS_CSS = {
           'expected':   [ '<p style="text-align: justify">foo^bar</p>',
                           '<div style="text-align: justify">foo^bar</div>' ],
           'div': {
-            'expOuter': '<div contenteditable="true" style="text-align: justify">foo^bar</div>' } }
+            'accOuter': '<div contenteditable="true" style="text-align: justify">foo^bar</div>' } }
       ]
     },
 
@@ -217,7 +220,7 @@ APPLY_TESTS_CSS = {
           'expected':   [ '<p style="text-align: left">foo^bar</p>',
                           '<div style="text-align: left">foo^bar</div>' ],
           'div': {
-            'expOuter': '<div contenteditable="true" style="text-align: left">foo^bar</div>' } }
+            'accOuter': '<div contenteditable="true" style="text-align: left">foo^bar</div>' } }
       ]
     },
 
@@ -231,7 +234,7 @@ APPLY_TESTS_CSS = {
           'expected':   [ '<p style="text-align: right">foo^bar</p>',
                           '<div style="text-align: right">foo^bar</div>' ],
           'div': {
-            'expOuter': '<div contenteditable="true" style="text-align: right">foo^bar</div>' } }
+            'accOuter': '<div contenteditable="true" style="text-align: right">foo^bar</div>' } }
       ]
     }
   ]

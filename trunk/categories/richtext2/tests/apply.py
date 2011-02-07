@@ -263,7 +263,7 @@ APPLY_TESTS = {
           'expected':   [ '<blockquote>foo[bar]baz</blockquote>',
                           '<div style="margin-left: 40px">foo[bar]baz</div>' ],
           'div': {
-            'expOuter': '<div contenteditable="true" style="margin-left: 40px">foo[bar]baz</div>' } }
+            'accOuter': '<div contenteditable="true" style="margin-left: 40px">foo[bar]baz</div>' } }
       ]
     },
 
@@ -286,7 +286,7 @@ APPLY_TESTS = {
                           '<div align="center">foo^bar</div>',
                           '<div align="middle">foo^bar</div>' ],
           'div': {
-            'expOuter': [ '<div align="center" contenteditable="true">foo^bar</div>',
+            'accOuter': [ '<div align="center" contenteditable="true">foo^bar</div>',
                           '<div align="middle" contenteditable="true">foo^bar</div>' ] } }
       ]
     },
@@ -301,7 +301,7 @@ APPLY_TESTS = {
           'expected':   [ '<p align="justify">foo^bar</p>',
                           '<div align="justify">foo^bar</div>' ],
           'div': {
-            'expOuter': '<div align="justify" contenteditable="true">foo^bar</div>' } }
+            'accOuter': '<div align="justify" contenteditable="true">foo^bar</div>' } }
       ]
     },
 
@@ -315,7 +315,7 @@ APPLY_TESTS = {
           'expected':   [ '<p align="left">foo^bar</p>',
                           '<div align="left">foo^bar</div>' ],
           'div': {
-            'expOuter': '<div align="left" contenteditable="true">foo^bar</div>' } }
+            'accOuter': '<div align="left" contenteditable="true">foo^bar</div>' } }
       ]
     },
 
@@ -329,7 +329,7 @@ APPLY_TESTS = {
           'expected':   [ '<p align="right">foo^bar</p>',
                           '<div align="right">foo^bar</div>' ],
           'div': {
-            'expOuter': '<div align="right" contenteditable="true">foo^bar</div>' } }
+            'accOuter': '<div align="right" contenteditable="true">foo^bar</div>' } }
       ]
     },
 
@@ -337,7 +337,7 @@ APPLY_TESTS = {
       'command':    'heading',
       'tests':      [
         { 'id':         'H:H1_TEXT-1_SC',
-          'desc':       'create a heading from the selection',
+          'desc':       'create a heading from the paragraph that contains the selection',
           'value':      'h1',
           'pad':        'foo[bar]baz',
           'expected':   '<h1>foo[bar]baz</h1>' }
