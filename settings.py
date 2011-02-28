@@ -63,10 +63,10 @@ INSTALLED_APPS = (
 SESSION_ENGINE = 'django_ae_utils.sessions.backends.datastore'
 
 # BROWSERSCOPE SPECIFIC GLOBALS
-CATEGORIES = ['security', 'richtext', 'selectors', 'network', 'acid3', 'jskb']
+CATEGORIES = ['security', 'richtext', 'richtext2', 'selectors', 'network', 'acid3', 'jskb']
 # If a category is in this list it will not be visible in the nav, but
 # data for the category will save in prod to the main rankers.
-CATEGORIES_BETA = ['reflow', 'cookies', 'html5', 'richtext2', 'history']
+CATEGORIES_BETA = ['reflow', 'cookies', 'html5', 'history']
 
 STATIC_CATEGORIES = []
 # Where we'll read the static files from (can be a local path or a url).
