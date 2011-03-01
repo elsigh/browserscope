@@ -204,7 +204,11 @@ function initContainer(suite, group, test, container) {
 
     if (selAnchor.offs === selFocus.offs) {
       createCaret(selAnchor.node, selAnchor.offs).select();
-      sel = win.getSelection();
+      try {
+        sel = win.getSelection();
+      } catch (ex) {
+        sel = undefined;
+      }
       return;
     }
   }
