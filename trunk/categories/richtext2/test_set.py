@@ -305,7 +305,7 @@ class RichText2TestSet(test_set_base.TestSet):
 
 TEST_SET = RichText2TestSet(
     category = common.CATEGORY,
-    category_name = 'Rich Text 2',
+    category_name = 'Rich Text',
     summary_doc = 'New suite of tests to see how well editor controls work with a variety of HTML.',
     tests = _CATEGORIES_SET,
     test_page = "richtext2/run",
