@@ -775,7 +775,6 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       request.GET.get('results', None)) # allow "results" for user_tests.
   if results_str == 'None':
     results_str = None
-  current_user_agent_string = request.META['HTTP_USER_AGENT']
 
   visible_test_keys = [t.key for t in test_set.VisibleTests()]
 
@@ -830,9 +829,30 @@ def GetStats(request, test_set, output='html', opt_tests=None,
         (test_key, result['raw_score'])
         for test_key, result in results.items())
 
-  # Set current_browser to one in browsers or add it if not found.
+  # Allow request params to set the UA string.
+  current_user_agent_string = request.META.get('HTTP_USER_AGENT')
+  js_user_agent_string = request.REQUEST.get('js_ua')
+  js_user_agent_family = request.REQUEST.get('js_user_agent_family')
+  js_user_agent_v1 = request.REQUEST.get('js_user_agent_v1')
+  js_user_agent_v2 = request.REQUEST.get('js_user_agent_v2')
+  js_user_agent_v3 = request.REQUEST.get('js_user_agent_v3')
+
+  # Allows the js_ua to override the META value.
+  if js_user_agent_string:
+    current_user_agent_string = js_user_agent_string
+
   current_browser = models.user_agent.UserAgent.factory(
-      current_user_agent_string).pretty()
+      current_user_agent_string,
+      js_user_agent_string=js_user_agent_string,
+      js_user_agent_family=js_user_agent_family,
+      js_user_agent_v1=js_user_agent_v1,
+      js_user_agent_v2=js_user_agent_v2,
+      js_user_agent_v3=js_user_agent_v3).pretty()
+
+  logging.info('CURRENT BROWSER: "%s", "%s", "%s"' % (current_browser,
+      js_user_agent_string, current_user_agent_string))
+
+  # Set current_browser to one in browsers or add it if not found.
   for browser in browsers:
     if current_browser.startswith(browser):
       current_browser = browser

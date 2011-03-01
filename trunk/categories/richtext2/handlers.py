@@ -71,7 +71,7 @@ def About(request):
   contenteditable region, which is even harder for browsers to properly
   format. These tests check how well the execCommand, queryCommandState,
   and queryCommandValue functions work with different types of HTML."""
-  return util.About(request, common.CATEGORY, category_title='Rich Text 2',
+  return util.About(request, common.CATEGORY, category_title='Rich Text',
                     overview=overview, show_hidden=False)
 
 

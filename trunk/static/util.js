@@ -1086,17 +1086,19 @@ Util.TestDriver.prototype.sendScore = function(testResults,
           escape(continueParams.join(',')) :
           escape(testResults.join(',')));
 
-  var uaString = goog.userAgent.getUserAgentString() || '';
   var data = 'category=' + this.category + '&results=' +
-      testResults.join(',') + '&csrf_token=' + this.csrfToken +
-      '&js_ua=' + escape(uaString);
+      testResults.join(',') + '&csrf_token=' + this.csrfToken;
+
+  var uaString = goog.userAgent.getUserAgentString() || '';
+  var jsUaParamString = '&js_ua=' + escape(uaString);
   // Needed to detect IE 9 preview.
   var jsUa = uap.getJsUaOverrides();
   if (jsUa) {
     for (var key in jsUa) {
-      data += '&' + key + '=' + escape(jsUa[key]);
+      jsUaParamString += '&' + key + '=' + escape(jsUa[key]);
     }
   }
+  data += jsUaParamString;
 
   // Autorun always shares your score.
   var beaconUrl = '/beacon/' + this.category;
@@ -1112,24 +1114,13 @@ Util.TestDriver.prototype.sendScore = function(testResults,
     var checkmarkUtf8 = '✓';
     this.runTestButton.innerHTML = checkmarkUtf8 + 'Done! Compare your ' +
         this.categoryName + ' Test results »';
-    this.runTestButton.continueUrl = '/?' + this.uriResults;
+    this.runTestButton.continueUrl = '/?' + this.uriResults + jsUaParamString;
     goog.events.listen(this.runTestButton, 'click', function(e) {
       var btn = e.target;
       var continueUrl = btn.continueUrl;
+      //window.console.log('continueUrl:', continueUrl);
       window.top.location.href = continueUrl;
     });
-
-    /*
-    var resultsDisplay = continueParams ?
-          continueParams.join(',') :
-          testResults.join(',<wbr>');
-    var scoreNode = goog.dom.createElement('div');
-    var thanks = this.sendBeaconCheckbox.checked ?
-        'Thanks for contributing! ' : '';
-    scoreNode.innerHTML = thanks + 'Your results: ' + resultsDisplay;
-    scoreNode.style.margin = '.7em 0 0 1em';
-    this.runTestButton.parentNode.appendChild(scoreNode);
-    */
   }
 
   // Update the test frame to scroll to the top where the score is.
