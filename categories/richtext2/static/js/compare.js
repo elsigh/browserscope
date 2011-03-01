@@ -392,9 +392,18 @@ function prepareHTMLTestResult(container, result) {
   
   // 3.) retrieve inner and outer HTML
   result.innerHTML = initialCanonicalizationOf(container.editor.innerHTML);
-  result.outerHTML = initialCanonicalizationOf(new XMLSerializer().serializeToString(container.editor));
   result.bodyInnerHTML = initialCanonicalizationOf(container.body.innerHTML);
-  result.bodyOuterHTML = initialCanonicalizationOf(new XMLSerializer().serializeToString(container.body));
+  if (goog.userAgent.IE) {
+    result.outerHTML = initialCanonicalizationOf(container.editor.outerHTML);
+    result.bodyOuterHTML = initialCanonicalizationOf(container.body.outerHTML);
+    result.outerHTML = result.outerHTML.replace(/^\s+/, '');
+    result.outerHTML = result.outerHTML.replace(/\s+$/, '');
+    result.bodyOuterHTML = result.bodyOuterHTML.replace(/^\s+/, '');
+    result.bodyOuterHTML = result.bodyOuterHTML.replace(/\s+$/, '');
+  } else {
+    result.outerHTML = initialCanonicalizationOf(new XMLSerializer().serializeToString(container.editor));
+    result.bodyOuterHTML = initialCanonicalizationOf(new XMLSerializer().serializeToString(container.body));
+  }
 }
 
 /**
