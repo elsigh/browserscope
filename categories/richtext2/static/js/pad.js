@@ -210,7 +210,12 @@ function initContainer(suite, group, test, container) {
   }
 
   createFromNodes(selAnchor.node, selAnchor.offs, selFocus.node, selFocus.offs).select();
-  sel = win.getSelection();
+
+  try {
+    sel = win.getSelection();
+  } catch (ex) {
+    sel = undefined;
+  }
 }
 
 /**
