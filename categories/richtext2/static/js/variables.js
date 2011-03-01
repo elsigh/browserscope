@@ -178,7 +178,7 @@ var containers = [
     tagClose: '</div>',
     editorID: 'editor-div',
     canary:   CANARY
-  },
+  }
 ];
 
 // Helper variables to use in test functions
