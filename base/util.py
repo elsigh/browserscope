@@ -694,7 +694,7 @@ def Beacon(request, category_id=None):
     return http.HttpResponse('', status=204)
 
   # HTML5 Test 2 is a quota killer.
-  if category == 'usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBi':
+  if category == 'usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiH9N0EDA':
     return http.HttpResponse('', status=204)
 
   # Totally bogus beacon.
