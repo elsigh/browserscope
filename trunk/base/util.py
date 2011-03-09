@@ -693,6 +693,10 @@ def Beacon(request, category_id=None):
   if category == 'usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBis_8gBDA':
     return http.HttpResponse('', status=204)
 
+  # HTML5 Test 2 is a quota killer.
+  if category == 'usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBi':
+    return http.HttpResponse('', status=204)
+
   # Totally bogus beacon.
   if not category or not results_str:
     logging.info('Got no category or results.')
