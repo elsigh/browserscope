@@ -37,8 +37,8 @@ BROWSER_NAV = (
 )
 
 TOP_BROWSERS = (
-  'Android 2.2',
-  'Chrome 8', 'Chrome 9',
+  'Android 2.3',
+  'Chrome 10', 'Chrome 11',
   'Firefox 3.6', 'Firefox Beta 4.0b10pre',
   'IE 8', 'IE Platform Preview 9.0.6',
   'iPhone 3.1', 'iPhone 4.2',
