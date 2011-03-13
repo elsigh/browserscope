@@ -21,7 +21,6 @@ import sys
 
 from google.appengine.ext import db
 from google.appengine.api import memcache
-from google.appengine.api.labs import taskqueue
 from google.appengine.runtime import DeadlineExceededError
 
 from categories import all_test_sets
@@ -37,6 +36,8 @@ BROWSER_NAV = (
 )
 
 TOP_BROWSERS = (
+  'Android 2.2',
+  'Chrome 8', 'Chrome 9', 'Chrome 10',
   'Android 2.3',
   'Chrome 10', 'Chrome 11',
   'Firefox 3.6', 'Firefox Beta 4.0b10pre',

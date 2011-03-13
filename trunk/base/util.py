@@ -23,6 +23,7 @@ import logging
 import random
 import os
 import pickle
+import random
 import re
 import sys
 import time
@@ -657,11 +658,15 @@ def ClearMemcache(request):
 
 
 def ScheduleRecentTestsUpdate():
-  try:
-    taskqueue.Task(method='GET').add(queue_name='recent-tests')
-    #logging.info('ScheduleRecentTestsUpdate made a task')
-  except:
-    logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
+  attempt = 0
+  while attempt < 3:
+    try:
+      taskqueue.Task(method='GET').add(queue_name='recent-tests')
+      break
+    except:
+      attempt += 1
+      logging.info('Cannot add task (attempt %s): %s:%s' %
+                   (attempt, sys.exc_type, sys.exc_value))
 
 
 BAD_BEACON_MSG = 'Error in Beacon: '
@@ -693,9 +698,10 @@ def Beacon(request, category_id=None):
   if category == 'usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBis_8gBDA':
     return http.HttpResponse('', status=204)
 
-  # HTML5 Test 2 is a quota killer.
+  # HTML5 Test 2 is a quota killer, let's randomize!
   if category == 'usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiH9N0EDA':
-    return http.HttpResponse('', status=204)
+    if random.randint(1, 10) != 1:
+      return http.HttpResponse('', status=204)
 
   # Totally bogus beacon.
   if not category or not results_str:
