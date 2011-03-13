@@ -424,10 +424,16 @@ def UpdateStatsCache(request):
                   category, len(browsers), num_checked_browsers, browsers)
   # Only process one browser in each task.
   if len(browsers) > 1:
-    taskqueue.Task(params={
-        'category': category,
-        'browsers': ','.join(browsers[1:]),
-        }).add(queue_name='update-stats-cache')
+    attempt = 0
+    while attempt < 3:
+      try:
+        taskqueue.Task(params={
+            'category': category,
+            'browsers': ','.join(browsers[1:]),
+            }).add(queue_name='update-stats-cache')
+        break
+      except:
+        attempt += 1
   result_stats.CategoryStatsManager.UpdateStatsCache(category, browsers[:1])
   return http.HttpResponse('Success.')
 
@@ -443,8 +449,15 @@ def UpdateAllStatsCache(request, batch_size=UPDATE_ALL_BATCH_SIZE,
     return http.HttpResponseServerError('No categories given.')
   elif len(categories) > 1:
     for category in categories:
-      task = taskqueue.Task(url=request.path, params={'categories': category})
-      task.add(queue_name='update-stats-cache')
+      attempt = 0
+      while attempt < 3:
+        try:
+          task = taskqueue.Task(url=request.path,
+                                params={'categories': category})
+          task.add(queue_name='update-stats-cache')
+          break
+        except:
+          attempt += 1
     return http.HttpResponse('Queued stats cache update for categories: %s' %
                              categories)
   category = categories[0]
@@ -458,7 +471,14 @@ def UpdateAllStatsCache(request, batch_size=UPDATE_ALL_BATCH_SIZE,
         }
     if is_uncached_update:
       params['is_uncached_update'] = 1
-    taskqueue.Task(params=params).add(queue_name='update-stats-cache')
+
+    attempt = 0
+    while attempt < 3:
+      try:
+        taskqueue.Task(params=params).add(queue_name='update-stats-cache')
+        break
+      except:
+        attempt += 1
     logging.info('Added task for browsers %s to %s.', i, i+batch_size)
   return http.HttpResponse('Done creating update tasks.')
 

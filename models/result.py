@@ -167,9 +167,16 @@ class ResultParent(db.Expando):
             task_name_prefix, str(result_time_key).replace('_', '-under-')),
         params={'result_time_key': result_time_key, 'category': category,
                 'count': count})
-    try:
-      task.add(queue_name='update-dirty')
-    except taskqueue.InvalidTaskError:
+
+    attempt = 0
+    while attempt < 3:
+      try:
+        task.add(queue_name='update-dirty')
+        break
+      except:
+        attempt += 1
+
+    if attempt == 3:
       logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
       return False
     return True

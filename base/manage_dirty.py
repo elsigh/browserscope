@@ -55,14 +55,20 @@ def ScheduleCategoryUpdate(result_parent_key):
   category = result_parent.category
   name = 'categoryupdate-%s' % str(result_parent_key).replace('_', '-under-')
   url = '/_ah/queue/update-category/%s/%s' % (category, result_parent_key)
+
   task = taskqueue.Task(url=url, name=name, params={
       'category': category,
       'user_agent_key': result_parent.user_agent.key(),
       })
-  try:
-    task.add(queue_name='update-category')
-  except:
-    logging.info('Cannot add task: %s:%s' % (sys.exc_type, sys.exc_value))
+  attempt = 0
+  while attempt < 3:
+    try:
+      task.add(queue_name='update-category')
+      break
+    except:
+      attempt += 1
+      logging.info('Cannot add task(attempt %s): %s:%s' %
+                   (attempt, sys.exc_type, sys.exc_value))
 
 
 def UpdateDirty(request):
