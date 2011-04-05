@@ -581,7 +581,30 @@ goog.typeOf = function(value) {
   var s = typeof value;
   if (s == 'object') {
     if (value) {
-      // We cannot use constructor == Array or instanceof Array because
+      // Check these first, so we can avoid calling Object.prototype.toString if
+      // possible.
+      //
+      // IE improperly marshals tyepof across execution contexts, but a
+      // cross-context object will still return false for "instanceof Object".
+      if (value instanceof Array) {
+        return 'array';
+      } else if (value instanceof Object) {
+        return s;
+      }
+
+      // HACK: In order to use an Object prototype method on the arbitrary
+      //   value, the compiler requires the value be cast to type Object,
+      //   even though the ECMA spec explicitly allows it.
+      var className = Object.prototype.toString.call(
+          /** @type {Object} */ (value));
+      // In Firefox 3.6, attempting to access iframe window objects' length
+      // property throws an NS_ERROR_FAILURE, so we need to special-case it
+      // here.
+      if (className == '[object Window]') {
+        return 'object';
+      }
+
+      // We cannot always use constructor == Array or instanceof Array because
       // different frames have different Array objects. In IE6, if the iframe
       // where the array was created is destroyed, the array loses its
       // prototype. Then dereferencing val.splice here throws an exception, so
@@ -599,20 +622,7 @@ goog.typeOf = function(value) {
       //         "[object ", Result(1), and "]".
       //      3. Return Result(2).
       // and this behavior survives the destruction of the execution context.
-      if (value instanceof Array ||  // Works quickly in same execution context.
-          // If value is from a different execution context then
-          // !(value instanceof Object), which lets us early out in the common
-          // case when value is from the same context but not an array.
-          // The {if (value)} check above means we don't have to worry about
-          // undefined behavior of Object.prototype.toString on null/undefined.
-          //
-          // HACK: In order to use an Object prototype method on the arbitrary
-          //   value, the compiler requires the value be cast to type Object,
-          //   even though the ECMA spec explicitly allows it.
-          (!(value instanceof Object) &&
-           (Object.prototype.toString.call(
-               /** @type {Object} */ (value)) == '[object Array]') ||
-
+      if ((className == '[object Array]' ||
            // In IE all non value types are wrapped as objects across window
            // boundaries (not iframe though) so we have to do object detection
            // for this edge case
@@ -638,9 +648,7 @@ goog.typeOf = function(value) {
       // (it appears just as an object) so we cannot use just typeof val ==
       // 'function'. However, if the object has a call property, it is a
       // function.
-      if (!(value instanceof Object) &&
-          (Object.prototype.toString.call(
-              /** @type {Object} */ (value)) == '[object Function]' ||
+      if ((className == '[object Function]' ||
           typeof value.call != 'undefined' &&
           typeof value.propertyIsEnumerable != 'undefined' &&
           !value.propertyIsEnumerable('call'))) {
@@ -1148,24 +1156,6 @@ goog.globalEval = function(script) {
 
 
 /**
- * A macro for defining composite types.
- *
- * By assigning goog.typedef to a name, this tells JSCompiler that this is not
- * the name of a class, but rather it's the name of a composite type.
- *
- * For example,
- * /** @type {Array|NodeList} / goog.ArrayLike = goog.typedef;
- * will tell JSCompiler to replace all appearances of goog.ArrayLike in type
- * definitions with the union of Array and NodeList.
- *
- * Does nothing in uncompiled code.
- *
- * @deprecated Please use the {@code @typedef} annotation.
- */
-goog.typedef = true;
-
-
-/**
  * Optional map of CSS class names to obfuscated names used with
  * goog.getCssName().
  * @type {Object|undefined}
@@ -1176,31 +1166,41 @@ goog.cssNameMapping_;
 
 
 /**
+ * Optional obfuscation style for CSS class names. Should be set to either
+ * 'BY_WHOLE' or 'BY_PART' if defined.
+ * @type {string|undefined}
+ * @private
+ * @see goog.setCssNameMapping
+ */
+goog.cssNameMappingStyle_;
+
+
+/**
  * Handles strings that are intended to be used as CSS class names.
  *
- * Without JS Compiler the arguments are simple joined with a hyphen and passed
- * through unaltered.
+ * This function works in tandem with @see goog.setCssNameMapping.
  *
- * With the JS Compiler the arguments are inlined, e.g:
+ * Without any mapping set, the arguments are simple joined with a
+ * hyphen and passed through unaltered.
+ *
+ * When there is a mapping, there are two possible styles in which
+ * these mappings are used. In the BY_PART style, each part (i.e. in
+ * between hyphens) of the passed in css name is rewritten according
+ * to the map. In the BY_WHOLE style, the full css name is looked up in
+ * the map directly. If a rewrite is not specified by the map, the
+ * compiler will output a warning.
+ *
+ * When the mapping is passed to the compiler, it will replace calls
+ * to goog.getCssName with the strings from the mapping, e.g.
  *     var x = goog.getCssName('foo');
  *     var y = goog.getCssName(this.baseClass, 'active');
  *  becomes:
  *     var x= 'foo';
  *     var y = this.baseClass + '-active';
  *
- * If a CSS renaming map is passed to the compiler it will replace symbols in
- * the classname.  If one argument is passed it will be processed, if two are
- * passed only the modifier will be processed, as it is assumed the first
+ * If one argument is passed it will be processed, if two are passed
+ * only the modifier will be processed, as it is assumed the first
  * argument was generated as a result of calling goog.getCssName.
- *
- * Names are split on 'hyphen' and processed in parts such that the following
- * are equivalent:
- *   var base = goog.getCssName('baseclass');
- *   goog.getCssName(base, 'modifier');
- *   goog.getCSsName('baseclass-modifier');
- *
- * If any part does not appear in the renaming map a warning is logged and the
- * original, unobfuscated class name is inlined.
  *
  * @param {string} className The class name.
  * @param {string=} opt_modifier A modifier to be appended to the class name.
@@ -1208,9 +1208,35 @@ goog.cssNameMapping_;
  *     the modifier.
  */
 goog.getCssName = function(className, opt_modifier) {
-  var cssName = className + (opt_modifier ? '-' + opt_modifier : '');
-  return (goog.cssNameMapping_ && (cssName in goog.cssNameMapping_)) ?
-      goog.cssNameMapping_[cssName] : cssName;
+  var getMapping = function(cssName) {
+    return goog.cssNameMapping_[cssName] || cssName;
+  };
+
+  var renameByParts = function(cssName) {
+    // Remap all the parts individually.
+    var parts = cssName.split('-');
+    var mapped = [];
+    for (var i = 0; i < parts.length; i++) {
+      mapped.push(getMapping(parts[i]));
+    }
+    return mapped.join('-');
+  };
+
+  var rename;
+  if (goog.cssNameMapping_) {
+    rename = goog.cssNameMappingStyle_ == 'BY_WHOLE' ?
+        getMapping : renameByParts;
+  } else {
+    rename = function(a) {
+      return a;
+    };
+  }
+
+  if (opt_modifier) {
+    return className + '-' + rename(opt_modifier);
+  } else {
+    return rename(className);
+  }
 };
 
 
@@ -1218,14 +1244,13 @@ goog.getCssName = function(className, opt_modifier) {
  * Sets the map to check when returning a value from goog.getCssName(). Example:
  * <pre>
  * goog.setCssNameMapping({
- *   "goog-menu": "a",
- *   "goog-menu-disabled": "a-b",
- *   "CSS_LOGO": "b",
- *   "hidden": "c"
+ *   "goog": "a",
+ *   "disabled": "b",
  * });
  *
+ * var x = goog.getCssName('goog');
  * // The following evaluates to: "a a-b".
- * goog.getCssName('goog-menu') + ' ' + goog.getCssName('goog-menu', 'disabled')
+ * goog.getCssName('goog') + ' ' + goog.getCssName(x, 'disabled')
  * </pre>
  * When declared as a map of string literals to string literals, the JSCompiler
  * will replace all calls to goog.getCssName() using the supplied map if the
@@ -1234,9 +1259,13 @@ goog.getCssName = function(className, opt_modifier) {
  * @param {!Object} mapping A map of strings to strings where keys are possible
  *     arguments to goog.getCssName() and values are the corresponding values
  *     that should be returned.
+ * @param {string=} style The style of css name mapping. There are two valid
+ *     options: 'BY_PART', and 'BY_WHOLE'.
+ * @see goog.getCssName for a description.
  */
-goog.setCssNameMapping = function(mapping) {
+goog.setCssNameMapping = function(mapping, style) {
   goog.cssNameMapping_ = mapping;
+  goog.cssNameMappingStyle_ = style;
 };
 
 
@@ -2177,15 +2206,25 @@ goog.string.truncate = function(str, chars, opt_protectEscapedCharacters) {
  * @param {number} chars Max number of characters.
  * @param {boolean=} opt_protectEscapedCharacters Whether to protect escaped
  *     characters from being cutoff in the middle.
+ * @param {number=} opt_trailingChars Optional number of trailing characters to
+ *     leave at the end of the string, instead of truncating as close to the
+ *     middle as possible.
  * @return {string} A truncated copy of {@code str}.
  */
 goog.string.truncateMiddle = function(str, chars,
-    opt_protectEscapedCharacters) {
+    opt_protectEscapedCharacters, opt_trailingChars) {
   if (opt_protectEscapedCharacters) {
     str = goog.string.unescapeEntities(str);
   }
 
-  if (str.length > chars) {
+  if (opt_trailingChars) {
+    if (opt_trailingChars > chars) {
+      opt_trailingChars = chars;
+    }
+    var endPoint = str.length - opt_trailingChars;
+    var startPoint = chars - opt_trailingChars;
+    str = str.substring(0, startPoint) + '...' + str.substring(endPoint);
+  } else if (str.length > chars) {
     // Favor the beginning of the string:
     var half = Math.floor(chars / 2);
     var endPos = str.length - half;
@@ -2469,8 +2508,9 @@ goog.string.buildString = function(var_args) {
  * @return {string} A random string, e.g. sn1s7vb4gcic.
  */
 goog.string.getRandomString = function() {
-  return Math.floor(Math.random() * 2147483648).toString(36) +
-         (Math.floor(Math.random() * 2147483648) ^ goog.now()).toString(36);
+  var x = 2147483648;
+  return Math.floor(Math.random() * x).toString(36) +
+         Math.abs(Math.floor(Math.random() * x) ^ goog.now()).toString(36);
 };
 
 
@@ -2617,6 +2657,52 @@ goog.string.toNumber = function(str) {
     return NaN;
   }
   return num;
+};
+
+
+/**
+ * A memoized cache for goog.string.toCamelCase.
+ * @type {Object.<string>}
+ * @private
+ */
+goog.string.toCamelCaseCache_ = {};
+
+
+/**
+ * Converts a string from selector-case to camelCase (e.g. from
+ * "multi-part-string" to "multiPartString"), useful for converting
+ * CSS selectors and HTML dataset keys to their equivalent JS properties.
+ * @param {string} str The string in selector-case form.
+ * @return {string} The string in camelCase form.
+ */
+goog.string.toCamelCase = function(str) {
+  return goog.string.toCamelCaseCache_[str] ||
+      (goog.string.toCamelCaseCache_[str] =
+          String(str).replace(/\-([a-z])/g, function(all, match) {
+            return match.toUpperCase();
+          }));
+};
+
+
+/**
+ * A memoized cache for goog.string.toSelectorCase.
+ * @type {Object.<string>}
+ * @private
+ */
+goog.string.toSelectorCaseCache_ = {};
+
+
+/**
+ * Converts a string from camelCase to selector-case (e.g. from
+ * "multiPartString" to "multi-part-string"), useful for converting JS
+ * style and dataset properties to equivalent CSS selectors and HTML keys.
+ * @param {string} str The string in camelCase form.
+ * @return {string} The string in selector-case form.
+ */
+goog.string.toSelectorCase = function(str) {
+  return goog.string.toSelectorCaseCache_[str] ||
+      (goog.string.toSelectorCaseCache_[str] =
+          String(str).replace(/([A-Z])/g, '-$1').toLowerCase());
 };
 // Copyright 2008 The Closure Library Authors. All Rights Reserved.
 //
@@ -2922,6 +3008,21 @@ goog.require('goog.asserts');
 
 
 /**
+ * @define {boolean} NATIVE_ARRAY_PROTOTYPES indicates whether the code should
+ * rely on Array.prototype functions, if available.
+ *
+ * The Array.prototype functions can be defined by external libraries like
+ * Prototype and setting this flag to false forces closure to use its own
+ * goog.array implementation.
+ *
+ * If your javascript can be loaded by a third party site and you are wary about
+ * relying on the prototype functions, specify
+ * "--define goog.NATIVE_ARRAY_PROTOTYPES=false" to the JSCompiler.
+ */
+goog.NATIVE_ARRAY_PROTOTYPES = true;
+
+
+/**
  * @typedef {Array|NodeList|Arguments|{length: number}}
  */
 goog.array.ArrayLike;
@@ -2963,7 +3064,8 @@ goog.array.ARRAY_PROTOTYPE_ = Array.prototype;
  *     omitted the search starts at index 0.
  * @return {number} The index of the first matching array element.
  */
-goog.array.indexOf = goog.array.ARRAY_PROTOTYPE_.indexOf ?
+goog.array.indexOf = goog.NATIVE_ARRAY_PROTOTYPES &&
+                     goog.array.ARRAY_PROTOTYPE_.indexOf ?
     function(arr, obj, opt_fromIndex) {
       goog.asserts.assert(arr.length != null);
 
@@ -3002,7 +3104,8 @@ goog.array.indexOf = goog.array.ARRAY_PROTOTYPE_.indexOf ?
  *     omitted the search starts at the end of the array.
  * @return {number} The index of the last matching array element.
  */
-goog.array.lastIndexOf = goog.array.ARRAY_PROTOTYPE_.lastIndexOf ?
+goog.array.lastIndexOf = goog.NATIVE_ARRAY_PROTOTYPES &&
+                         goog.array.ARRAY_PROTOTYPE_.lastIndexOf ?
     function(arr, obj, opt_fromIndex) {
       goog.asserts.assert(arr.length != null);
 
@@ -3050,7 +3153,8 @@ goog.array.lastIndexOf = goog.array.ARRAY_PROTOTYPE_.lastIndexOf ?
  * @param {Object=} opt_obj The object to be used as the value of 'this'
  *     within f.
  */
-goog.array.forEach = goog.array.ARRAY_PROTOTYPE_.forEach ?
+goog.array.forEach = goog.NATIVE_ARRAY_PROTOTYPES &&
+                     goog.array.ARRAY_PROTOTYPE_.forEach ?
     function(arr, f, opt_obj) {
       goog.asserts.assert(arr.length != null);
 
@@ -3105,7 +3209,8 @@ goog.array.forEachRight = function(arr, f, opt_obj) {
  * @return {!Array} a new array in which only elements that passed the test are
  *     present.
  */
-goog.array.filter = goog.array.ARRAY_PROTOTYPE_.filter ?
+goog.array.filter = goog.NATIVE_ARRAY_PROTOTYPES &&
+                    goog.array.ARRAY_PROTOTYPE_.filter ?
     function(arr, f, opt_obj) {
       goog.asserts.assert(arr.length != null);
 
@@ -3142,7 +3247,8 @@ goog.array.filter = goog.array.ARRAY_PROTOTYPE_.filter ?
  *     within f.
  * @return {!Array} a new array with the results from f.
  */
-goog.array.map = goog.array.ARRAY_PROTOTYPE_.map ?
+goog.array.map = goog.NATIVE_ARRAY_PROTOTYPES &&
+                 goog.array.ARRAY_PROTOTYPE_.map ?
     function(arr, f, opt_obj) {
       goog.asserts.assert(arr.length != null);
 
@@ -3252,7 +3358,8 @@ goog.array.reduceRight = function(arr, f, val, opt_obj) {
  *     within f.
  * @return {boolean} true if any element passes the test.
  */
-goog.array.some = goog.array.ARRAY_PROTOTYPE_.some ?
+goog.array.some = goog.NATIVE_ARRAY_PROTOTYPES &&
+                  goog.array.ARRAY_PROTOTYPE_.some ?
     function(arr, f, opt_obj) {
       goog.asserts.assert(arr.length != null);
 
@@ -3285,7 +3392,8 @@ goog.array.some = goog.array.ARRAY_PROTOTYPE_.some ?
  *     within f.
  * @return {boolean} false if any element fails the test.
  */
-goog.array.every = goog.array.ARRAY_PROTOTYPE_.every ?
+goog.array.every = goog.NATIVE_ARRAY_PROTOTYPES &&
+                   goog.array.ARRAY_PROTOTYPE_.every ?
     function(arr, f, opt_obj) {
       goog.asserts.assert(arr.length != null);
 
@@ -4697,6 +4805,15 @@ goog.dom.BrowserFeature = {
       goog.userAgent.isVersion('9'),
 
   /**
+   * Whether we can use element.children to access an element's Element
+   * children. Available since Gecko 1.9.1, IE 9. (IE<9 also includes comment
+   * nodes in the collection.)
+   */
+  CAN_USE_CHILDREN_ATTRIBUTE: !goog.userAgent.GECKO && !goog.userAgent.IE ||
+      goog.userAgent.IE && goog.userAgent.isVersion('9') ||
+      goog.userAgent.GECKO && goog.userAgent.isVersion('1.9.1'),
+
+  /**
    * Opera, Safari 3, and Internet Explorer 9 all support innerText but they
    * include text nodes in script and style tags.
    */
@@ -5622,6 +5739,34 @@ goog.object.getKeys = function(obj) {
 
 
 /**
+ * Get a value from an object multiple levels deep.  This is useful for
+ * pulling values from deeply nested objects, such as JSON responses.
+ * Example usage: getValueByKeys(jsonObj, 'foo', 'entries', 3)
+ *
+ * @param {!Object} obj An object to get the value from.  Can be array-like.
+ * @param {...(string|number|!Array.<number|string>)} var_args A number of keys
+ *     (as strings, or nubmers, for array-like objects).  Can also be
+ *     specified as a single array of keys.
+ * @return {*} The resulting value.  If, at any point, the value for a key
+ *     is undefined, returns undefined.
+ */
+goog.object.getValueByKeys = function(obj, var_args) {
+  var isArrayLike = goog.isArrayLike(var_args);
+  var keys = isArrayLike ? var_args : arguments;
+
+  // Start with the 2nd parameter for the variable parameters syntax.
+  for (var i = isArrayLike ? 0 : 1; i < keys.length; i++) {
+    obj = obj[keys[i]];
+    if (!goog.isDef(obj)) {
+      break;
+    }
+  }
+
+  return obj;
+};
+
+
+/**
  * Whether the object/map/hash contains the given key.
  *
  * @param {Object} obj The object in which to look for key.
@@ -5708,10 +5853,8 @@ goog.object.isEmpty = function(obj) {
  * @param {Object} obj The object to clear.
  */
 goog.object.clear = function(obj) {
-  // Some versions of IE has problems if we delete keys from the beginning
-  var keys = goog.object.getKeys(obj);
-  for (var i = keys.length - 1; i >= 0; i--) {
-    goog.object.remove(obj, keys[i]);
+  for (var i in obj) {
+    delete obj[i];
   }
 };
 
@@ -5806,6 +5949,37 @@ goog.object.clone = function(obj) {
   }
   return res;
   // We could also use goog.mixin but I wanted this to be independent from that.
+};
+
+
+/**
+ * Clones a value. The input may be an Object, Array, or basic type. Objects and
+ * arrays will be cloned recursively.
+ *
+ * WARNINGS:
+ * <code>goog.object.unsafeClone</code> does not detect reference loops. Objects
+ * that refer to themselves will cause infinite recursion.
+ *
+ * <code>goog.object.unsafeClone</code> is unaware of unique identifiers, and
+ * copies UIDs created by <code>getUid</code> into cloned results.
+ *
+ * @param {*} obj The value to clone.
+ * @return {*} A clone of the input value.
+ */
+goog.object.unsafeClone = function(obj) {
+  var type = goog.typeOf(obj);
+  if (type == 'object' || type == 'array') {
+    if (obj.clone) {
+      return obj.clone();
+    }
+    var clone = type == 'array' ? [] : {};
+    for (var key in obj) {
+      clone[key] = goog.object.unsafeClone(obj[key]);
+    }
+    return clone;
+  }
+
+  return obj;
 };
 
 
@@ -6265,6 +6439,7 @@ goog.dom.DIRECT_ATTRIBUTE_MAP_ = {
   'width': 'width',
   'usemap': 'useMap',
   'frameborder': 'frameBorder',
+  'maxlength': 'maxLength',
   'type': 'type'
 };
 
@@ -6369,13 +6544,7 @@ goog.dom.getViewportSize_ = function(win) {
     return new goog.math.Size(win.innerWidth, innerHeight);
   }
 
-  var readsFromDocumentElement = goog.dom.isCss1CompatMode_(doc);
-  if (goog.userAgent.OPERA && !goog.userAgent.isVersion('9.50')) {
-    // Older versions of Opera used to read from document.body, but this
-    // changed with 9.5.
-    readsFromDocumentElement = false;
-  }
-  var el = readsFromDocumentElement ? doc.documentElement : doc.body;
+  var el = goog.dom.isCss1CompatMode_(doc) ? doc.documentElement : doc.body;
 
   return new goog.math.Size(el.clientWidth, el.clientHeight);
 };
@@ -6496,7 +6665,9 @@ goog.dom.getDocumentScroll = function() {
  */
 goog.dom.getDocumentScroll_ = function(doc) {
   var el = goog.dom.getDocumentScrollElement_(doc);
-  return new goog.math.Coordinate(el.scrollLeft, el.scrollTop);
+  var win = goog.dom.getWindow_(doc);
+  return new goog.math.Coordinate(win.pageXOffset || el.scrollLeft,
+      win.pageYOffset || el.scrollTop);
 };
 
 
@@ -6928,6 +7099,22 @@ goog.dom.insertSiblingAfter = function(newNode, refNode) {
 
 
 /**
+ * Insert a child at a given index. If index is larger than the number of child
+ * nodes that the parent currently has, the node is inserted as the last child
+ * node.
+ * @param {Element} parent The element into which to insert the child.
+ * @param {Node} child The element to insert.
+ * @param {number} index The index at which to insert the new child node. Must
+ *     not be negative.
+ */
+goog.dom.insertChildAt = function(parent, child, index) {
+  // Note that if the second argument is null, insertBefore
+  // will append the child at the end of the list of children.
+  parent.insertBefore(child, parent.childNodes[index] || null);
+};
+
+
+/**
  * Removes a node from its parent.
  * @param {Node} node The node to remove.
  * @return {Node} The node removed if removed; else, null.
@@ -6979,11 +7166,34 @@ goog.dom.flattenElement = function(element) {
 
 
 /**
+ * Returns an array containing just the element children of the given element.
+ * @param {Element} element The element whose element children we want.
+ * @return {Array|NodeList} An array or array-like list of just the element
+ *     children of the given element.
+ */
+goog.dom.getChildren = function(element) {
+  // We check if the children attribute is supported for child elements
+  // since IE8 misuses the attribute by also including comments.
+  if (goog.dom.BrowserFeature.CAN_USE_CHILDREN_ATTRIBUTE &&
+      element.children != undefined) {
+    return element.children;
+  }
+  // Fall back to manually filtering the element's child nodes.
+  return goog.array.filter(element.childNodes, function(node) {
+    return node.nodeType == goog.dom.NodeType.ELEMENT;
+  });
+};
+
+
+/**
  * Returns the first child node that is an element.
  * @param {Node} node The node to get the first child element of.
  * @return {Element} The first child node of {@code node} that is an element.
  */
 goog.dom.getFirstElementChild = function(node) {
+  if (node.firstElementChild != undefined) {
+    return /** @type {Element} */(node).firstElementChild;
+  }
   return goog.dom.getNextElementNode_(node.firstChild, true);
 };
 
@@ -6994,6 +7204,9 @@ goog.dom.getFirstElementChild = function(node) {
  * @return {Element} The last child node of {@code node} that is an element.
  */
 goog.dom.getLastElementChild = function(node) {
+  if (node.lastElementChild != undefined) {
+    return /** @type {Element} */(node).lastElementChild;
+  }
   return goog.dom.getNextElementNode_(node.lastChild, false);
 };
 
@@ -7004,6 +7217,9 @@ goog.dom.getLastElementChild = function(node) {
  * @return {Element} The next sibling of {@code node} that is an element.
  */
 goog.dom.getNextElementSibling = function(node) {
+  if (node.nextElementSibling != undefined) {
+    return /** @type {Element} */(node).nextElementSibling;
+  }
   return goog.dom.getNextElementNode_(node.nextSibling, true);
 };
 
@@ -7015,6 +7231,9 @@ goog.dom.getNextElementSibling = function(node) {
  *     an element.
  */
 goog.dom.getPreviousElementSibling = function(node) {
+  if (node.previousElementSibling != undefined) {
+    return /** @type {Element} */(node).previousElementSibling;
+  }
   return goog.dom.getNextElementNode_(node.previousSibling, false);
 };
 
@@ -7090,6 +7309,17 @@ goog.dom.getPreviousNode = function(node) {
  */
 goog.dom.isNodeLike = function(obj) {
   return goog.isObject(obj) && obj.nodeType > 0;
+};
+
+
+/**
+ * Returns true if the specified value is a Window object. This includes the
+ * global window for HTML pages, and iframe windows.
+ * @param {*} obj Variable to test.
+ * @return {boolean} Whether the variable is a window.
+ */
+goog.dom.isWindow = function(obj) {
+  return goog.isObject(obj) && obj['window'] == obj;
 };
 
 
@@ -7525,6 +7755,8 @@ goog.dom.getTextContent = function(node) {
 
   // Strip &shy; entities. goog.format.insertWordBreaks inserts them in Opera.
   textContent = textContent.replace(/ \xAD /g, ' ').replace(/\xAD/g, '');
+  // Strip &#8203; entities. goog.format.insertWordBreaks inserts them in IE8.
+  textContent = textContent.replace(/\u200B/g, '');
 
   // Skip this replacement on IE, which automatically turns &nbsp; into ' '
   // and / +/ into ' ' when reading innerText.
@@ -8529,6 +8761,50 @@ goog.events.BrowserFeature = {
   SET_KEY_CODE_TO_PREVENT_DEFAULT: goog.userAgent.IE &&
       !goog.userAgent.isVersion('8')
 };
+// Copyright 2011 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Definition of the disposable interface.  A disposable object
+ * has a dispose method to to clean up references and resources.
+ */
+
+
+goog.provide('goog.disposable.IDisposable');
+
+
+
+/**
+ * Interface for a disposable object.  If a instance requires cleanup
+ * (references COM objects, DOM notes, or other disposable objects), it should
+ * implement this interface (it may subclass goog.Disposable).
+ * @interface
+ */
+goog.disposable.IDisposable = function() {};
+
+
+/**
+ * Disposes of the object and its resources.
+ * @return {void} Nothing.
+ */
+goog.disposable.IDisposable.prototype.dispose;
+
+
+/**
+ * @return {boolean} Whether the object has been disposed of.
+ */
+goog.disposable.IDisposable.prototype.isDisposed;
 // Copyright 2005 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -8552,16 +8828,66 @@ goog.events.BrowserFeature = {
 goog.provide('goog.Disposable');
 goog.provide('goog.dispose');
 
+goog.require('goog.disposable.IDisposable');
+
 
 
 /**
  * Class that provides the basic implementation for disposable objects. If your
  * class holds one or more references to COM objects, DOM nodes, or other
  * disposable objects, it should extend this class or implement the disposable
- * interface.
+ * interface (defined in goog.disposable.IDisposable).
  * @constructor
+ * @implements {goog.disposable.IDisposable}
  */
-goog.Disposable = function() {};
+goog.Disposable = function() {
+  if (goog.Disposable.ENABLE_MONITORING) {
+    goog.Disposable.instances_[goog.getUid(this)] = this;
+  }
+};
+
+
+/**
+ * @define {boolean} Whether to enable the monitoring of the goog.Disposable
+ *     instances. Switching on the monitoring is only recommended for debugging
+ *     because it has a significant impact on performance and memory usage.
+ *     If switched off, the monitoring code compiles down to 0 bytes.
+ *     The monitoring expects that all disposable objects call the
+ *     {@code goog.Disposable} base constructor.
+ */
+goog.Disposable.ENABLE_MONITORING = false;
+
+
+/**
+ * Maps the unique ID of every undisposed {@code goog.Disposable} object to
+ * the object itself.
+ * @type {!Object.<number, !goog.Disposable>}
+ * @private
+ */
+goog.Disposable.instances_ = {};
+
+
+/**
+ * @return {!Array.<!goog.Disposable>} All {@code goog.Disposable} objects that
+ *     haven't been disposed of.
+ */
+goog.Disposable.getUndisposedObjects = function() {
+  var ret = [];
+  for (var id in goog.Disposable.instances_) {
+    if (goog.Disposable.instances_.hasOwnProperty(id)) {
+      ret.push(goog.Disposable.instances_[Number(id)]);
+    }
+  }
+  return ret;
+};
+
+
+/**
+ * Clears the registry of undisposed objects but doesn't dispose of them.
+ */
+goog.Disposable.clearUndisposedObjects = function() {
+  goog.Disposable.instances_ = {};
+};
 
 
 /**
@@ -8592,6 +8918,8 @@ goog.Disposable.prototype.getDisposed = goog.Disposable.prototype.isDisposed;
  * {@link #disposeInternal}. Classes that extend {@code goog.Disposable} should
  * override {@link #disposeInternal} in order to delete references to COM
  * objects, DOM nodes, and other disposable objects.
+ *
+ * @return {void} Nothing.
  */
 goog.Disposable.prototype.dispose = function() {
   if (!this.disposed_) {
@@ -8599,6 +8927,15 @@ goog.Disposable.prototype.dispose = function() {
     // gets disposed recursively.
     this.disposed_ = true;
     this.disposeInternal();
+    if (goog.Disposable.ENABLE_MONITORING) {
+      var uid = goog.getUid(this);
+      if (!goog.Disposable.instances_.hasOwnProperty(uid)) {
+        throw Error(this + ' did not call the goog.Disposable base ' +
+            'constructor or was disposed of after a clearUndisposedObjects ' +
+            'call');
+      }
+      delete goog.Disposable.instances_[uid];
+    }
   }
 };
 
@@ -8862,7 +9199,11 @@ goog.events.EventType = {
   // Copy and Paste
   COPY: 'copy',
   PASTE: 'paste',
-  CUT: 'cut'
+  CUT: 'cut',
+
+  // HTML 5 worker events
+  MESSAGE: 'message',
+  CONNECT: 'connect'
 };
 // Copyright 2009 The Closure Library Authors. All Rights Reserved.
 //
@@ -9155,6 +9496,7 @@ goog.events.BrowserEvent.prototype.event_ = null;
  */
 goog.events.BrowserEvent.prototype.init = function(e, opt_currentTarget) {
   var type = this.type = e.type;
+  goog.events.Event.call(this, type);
 
   // TODO(nicksantos): Change this.target to type EventTarget.
   this.target = /** @type {Node} */ (e.target) || e.srcElement;
@@ -9235,6 +9577,22 @@ goog.events.BrowserEvent.prototype.isButton = function(button) {
   } else {
     return this.event_.button == button;
   }
+};
+
+
+/**
+ * Whether this has an "action"-producing mouse button.
+ *
+ * By definition, this includes left-click on windows/linux, and left-click
+ * without the ctrl key on Macs.
+ *
+ * @return {boolean} The result.
+ */
+goog.events.BrowserEvent.prototype.isMouseActionButton = function() {
+  // Webkit does not ctrl+click to be a right-click, so we
+  // normalize it to behave like Gecko and Opera.
+  return this.isButton(goog.events.BrowserEvent.MouseButton.LEFT) &&
+      !(goog.userAgent.WEBKIT && goog.userAgent.MAC && this.ctrlKey);
 };
 
 
@@ -9867,6 +10225,12 @@ goog.require('goog.userAgent.jscript');
 
 
 /**
+ * @define {boolean} Whether to always assume the garbage collector is good.
+ */
+goog.events.ASSUME_GOOD_GC = false;
+
+
+/**
  * Helper function for returning an object that is used for the lookup trees.
  * This might use an object pool depending on the script engine.
  * @return { {count_: number, remaining_: number} } A new or reused object.
@@ -9962,7 +10326,8 @@ goog.events.pools.releaseEvent;
 
 
 (function() {
-  var BAD_GC = goog.userAgent.jscript.HAS_JSCRIPT &&
+  var BAD_GC = !goog.events.ASSUME_GOOD_GC &&
+      goog.userAgent.jscript.HAS_JSCRIPT &&
       !goog.userAgent.jscript.isVersion('5.7');
 
   // These functions are shared between the pools' createObject functions and
@@ -10961,26 +11326,25 @@ goog.events.getTotalListenerCount = function() {
  *     true.
  */
 goog.events.dispatchEvent = function(src, e) {
+  var type = e.type || e;
+  var map = goog.events.listenerTree_;
+  if (!(type in map)) {
+    return true;
+  }
+
   // If accepting a string or object, create a custom event object so that
   // preventDefault and stopPropagation work with the event.
   if (goog.isString(e)) {
     e = new goog.events.Event(e, src);
   } else if (!(e instanceof goog.events.Event)) {
     var oldEvent = e;
-    e = new goog.events.Event(e.type, src);
+    e = new goog.events.Event(type, src);
     goog.object.extend(e, oldEvent);
   } else {
     e.target = e.target || src;
   }
 
   var rv = 1, ancestors;
-
-  var type = e.type;
-  var map = goog.events.listenerTree_;
-
-  if (!(type in map)) {
-    return true;
-  }
 
   map = map[type];
   var hasCapture = true in map;
@@ -13625,28 +13989,50 @@ goog.debug.exposeException = function(err, opt_fn) {
  */
 goog.debug.normalizeErrorObject = function(err) {
   var href = goog.getObjectByName('window.location.href');
-  return (typeof err == 'string') ?
-      {
-        'message': err,
-        'name': 'Unknown error',
-        'lineNumber': 'Not available',
-        'fileName': href,
-        'stack': 'Not available'
-      } :
+  if (goog.isString(err)) {
+    return {
+      'message': err,
+      'name': 'Unknown error',
+      'lineNumber': 'Not available',
+      'fileName': href,
+      'stack': 'Not available'
+    };
+  }
 
-      // The IE Error object contains only the name and the message
-      // The Safari Error object uses the line and sourceURL fields
-      (!err.lineNumber || !err.fileName || !err.stack) ?
-      {
-        'message': err.message,
-        'name': err.name,
-        'lineNumber': err.lineNumber || err.line || 'Not available',
-        'fileName': err.fileName || err.filename || err.sourceURL || href,
-        'stack': err.stack || 'Not available'
-      } :
+  var lineNumber, fileName;
+  var threwError = false;
 
-      // Standards error object
-      err;
+  try {
+    lineNumber = err.lineNumber || err.line || 'Not available';
+  } catch (e) {
+    // Firefox 2 sometimes throws an error when accessing 'lineNumber':
+    // Message: Permission denied to get property UnnamedClass.lineNumber
+    lineNumber = 'Not available';
+    threwError = true;
+  }
+
+  try {
+    fileName = err.fileName || err.filename || err.sourceURL || href;
+  } catch (e) {
+    // Firefox 2 may also throw an error when accessing 'filename'.
+    fileName = 'Not available';
+    threwError = true;
+  }
+
+  // The IE Error object contains only the name and the message.
+  // The Safari Error object uses the line and sourceURL fields.
+  if (threwError || !err.lineNumber || !err.fileName || !err.stack) {
+    return {
+      'message': err.message,
+      'name': err.name,
+      'lineNumber': lineNumber,
+      'fileName': fileName,
+      'stack': err.stack || 'Not available'
+    };
+  }
+
+  // Standards error object
+  return err;
 };
 
 
@@ -15550,6 +15936,83 @@ goog.net.EventType = {
   INCREMENTAL_DATA: 'incrementaldata',
   PROGRESS: 'progress'
 };
+// Copyright 2011 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Constants for HTTP status codes.
+ */
+
+goog.provide('goog.net.HttpStatus');
+
+
+/**
+ * HTTP Status Codes defined in RFC 2616.
+ * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+ * @enum {number}
+ */
+goog.net.HttpStatus = {
+  // Informational 1xx
+  CONTINUE: 100,
+  SWITCHING_PROTOCOLS: 101,
+
+  // Successful 2xx
+  OK: 200,
+  CREATED: 201,
+  ACCEPTED: 202,
+  NON_AUTHORITATIVE_INFORMATION: 203,
+  NO_CONTENT: 204,
+  RESET_CONTENT: 205,
+  PARTIAL_CONTENT: 206,
+
+  // Redirection 3xx
+  MULTIPLE_CHOICES: 300,
+  MOVED_PERMANENTLY: 301,
+  FOUND: 302,
+  SEE_OTHER: 303,
+  NOT_MODIFIED: 304,
+  USE_PROXY: 305,
+  TEMPORARY_REDIRECT: 307,
+
+  // Client Error 4xx
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  PAYMENT_REQUIRED: 402,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  METHOD_NOT_ALLOWED: 405,
+  NOT_ACCEPTABLE: 406,
+  PROXY_AUTHENTICATION_REQUIRED: 407,
+  REQUEST_TIMEOUT: 408,
+  CONFLICT: 409,
+  GONE: 410,
+  LENGTH_REQUIRED: 411,
+  PRECONDITION_FAILED: 412,
+  REQUEST_ENTITY_TOO_LARGE: 413,
+  REQUEST_URI_TOO_LONG: 414,
+  UNSUPPORTED_MEDIA_TYPE: 415,
+  REQUEST_RANGE_NOT_SATISFIABLE: 416,
+  EXPECTATION_FAILED: 417,
+
+  // Server Error 5xx
+  INTERNAL_SERVER_ERROR: 500,
+  NOT_IMPLEMENTED: 501,
+  BAD_GATEWAY: 502,
+  SERVICE_UNAVAILABLE: 503,
+  GATEWAY_TIMEOUT: 504,
+  HTTP_VERSION_NOT_SUPPORTED: 505
+};
 // Copyright 2010 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17174,8 +17637,10 @@ goog.require('goog.events.EventTarget');
 goog.require('goog.json');
 goog.require('goog.net.ErrorCode');
 goog.require('goog.net.EventType');
+goog.require('goog.net.HttpStatus');
 goog.require('goog.net.XmlHttp');
 goog.require('goog.net.xhrMonitor');
+goog.require('goog.object');
 goog.require('goog.structs');
 goog.require('goog.structs.Map');
 goog.require('goog.uri.utils');
@@ -17475,6 +17940,20 @@ goog.net.XhrIo.prototype.responseType_ = goog.net.XhrIo.ResponseType.DEFAULT;
 
 
 /**
+ * Whether a "credentialed" request is to be sent (one that is aware of cookies
+ * and authentication) . This is applicable only for cross-domain requests and
+ * more recent browsers that support this part of the HTTP Access Control
+ * standard.
+ *
+ * @see http://dev.w3.org/2006/webapi/XMLHttpRequest-2/#withcredentials
+ *
+ * @type {boolean}
+ * @private
+ */
+goog.net.XhrIo.prototype.withCredentials_ = false;
+
+
+/**
  * Returns the number of milliseconds after which an incomplete request will be
  * aborted, or 0 if no timeout is set.
  * @return {number} Timeout interval in milliseconds.
@@ -17514,6 +17993,29 @@ goog.net.XhrIo.prototype.setResponseType = function(type) {
  */
 goog.net.XhrIo.prototype.getResponseType = function() {
   return this.responseType_;
+};
+
+
+/**
+ * Sets whether a "credentialed" request that is aware of cookie and
+ * authentication information should be made. This option is only supported by
+ * browsers that support HTTP Access Control. As of this writing, this option
+ * is not supported in IE.
+ *
+ * @param {boolean} withCredentials Whether this should be a "credentialed"
+ *     request.
+ */
+goog.net.XhrIo.prototype.setWithCredentials = function(withCredentials) {
+  this.withCredentials_ = withCredentials;
+};
+
+
+/**
+ * Gets whether a "credentialed" request is to be sent.
+ * @return {boolean} The desired type for the response.
+ */
+goog.net.XhrIo.prototype.getWithCredentials = function() {
+  return this.withCredentials_;
 };
 
 
@@ -17600,6 +18102,10 @@ goog.net.XhrIo.prototype.send = function(url, opt_method, opt_content,
     this.xhr_.responseType = this.responseType_;
   }
 
+  if (goog.object.containsKey(this.xhr_, 'withCredentials')) {
+    this.xhr_.withCredentials = this.withCredentials_;
+  }
+
   /**
    * Try to send the request, or other wise report an error (404 not found).
    * @preserveTry
@@ -17642,11 +18148,9 @@ goog.net.XhrIo.prototype.createXhr = function() {
 
 /**
  * Override of dispatchEvent.  We need to keep track if an XMLHttpRequest is
- * being sent from the context of another requests' repsonse.  If it is then, we
+ * being sent from the context of another requests' response.  If it is then, we
  * make the XHR send async.
- * @param {goog.events.Event|string} e Event to dispatch.
- * @return {boolean} Whether the dispatch completed without a handler calling
- *     preventDefault.
+ * @override
  */
 goog.net.XhrIo.prototype.dispatchEvent = function(e) {
   if (this.xhr_) {
@@ -17929,9 +18433,9 @@ goog.net.XhrIo.prototype.isSuccess = function() {
     case 0:         // Used for local XHR requests
       return !this.isLastUriEffectiveSchemeHttp_();
 
-    case 200:       // Http Success
-    case 204:       // Http Success - no content
-    case 304:       // Http Cache
+    case goog.net.HttpStatus.OK:
+    case goog.net.HttpStatus.NO_CONTENT:
+    case goog.net.HttpStatus.NOT_MODIFIED:
       return true;
 
     default:
@@ -18196,9 +18700,26 @@ goog.debug.entryPointRegistry.register(
  */
 
 
+goog.provide('goog.net.Cookies');
 goog.provide('goog.net.cookies');
 
 goog.require('goog.userAgent');
+
+
+
+/**
+ * A class for handling browser cookies.
+ * @param {Document} context The context document to get/set cookies on.
+ * @constructor
+ */
+goog.net.Cookies = function(context) {
+  /**
+   * The context document to get/set cookies on
+   * @type {Document}
+   * @private
+   */
+  this.document_ = context;
+};
 
 
 /**
@@ -18208,7 +18729,7 @@ goog.require('goog.userAgent');
  * browsers/proxies that interpret 4K as 4000 rather than 4096.
  * @type {number}
  */
-goog.net.cookies.MAX_COOKIE_LENGTH = 3950;
+goog.net.Cookies.MAX_COOKIE_LENGTH = 3950;
 
 
 /**
@@ -18216,7 +18737,7 @@ goog.net.cookies.MAX_COOKIE_LENGTH = 3950;
  * @type {RegExp}
  * @private
  */
-goog.net.cookies.SPLIT_RE_ = /\s*;\s*/;
+goog.net.Cookies.SPLIT_RE_ = /\s*;\s*/;
 
 
 /**
@@ -18225,27 +18746,27 @@ goog.net.cookies.SPLIT_RE_ = /\s*;\s*/;
  * @type {string}
  * @private
  */
-goog.net.cookies.TEST_COOKIE_NAME_ = 'COOKIES_TEST_';
+goog.net.Cookies.TEST_COOKIE_NAME_ = 'COOKIES_TEST_';
 
 
 /**
  * Returns true if cookies are enabled.
  * @return {boolean} True if cookies are enabled.
  */
-goog.net.cookies.isEnabled = function() {
-  var isEnabled = goog.net.cookies.isNavigatorCookieEnabled_();
+goog.net.Cookies.prototype.isEnabled = function() {
+  var isEnabled = this.isNavigatorCookieEnabled_();
 
   if (isEnabled && goog.userAgent.WEBKIT) {
     // Chrome has a bug where it will report cookies as enabled even if they
     // are not, see http://code.google.com/p/chromium/issues/detail?id=1850 .
     // To work around, we set a unique cookie, then check for it.
-    var cookieName = goog.net.cookies.TEST_COOKIE_NAME_ + goog.now();
+    var cookieName = goog.net.Cookies.TEST_COOKIE_NAME_ + goog.now();
     goog.net.cookies.set(cookieName, '1');
-    if (!goog.net.cookies.get(cookieName)) {
+    if (!this.get(cookieName)) {
       return false;
     }
     // Remove temp cookie.
-    goog.net.cookies.remove(cookieName);
+    this.remove(cookieName);
   }
 
   return isEnabled;
@@ -18272,7 +18793,7 @@ goog.net.cookies.isEnabled = function() {
  * @see <a href="http://tools.ietf.org/html/rfc2109">RFC 2109</a>
  * @see <a href="http://tools.ietf.org/html/rfc2965">RFC 2965</a>
  */
-goog.net.cookies.isValidName = function(name) {
+goog.net.Cookies.prototype.isValidName = function(name) {
   return !(/[;=\s]/.test(name));
 };
 
@@ -18289,7 +18810,7 @@ goog.net.cookies.isValidName = function(name) {
  * @see <a href="http://tools.ietf.org/html/rfc2109">RFC 2109</a>
  * @see <a href="http://tools.ietf.org/html/rfc2965">RFC 2965</a>
  */
-goog.net.cookies.isValidValue = function(value) {
+goog.net.Cookies.prototype.isValidValue = function(value) {
   return !(/[;\r\n]/.test(value));
 };
 
@@ -18319,12 +18840,12 @@ goog.net.cookies.isValidValue = function(value) {
  * @param {boolean=} opt_secure Whether the cookie should only be sent over
  *     a secure channel.
  */
-goog.net.cookies.set = function(
+goog.net.Cookies.prototype.set = function(
     name, value, opt_maxAge, opt_path, opt_domain, opt_secure) {
-  if (!goog.net.cookies.isValidName(name)) {
+  if (!this.isValidName(name)) {
     throw Error('Invalid cookie name "' + name + '"');
   }
-  if (!goog.net.cookies.isValidValue(value)) {
+  if (!this.isValidValue(value)) {
     throw Error('Invalid cookie value "' + value + '"');
   }
 
@@ -18358,8 +18879,8 @@ goog.net.cookies.set = function(
     expiresStr = ';expires=' + futureDate.toUTCString();
   }
 
-  goog.net.cookies.setCookie_(name + '=' + value + domainStr + pathStr +
-                              expiresStr + secureStr);
+  this.setCookie_(name + '=' + value + domainStr + pathStr +
+                  expiresStr + secureStr);
 };
 
 
@@ -18370,9 +18891,9 @@ goog.net.cookies.set = function(
  * @return {string|undefined}  The value of the cookie. If no cookie is set this
  *     returns opt_default or undefined if opt_default is not provided.
  */
-goog.net.cookies.get = function(name, opt_default) {
+goog.net.Cookies.prototype.get = function(name, opt_default) {
   var nameEq = name + '=';
-  var parts = goog.net.cookies.getParts_();
+  var parts = this.getParts_();
   for (var i = 0, part; part = parts[i]; i++) {
     if (part.indexOf(nameEq) == 0) {
       return part.substr(nameEq.length);
@@ -18393,9 +18914,9 @@ goog.net.cookies.get = function(name, opt_default) {
  *     null (i.e. cookie at full request host name).
  * @return {boolean} Whether the cookie existed before it was removed.
  */
-goog.net.cookies.remove = function(name, opt_path, opt_domain) {
-  var rv = goog.net.cookies.containsKey(name);
-  goog.net.cookies.set(name, '', 0, opt_path, opt_domain);
+goog.net.Cookies.prototype.remove = function(name, opt_path, opt_domain) {
+  var rv = this.containsKey(name);
+  this.set(name, '', 0, opt_path, opt_domain);
   return rv;
 };
 
@@ -18404,8 +18925,8 @@ goog.net.cookies.remove = function(name, opt_path, opt_domain) {
  * Gets the names for all the cookies.
  * @return {Array.<string>} An array with the names of the cookies.
  */
-goog.net.cookies.getKeys = function() {
-  return goog.net.cookies.getKeyValues_().keys;
+goog.net.Cookies.prototype.getKeys = function() {
+  return this.getKeyValues_().keys;
 };
 
 
@@ -18413,28 +18934,28 @@ goog.net.cookies.getKeys = function() {
  * Gets the values for all the cookies.
  * @return {Array.<string>} An array with the values of the cookies.
  */
-goog.net.cookies.getValues = function() {
-  return goog.net.cookies.getKeyValues_().values;
+goog.net.Cookies.prototype.getValues = function() {
+  return this.getKeyValues_().values;
 };
 
 
 /**
  * @return {boolean} Whether there are any cookies for this document.
  */
-goog.net.cookies.isEmpty = function() {
-  return !goog.net.cookies.getCookie_();
+goog.net.Cookies.prototype.isEmpty = function() {
+  return !this.getCookie_();
 };
 
 
 /**
  * @return {number} The number of cookies for this document.
  */
-goog.net.cookies.getCount = function() {
-  var cookie = goog.net.cookies.getCookie_();
+goog.net.Cookies.prototype.getCount = function() {
+  var cookie = this.getCookie_();
   if (!cookie) {
     return 0;
   }
-  return goog.net.cookies.getParts_().length;
+  return this.getParts_().length;
 };
 
 
@@ -18443,10 +18964,10 @@ goog.net.cookies.getCount = function() {
  * @param {string} key The name of the cookie to test for.
  * @return {boolean} Whether there is a cookie by that name.
  */
-goog.net.cookies.containsKey = function(key) {
+goog.net.Cookies.prototype.containsKey = function(key) {
   // substring will return empty string if the key is not found, so the get
   // function will only return undefined
-  return goog.isDef(goog.net.cookies.get(key));
+  return goog.isDef(this.get(key));
 };
 
 
@@ -18456,9 +18977,9 @@ goog.net.cookies.containsKey = function(key) {
  * @param {string} value  The value to check for.
  * @return {boolean} Whether there is a cookie with that value.
  */
-goog.net.cookies.containsValue = function(value) {
+goog.net.Cookies.prototype.containsValue = function(value) {
   // this O(n) in any case so lets do the trivial thing.
-  var values = goog.net.cookies.getKeyValues_().values;
+  var values = this.getKeyValues_().values;
   for (var i = 0; i < values.length; i++) {
     if (values[i] == value) {
       return true;
@@ -18473,10 +18994,10 @@ goog.net.cookies.containsValue = function(value) {
  * cookies from the current path and domain.  If there are cookies set using a
  * subpath and/or another domain these will still be there.
  */
-goog.net.cookies.clear = function() {
-  var keys = goog.net.cookies.getKeyValues_().keys;
+goog.net.Cookies.prototype.clear = function() {
+  var keys = this.getKeyValues_().keys;
   for (var i = keys.length - 1; i >= 0; i--) {
-    goog.net.cookies.remove(keys[i]);
+    this.remove(keys[i]);
   }
 };
 
@@ -18487,8 +19008,8 @@ goog.net.cookies.clear = function() {
  * @param {string} s The cookie string to set.
  * @private
  */
-goog.net.cookies.setCookie_ = function(s) {
-  document.cookie = s;
+goog.net.Cookies.prototype.setCookie_ = function(s) {
+  this.document_.cookie = s;
 };
 
 
@@ -18498,8 +19019,8 @@ goog.net.cookies.setCookie_ = function(s) {
  * @return {?string} Returns the {@code document.cookie}.
  * @private
  */
-goog.net.cookies.getCookie_ = function() {
-  return document.cookie;
+goog.net.Cookies.prototype.getCookie_ = function() {
+  return this.document_.cookie;
 };
 
 
@@ -18507,9 +19028,9 @@ goog.net.cookies.getCookie_ = function() {
  * @return {!Array.<string>} The cookie split on semi colons.
  * @private
  */
-goog.net.cookies.getParts_ = function() {
-  return (goog.net.cookies.getCookie_() || '').
-      split(goog.net.cookies.SPLIT_RE_);
+goog.net.Cookies.prototype.getParts_ = function() {
+  return (this.getCookie_() || '').
+      split(goog.net.Cookies.SPLIT_RE_);
 };
 
 
@@ -18518,7 +19039,7 @@ goog.net.cookies.getParts_ = function() {
  * @return {boolean} The value of navigator.cookieEnabled.
  * @private
  */
-goog.net.cookies.isNavigatorCookieEnabled_ = function() {
+goog.net.Cookies.prototype.isNavigatorCookieEnabled_ = function() {
   return navigator.cookieEnabled;
 };
 
@@ -18528,8 +19049,8 @@ goog.net.cookies.isNavigatorCookieEnabled_ = function() {
  * @return {Object} An object with keys and values.
  * @private
  */
-goog.net.cookies.getKeyValues_ = function() {
-  var parts = goog.net.cookies.getParts_();
+goog.net.Cookies.prototype.getKeyValues_ = function() {
+  var parts = this.getParts_();
   var keys = [], values = [], index, part;
   for (var i = 0; part = parts[i]; i++) {
     index = part.indexOf('=');
@@ -18544,6 +19065,22 @@ goog.net.cookies.getKeyValues_ = function() {
   }
   return {keys: keys, values: values};
 };
+
+
+/**
+ * A static default instance.
+ * @type {goog.net.Cookies}
+ */
+goog.net.cookies = new goog.net.Cookies(document);
+
+
+/**
+ * Define the constant on the instance in order not to break many references to
+ * it.
+ * @type {number}
+ * @deprecated Use goog.net.Cookies.MAX_COOKIE_LENGTH instead.
+ */
+goog.net.cookies.MAX_COOKIE_LENGTH = goog.net.Cookies.MAX_COOKIE_LENGTH;
 // Copyright 2008 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18640,6 +19177,18 @@ goog.functions.lock = function(f) {
 
 
 /**
+ * Given a function, create a new function that swallows its return value
+ * and replaces it with a new one.
+ * @param {Function} f A function.
+ * @param {*} retValue A new return value.
+ * @return {!Function} A new function.
+ */
+goog.functions.withReturnValue = function(f, retValue) {
+  return goog.functions.sequence(f, goog.functions.constant(retValue));
+};
+
+
+/**
  * Creates the composition of the functions passed in.
  * For example, (goog.functions.compose(f, g))(a) is equivalent to f(g(a)).
  * @param {...Function} var_args A list of functions.
@@ -18722,6 +19271,19 @@ goog.functions.or = function(var_args) {
       }
     }
     return false;
+  };
+};
+
+
+/**
+ * Creates a function that returns the Boolean opposite of a provided function.
+ * For example, (goog.functions.not(f))(x) is equivalent to !f(x).
+ * @param {!Function} f The original function.
+ * @return {!Function} A function that delegates to f and returns opposite.
+ */
+goog.functions.not = function(f) {
+  return function() {
+    return !f.apply(this, arguments);
   };
 };
 
@@ -18829,6 +19391,7 @@ goog.require('goog.structs.SimplePool');
  * @extends {goog.Disposable}
  */
 goog.events.EventHandler = function(opt_handler) {
+  goog.Disposable.call(this);
   this.handler_ = opt_handler;
 };
 goog.inherits(goog.events.EventHandler, goog.Disposable);
@@ -19334,6 +19897,20 @@ goog.math.Box.intersects = function(a, b) {
   return (a.left <= b.right && b.left <= a.right &&
           a.top <= b.bottom && b.top <= a.bottom);
 };
+
+
+/**
+ * Returns whether two boxes would intersect with additional padding.
+ *
+ * @param {goog.math.Box} a A Box.
+ * @param {goog.math.Box} b A second Box.
+ * @param {number} padding The additional padding.
+ * @return {boolean} Whether the boxes intersect.
+ */
+goog.math.Box.intersectsWithPadding = function(a, b, padding) {
+  return (a.left <= b.right + padding && b.left <= a.right + padding &&
+          a.top <= b.bottom + padding && b.top <= a.bottom + padding);
+};
 // Copyright 2006 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19706,6 +20283,7 @@ goog.require('goog.math.Coordinate');
 goog.require('goog.math.Rect');
 goog.require('goog.math.Size');
 goog.require('goog.object');
+goog.require('goog.string');
 goog.require('goog.userAgent');
 
 
@@ -19739,11 +20317,11 @@ goog.style.setStyle = function(element, style, opt_value) {
  * {@code goog.object.forEach()}.
  * @param {Element} element The element to change.
  * @param {string|number|boolean|undefined} value Style value.
- * @param {string|number|boolean} style Style name.
+ * @param {string} style Style name.
  * @private
  */
 goog.style.setStyle_ = function(element, value, style) {
-  element.style[goog.style.toCamelCase(style)] = value;
+  element.style[goog.string.toCamelCase(style)] = value;
 };
 
 
@@ -19762,7 +20340,7 @@ goog.style.getStyle = function(element, property) {
   // For for browser specific styles as 'filter' is undefined
   // so we need to return '' explicitly to make it consistent across
   // browsers.
-  return element.style[goog.style.toCamelCase(property)] || '';
+  return element.style[goog.string.toCamelCase(property)] || '';
 };
 
 
@@ -19965,7 +20543,8 @@ goog.style.getClientViewportElement = function(opt_node) {
   }
 
   // In old IE versions the document.body represented the viewport
-  if (goog.userAgent.IE && !goog.dom.getDomHelper(doc).isCss1CompatMode()) {
+  if (goog.userAgent.IE && !goog.userAgent.isVersion(9) &&
+      !goog.dom.getDomHelper(doc).isCss1CompatMode()) {
     return doc.body;
   }
   return doc.documentElement;
@@ -20397,7 +20976,7 @@ goog.style.getRelativePosition = function(a, b) {
 
 /**
  * Returns the position relative to the client viewport.
- * @param {Element|Event|goog.events.Event} el Element or a mouse event object.
+ * @param {Element|Event|goog.events.Event} el Element or a mouse / touch event.
  * @return {!goog.math.Coordinate} The position.
  */
 goog.style.getClientPosition = function(el) {
@@ -20415,8 +20994,17 @@ goog.style.getClientPosition = function(el) {
       pos.y = pageCoord.y - scrollCoord.y;
     }
   } else {
-    pos.x = el.clientX;
-    pos.y = el.clientY;
+    var isAbstractedEvent = goog.isFunction(el.getBrowserEvent);
+    var targetEvent = el;
+
+    if (el.targetTouches) {
+      targetEvent = el.targetTouches[0];
+    } else if (isAbstractedEvent && el.getBrowserEvent().targetTouches) {
+      targetEvent = el.getBrowserEvent().targetTouches[0];
+    }
+
+    pos.x = targetEvent.clientX;
+    pos.y = targetEvent.clientY;
   }
 
   return pos;
@@ -20531,14 +21119,8 @@ goog.style.setWidth = function(element, width) {
  * @return {!goog.math.Size} Object with width/height properties.
  */
 goog.style.getSize = function(element) {
-  var hasOperaBug = goog.userAgent.OPERA && !goog.userAgent.isVersion('10');
   if (goog.style.getStyle_(element, 'display') != 'none') {
-    if (hasOperaBug) {
-      return new goog.math.Size(element.offsetWidth || element.clientWidth,
-                                element.offsetHeight || element.clientHeight);
-    } else {
-      return new goog.math.Size(element.offsetWidth, element.offsetHeight);
-    }
+    return new goog.math.Size(element.offsetWidth, element.offsetHeight);
   }
 
   var style = element.style;
@@ -20550,14 +21132,8 @@ goog.style.getSize = function(element) {
   style.position = 'absolute';
   style.display = 'inline';
 
-  var originalWidth, originalHeight;
-  if (hasOperaBug) {
-    originalWidth = element.offsetWidth || element.clientWidth;
-    originalHeight = element.offsetHeight || element.clientHeight;
-  } else {
-    originalWidth = element.offsetWidth;
-    originalHeight = element.offsetHeight;
-  }
+  var originalWidth = element.offsetWidth;
+  var originalHeight = element.offsetHeight;
 
   style.display = originalDisplay;
   style.position = originalPosition;
@@ -20580,44 +21156,24 @@ goog.style.getBounds = function(element) {
 
 
 /**
- * A memoized cache for goog.style.toCamelCase.
- * @type {Object}
- * @private
- */
-goog.style.toCamelCaseCache_ = {};
-
-
-/**
- * Converts a CSS selector in the form style-property to styleProperty
+ * Converts a CSS selector in the form style-property to styleProperty.
  * @param {*} selector CSS Selector.
  * @return {string} Camel case selector.
+ * @deprecated Use goog.string.toCamelCase instead.
  */
 goog.style.toCamelCase = function(selector) {
-  return goog.style.toCamelCaseCache_[selector] ||
-    (goog.style.toCamelCaseCache_[selector] =
-        String(selector).replace(/\-([a-z])/g, function(all, match) {
-          return match.toUpperCase();
-        }));
+  return goog.string.toCamelCase(String(selector));
 };
-
-
-/**
- * A memoized cache for goog.style.toSelectorCase.
- * @type {Object.<string>}
- * @private
- */
-goog.style.toSelectorCaseCache_ = {};
 
 
 /**
  * Converts a CSS selector in the form styleProperty to style-property.
  * @param {string} selector Camel case selector.
  * @return {string} Selector cased.
+ * @deprecated Use goog.string.toSelectorCase instead.
  */
 goog.style.toSelectorCase = function(selector) {
-  return goog.style.toSelectorCaseCache_[selector] ||
-      (goog.style.toSelectorCaseCache_[selector] =
-          selector.replace(/([A-Z])/g, '-$1').toLowerCase());
+  return goog.string.toSelectorCase(selector);
 };
 
 
@@ -20848,8 +21404,6 @@ goog.style.setPreWrap = function(el) {
     style.wordWrap = 'break-word';
   } else if (goog.userAgent.GECKO) {
     style.whiteSpace = '-moz-pre-wrap';
-  } else if (goog.userAgent.OPERA) {
-    style.whiteSpace = '-o-pre-wrap';
   } else {
     style.whiteSpace = 'pre-wrap';
   }
@@ -21081,16 +21635,8 @@ goog.style.setBoxSizingSize_ = function(element, size, boxSizing) {
     style.MozBoxSizing = boxSizing;
   } else if (goog.userAgent.WEBKIT) {
     style.WebkitBoxSizing = boxSizing;
-  } else if (goog.userAgent.OPERA && !goog.userAgent.isVersion('9.50')) {
-    // Opera pre-9.5 does not have CSSStyleDeclaration::boxSizing, but
-    // box-sizing can still be set via CSSStyleDeclaration::setProperty.
-    if (boxSizing) {
-      style.setProperty('box-sizing', boxSizing);
-    } else {
-      style.removeProperty('box-sizing');
-    }
   } else {
-    // Includes IE8
+    // Includes IE8 and Opera 9.50+
     style.boxSizing = boxSizing;
   }
   style.width = size.width + 'px';
@@ -21292,10 +21838,6 @@ goog.style.getFontFamily = function(el) {
     // Note if for some reason IE can't derive FontName with a TextRange, we
     // fallback to using currentStyle
     font = goog.style.getStyle_(el, 'fontFamily');
-    // Opera on Linux provides the font vendor's name in square-brackets.
-    if (goog.userAgent.OPERA && goog.userAgent.LINUX) {
-      font = font.replace(/ \[[^\]]*\]/, '');
-    }
   }
 
   // Firefox returns the applied font-family string (author's list of
@@ -21409,7 +21951,7 @@ goog.style.getFontSize = function(el) {
   var sizeElement = goog.dom.createDom(
       'span',
       {'style': 'visibility:hidden;position:absolute;' +
-                'line-height:0;padding:0;margin:0;border:0;height:1em;'});
+            'line-height:0;padding:0;margin:0;border:0;height:1em;'});
   goog.dom.appendChild(el, sizeElement);
   fontSize = sizeElement.offsetHeight;
   goog.dom.removeNode(sizeElement);
@@ -21428,7 +21970,7 @@ goog.style.parseStyleAttribute = function(value) {
   goog.array.forEach(value.split(/\s*;\s*/), function(pair) {
     var keyValue = pair.split(/\s*:\s*/);
     if (keyValue.length == 2) {
-      result[goog.style.toCamelCase(keyValue[0].toLowerCase())] = keyValue[1];
+      result[goog.string.toCamelCase(keyValue[0].toLowerCase())] = keyValue[1];
     }
   });
   return result;
@@ -21445,7 +21987,7 @@ goog.style.parseStyleAttribute = function(value) {
 goog.style.toStyleAttribute = function(obj) {
   var buffer = [];
   goog.object.forEach(obj, function(value, key) {
-    buffer.push(goog.style.toSelectorCase(key), ':', value, ';');
+    buffer.push(goog.string.toSelectorCase(key), ':', value, ';');
   });
   return buffer.join('');
 };

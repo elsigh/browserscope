@@ -208,6 +208,7 @@ TEST_SET = ReflowTestSet(
   # 'nested_anchors', 'num_elements=400', 'num_nest=4',
   # 'css_selector=#g-content *', 'num_css_rules=1000',
   # 'css_text=border: 1px solid #0C0; padding: 8px;'),
- default_params=test_set_params.Params('acid1', 'num_elements=300'),
+  #default_params=test_set_params.Params('acid1', 'num_elements=300'),
+
  test_page='/%s/test_acid1' % _CATEGORY
 )
