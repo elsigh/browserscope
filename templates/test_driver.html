@@ -44,7 +44,9 @@
         '{{ category }}', '{{ category_name }}', '{{ csrf_token }}',
         '{{ autorun }}', '{{ continue }}', '{{ testurl }}');
     {% for app_category in  app_categories %}
-      testDriver.addCategory('{{ app_category.0 }}');
+      {% ifequal app_category.0 "richtext2" %}{% else %}
+        testDriver.addCategory('{{ app_category.0 }}');
+      {% endifequal %}
     {% endfor %}
     {% if autorun or testurl %}
       testDriver.runTest();
