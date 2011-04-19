@@ -1213,15 +1213,17 @@ Util.TestDriver.prototype.onBeaconCompleteAutorun_ = function(e) {
     var hash = responseText;
     if (hash) {
       this.setUriResults_(hash);
-      var nextUrl = this.getNextUrl();
-      window.top.location.href = nextUrl;
-    } else {
+    }
+    var nextUrl = this.getNextUrl();
+    window.top.location.href = nextUrl;
+
+    /*else {
       var longUrl = 'http://www.browserscope.org/?' + this.uriResults;
       var req = window['googleapis']['newRequest']('urlshortener.url.insert',
           {'resource': {'longUrl': longUrl},
            'key': Util.TestDriver.GOOGLE_API_KEY});
       req['execute'](goog.bind(this.onUrlShortenCallback_, this));
-    }
+    }*/
   }
 };
 
