@@ -28,6 +28,7 @@ import re
 import sys
 import time
 import urllib
+import urlparse
 
 from google.appengine.api import memcache
 from google.appengine.api import users
@@ -41,6 +42,7 @@ import django
 from django import http
 from django import shortcuts
 from django.template import loader, Context
+from django.utils import simplejson
 
 import settings
 
@@ -61,8 +63,8 @@ from third_party.gaefy.db import pager
 from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
 
+RESULTS_STRING_MEMCACHE_NS = 'results_str'
 MULTI_TEST_DRIVER_TEST_PAGE = '/multi_test_frameset'
-
 ABOUT_TPL = 'about.html'
 TEST_DRIVER_TPL = 'test_driver.html'
 MULTI_TEST_FRAMESET_TPL = 'multi_test_frameset.html'
@@ -190,7 +192,7 @@ def MultiTestFrameset(request):
 
 def MultiTestDriver(request):
   """Multi-Page Test Driver - runs each of multiple tests in sequence in a
-single category"""
+     single category"""
   category = request.GET.get('category', '')
   tests = all_test_sets.GetTestSet(category).tests
   params = {
@@ -300,17 +302,48 @@ def Home(request):
   if not recent_tests:
     ScheduleRecentTestsUpdate()
 
-  # Show a static message above the table.
-  #if (test_set.category in settings.STATIC_CATEGORIES and
-  #    output in ('xhr', 'html')):
-  #  stats_table = '%s%s' % (STATIC_MESSAGE, stats_table)
-
   params = {
     'page_title': 'Home',
     'message': request.GET.get('message'),
     'recent_tests': recent_tests,
   }
   return GetResults(request, template='home.html', params=params)
+
+
+def GetResultUriString(request, category):
+  """Parses out a category result string from the request, w/ goo.gl and hash.
+  Args:
+    request: The request object.
+    category: The category.
+  Returns:
+    The result string in the request url, expanding goo.gl or hashes.
+  """
+  results_key = '%s_results' % category
+  results_uri_string = request.GET.get(results_key,
+      request.GET.get('results', None)) # allow "results" for user_tests.
+  # Adding a check for None since bots are sending it.
+  if results_uri_string and results_uri_string != 'None':
+    memcache_str = memcache.get(key=results_uri_string,
+                                namespace=RESULTS_STRING_MEMCACHE_NS)
+    if memcache_str:
+      results_uri_string = memcache_str
+
+    # If the results_uri_string is a goo.gl link, expand it.
+    elif re.search('goo.gl', results_uri_string):
+      googl_req_url = ('https://www.googleapis.com/urlshortener/v1/url?'
+                       'key=%s&shortUrl=%s' %
+                       (settings.GOOGLE_API_KEY, results_uri_string))
+      #logging.info('SENDING GOO.GL REQ: %s' % googl_req_url)
+      response = urlfetch.fetch(googl_req_url)
+      json = simplejson.loads(response.content)
+      replace = ('http://www.browserscope.org/?%s=' % results_key)
+      qs = urlparse.parse_qs(urlparse.urlparse(json['longUrl']).query)
+      results_uri_string = qs[results_key][0]
+  logging.info('GetResultUriString RESULTS_URI_STR: %s' % results_uri_string)
+  # Stupid web bot crap.
+  if results_uri_string == 'None':
+    results_uri_string = None
+  return results_uri_string
 
 
 def GetResults(request, template=None, params={}, test_set=None):
@@ -341,10 +374,9 @@ def GetResults(request, template=None, params={}, test_set=None):
   results_params = []
   results_test_set = None
   for test_set_ in all_test_sets.GetAllTestSets():
-    results_key = '%s_results' % test_set_.category
-    results_uri_string = request.GET.get(results_key)
-    # Adding a check for None since bots are sending it.
-    if results_uri_string and results_uri_string != 'None':
+    results_uri_string = GetResultUriString(request, test_set_.category)
+    if results_uri_string:
+      results_key = '%s_results' % test_set_.category
       results_params.append('='.join((results_key, results_uri_string)))
       results_test_set  = test_set_
 
@@ -692,6 +724,7 @@ def Beacon(request, category_id=None):
   params_str = request.REQUEST.get('params')
   user_test_keys = request.REQUEST.get('test_key')
   sandboxid = request.REQUEST.get('sandboxid')
+  hash_results_uri_string = request.REQUEST.get('hash')
 
   # Temporarily disable the HTML5 tests from processing.
   # TODO(elsigh): remove this once we fix the stacking issue.
@@ -755,8 +788,13 @@ def Beacon(request, category_id=None):
   if callback:
     return http.HttpResponse('%s();' % callback)
   else:
-    # Return a successful, empty 204.
-    return http.HttpResponse('', status=204)
+    if hash_results_uri_string:
+      hash_string = decorators.MakeRandomKey()
+      memcache.set(key=hash_string, value=results_str, time=0,
+                   namespace=RESULTS_STRING_MEMCACHE_NS)
+      return http.HttpResponse(hash_string)
+    else:
+      Return204(request)
 
 
 def Return204(request):
@@ -781,10 +819,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   version_level = request.GET.get('v', 'top')
   is_skip_static = request.GET.get('sc')  # 'sc' for skip cache
   browser_param = request.GET.get('ua')
-  results_str = request.GET.get('%s_results' % category,
-      request.GET.get('results', None)) # allow "results" for user_tests.
-  if results_str == 'None':
-    results_str = None
+  results_str = GetResultUriString(request, category)
 
   visible_test_keys = [t.key for t in test_set.VisibleTests()]
 
@@ -827,7 +862,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   if category == 'summary':
     for sub_category in visible_test_keys:
       sub_test_set = all_test_sets.GetTestSet(sub_category)
-      results_str = request.GET.get('%s_results' % sub_category)
+      results_str = GetResultUriString(request, sub_category)
       if results_str:
         results = sub_test_set.GetResults(results_str, ignore_key_errors=True)
         current_scores[sub_category] = dict(

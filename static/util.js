@@ -25,6 +25,7 @@ goog.provide('Util.TestDriver');
 goog.require('goog.dom');
 goog.require('goog.events');
 goog.require('goog.net.XhrIo');
+goog.require('goog.net.IframeIo');
 goog.require('goog.net.cookies');
 goog.require('goog.ui.TableSorter');
 goog.require('goog.ui.Tooltip');
@@ -1087,7 +1088,8 @@ Util.TestDriver.prototype.sendScore = function(testResults,
           escape(testResults.join(',')));
 
   var data = 'category=' + this.category + '&results=' +
-      testResults.join(',') + '&csrf_token=' + this.csrfToken;
+      testResults.join(',') + '&csrf_token=' + this.csrfToken +
+      '&hash=1';
 
   var uaString = goog.userAgent.getUserAgentString() || '';
   var jsUaParamString = '&js_ua=' + escape(uaString);
@@ -1098,35 +1100,62 @@ Util.TestDriver.prototype.sendScore = function(testResults,
       jsUaParamString += '&' + key + '=' + escape(jsUa[key]);
     }
   }
+  this.jsUaParamString_ = jsUaParamString;
   data += jsUaParamString;
 
   // Autorun always shares your score.
   var beaconUrl = '/beacon/' + this.category;
   if (this.autorun) {
     goog.net.XhrIo.send(beaconUrl,
-        goog.bind(this.onBeaconCompleteAutorun, this),
+        goog.bind(this.onBeaconCompleteAutorun_, this),
         'post', data);
   } else {
     if (this.sendBeaconCheckbox.checked) {
-      goog.net.XhrIo.send(beaconUrl, null, 'post', data);
+      goog.net.XhrIo.send(beaconUrl,
+          goog.bind(this.onBeaconCompleteNoAutorun_, this),
+          'post', data);
     }
     this.runTestButton.className = 'bs-btn';
     var checkmarkUtf8 = '✓';
     this.runTestButton.innerHTML = checkmarkUtf8 + 'Done! Compare your ' +
         this.categoryName + ' Test results »';
-    this.runTestButton.continueUrl = '/?' + this.uriResults + jsUaParamString;
-    goog.events.listen(this.runTestButton, 'click', function(e) {
-      var btn = e.target;
-      var continueUrl = btn.continueUrl;
-      //window.console.log('continueUrl:', continueUrl);
-      window.top.location.href = continueUrl;
-    });
+
+    goog.events.listen(this.runTestButton, 'click', goog.bind(function(e) {
+        var continueUrl = this.runTestButtonContinueUrl;
+        //window.console.log('continueUrl:', continueUrl);
+        window.top.location.href = '/?' + this.uriResults +
+            this.jsUaParamString_;
+      }, this)
+    );
   }
 
   // Update the test frame to scroll to the top where the score is.
   this.testFrame.scrollTo(0, 0);
 };
 
+/**
+ * @param {string} results The results string.
+ * @private
+ */
+Util.TestDriver.prototype.setUriResults_ = function(results) {
+  this.uriResults = this.category + '_results=' + results;
+};
+
+
+/**
+ * @param {goog.events.Event} e The XHR event.
+ */
+Util.TestDriver.prototype.onBeaconCompleteNoAutorun_ = function(e) {
+  var xhrio = e.currentTarget;
+  var responseText = xhrio.getResponseText();
+  if (!xhrio.isSuccess()) {
+    alert('Error saving your beacon data: ' + responseText);
+    return;
+  }
+  if (responseText) {
+    this.setUriResults_(responseText);
+  }
+};
 
 Util.TestDriver.prototype.getNextUrl = function() {
   var len = this.testCategories.length;
@@ -1143,28 +1172,71 @@ Util.TestDriver.prototype.getNextUrl = function() {
       }
     }
   }
+
   nextUrl = nextTest + '&' + this.uriResults;
 
   // now add on previous test scores
   for (var i = 0, n = len; i < n; i++) {
     var category = this.testCategories[i];
-    var results = Util.getParam(category + '_results',
-        window.top);
+    var results = Util.getParam(category + '_results', window.top);
     if (results) {
       nextUrl += '&' + category + '_results=' + results;
     }
   }
+  nextUrl += this.jsUaParamString_;
   return nextUrl;
 };
 
+
+/**
+ * From https://code.google.com/apis/console
+ * @type {string}
+ * @const
+ */
+Util.TestDriver.GOOGLE_API_KEY = 'AIzaSyC5amCuoKCHXXt_B20Ge7InVGbAUeujWU4';
+
+
 /**
  * @param {goog.events.Event} e
+ * @private
  */
-Util.TestDriver.prototype.onBeaconCompleteAutorun = function(e) {
-  if (this.continueToNextTest) {
+Util.TestDriver.prototype.onBeaconCompleteAutorun_ = function(e) {
+  var xhrio = e.currentTarget;
+  var responseText = xhrio.getResponseText();
+  if (!xhrio.isSuccess()) {
+    alert(responseText);
     var nextUrl = this.getNextUrl();
     window.top.location.href = nextUrl;
+    return;
   }
+  if (this.continueToNextTest) {
+    var hash = responseText;
+    if (hash) {
+      this.setUriResults_(hash);
+      var nextUrl = this.getNextUrl();
+      window.top.location.href = nextUrl;
+    } else {
+      var longUrl = 'http://www.browserscope.org/?' + this.uriResults;
+      var req = window['googleapis']['newRequest']('urlshortener.url.insert',
+          {'resource': {'longUrl': longUrl},
+           'key': Util.TestDriver.GOOGLE_API_KEY});
+      req['execute'](goog.bind(this.onUrlShortenCallback_, this));
+    }
+  }
+};
+
+
+/**
+ * @param {Object} response
+ * @private
+ */
+Util.TestDriver.prototype.onUrlShortenCallback_ = function(response) {
+  if (response && response['id']) {
+    this.setUriResults_(escape(response['id']));
+  }
+  var nextUrl = this.getNextUrl();
+  //window.console.log('nextUrl:', nextUrl);
+  window.top.location.href = nextUrl;
 };
 
 

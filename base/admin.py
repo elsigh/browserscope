@@ -388,8 +388,11 @@ def UpdateCategory(request):
     return http.HttpResponse('Invalid UserAgent key: %s' % user_agent_key)
   if user_agent:
     logging.info('cron.UserAgentGroup: UpdateCategory(%s, %s)', category, user_agent_key)
-    result_stats.UpdateCategory(category, user_agent)
-    return http.HttpResponse('Done with UserAgent key=%s' % user_agent_key)
+    try:
+      result_stats.UpdateCategory(category, user_agent)
+      return http.HttpResponse('Done with UserAgent key=%s' % user_agent_key)
+    except BadValueError:
+      return http.HttpResponse('Got a BadValueError. eff this one.')
   else:
     return http.HttpResponse('No user_agent with this key.')
 

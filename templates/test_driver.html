@@ -9,6 +9,7 @@
     <script src="{{ "util.js"|resource_path }}"></script>
     <script src="/uaparser/js_override"></script>
   {% endifequal %}
+  <script src="https://ajax.googleapis.com/ajax/libs/googleapis/0.0.3/googleapis.min.js"></script>
 {% endblock %}
 
 {% block body %}
@@ -51,5 +52,8 @@
     {% if autorun or testurl %}
       testDriver.runTest();
     {% endif %}
+    googleapis.load('urlshortener', 'v1', function(resp) {
+      //window.console.log('googl loaded');
+    });
   </script>
 {% endblock %}

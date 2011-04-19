@@ -19,6 +19,8 @@ import logging
 import sys
 from google.appengine.api import users
 
+GOOGLE_API_KEY = 'AIzaSyC5amCuoKCHXXt_B20Ge7InVGbAUeujWU4'
+MAX_HASH_KEY = 18446744073709551616L
 
 APP_TITLE = 'Browserscope'
 APPEND_SLASH = False
