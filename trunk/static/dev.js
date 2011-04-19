@@ -101,17 +101,33 @@ goog.provide = function(name) {
     // declaration. And when JSCompiler transforms goog.provide into a real
     // variable declaration, the compiled JS should work the same as the raw
     // JS--even when the raw JS uses goog.provide incorrectly.
-    if (goog.getObjectByName(name) && !goog.implicitNamespaces_[name]) {
+    if (goog.isProvided_(name)) {
       throw Error('Namespace "' + name + '" already declared.');
     }
+    delete goog.implicitNamespaces_[name];
 
     var namespace = name;
     while ((namespace = namespace.substring(0, namespace.lastIndexOf('.')))) {
+      if (goog.getObjectByName(namespace)) {
+        break;
+      }
       goog.implicitNamespaces_[namespace] = true;
     }
   }
 
   goog.exportPath_(name);
+};
+
+
+/**
+ * Check if the given name has been goog.provided. This will return false for
+ * names that are available only as implicit namespaces.
+ * @param {string} name name of the object to look for.
+ * @return {boolean} Whether the name has been provided.
+ * @private
+ */
+goog.isProvided_ = function(name) {
+  return !goog.implicitNamespaces_[name] && !!goog.getObjectByName(name);
 };
 
 
@@ -508,13 +524,14 @@ if (!COMPILED) {
 
       if (path in deps.requires) {
         for (var requireName in deps.requires[path]) {
-          if (requireName in deps.nameToPath) {
-            visitNode(deps.nameToPath[requireName]);
-          } else if (!goog.getObjectByName(requireName)) {
-            // If the required name is defined, we assume that this
-            // dependency was bootstapped by other means. Otherwise,
-            // throw an exception.
-            throw Error('Undefined nameToPath for ' + requireName);
+          // If the required name is defined, we assume that it was already
+          // bootstrapped by other means.
+          if (!goog.isProvided_(requireName)) {
+            if (requireName in deps.nameToPath) {
+              visitNode(deps.nameToPath[requireName]);
+            } else {
+              throw Error('Undefined nameToPath for ' + requireName);
+            }
           }
         }
       }
@@ -1737,6 +1754,19 @@ goog.string.normalizeWhitespace = function(str) {
  */
 goog.string.normalizeSpaces = function(str) {
   return str.replace(/\xa0|[ \t]+/g, ' ');
+};
+
+
+/**
+ * Removes the breaking spaces from the left and right of the string and
+ * collapses the sequences of breaking spaces in the middle into single spaces.
+ * The original and the result strings render the same way in HTML.
+ * @param {string} str A string in which to collapse spaces.
+ * @return {string} Copy of the string with normalized breaking spaces.
+ */
+goog.string.collapseBreakingSpaces = function(str) {
+  return str.replace(/[\t\r\n ]+/g, ' ').replace(
+      /^[\t\r\n ]+|[\t\r\n ]+$/g, '');
 };
 
 
@@ -4766,6 +4796,32 @@ goog.userAgent.isVersion = function(version) {
   return goog.userAgent.isVersionCache_[version] ||
       (goog.userAgent.isVersionCache_[version] =
           goog.string.compareVersions(goog.userAgent.VERSION, version) >= 0);
+};
+
+
+/**
+ * Cache for {@link goog.userAgent.isDocumentMode}. 
+ * Browsers document mode version number is unlikely to change during a session
+ * we cache the results.
+ * @type {Object}
+ * @private
+ */
+goog.userAgent.isDocumentModeCache_ = {};
+
+
+/**
+ * Whether the IE effective document mode is higher or the same as the given
+ * document mode version.
+ * NOTE: Only for IE, return false for another browser.
+ *
+ * @param {number} documentMode The document mode version to check.
+ * @return {boolean} Whether the IE effective document mode is higher or the
+ *     same as the given version.
+ */
+goog.userAgent.isDocumentMode  = function(documentMode) {
+  return goog.userAgent.isDocumentModeCache_[documentMode] ||
+      (goog.userAgent.isDocumentModeCache_[documentMode] = goog.userAgent.IE &&
+      document.documentMode && document.documentMode >= documentMode);
 };
 // Copyright 2010 The Closure Library Authors. All Rights Reserved.
 //
@@ -9246,8 +9302,8 @@ goog.reflect.object = function(type, object) {
 
 
 /**
- * To assert to the compiler that an operation is needed when it would other
- * wise be stripped. For example:
+ * To assert to the compiler that an operation is needed when it would
+ * otherwise be stripped. For example:
  * <code>
  *     // Force a layout
  *     goog.reflect.sinkValue(dialog.offsetHeight);
@@ -9255,6 +9311,23 @@ goog.reflect.object = function(type, object) {
  * @type {Function}
  */
 goog.reflect.sinkValue = new Function('a', 'return a');
+
+
+/**
+ * Check if a property can be accessed without throwing an exception.
+ * @param {Object} obj The owner of the property.
+ * @param {string} prop The property name.
+ * @return {boolean} Whether the property is accessible. Will also return true
+ *     if obj is null.
+ */
+goog.reflect.canAccessProperty = function(obj, prop) {
+  /** @preserveTry */
+  try {
+    goog.reflect.sinkValue(obj[prop]);
+    return true;
+  } catch (e) {}
+  return false;
+};
 // Copyright 2005 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -9510,10 +9583,7 @@ goog.events.BrowserEvent.prototype.init = function(e, opt_currentTarget) {
     // denied exception. See:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=497780
     if (goog.userAgent.GECKO) {
-      /** @preserveTry */
-      try {
-        goog.reflect.sinkValue(relatedTarget.nodeName);
-      } catch (err) {
+      if (!goog.reflect.canAccessProperty(relatedTarget, 'nodeName')) {
         relatedTarget = null;
       }
     }
@@ -11582,7 +11652,6 @@ goog.events.markIeEvent_ = function(e) {
  * @param {Event} e  The IE browser event.
  * @return {boolean} True if the event object has been marked.
  * @private
- * @notypecheck TODO(nicksantos): Fix this.
  */
 goog.events.isMarkedIeEvent_ = function(e) {
   return e.keyCode < 0 || e.returnValue != undefined;
@@ -18034,7 +18103,7 @@ goog.net.XhrIo.prototype.send = function(url, opt_method, opt_content,
     throw Error('[goog.net.XhrIo] Object is active with another request');
   }
 
-  var method = opt_method || 'GET';
+  var method = opt_method ? opt_method.toUpperCase() : 'GET';
 
   this.lastUri_ = url;
   this.lastError_ = '';
@@ -18680,6 +18749,2938 @@ goog.debug.entryPointRegistry.register(
       goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_ =
           transformer(goog.net.XhrIo.prototype.onReadyStateChangeEntryPoint_);
     });
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Class for parsing and formatting URIs.
+ *
+ * Use goog.Uri(string) to parse a URI string.  Use goog.Uri.create(...) to
+ * create a new instance of the goog.Uri object from Uri parts.
+ *
+ * e.g: <code>var myUri = new goog.Uri(window.location);</code>
+ *
+ * Implements RFC 3986 for parsing/formatting URIs.
+ * http://gbiv.com/protocols/uri/rfc/rfc3986.html
+ *
+ * Some changes have been made to the interface (more like .NETs), though the
+ * internal representation is now of un-encoded parts, this will change the
+ * behavior slightly.
+ *
+ */
+
+goog.provide('goog.Uri');
+goog.provide('goog.Uri.QueryData');
+
+goog.require('goog.array');
+goog.require('goog.string');
+goog.require('goog.structs');
+goog.require('goog.structs.Map');
+goog.require('goog.uri.utils');
+goog.require('goog.uri.utils.ComponentIndex');
+
+
+
+/**
+ * This class contains setters and getters for the parts of the URI.
+ * The <code>getXyz</code>/<code>setXyz</code> methods return the decoded part
+ * -- so<code>goog.Uri.parse('/foo%20bar').getPath()</code> will return the
+ * decoded path, <code>/foo bar</code>.
+ *
+ * The constructor accepts an optional unparsed, raw URI string.  The parser
+ * is relaxed, so special characters that aren't escaped but don't cause
+ * ambiguities will not cause parse failures.
+ *
+ * All setters return <code>this</code> and so may be chained, a la
+ * <code>goog.Uri.parse('/foo').setFragment('part').toString()</code>.
+ *
+ * @param {*=} opt_uri Optional string URI to parse
+ *        (use goog.Uri.create() to create a URI from parts), or if
+ *        a goog.Uri is passed, a clone is created.
+ * @param {boolean=} opt_ignoreCase If true, #getParameterValue will ignore
+ * the case of the parameter name.
+ *
+ * @constructor
+ */
+goog.Uri = function(opt_uri, opt_ignoreCase) {
+  // Parse in the uri string
+  var m;
+  if (opt_uri instanceof goog.Uri) {
+    this.setIgnoreCase(opt_ignoreCase == null ?
+        opt_uri.getIgnoreCase() : opt_ignoreCase);
+    this.setScheme(opt_uri.getScheme());
+    this.setUserInfo(opt_uri.getUserInfo());
+    this.setDomain(opt_uri.getDomain());
+    this.setPort(opt_uri.getPort());
+    this.setPath(opt_uri.getPath());
+    this.setQueryData(opt_uri.getQueryData().clone());
+    this.setFragment(opt_uri.getFragment());
+  } else if (opt_uri && (m = goog.uri.utils.split(String(opt_uri)))) {
+    // Set the parts -- decoding as we do so.
+    this.setIgnoreCase(!!opt_ignoreCase);
+    // COMPATABILITY NOTE - In IE, unmatched fields may be empty strings,
+    // whereas in other browsers they will be undefined.
+    this.setScheme(m[goog.uri.utils.ComponentIndex.SCHEME] || '', true);
+    this.setUserInfo(m[goog.uri.utils.ComponentIndex.USER_INFO] || '', true);
+    this.setDomain(m[goog.uri.utils.ComponentIndex.DOMAIN] || '', true);
+    this.setPort(m[goog.uri.utils.ComponentIndex.PORT]);
+    this.setPath(m[goog.uri.utils.ComponentIndex.PATH] || '', true);
+
+    this.setQuery(m[goog.uri.utils.ComponentIndex.QUERY_DATA] || '', true);
+
+    this.setFragment(m[goog.uri.utils.ComponentIndex.FRAGMENT] || '', true);
+
+  } else {
+    this.setIgnoreCase(!!opt_ignoreCase);
+    this.queryData_ = new goog.Uri.QueryData(null, this, this.ignoreCase_);
+  }
+};
+
+
+/**
+ * Parameter name added to stop caching.
+ * @type {string}
+ */
+goog.Uri.RANDOM_PARAM = goog.uri.utils.StandardQueryParam.RANDOM;
+
+
+/**
+ * Scheme such as "http".
+ * @type {string}
+ * @private
+ */
+goog.Uri.prototype.scheme_ = '';
+
+
+/**
+ * User credentials in the form "username:password".
+ * @type {string}
+ * @private
+ */
+goog.Uri.prototype.userInfo_ = '';
+
+
+/**
+ * Domain part, e.g. "www.google.com".
+ * @type {string}
+ * @private
+ */
+goog.Uri.prototype.domain_ = '';
+
+
+/**
+ * Port, e.g. 8080.
+ * @type {?number}
+ * @private
+ */
+goog.Uri.prototype.port_ = null;
+
+
+/**
+ * Path, e.g. "/tests/img.png".
+ * @type {string}
+ * @private
+ */
+goog.Uri.prototype.path_ = '';
+
+
+/**
+ * Object representing query data.
+ * @type {goog.Uri.QueryData}
+ * @private
+ */
+goog.Uri.prototype.queryData_;
+
+
+/**
+ * The fragment without the #.
+ * @type {string}
+ * @private
+ */
+goog.Uri.prototype.fragment_ = '';
+
+
+/**
+ * Whether or not this Uri should be treated as Read Only.
+ * @type {boolean}
+ * @private
+ */
+goog.Uri.prototype.isReadOnly_ = false;
+
+
+/**
+ * Whether or not to ignore case when comparing query params.
+ * @type {boolean}
+ * @private
+ */
+goog.Uri.prototype.ignoreCase_ = false;
+
+
+/**
+ * @return {string} The string form of the url.
+ */
+goog.Uri.prototype.toString = function() {
+  if (this.cachedToString_) {
+    return this.cachedToString_;
+  }
+
+  var out = [];
+
+  if (this.scheme_) {
+    out.push(goog.Uri.encodeSpecialChars_(
+        this.scheme_, goog.Uri.reDisallowedInSchemeOrUserInfo_), ':');
+  }
+
+  if (this.domain_) {
+    out.push('//');
+
+    if (this.userInfo_) {
+      out.push(goog.Uri.encodeSpecialChars_(
+          this.userInfo_, goog.Uri.reDisallowedInSchemeOrUserInfo_), '@');
+    }
+
+    out.push(goog.Uri.encodeString_(this.domain_));
+
+    if (this.port_ != null) {
+      out.push(':', String(this.getPort()));
+    }
+  }
+
+  if (this.path_) {
+    if (this.hasDomain() && this.path_.charAt(0) != '/') {
+      out.push('/');
+    }
+    out.push(goog.Uri.encodeSpecialChars_(
+        this.path_, goog.Uri.reDisallowedInPath_));
+  }
+
+  var query = String(this.queryData_);
+  if (query) {
+    out.push('?', query);
+  }
+
+  if (this.fragment_) {
+    out.push('#', goog.Uri.encodeSpecialChars_(
+        this.fragment_, goog.Uri.reDisallowedInFragment_));
+  }
+  return this.cachedToString_ = out.join('');
+};
+
+
+/**
+ * Resolves a relative url string to a this base uri.
+ *
+ * There are several kinds of relative urls:<br>
+ * 1. foo - replaces the last part of the path, the whole query and fragment<br>
+ * 2. /foo - replaces the the path, the query and fragment<br>
+ * 3. //foo - replaces everything from the domain on.  foo is a domain name<br>
+ * 4. ?foo - replace the query and fragment<br>
+ * 5. #foo - replace the fragment only
+ *
+ * Additionally, if relative url has a non-empty path, all ".." and "."
+ * segments will be resolved, as described in RFC 3986.
+ *
+ * @param {goog.Uri} relativeUri The relative url to resolve.
+ * @return {goog.Uri} The resolved URI.
+ */
+goog.Uri.prototype.resolve = function(relativeUri) {
+
+  var absoluteUri = this.clone();
+
+  // we satisfy these conditions by looking for the first part of relativeUri
+  // that is not blank and applying defaults to the rest
+
+  var overridden = relativeUri.hasScheme();
+
+  if (overridden) {
+    absoluteUri.setScheme(relativeUri.getScheme());
+  } else {
+    overridden = relativeUri.hasUserInfo();
+  }
+
+  if (overridden) {
+    absoluteUri.setUserInfo(relativeUri.getUserInfo());
+  } else {
+    overridden = relativeUri.hasDomain();
+  }
+
+  if (overridden) {
+    absoluteUri.setDomain(relativeUri.getDomain());
+  } else {
+    overridden = relativeUri.hasPort();
+  }
+
+  var path = relativeUri.getPath();
+  if (overridden) {
+    absoluteUri.setPort(relativeUri.getPort());
+  } else {
+    overridden = relativeUri.hasPath();
+    if (overridden) {
+      // resolve path properly
+      if (path.charAt(0) != '/') {
+        // path is relative
+        if (this.hasDomain() && !this.hasPath()) {
+          // RFC 3986, section 5.2.3, case 1
+          path = '/' + path;
+        } else {
+          // RFC 3986, section 5.2.3, case 2
+          var lastSlashIndex = absoluteUri.getPath().lastIndexOf('/');
+          if (lastSlashIndex != -1) {
+            path = absoluteUri.getPath().substr(0, lastSlashIndex + 1) + path;
+          }
+        }
+      }
+      path = goog.Uri.removeDotSegments(path);
+    }
+  }
+
+  if (overridden) {
+    absoluteUri.setPath(path);
+  } else {
+    overridden = relativeUri.hasQuery();
+  }
+
+  if (overridden) {
+    absoluteUri.setQuery(relativeUri.getDecodedQuery());
+  } else {
+    overridden = relativeUri.hasFragment();
+  }
+
+  if (overridden) {
+    absoluteUri.setFragment(relativeUri.getFragment());
+  }
+
+  return absoluteUri;
+};
+
+
+/**
+ * Clones the URI instance.
+ * @return {!goog.Uri} New instance of the URI objcet.
+ */
+goog.Uri.prototype.clone = function() {
+  return goog.Uri.create(this.scheme_, this.userInfo_, this.domain_,
+                         this.port_, this.path_, this.queryData_.clone(),
+                         this.fragment_, this.ignoreCase_);
+};
+
+
+/**
+ * @return {string} The encoded scheme/protocol for the URI.
+ */
+goog.Uri.prototype.getScheme = function() {
+  return this.scheme_;
+};
+
+
+/**
+ * Sets the scheme/protocol.
+ * @param {string} newScheme New scheme value.
+ * @param {boolean=} opt_decode Optional param for whether to decode new value.
+ * @return {goog.Uri} Reference to this URI object.
+ */
+goog.Uri.prototype.setScheme = function(newScheme, opt_decode) {
+  this.enforceReadOnly();
+  delete this.cachedToString_;
+  this.scheme_ = opt_decode ? goog.Uri.decodeOrEmpty_(newScheme) : newScheme;
+
+  // remove an : at the end of the scheme so somebody can pass in
+  // window.location.protocol
+  if (this.scheme_) {
+    this.scheme_ = this.scheme_.replace(/:$/, '');
+  }
+  return this;
+};
+
+
+/**
+ * @return {boolean} Whether the scheme has been set.
+ */
+goog.Uri.prototype.hasScheme = function() {
+  return !!this.scheme_;
+};
+
+
+/**
+ * @return {string} The decoded user info.
+ */
+goog.Uri.prototype.getUserInfo = function() {
+  return this.userInfo_;
+};
+
+
+/**
+ * Sets the userInfo.
+ * @param {string} newUserInfo New userInfo value.
+ * @param {boolean=} opt_decode Optional param for whether to decode new value.
+ * @return {goog.Uri} Reference to this URI object.
+ */
+goog.Uri.prototype.setUserInfo = function(newUserInfo, opt_decode) {
+  this.enforceReadOnly();
+  delete this.cachedToString_;
+  this.userInfo_ = opt_decode ? goog.Uri.decodeOrEmpty_(newUserInfo) :
+                   newUserInfo;
+  return this;
+};
+
+
+/**
+ * @return {boolean} Whether the user info has been set.
+ */
+goog.Uri.prototype.hasUserInfo = function() {
+  return !!this.userInfo_;
+};
+
+
+/**
+ * @return {string} The decoded domain.
+ */
+goog.Uri.prototype.getDomain = function() {
+  return this.domain_;
+};
+
+
+/**
+ * Sets the domain.
+ * @param {string} newDomain New domain value.
+ * @param {boolean=} opt_decode Optional param for whether to decode new value.
+ * @return {goog.Uri} Reference to this URI object.
+ */
+goog.Uri.prototype.setDomain = function(newDomain, opt_decode) {
+  this.enforceReadOnly();
+  delete this.cachedToString_;
+  this.domain_ = opt_decode ? goog.Uri.decodeOrEmpty_(newDomain) : newDomain;
+  return this;
+};
+
+
+/**
+ * @return {boolean} Whether the domain has been set.
+ */
+goog.Uri.prototype.hasDomain = function() {
+  return !!this.domain_;
+};
+
+
+/**
+ * @return {?number} The port number.
+ */
+goog.Uri.prototype.getPort = function() {
+  return this.port_;
+};
+
+
+/**
+ * Sets the port number.
+ * @param {*} newPort Port number. Will be explicitly casted to a number.
+ * @return {goog.Uri} Reference to this URI object.
+ */
+goog.Uri.prototype.setPort = function(newPort) {
+  this.enforceReadOnly();
+  delete this.cachedToString_;
+
+  if (newPort) {
+    newPort = Number(newPort);
+    if (isNaN(newPort) || newPort < 0) {
+      throw Error('Bad port number ' + newPort);
+    }
+    this.port_ = newPort;
+  } else {
+    this.port_ = null;
+  }
+
+  return this;
+};
+
+
+/**
+ * @return {boolean} Whether the port has been set.
+ */
+goog.Uri.prototype.hasPort = function() {
+  return this.port_ != null;
+};
+
+
+/**
+  * @return {string} The decoded path.
+ */
+goog.Uri.prototype.getPath = function() {
+  return this.path_;
+};
+
+
+/**
+ * Sets the path.
+ * @param {string} newPath New path value.
+ * @param {boolean=} opt_decode Optional param for whether to decode new value.
+ * @return {goog.Uri} Reference to this URI object.
+ */
+goog.Uri.prototype.setPath = function(newPath, opt_decode) {
+  this.enforceReadOnly();
+  delete this.cachedToString_;
+  this.path_ = opt_decode ? goog.Uri.decodeOrEmpty_(newPath) : newPath;
+  return this;
+};
+
+
+/**
+ * @return {boolean} Whether the path has been set.
+ */
+goog.Uri.prototype.hasPath = function() {
+  return !!this.path_;
+};
+
+
+/**
+ * @return {boolean} Whether the query string has been set.
+ */
+goog.Uri.prototype.hasQuery = function() {
+  return this.queryData_.toString() !== '';
+};
+
+
+/**
+ * Sets the query data.
+ * @param {goog.Uri.QueryData|string|undefined} queryData QueryData object.
+ * @param {boolean=} opt_decode Optional param for whether to decode new value.
+ *     Applies only if queryData is a string.
+ * @return {goog.Uri} Reference to this URI object.
+ */
+goog.Uri.prototype.setQueryData = function(queryData, opt_decode) {
+  this.enforceReadOnly();
+  delete this.cachedToString_;
+
+  if (queryData instanceof goog.Uri.QueryData) {
+    this.queryData_ = queryData;
+    this.queryData_.uri_ = this;
+    this.queryData_.setIgnoreCase(this.ignoreCase_);
+  } else {
+    // QueryData accepts encoded query string,
+    // so encode it if opt_decode flag is not true.
+    if (!opt_decode) {
+      queryData = goog.Uri.encodeSpecialChars_(queryData,
+                                               goog.Uri.reDisallowedInQuery_);
+    }
+    this.queryData_ =
+        new goog.Uri.QueryData(queryData, this, this.ignoreCase_);
+  }
+
+  return this;
+};
+
+
+/**
+ * Sets the URI query.
+ * @param {string} newQuery New query value.
+ * @param {boolean=} opt_decode Optional param for whether to decode new value.
+ * @return {goog.Uri} Reference to this URI object.
+ */
+goog.Uri.prototype.setQuery = function(newQuery, opt_decode) {
+  return this.setQueryData(newQuery, opt_decode);
+};
+
+
+/**
+ * @return {string} The encoded URI query, not including the ?.
+ */
+goog.Uri.prototype.getEncodedQuery = function() {
+  return this.queryData_.toString();
+};
+
+
+/**
+ * @return {string} The decoded URI query, not including the ?.
+ */
+goog.Uri.prototype.getDecodedQuery = function() {
+  return this.queryData_.toDecodedString();
+};
+
+
+/**
+ * Returns the query data.
+ * @return {goog.Uri.QueryData} QueryData object.
+ */
+goog.Uri.prototype.getQueryData = function() {
+  return this.queryData_;
+};
+
+
+/**
+ * @return {string} The encoded URI query, not including the ?.
+ *
+ * Warning: This method, unlike other getter methods, returns encoded
+ * value, instead of decoded one.
+ */
+goog.Uri.prototype.getQuery = function() {
+  return this.getEncodedQuery();
+};
+
+
+/**
+ * Sets the value of the named query parameters, clearing previous values for
+ * that key.
+ *
+ * @param {string} key The parameter to set.
+ * @param {*} value The new value.
+ * @return {goog.Uri} Reference to this URI object.
+ */
+goog.Uri.prototype.setParameterValue = function(key, value) {
+  this.enforceReadOnly();
+  delete this.cachedToString_;
+
+  this.queryData_.set(key, value);
+  return this;
+};
+
+
+/**
+ * Sets the values of the named query parameters, clearing previous values for
+ * that key.  Not new values will currently be moved to the end of the query
+ * string.
+ *
+ * So, <code>goog.Uri.parse('foo?a=b&c=d&e=f').setParameterValues('c', ['new'])
+ * </code> yields <tt>foo?a=b&e=f&c=new</tt>.</p>
+ *
+ * @param {string} key The parameter to set.
+ * @param {*} values The new values. If values is a single
+ *     string then it will be treated as the sole value.
+ * @return {goog.Uri} Reference to this URI object.
+ */
+goog.Uri.prototype.setParameterValues = function(key, values) {
+  this.enforceReadOnly();
+  delete this.cachedToString_;
+
+  if (!goog.isArray(values)) {
+    values = [String(values)];
+  }
+
+  // TODO(nicksantos): This cast shouldn't be necessary.
+  this.queryData_.setValues(key, /** @type {Array} */ (values));
+
+  return this;
+};
+
+
+/**
+ * Returns the value<b>s</b> for a given cgi parameter as a list of decoded
+ * query parameter values.
+ * @param {string} name The parameter to get values for.
+ * @return {Array} The values for a given cgi parameter as a list of
+ *     decoded query parameter values.
+ */
+goog.Uri.prototype.getParameterValues = function(name) {
+  return this.queryData_.getValues(name);
+};
+
+
+/**
+ * Returns the first value for a given cgi parameter or undefined if the given
+ * parameter name does not appear in the query string.
+ * @param {string} paramName Unescaped parameter name.
+ * @return {*} The first value for a given cgi parameter or
+ *     undefined if the given parameter name does not appear in the query
+ *     string.
+ */
+goog.Uri.prototype.getParameterValue = function(paramName) {
+  return this.queryData_.get(paramName);
+};
+
+
+/**
+ * @return {string} The URI fragment, not including the #.
+ */
+goog.Uri.prototype.getFragment = function() {
+  return this.fragment_;
+};
+
+
+/**
+ * Sets the URI fragment.
+ * @param {string} newFragment New fragment value.
+ * @param {boolean=} opt_decode Optional param for whether to decode new value.
+ * @return {goog.Uri} Reference to this URI object.
+ */
+goog.Uri.prototype.setFragment = function(newFragment, opt_decode) {
+  this.enforceReadOnly();
+  delete this.cachedToString_;
+  this.fragment_ = opt_decode ? goog.Uri.decodeOrEmpty_(newFragment) :
+                   newFragment;
+  return this;
+};
+
+
+/**
+ * @return {boolean} Whether the URI has a fragment set.
+ */
+goog.Uri.prototype.hasFragment = function() {
+  return !!this.fragment_;
+};
+
+
+/**
+ * Returns true if this has the same domain as that of uri2.
+ * @param {goog.Uri} uri2 The URI object to compare to.
+ * @return {boolean} true if same domain; false otherwise.
+ */
+goog.Uri.prototype.hasSameDomainAs = function(uri2) {
+  return ((!this.hasDomain() && !uri2.hasDomain()) ||
+          this.getDomain() == uri2.getDomain()) &&
+      ((!this.hasPort() && !uri2.hasPort()) ||
+          this.getPort() == uri2.getPort());
+};
+
+
+/**
+ * Adds a random parameter to the Uri.
+ * @return {goog.Uri} Reference to this Uri object.
+ */
+goog.Uri.prototype.makeUnique = function() {
+  this.enforceReadOnly();
+  this.setParameterValue(goog.Uri.RANDOM_PARAM, goog.string.getRandomString());
+
+  return this;
+};
+
+
+/**
+ * Removes the named query parameter.
+ *
+ * @param {string} key The parameter to remove.
+ * @return {goog.Uri} Reference to this URI object.
+ */
+goog.Uri.prototype.removeParameter = function(key) {
+  this.enforceReadOnly();
+  this.queryData_.remove(key);
+  return this;
+};
+
+
+/**
+ * Sets whether Uri is read only. If this goog.Uri is read-only,
+ * enforceReadOnly_ will be called at the start of any function that may modify
+ * this Uri.
+ * @param {boolean} isReadOnly whether this goog.Uri should be read only.
+ * @return {goog.Uri} Reference to this Uri object.
+ */
+goog.Uri.prototype.setReadOnly = function(isReadOnly) {
+  this.isReadOnly_ = isReadOnly;
+  return this;
+};
+
+
+/**
+ * @return {boolean} Whether the URI is read only.
+ */
+goog.Uri.prototype.isReadOnly = function() {
+  return this.isReadOnly_;
+};
+
+
+/**
+ * Checks if this Uri has been marked as read only, and if so, throws an error.
+ * This should be called whenever any modifying function is called.
+ */
+goog.Uri.prototype.enforceReadOnly = function() {
+  if (this.isReadOnly_) {
+    throw Error('Tried to modify a read-only Uri');
+  }
+};
+
+
+/**
+ * Sets whether to ignore case.
+ * NOTE: If there are already key/value pairs in the QueryData, and
+ * ignoreCase_ is set to false, the keys will all be lower-cased.
+ * @param {boolean} ignoreCase whether this goog.Uri should ignore case.
+ * @return {goog.Uri} Reference to this Uri object.
+ */
+goog.Uri.prototype.setIgnoreCase = function(ignoreCase) {
+  this.ignoreCase_ = ignoreCase;
+  if (this.queryData_) {
+    this.queryData_.setIgnoreCase(ignoreCase);
+  }
+  return this;
+};
+
+
+/**
+ * @return {boolean} Whether to ignore case.
+ */
+goog.Uri.prototype.getIgnoreCase = function() {
+  return this.ignoreCase_;
+};
+
+
+//==============================================================================
+// Static members
+//==============================================================================
+
+
+/**
+ * Creates a uri from the string form.  Basically an alias of new goog.Uri().
+ * If a Uri object is passed to parse then it will return a clone of the object.
+ *
+ * @param {*} uri Raw URI string or instance of Uri
+ *     object.
+ * @param {boolean=} opt_ignoreCase Whether to ignore the case of parameter
+ * names in #getParameterValue.
+ * @return {goog.Uri} The new URI object.
+ */
+goog.Uri.parse = function(uri, opt_ignoreCase) {
+  return uri instanceof goog.Uri ?
+         uri.clone() : new goog.Uri(uri, opt_ignoreCase);
+};
+
+
+/**
+ * Creates a new goog.Uri object from unencoded parts.
+ *
+ * @param {?string=} opt_scheme Scheme/protocol or full URI to parse.
+ * @param {?string=} opt_userInfo username:password.
+ * @param {?string=} opt_domain www.google.com.
+ * @param {?number=} opt_port 9830.
+ * @param {?string=} opt_path /some/path/to/a/file.html.
+ * @param {string|goog.Uri.QueryData=} opt_query a=1&b=2.
+ * @param {?string=} opt_fragment The fragment without the #.
+ * @param {boolean=} opt_ignoreCase Whether to ignore parameter name case in
+ *     #getParameterValue.
+ *
+ * @return {!goog.Uri} The new URI object.
+ */
+goog.Uri.create = function(opt_scheme, opt_userInfo, opt_domain, opt_port,
+                           opt_path, opt_query, opt_fragment, opt_ignoreCase) {
+
+  var uri = new goog.Uri(null, opt_ignoreCase);
+
+  // Only set the parts if they are defined and not empty strings.
+  opt_scheme && uri.setScheme(opt_scheme);
+  opt_userInfo && uri.setUserInfo(opt_userInfo);
+  opt_domain && uri.setDomain(opt_domain);
+  opt_port && uri.setPort(opt_port);
+  opt_path && uri.setPath(opt_path);
+  opt_query && uri.setQueryData(opt_query);
+  opt_fragment && uri.setFragment(opt_fragment);
+
+  return uri;
+};
+
+
+/**
+ * Resolves a relative Uri against a base Uri, accepting both strings and
+ * Uri objects.
+ *
+ * @param {*} base Base Uri.
+ * @param {*} rel Relative Uri.
+ * @return {goog.Uri} Resolved uri.
+ */
+goog.Uri.resolve = function(base, rel) {
+  if (!(base instanceof goog.Uri)) {
+    base = goog.Uri.parse(base);
+  }
+
+  if (!(rel instanceof goog.Uri)) {
+    rel = goog.Uri.parse(rel);
+  }
+
+  return base.resolve(rel);
+};
+
+
+/**
+ * Removes dot segments in given path component, as described in
+ * RFC 3986, section 5.2.4.
+ *
+ * @param {string} path A non-empty path component.
+ * @return {string} Path component with removed dot segments.
+ */
+goog.Uri.removeDotSegments = function(path) {
+  if (path == '..' || path == '.') {
+    return '';
+
+  } else if (!goog.string.contains(path, './') &&
+             !goog.string.contains(path, '/.')) {
+    // This optimization detects uris which do not contain dot-segments,
+    // and as a consequence do not require any processing.
+    return path;
+
+  } else {
+    var leadingSlash = goog.string.startsWith(path, '/');
+    var segments = path.split('/');
+    var out = [];
+
+    for (var pos = 0; pos < segments.length; ) {
+      var segment = segments[pos++];
+
+      if (segment == '.') {
+        if (leadingSlash && pos == segments.length) {
+          out.push('');
+        }
+      } else if (segment == '..') {
+        if (out.length > 1 || out.length == 1 && out[0] != '') {
+          out.pop();
+        }
+        if (leadingSlash && pos == segments.length) {
+          out.push('');
+        }
+      } else {
+        out.push(segment);
+        leadingSlash = true;
+      }
+    }
+
+    return out.join('/');
+  }
+};
+
+
+/**
+ * Decodes a value or returns the empty string if it isn't defined or empty.
+ * @param {string|undefined} val Value to decode.
+ * @return {string} Decoded value.
+ * @private
+ */
+goog.Uri.decodeOrEmpty_ = function(val) {
+  // Don't use UrlDecode() here because val is not a query parameter.
+  return val ? decodeURIComponent(val) : '';
+};
+
+
+/**
+ * URI encode a string, or return null if it's not a string.
+ * @param {*} unescapedPart Unescaped string.
+ * @return {?string} Escaped string.
+ * @private
+ */
+goog.Uri.encodeString_ = function(unescapedPart) {
+  if (goog.isString(unescapedPart)) {
+    return encodeURIComponent(unescapedPart);
+  }
+  return null;
+};
+
+
+/**
+ * Regular expression used for determining if a string needs to be encoded.
+ * @type {RegExp}
+ * @private
+ */
+goog.Uri.encodeSpecialRegExp_ = /^[a-zA-Z0-9\-_.!~*'():\/;?]*$/;
+
+
+/**
+ * If unescapedPart is non null, then escapes any characters in it that aren't
+ * valid characters in a url and also escapes any special characters that
+ * appear in extra.
+ *
+ * @param {*} unescapedPart The string to encode.
+ * @param {RegExp} extra A character set of characters in [\01-\177].
+ * @return {?string} null iff unescapedPart == null.
+ * @private
+ */
+goog.Uri.encodeSpecialChars_ = function(unescapedPart, extra) {
+  var ret = null;
+  if (goog.isString(unescapedPart)) {
+    ret = unescapedPart;
+    // Checking if the search matches before calling encodeURI avoids an extra
+    // allocation in IE6
+    if (!goog.Uri.encodeSpecialRegExp_.test(ret)) {
+      ret = encodeURI(unescapedPart);
+    }
+    // Checking if the search matches before calling replace avoids an extra
+    // allocation in IE6
+    if (ret.search(extra) >= 0) {
+      ret = ret.replace(extra, goog.Uri.encodeChar_);
+    }
+  }
+  return ret;
+};
+
+
+/**
+ * Converts a character in [\01-\177] to its unicode character equivalent.
+ * @param {string} ch One character string.
+ * @return {string} Encoded string.
+ * @private
+ */
+goog.Uri.encodeChar_ = function(ch) {
+  var n = ch.charCodeAt(0);
+  return '%' + ((n >> 4) & 0xf).toString(16) + (n & 0xf).toString(16);
+};
+
+
+/**
+ * Regular expression for characters that are disallowed in the scheme or
+ * userInfo part of the URI.
+ * @type {RegExp}
+ * @private
+ */
+goog.Uri.reDisallowedInSchemeOrUserInfo_ = /[#\/\?@]/g;
+
+
+/**
+ * Regular expression for characters that are disallowed in the path.
+ * @type {RegExp}
+ * @private
+ */
+goog.Uri.reDisallowedInPath_ = /[\#\?]/g;
+
+
+/**
+ * Regular expression for characters that are disallowed in the query.
+ * @type {RegExp}
+ * @private
+ */
+goog.Uri.reDisallowedInQuery_ = /[\#\?@]/g;
+
+
+/**
+ * Regular expression for characters that are disallowed in the fragment.
+ * @type {RegExp}
+ * @private
+ */
+goog.Uri.reDisallowedInFragment_ = /#/g;
+
+
+/**
+ * Checks whether two URIs have the same domain.
+ * @param {string} uri1String First URI string.
+ * @param {string} uri2String Second URI string.
+ * @return {boolean} true if the two URIs have the same domain; false otherwise.
+ */
+goog.Uri.haveSameDomain = function(uri1String, uri2String) {
+  // Differs from goog.uri.utils.haveSameDomain, since this ignores scheme.
+  // TODO(user): Have this just call goog.uri.util.haveSameDomain.
+  var pieces1 = goog.uri.utils.split(uri1String);
+  var pieces2 = goog.uri.utils.split(uri2String);
+  return pieces1[goog.uri.utils.ComponentIndex.DOMAIN] ==
+             pieces2[goog.uri.utils.ComponentIndex.DOMAIN] &&
+         pieces1[goog.uri.utils.ComponentIndex.PORT] ==
+             pieces2[goog.uri.utils.ComponentIndex.PORT];
+};
+
+
+
+/**
+ * Class used to represent URI query parameters.  It is essentially a hash of
+ * name-value pairs, though a name can be present more than once.
+ *
+ * Has the same interface as the collections in goog.structs.
+ *
+ * @param {?string=} opt_query Optional encoded query string to parse into
+ *     the object.
+ * @param {goog.Uri=} opt_uri Optional uri object that should have its cache
+ *     invalidated when this object updates.
+ * @param {boolean=} opt_ignoreCase If true, ignore the case of the parameter
+ *     name in #get.
+ * @constructor
+ */
+goog.Uri.QueryData = function(opt_query, opt_uri, opt_ignoreCase) {
+  /**
+   * Encoded query string, or null if it requires computing from the key map.
+   * @type {?string}
+   * @private
+   */
+  this.encodedQuery_ = opt_query || null;
+
+  /**
+   * Reference to a uri object which uses the query data.  This allows the
+   * QueryData object to invalidate the cache.
+   * @type {goog.Uri}
+   * @private
+   */
+  this.uri_ = opt_uri || null;
+
+  /**
+   * If true, ignore the case of the parameter name in #get.
+   * @type {boolean}
+   * @private
+   */
+  this.ignoreCase_ = !!opt_ignoreCase;
+};
+
+
+/**
+ * If the underlying key map is not yet initialized, it parses the
+ * query string and fills the map with parsed data.
+ * @private
+ */
+goog.Uri.QueryData.prototype.ensureKeyMapInitialized_ = function() {
+  if (!this.keyMap_) {
+    this.keyMap_ = new goog.structs.Map();
+
+    if (this.encodedQuery_) {
+      var pairs = this.encodedQuery_.split('&');
+      for (var i = 0; i < pairs.length; i++) {
+        var indexOfEquals = pairs[i].indexOf('=');
+        var name = null;
+        var value = null;
+        if (indexOfEquals >= 0) {
+          name = pairs[i].substring(0, indexOfEquals);
+          value = pairs[i].substring(indexOfEquals + 1);
+        } else {
+          name = pairs[i];
+        }
+        name = goog.string.urlDecode(name);
+        name = this.getKeyName_(name);
+        this.add(name, value ? goog.string.urlDecode(value) : '');
+      }
+    }
+  }
+};
+
+
+/**
+ * Creates a new query data instance from a map of names and values.
+ *
+ * @param {!goog.structs.Map|!Object} map Map of string parameter names to
+ *     string parameter values.
+ * @param {goog.Uri=} opt_uri URI object that should have its cache
+ *     invalidated when this object updates.
+ * @param {boolean=} opt_ignoreCase If true, ignore the case of the parameter
+ *     name in #get.
+ * @return {!goog.Uri.QueryData} The populated query data instance.
+ */
+goog.Uri.QueryData.createFromMap = function(map, opt_uri, opt_ignoreCase) {
+  var keys = goog.structs.getKeys(map);
+  if (typeof keys == 'undefined') {
+    throw Error('Keys are undefined');
+  }
+  return goog.Uri.QueryData.createFromKeysValues(
+      keys,
+      goog.structs.getValues(map),
+      opt_uri,
+      opt_ignoreCase);
+};
+
+
+/**
+ * Creates a new query data instance from parallel arrays of parameter names
+ * and values. Allows for duplicate parameter names. Throws an error if the
+ * lengths of the arrays differ.
+ *
+ * @param {Array.<string>} keys Parameter names.
+ * @param {Array} values Parameter values.
+ * @param {goog.Uri=} opt_uri URI object that should have its cache
+ *     invalidated when this object updates.
+ * @param {boolean=} opt_ignoreCase If true, ignore the case of the parameter
+ *     name in #get.
+ * @return {!goog.Uri.QueryData} The populated query data instance.
+ */
+goog.Uri.QueryData.createFromKeysValues = function(
+    keys, values, opt_uri, opt_ignoreCase) {
+  if (keys.length != values.length) {
+    throw Error('Mismatched lengths for keys/values');
+  }
+  var queryData = new goog.Uri.QueryData(null, opt_uri, opt_ignoreCase);
+  for (var i = 0; i < keys.length; i++) {
+    queryData.add(keys[i], values[i]);
+  }
+  return queryData;
+};
+
+
+/**
+ * The map containing name/value or name/array-of-values pairs.
+ * May be null if it requires parsing from the query string.
+ *
+ * We need to use a Map because we cannot guarantee that the key names will
+ * not be problematic for IE.
+ *
+ * @type {Object}
+ * @private
+ */
+goog.Uri.QueryData.prototype.keyMap_ = null;
+
+
+/**
+ * The number of params, or null if it requires computing.
+ * @type {?number}
+ * @private
+ */
+goog.Uri.QueryData.prototype.count_ = null;
+
+
+/**
+ * Decoded query string, or null if it requires computing.
+ * @type {?string}
+ * @private
+ */
+goog.Uri.QueryData.decodedQuery_ = null;
+
+
+/**
+ * @return {?number} The number of parameters.
+ */
+goog.Uri.QueryData.prototype.getCount = function() {
+  this.ensureKeyMapInitialized_();
+  return this.count_;
+};
+
+
+/**
+ * Adds a key value pair.
+ * @param {string} key Name.
+ * @param {*} value Value.
+ * @return {goog.Uri.QueryData} Instance of this object.
+ */
+goog.Uri.QueryData.prototype.add = function(key, value) {
+  this.ensureKeyMapInitialized_();
+  this.invalidateCache_();
+
+  key = this.getKeyName_(key);
+  if (!this.containsKey(key)) {
+    this.keyMap_.set(key, value);
+  } else {
+    var current = this.keyMap_.get(key);
+    if (goog.isArray(current)) {
+      current.push(value);
+    } else {
+      this.keyMap_.set(key, [current, value]);
+    }
+  }
+
+  this.count_++;
+
+  return this;
+};
+
+
+/**
+ * Removes all the params with the given key.
+ * @param {string} key Name.
+ * @return {boolean} Whether any parameter was removed.
+ */
+goog.Uri.QueryData.prototype.remove = function(key) {
+  this.ensureKeyMapInitialized_();
+
+  key = this.getKeyName_(key);
+  if (this.keyMap_.containsKey(key)) {
+    this.invalidateCache_();
+
+    // we need to get it to know how many to decrement the count with
+    var old = this.keyMap_.get(key);
+    if (goog.isArray(old)) {
+      this.count_ -= old.length;
+    } else {
+      this.count_--;
+    }
+    return this.keyMap_.remove(key);
+  }
+  return false;
+};
+
+
+/**
+ * Clears the parameters.
+ */
+goog.Uri.QueryData.prototype.clear = function() {
+  this.invalidateCache_();
+  if (this.keyMap_) {
+    this.keyMap_.clear();
+  }
+  this.count_ = 0;
+};
+
+
+/**
+ * @return {boolean} Whether we have any parameters.
+ */
+goog.Uri.QueryData.prototype.isEmpty = function() {
+  this.ensureKeyMapInitialized_();
+  return this.count_ == 0;
+};
+
+
+/**
+ * Whether there is a parameter with the given name
+ * @param {string} key The parameter name to check for.
+ * @return {boolean} Whether there is a parameter with the given name.
+ */
+goog.Uri.QueryData.prototype.containsKey = function(key) {
+  this.ensureKeyMapInitialized_();
+  key = this.getKeyName_(key);
+  return this.keyMap_.containsKey(key);
+};
+
+
+/**
+ * Whether there is a parameter with the given value.
+ * @param {*} value The value to check for.
+ * @return {boolean} Whether there is a parameter with the given value.
+ */
+goog.Uri.QueryData.prototype.containsValue = function(value) {
+  // NOTE(user): This solution goes through all the params even if it was the
+  // first param. We can get around this by not reusing code or by switching to
+  // iterators.
+  var vals = this.getValues();
+  return goog.array.contains(vals, value);
+};
+
+
+/**
+ * Returns all the keys of the parameters. If a key is used multiple times
+ * it will be included multiple times in the returned array
+ * @return {Array} All the keys of the parameters.
+ */
+goog.Uri.QueryData.prototype.getKeys = function() {
+  this.ensureKeyMapInitialized_();
+  // We need to get the values to know how many keys to add.
+  var vals = this.keyMap_.getValues(); // Array.<Array|String>
+  var keys = this.keyMap_.getKeys(); // Array.<String>
+  var rv = [];
+  for (var i = 0; i < keys.length; i++) {
+    var val = vals[i];
+    if (goog.isArray(val)) {
+      for (var j = 0; j < val.length; j++) {
+        rv.push(keys[i]);
+      }
+    } else {
+      rv.push(keys[i]);
+    }
+  }
+  return rv;
+};
+
+
+/**
+ * Returns all the values of the parameters with the given name. If the query
+ * data has no such key this will return an empty array. If no key is given
+ * all values wil be returned.
+ * @param {string=} opt_key The name of the parameter to get the values for.
+ * @return {Array} All the values of the parameters with the given name.
+ */
+goog.Uri.QueryData.prototype.getValues = function(opt_key) {
+  this.ensureKeyMapInitialized_();
+  var rv;
+  if (opt_key) {
+    var key = this.getKeyName_(opt_key);
+    if (this.containsKey(key)) {
+      var value = this.keyMap_.get(key);
+      if (goog.isArray(value)) {
+        return value;
+      } else {
+        rv = [];
+        rv.push(value);
+      }
+    } else {
+      rv = [];
+    }
+  } else {
+    // return all values
+    var vals = this.keyMap_.getValues(); // Array.<Array|String>
+    rv = [];
+    for (var i = 0; i < vals.length; i++) {
+      var val = vals[i];
+      if (goog.isArray(val)) {
+        goog.array.extend(rv, val);
+      } else {
+        rv.push(val);
+      }
+    }
+  }
+  return rv;
+};
+
+
+/**
+ * Sets a key value pair and removes all other keys with the same value.
+ *
+ * @param {string} key Name.
+ * @param {*} value Value.
+ * @return {goog.Uri.QueryData} Instance of this object.
+ */
+goog.Uri.QueryData.prototype.set = function(key, value) {
+  this.ensureKeyMapInitialized_();
+  this.invalidateCache_();
+
+  key = this.getKeyName_(key);
+  if (this.containsKey(key)) {
+    var old = this.keyMap_.get(key);
+    if (goog.isArray(old)) {
+      this.count_ -= old.length;
+    } else {
+      this.count_--;
+    }
+  }
+
+  this.keyMap_.set(key, value);
+  this.count_++;
+  return this;
+};
+
+
+/**
+ * Returns the first value associated with the key. If the query data has no
+ * such key this will return undefined or the optional default.
+ * @param {string} key The name of the parameter to get the value for.
+ * @param {*=} opt_default The default value to return if the query data
+ *     has no such key.
+ * @return {*} The first value associated with the key.
+ */
+goog.Uri.QueryData.prototype.get = function(key, opt_default) {
+  this.ensureKeyMapInitialized_();
+  key = this.getKeyName_(key);
+  if (this.containsKey(key)) {
+    var val = this.keyMap_.get(key);
+    if (goog.isArray(val)) {
+      return val[0];
+    } else {
+      return val;
+    }
+  } else {
+    return opt_default;
+  }
+};
+
+
+/**
+ * Sets the values for a key, if the key has already got values defined, this
+ * will override the existing values then remove any left over
+ * @param {string} key The key to set values for.
+ * @param {Array} values The values to set.
+ */
+goog.Uri.QueryData.prototype.setValues = function(key, values) {
+  this.ensureKeyMapInitialized_();
+  this.invalidateCache_();
+
+  key = this.getKeyName_(key);
+  if (this.containsKey(key)) {
+    var old = this.keyMap_.get(key);
+    if (goog.isArray(old)) {
+      this.count_ -= old.length;
+    } else {
+      this.count_--;
+    }
+  }
+
+  if (values.length > 0) {
+    this.keyMap_.set(key, values);
+    this.count_ += values.length;
+  }
+};
+
+
+/**
+ * @return {string} Encoded query string.
+ */
+goog.Uri.QueryData.prototype.toString = function() {
+  if (this.encodedQuery_) {
+    return this.encodedQuery_;
+  }
+
+  if (!this.keyMap_) {
+    return '';
+  }
+
+  var sb = [];
+
+  // this used to use this.getKeys and this.getVals but that generates a lot
+  // allocations than just iterating over the keys
+  var count = 0;
+  var keys = this.keyMap_.getKeys();
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    var encodedKey = goog.string.urlEncode(key);
+    var val = this.keyMap_.get(key);
+    if (goog.isArray(val)) {
+      for (var j = 0; j < val.length; j++) {
+        if (count > 0) {
+          sb.push('&');
+        }
+        sb.push(encodedKey);
+        // Check for empty string, null and undefined get encoded
+        // into the url as literal strings
+        if (val[j] !== '') {
+          sb.push('=', goog.string.urlEncode(val[j]));
+        }
+        count++;
+      }
+    } else {
+      if (count > 0) {
+        sb.push('&');
+      }
+      sb.push(encodedKey);
+      // Check for empty string, null and undefined get encoded
+      // into the url as literal strings
+      if (val !== '') {
+        sb.push('=', goog.string.urlEncode(val));
+      }
+      count++;
+    }
+  }
+
+  return this.encodedQuery_ = sb.join('');
+};
+
+
+/**
+ * @return {string} Decoded query string.
+ */
+goog.Uri.QueryData.prototype.toDecodedString = function() {
+  if (!this.decodedQuery_) {
+    this.decodedQuery_ = goog.Uri.decodeOrEmpty_(this.toString());
+  }
+
+  return this.decodedQuery_;
+};
+
+
+/**
+ * Invalidate the cache.
+ * @private
+ */
+goog.Uri.QueryData.prototype.invalidateCache_ = function() {
+  delete this.decodedQuery_;
+  delete this.encodedQuery_;
+  if (this.uri_) {
+    delete this.uri_.cachedToString_;
+  }
+};
+
+
+/**
+ * Removes all keys that are not in the provided list. (Modifies this object.)
+ * @param {Array.<string>} keys The desired keys.
+ * @return {goog.Uri.QueryData} a reference to this object.
+ */
+goog.Uri.QueryData.prototype.filterKeys = function(keys) {
+  this.ensureKeyMapInitialized_();
+  goog.structs.forEach(this.keyMap_,
+      /** @this {goog.Uri.QueryData} */
+      function(value, key, map) {
+        if (!goog.array.contains(keys, key)) {
+          this.remove(key);
+        }
+      }, this);
+  return this;
+};
+
+
+/**
+ * Clone the query data instance.
+ * @return {goog.Uri.QueryData} New instance of the QueryData object.
+ */
+goog.Uri.QueryData.prototype.clone = function() {
+  var rv = new goog.Uri.QueryData();
+  if (this.decodedQuery_) {
+    rv.decodedQuery_ = this.decodedQuery_;
+  }
+  if (this.encodedQuery_) {
+    rv.encodedQuery_ = this.encodedQuery_;
+  }
+  if (this.keyMap_) {
+    rv.keyMap_ = this.keyMap_.clone();
+  }
+  return rv;
+};
+
+
+/**
+ * Helper function to get the key name from a JavaScript object. Converts
+ * the object to a string, and to lower case if necessary.
+ * @private
+ * @param {*} arg The object to get a key name from.
+ * @return {string} valid key name which can be looked up in #keyMap_.
+ */
+goog.Uri.QueryData.prototype.getKeyName_ = function(arg) {
+  var keyName = String(arg);
+  if (this.ignoreCase_) {
+    keyName = keyName.toLowerCase();
+  }
+  return keyName;
+};
+
+
+/**
+ * Ignore case in parameter names.
+ * NOTE: If there are already key/value pairs in the QueryData, and
+ * ignoreCase_ is set to false, the keys will all be lower-cased.
+ * @param {boolean} ignoreCase whether this goog.Uri should ignore case.
+ */
+goog.Uri.QueryData.prototype.setIgnoreCase = function(ignoreCase) {
+  var resetKeys = ignoreCase && !this.ignoreCase_;
+  if (resetKeys) {
+    this.ensureKeyMapInitialized_();
+    this.invalidateCache_();
+    goog.structs.forEach(this.keyMap_,
+        /** @this {goog.Uri.QueryData} */
+        function(value, key, map) {
+          var lowerCase = key.toLowerCase();
+          if (key != lowerCase) {
+            this.remove(key);
+            this.add(lowerCase, value);
+          }
+        }, this);
+  }
+  this.ignoreCase_ = ignoreCase;
+};
+
+
+/**
+ * Extends a query data object with another query data or map like object. This
+ * operates 'in-place', it does not create a new QueryData object.
+ *
+ * @param {...(goog.Uri.QueryData|goog.structs.Map|Object)} var_args The object
+ *     from which key value pairs will be copied.
+ */
+goog.Uri.QueryData.prototype.extend = function(var_args) {
+  for (var i = 0; i < arguments.length; i++) {
+    var data = arguments[i];
+    goog.structs.forEach(data,
+        /** @this {goog.Uri.QueryData} */
+        function(value, key) {
+          this.add(key, value);
+        }, this);
+  }
+};
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Class for managing requests via iFrames.  Supports a number of
+ * methods of transfer.
+ *
+ * Gets and Posts can be performed and the resultant page read in as text,
+ * JSON, or from the HTML DOM.
+ *
+ * Using an iframe causes the throbber to spin, this is good for providing
+ * feedback to the user that an action has occurred.
+ *
+ * Requests do not affect the history stack, see goog.History if you require
+ * this behavior.
+ *
+ * The responseText and responseJson methods assume the response is plain,
+ * text.  You can access the Iframe's DOM through responseXml if you need
+ * access to the raw HTML.
+ *
+ * Tested:
+ *    + FF2.0 (Win Linux)
+ *    + IE6, IE7
+ *    + Opera 9.1,
+ *    + Chrome
+ *    - Opera 8.5 fails because of no textContent and buggy innerText support
+ *
+ * NOTE: Safari doesn't fire the onload handler when loading plain text files
+ *
+ * This has been tested with Drip in IE to ensure memory usage is as constant
+ * as possible. When making making thousands of requests, memory usage stays
+ * constant for a while but then starts increasing (<500k for 2000
+ * requests) -- this hasn't yet been tracked down yet, though it is cleared up
+ * after a refresh.
+ *
+ *
+ * BACKGROUND FILE UPLOAD:
+ * By posting an arbitrary form through an IframeIo object, it is possible to
+ * implement background file uploads.  Here's how to do it:
+ *
+ * - Create a form:
+ *   <pre>
+ *   &lt;form id="form" enctype="multipart/form-data" method="POST"&gt;
+ *      &lt;input name="userfile" type="file" /&gt;
+ *   &lt;/form&gt;
+ *   </pre>
+ *
+ * - Have the user click the file input
+ * - Create an IframeIo instance
+ *   <pre>
+ *   var io = new goog.net.IframeIo;
+ *   goog.events.listen(io, goog.net.EventType.COMPLETE,
+ *       function() { alert('Sent'); });
+ *   io.sendFromForm(document.getElementById('form'));
+ *   </pre>
+ *
+ *
+ * INCREMENTAL LOADING:
+ * Gmail sends down multiple script blocks which get executed as they are
+ * received by the client. This allows incremental rendering of the thread
+ * list and conversations.
+ *
+ * This requires collaboration with the server that is sending the requested
+ * page back.  To set incremental loading up, you should:
+ *
+ * A) In the application code there should be an externed reference to
+ * <code>handleIncrementalData()</code>.  e.g.
+ * goog.exportSymbol('GG_iframeFn', goog.net.IframeIo.handleIncrementalData);
+ *
+ * B) The response page should them call this method directly, an example
+ * response would look something like this:
+ * <pre>
+ *   &lt;html&gt;
+ *   &lt;head&gt;
+ *     &lt;meta content="text/html;charset=UTF-8" http-equiv="content-type"&gt;
+ *   &lt;/head&gt;
+ *   &lt;body&gt;
+ *     &lt;script&gt;
+ *       D = top.P ? function(d) { top.GG_iframeFn(window, d) } : function() {};
+ *     &lt;/script&gt;
+ *
+ *     &lt;script&gt;D([1, 2, 3, 4, 5]);&lt;/script&gt;
+ *     &lt;script&gt;D([6, 7, 8, 9, 10]);&lt;/script&gt;
+ *     &lt;script&gt;D([11, 12, 13, 14, 15]);&lt;/script&gt;
+ *   &lt;/body&gt;
+ *   &lt;/html&gt;
+ * </pre>
+ *
+ * Your application should then listen, on the IframeIo instance, to the event
+ * goog.net.EventType.INCREMENTAL_DATA.  The event object contains a
+ * 'data' member which is the content from the D() calls above.
+ *
+ * NOTE: There can be problems if you save a reference to the data object in IE.
+ * If you save an array, and the iframe is dispose, then the array looses its
+ * prototype and thus array methods like .join().  You can get around this by
+ * creating arrays using the parent window's Array constructor, or you can
+ * clone the array.
+ *
+ *
+ * EVENT MODEL:
+ * The various send methods work asynchronously. You can be notified about
+ * the current status of the request (completed, success or error) by
+ * listening for events on the IframeIo object itself. The following events
+ * will be sent:
+ * - goog.net.EventType.COMPLETE: when the request is completed
+ *   (either sucessfully or unsuccessfully). You can find out about the result
+ *   using the isSuccess() and getLastError
+ *   methods.
+ * - goog.net.EventType.SUCCESS</code>: when the request was completed
+ *   successfully
+ * - goog.net.EventType.ERROR: when the request failed
+ * - goog.net.EventType.ABORT: when the request has been aborted
+ *
+ * Example:
+ * <pre>
+ * var io = new goog.net.IframeIo();
+ * goog.events.listen(io, goog.net.EventType.COMPLETE,
+ *   function() { alert('request complete'); });
+ * io.sendFromForm(...);
+ * </pre>
+ *
+ */
+
+goog.provide('goog.net.IframeIo');
+goog.provide('goog.net.IframeIo.IncrementalDataEvent');
+
+goog.require('goog.Timer');
+goog.require('goog.Uri');
+goog.require('goog.debug');
+goog.require('goog.debug.Logger');
+goog.require('goog.dom');
+goog.require('goog.events');
+goog.require('goog.events.EventTarget');
+goog.require('goog.events.EventType');
+goog.require('goog.json');
+goog.require('goog.net.ErrorCode');
+goog.require('goog.net.EventType');
+goog.require('goog.net.xhrMonitor');
+goog.require('goog.reflect');
+goog.require('goog.string');
+goog.require('goog.structs');
+goog.require('goog.userAgent');
+
+
+/**
+ * Class for managing requests via iFrames.
+ * @constructor
+ * @extends {goog.events.EventTarget}
+ */
+goog.net.IframeIo = function() {
+
+  /**
+   * Name for this IframeIo and frame
+   * @type {string}
+   * @private
+   */
+  this.name_ = goog.net.IframeIo.getNextName_();
+
+  /**
+   * An array of iframes that have been finished with.  We need them to be
+   * disposed async, so we don't confuse the browser (see below).
+   * @type {Array.<Element>}
+   * @private
+   */
+  this.iframesForDisposal_ = [];
+
+  // Create a lookup from names to instances of IframeIo.  This is a helper
+  // function to be used in conjunction with goog.net.IframeIo.getInstanceByName
+  // to find the IframeIo object associated with a particular iframe.  Used in
+  // incremental scripts etc.
+  goog.net.IframeIo.instances_[this.name_] = this;
+
+};
+goog.inherits(goog.net.IframeIo, goog.events.EventTarget);
+
+
+/**
+ * Object used as a map to lookup instances of IframeIo objects by name.
+ * @type {Object}
+ * @private
+ */
+goog.net.IframeIo.instances_ = {};
+
+
+/**
+ * Prefix for frame names
+ * @type {string}
+ */
+goog.net.IframeIo.FRAME_NAME_PREFIX = 'closure_frame';
+
+
+/**
+ * Suffix that is added to inner frames used for sending requests in non-IE
+ * browsers
+ * @type {string}
+ */
+goog.net.IframeIo.INNER_FRAME_SUFFIX = '_inner';
+
+
+/**
+ * The number of milliseconds after a request is completed to dispose the
+ * iframes.  This can be done lazily so we wait long enough for any processing
+ * that occurred as a result of the response to finish.
+ * @type {number}
+ */
+goog.net.IframeIo.IFRAME_DISPOSE_DELAY_MS = 2000;
+
+
+/**
+ * Counter used when creating iframes
+ * @type {number}
+ * @private
+ */
+goog.net.IframeIo.counter_ = 0;
+
+
+/**
+ * Form element to post to.
+ * @type {HTMLFormElement}
+ * @private
+ */
+goog.net.IframeIo.form_;
+
+
+/**
+ * Static send that creates a short lived instance of IframeIo to send the
+ * request.
+ * @param {goog.Uri|string} uri Uri of the request, it is up the caller to
+ *     manage query string params.
+ * @param {Function=} opt_callback Event handler for when request is completed.
+ * @param {string=} opt_method Default is GET, POST uses a form to submit the
+ *     request.
+ * @param {boolean=} opt_noCache Append a timestamp to the request to avoid
+ *     caching.
+ * @param {Object|goog.structs.Map=} opt_data Map of key-value pairs that
+ *     will be posted to the server via the iframe's form.
+ */
+goog.net.IframeIo.send = function(
+    uri, opt_callback, opt_method, opt_noCache, opt_data) {
+
+  var io = new goog.net.IframeIo();
+  goog.events.listen(io, goog.net.EventType.READY, io.dispose, false, io);
+  if (opt_callback) {
+    goog.events.listen(io, goog.net.EventType.COMPLETE, opt_callback);
+  }
+  io.send(uri, opt_method, opt_noCache, opt_data);
+};
+
+
+/**
+ * Find an iframe by name (assumes the context is goog.global since that is
+ * where IframeIo's iframes are kept).
+ * @param {string} fname The name to find.
+ * @return {HTMLIFrameElement} The iframe element with that name.
+ */
+goog.net.IframeIo.getIframeByName = function(fname) {
+  return window.frames[fname];
+};
+
+
+/**
+ * Find an instance of the IframeIo object by name.
+ * @param {string} fname The name to find.
+ * @return {goog.net.IframeIo} The instance of IframeIo.
+ */
+goog.net.IframeIo.getInstanceByName = function(fname) {
+  return goog.net.IframeIo.instances_[fname];
+};
+
+
+/**
+ * Handles incremental data and routes it to the correct iframeIo instance.
+ * The HTML page requested by the IframeIo instance should contain script blocks
+ * that call an externed reference to this method.
+ * @param {Window} win The window object.
+ * @param {Object} data The data object.
+ */
+goog.net.IframeIo.handleIncrementalData = function(win, data) {
+  // If this is the inner-frame, then we need to use the parent instead.
+  var iframeName = goog.string.endsWith(win.name,
+      goog.net.IframeIo.INNER_FRAME_SUFFIX) ? win.parent.name : win.name;
+
+  var iframeIoName = iframeName.substring(0, iframeName.lastIndexOf('_'));
+  var iframeIo = goog.net.IframeIo.getInstanceByName(iframeIoName);
+  if (iframeIo && iframeName == iframeIo.iframeName_) {
+    iframeIo.handleIncrementalData_(data);
+  } else {
+    goog.debug.Logger.getLogger('goog.net.IframeIo').info(
+        'Incremental iframe data routed for unknown iframe');
+  }
+};
+
+
+/**
+ * @return {string} The next iframe name.
+ * @private
+ */
+goog.net.IframeIo.getNextName_ = function() {
+  return goog.net.IframeIo.FRAME_NAME_PREFIX + goog.net.IframeIo.counter_++;
+};
+
+
+/**
+ * Gets a static form, one for all instances of IframeIo since IE6 leaks form
+ * nodes that are created/removed from the document.
+ * @return {HTMLFormElement} The static form.
+ * @private
+ */
+goog.net.IframeIo.getForm_ = function() {
+  if (!goog.net.IframeIo.form_) {
+    goog.net.IframeIo.form_ =
+        /** @type {HTMLFormElement} */(goog.dom.createDom('form'));
+    goog.net.IframeIo.form_.acceptCharset = 'utf-8';
+
+    // Hide the form and move it off screen
+    var s = goog.net.IframeIo.form_.style;
+    s.position = 'absolute';
+    s.visibility = 'hidden';
+    s.top = s.left = '-10px';
+    s.width = s.height = '10px';
+    s.overflow = 'hidden';
+
+    goog.dom.getDocument().body.appendChild(goog.net.IframeIo.form_);
+  }
+  return goog.net.IframeIo.form_;
+};
+
+
+/**
+ * Adds the key value pairs from a map like data structure to a form
+ * @param {HTMLFormElement} form The form to add to.
+ * @param {Object|goog.structs.Map|goog.Uri.QueryData} data The data to add.
+ * @private
+ */
+goog.net.IframeIo.addFormInputs_ = function(form, data) {
+  goog.structs.forEach(data, function(value, key) {
+    var inp = goog.dom.createDom('input',
+       {'type': 'hidden', 'name': key, 'value': value});
+    form.appendChild(inp);
+  });
+};
+
+
+/**
+ * Reference to a logger for the IframeIo objects
+ * @type {goog.debug.Logger}
+ * @private
+ */
+goog.net.IframeIo.prototype.logger_ =
+    goog.debug.Logger.getLogger('goog.net.IframeIo');
+
+
+/**
+ * Reference to form element that gets reused for requests to the iframe.
+ * @type {HTMLFormElement}
+ * @private
+ */
+goog.net.IframeIo.prototype.form_ = null;
+
+
+/**
+ * Reference to the iframe being used for the current request, or null if no
+ * request is currently active.
+ * @type {HTMLIFrameElement}
+ * @private
+ */
+goog.net.IframeIo.prototype.iframe_ = null;
+
+
+/**
+ * Name of the iframe being used for the current request, or null if no
+ * request is currently active.
+ * @type {?string}
+ * @private
+ */
+goog.net.IframeIo.prototype.iframeName_ = null;
+
+
+/**
+ * Next id so that iframe names are unique.
+ * @type {number}
+ * @private
+ */
+goog.net.IframeIo.prototype.nextIframeId_ = 0;
+
+
+/**
+ * Whether the object is currently active with a request.
+ * @type {boolean}
+ * @private
+ */
+goog.net.IframeIo.prototype.active_ = false;
+
+
+/**
+ * Whether the last request is complete.
+ * @type {boolean}
+ * @private
+ */
+goog.net.IframeIo.prototype.complete_ = false;
+
+
+/**
+ * Whether the last request was a success.
+ * @type {boolean}
+ * @private
+ */
+goog.net.IframeIo.prototype.success_ = false;
+
+
+/**
+ * The URI for the last request.
+ * @type {goog.Uri}
+ * @private
+ */
+goog.net.IframeIo.prototype.lastUri_ = null;
+
+
+/**
+ * The text content of the last request.
+ * @type {?string}
+ * @private
+ */
+goog.net.IframeIo.prototype.lastContent_ = null;
+
+
+/**
+ * Last error code
+ * @type {goog.net.ErrorCode}
+ * @private
+ */
+goog.net.IframeIo.prototype.lastErrorCode_ = goog.net.ErrorCode.NO_ERROR;
+
+
+/**
+ * Number of milliseconds after which an incomplete request will be aborted and
+ * a {@link goog.net.EventType.TIMEOUT} event raised; 0 means no timeout is set.
+ * @type {number}
+ * @private
+ */
+goog.net.IframeIo.prototype.timeoutInterval_ = 0;
+
+
+/**
+ * Window timeout ID used to cancel the timeout event handler if the request
+ * completes successfully.
+ * @type {?number}
+ * @private
+ */
+goog.net.IframeIo.prototype.timeoutId_ = null;
+
+
+/**
+ * Window timeout ID used to detect when firefox silently fails.
+ * @type {?number}
+ * @private
+ */
+goog.net.IframeIo.prototype.firefoxSilentErrorTimeout_ = null;
+
+
+/**
+ * Window timeout ID used by the timer that disposes the iframes.
+ * @type {?number}
+ * @private
+ */
+goog.net.IframeIo.prototype.iframeDisposalTimer_ = null;
+
+
+/**
+ * This is used to ensure that we don't handle errors twice for the same error.
+ * We can reach the {@link #handleError_} method twice in IE if the form is
+ * submitted while IE is offline and the URL is not available.
+ * @type {boolean}
+ * @private
+ */
+goog.net.IframeIo.prototype.errorHandled_;
+
+
+/**
+ * Sends a request via an iframe.
+ *
+ * A HTML form is used and submitted to the iframe, this simplifies the
+ * difference between GET and POST requests. The iframe needs to be created and
+ * destroyed for each request otherwise the request will contribute to the
+ * history stack.
+ *
+ * sendFromForm does some clever trickery (thanks jlim) in non-IE browsers to
+ * stop a history entry being added for POST requests.
+ *
+ * @param {goog.Uri|string} uri Uri of the request.
+ * @param {string=} opt_method Default is GET, POST uses a form to submit the
+ *     request.
+ * @param {boolean=} opt_noCache Append a timestamp to the request to avoid
+ *     caching.
+ * @param {Object|goog.structs.Map=} opt_data Map of key-value pairs.
+ */
+goog.net.IframeIo.prototype.send = function(
+    uri, opt_method, opt_noCache, opt_data) {
+
+  if (this.active_) {
+    throw Error('[goog.net.IframeIo] Unable to send, already active.');
+  }
+
+  var uriObj = new goog.Uri(uri);
+  this.lastUri_ = uriObj;
+  var method = opt_method ? opt_method.toUpperCase() : 'GET';
+
+  if (opt_noCache) {
+    uriObj.makeUnique();
+  }
+
+  this.logger_.info('Sending iframe request: ' + uriObj + ' [' + method + ']');
+
+  // Build a form for this request
+  this.form_ = goog.net.IframeIo.getForm_();
+
+  if (method == 'GET') {
+    // For GET requests, we assume that the caller didn't want the queryparams
+    // already specified in the URI to be clobbered by the form, so we add the
+    // params here.
+    goog.net.IframeIo.addFormInputs_(this.form_, uriObj.getQueryData());
+  }
+
+  if (opt_data) {
+    // Create form fields for each of the data values
+    goog.net.IframeIo.addFormInputs_(this.form_, opt_data);
+  }
+
+  // Set the URI that the form will be posted
+  this.form_.action = uriObj.toString();
+  this.form_.method = method;
+
+  this.sendFormInternal_();
+};
+
+
+/**
+ * Sends the data stored in an existing form to the server. The HTTP method
+ * should be specified on the form, the action can also be specified but can
+ * be overridden by the optional URI param.
+ *
+ * This can be used in conjunction will a file-upload input to upload a file in
+ * the background without affecting history.
+ *
+ * Example form:
+ * <pre>
+ *   &lt;form action="/server/" enctype="multipart/form-data" method="POST"&gt;
+ *     &lt;input name="userfile" type="file"&gt;
+ *   &lt;/form&gt;
+ * </pre>
+ *
+ * @param {HTMLFormElement} form Form element used to send the request to the
+ *     server.
+ * @param {string=} opt_uri Uri to set for the destination of the request, by
+ *     default the uri will come from the form.
+ * @param {boolean=} opt_noCache Append a timestamp to the request to avoid
+ *     caching.
+ */
+goog.net.IframeIo.prototype.sendFromForm = function(form, opt_uri,
+     opt_noCache) {
+  if (this.active_) {
+    throw Error('[goog.net.IframeIo] Unable to send, already active.');
+  }
+
+  var uri = new goog.Uri(opt_uri || form.action);
+  if (opt_noCache) {
+    uri.makeUnique();
+  }
+
+  this.logger_.info('Sending iframe request from form: ' + uri);
+
+  this.lastUri_ = uri;
+  this.form_ = form;
+  this.form_.action = uri.toString();
+  this.sendFormInternal_();
+};
+
+
+/**
+ * Abort the current Iframe request
+ * @param {goog.net.ErrorCode=} opt_failureCode Optional error code to use -
+ *     defaults to ABORT.
+ */
+goog.net.IframeIo.prototype.abort = function(opt_failureCode) {
+  if (this.active_) {
+    this.logger_.info('Request aborted');
+    goog.events.removeAll(this.getRequestIframe_());
+    this.complete_ = false;
+    this.active_ = false;
+    this.success_ = false;
+    this.lastErrorCode_ = opt_failureCode || goog.net.ErrorCode.ABORT;
+
+    this.dispatchEvent(goog.net.EventType.ABORT);
+
+    this.makeReady_();
+  }
+};
+
+
+/**
+ * Disposes of the IframeIo object, nullifies all handlers and removes any DOM
+ * nodes.
+ */
+goog.net.IframeIo.prototype.disposeInternal = function() {
+  this.logger_.fine('Disposing iframeIo instance');
+
+  // If there is an active request, abort it
+  if (this.active_) {
+    this.logger_.fine('Aborting active request');
+    this.abort();
+  }
+
+  // Call super-classes implementation (remove listeners)
+  goog.net.IframeIo.superClass_.disposeInternal.call(this);
+
+  // Add the current iframe to the list of iframes for disposal.
+  if (this.iframe_) {
+    this.scheduleIframeDisposal_();
+  }
+
+  // Disposes of the form
+  this.disposeForm_();
+
+  // Nullify anything that might cause problems and clear state
+  delete this.errorChecker_;
+  this.form_ = null;
+  this.lastCustomError_ = this.lastContent_ = this.lastContentHtml_ = null;
+  this.lastUri_ = null;
+  this.lastErrorCode_ = goog.net.ErrorCode.NO_ERROR;
+
+  delete goog.net.IframeIo.instances_[this.name_];
+};
+
+
+/**
+ * @return {boolean} True if transfer is complete.
+ */
+goog.net.IframeIo.prototype.isComplete = function() {
+  return this.complete_;
+};
+
+
+/**
+ * @return {boolean} True if transfer was successful.
+ */
+goog.net.IframeIo.prototype.isSuccess = function() {
+  return this.success_;
+};
+
+
+/**
+ * @return {boolean} True if a transfer is in progress.
+ */
+goog.net.IframeIo.prototype.isActive = function() {
+  return this.active_;
+};
+
+
+/**
+ * Returns the last response text (i.e. the text content of the iframe).
+ * Assumes plain text!
+ * @return {?string} Result from the server.
+ */
+goog.net.IframeIo.prototype.getResponseText = function() {
+  return this.lastContent_;
+};
+
+
+/**
+ * Returns the last response html (i.e. the innerHtml of the iframe).
+ * @return {?string} Result from the server.
+ */
+goog.net.IframeIo.prototype.getResponseHtml = function() {
+ return this.lastContentHtml_;
+};
+
+
+/**
+ * Parses the content as JSON. This is a safe parse and may throw an error
+ * if the response is malformed.
+ * Use goog.json.unsafeparse(this.getResponseText()) if you are sure of the
+ * state of the returned content.
+ * @return {Object} The parsed content.
+ */
+goog.net.IframeIo.prototype.getResponseJson = function() {
+  return goog.json.parse(this.lastContent_);
+};
+
+
+/**
+ * Returns the document object from the last request.  Not truely XML, but
+ * used to mirror the XhrIo interface.
+ * @return {HTMLDocument} The document object from the last request.
+ */
+goog.net.IframeIo.prototype.getResponseXml = function() {
+  if (!this.iframe_) return null;
+
+  return this.getContentDocument_();
+};
+
+
+/**
+ * Get the uri of the last request.
+ * @return {goog.Uri} Uri of last request.
+ */
+goog.net.IframeIo.prototype.getLastUri = function() {
+  return this.lastUri_;
+};
+
+
+/**
+ * Gets the last error code.
+ * @return {goog.net.ErrorCode} Last error code.
+ */
+goog.net.IframeIo.prototype.getLastErrorCode = function() {
+  return this.lastErrorCode_;
+};
+
+
+/**
+ * Gets the last error message.
+ * @return {string} Last error message.
+ */
+goog.net.IframeIo.prototype.getLastError = function() {
+  return goog.net.ErrorCode.getDebugMessage(this.lastErrorCode_);
+};
+
+
+/**
+ * Gets the last custom error.
+ * @return {Object} Last custom error.
+ */
+goog.net.IframeIo.prototype.getLastCustomError = function() {
+  return this.lastCustomError_;
+};
+
+
+/**
+ * Sets the callback function used to check if a loaded IFrame is in an error
+ * state.
+ * @param {Function} fn Callback that expects a document object as it's single
+ *     argument.
+ */
+goog.net.IframeIo.prototype.setErrorChecker = function(fn) {
+  this.errorChecker_ = fn;
+};
+
+
+/**
+ * Gets the callback function used to check if a loaded IFrame is in an error
+ * state.
+ * @return {Function} A callback that expects a document object as it's single
+ *     argument.
+ */
+goog.net.IframeIo.prototype.getErrorChecker = function() {
+  return this.errorChecker_;
+};
+
+
+/**
+ * Returns the number of milliseconds after which an incomplete request will be
+ * aborted, or 0 if no timeout is set.
+ * @return {number} Timeout interval in milliseconds.
+ */
+goog.net.IframeIo.prototype.getTimeoutInterval = function() {
+  return this.timeoutInterval_;
+};
+
+
+/**
+ * Sets the number of milliseconds after which an incomplete request will be
+ * aborted and a {@link goog.net.EventType.TIMEOUT} event raised; 0 means no
+ * timeout is set.
+ * @param {number} ms Timeout interval in milliseconds; 0 means none.
+ */
+goog.net.IframeIo.prototype.setTimeoutInterval = function(ms) {
+  // TODO (pupius) - never used - doesn't look like timeouts were implemented
+  this.timeoutInterval_ = Math.max(0, ms);
+};
+
+
+/**
+ * Override of dispatchEvent, we ensure that the xhrMonitor is listening for
+ * XmlHttpRequests that may be initiated as a result of the event.
+ * @override
+ */
+goog.net.IframeIo.prototype.dispatchEvent = function(e) {
+  if (this.iframe_) {
+    goog.net.xhrMonitor.pushContext(this.iframe_);
+  }
+  try {
+    return goog.net.IframeIo.superClass_.dispatchEvent.call(this, e);
+  } finally {
+    if (this.iframe_) {
+      goog.net.xhrMonitor.popContext();
+    }
+    return true;
+  }
+};
+
+
+/**
+ * Submits the internal form to the iframe.
+ * @private
+ */
+goog.net.IframeIo.prototype.sendFormInternal_ = function() {
+  this.active_ = true;
+  this.complete_ = false;
+  this.lastErrorCode_ = goog.net.ErrorCode.NO_ERROR;
+
+  // Make Iframe
+  this.createIframe_();
+
+  if (goog.userAgent.IE) {
+    // In IE we simply create the frame, wait until it is ready, then post the
+    // form to the iframe and wait for the readystate to change to 'complete'
+
+    // Set the target to the iframe's name
+    this.form_.target = this.iframeName_ || '';
+    this.appendIframe_();
+    goog.events.listen(this.iframe_, goog.events.EventType.READYSTATECHANGE,
+        this.onIeReadyStateChange_, false, this);
+
+    /** @preserveTry */
+    try {
+      this.errorHandled_ = false;
+      this.form_.submit();
+    } catch (e) {
+      // If submit threw an exception then it probably means the page that the
+      // code is running on the local file system and the form's action was
+      // pointing to a file that doesn't exist, causing the browser to fire an
+      // exception.  IE also throws an exception when it is working offline and
+      // the URL is not available.
+
+      goog.events.unlisten(this.iframe_, goog.events.EventType.READYSTATECHANGE,
+          this.onIeReadyStateChange_, false, this);
+
+      this.handleError_(goog.net.ErrorCode.ACCESS_DENIED);
+    }
+
+  } else {
+    // For all other browsers we do some trickery to ensure that there is no
+    // entry on the history stack. Thanks go to jlim for the prototype for this
+
+    this.logger_.fine('Setting up iframes and cloning form');
+
+    this.appendIframe_();
+
+    var innerFrameName = this.iframeName_ +
+                         goog.net.IframeIo.INNER_FRAME_SUFFIX;
+
+    // Open and document.write another iframe into the iframe
+    var doc = goog.dom.getFrameContentDocument(this.iframe_);
+    var html = '<body><iframe id=' + innerFrameName +
+               ' name=' + innerFrameName + '></iframe>';
+    if (document.baseURI) {
+      // On Safari 4 and 5 the new iframe doesn't inherit the current baseURI.
+      html = '<head><base href="' + goog.string.htmlEscape(document.baseURI) +
+             '"></head>' + html;
+    }
+    if (goog.userAgent.OPERA) {
+      // Opera adds a history entry when document.write is used.
+      // Change the innerHTML of the page instead.
+      doc.documentElement.innerHTML = html;
+    } else {
+      doc.write(html);
+    }
+
+    // Listen for the iframe's load
+    goog.events.listen(doc.getElementById(innerFrameName),
+        goog.events.EventType.LOAD, this.onIframeLoaded_, false, this);
+
+    // Fix text areas, since importNode won't clone changes to the value
+    var textareas = this.form_.getElementsByTagName('textarea');
+    for (var i = 0, n = textareas.length; i < n; i++) {
+      // The childnodes represent the initial child nodes for the text area
+      // appending a text node essentially resets the initial value ready for
+      // it to be clones - while maintaining HTML escaping.
+      var value = textareas[i].value;
+      if (goog.dom.getRawTextContent(textareas[i]) != value) {
+        goog.dom.setTextContent(textareas[i], value);
+        textareas[i].value = value;
+      }
+    }
+
+    // Append a cloned form to the iframe
+    var clone = doc.importNode(this.form_, true);
+    clone.target = innerFrameName;
+    // Work around crbug.com/66987
+    clone.action = this.form_.action;
+    doc.body.appendChild(clone);
+
+    // Fix select boxes, importNode won't override the default value
+    var selects = this.form_.getElementsByTagName('select');
+    var clones = clone.getElementsByTagName('select');
+    for (var i = 0, n = selects.length; i < n; i++) {
+      clones[i].selectedIndex = selects[i].selectedIndex;
+    }
+
+    // Some versions of Firefox (1.5 - 1.5.07?) fail to clone the value
+    // attribute for <input type="file"> nodes, which results in an empty
+    // upload if the clone is submitted.  Check, and if the clone failed, submit
+    // using the original form instead.
+    var inputs = this.form_.getElementsByTagName('input');
+    var inputClones = clone.getElementsByTagName('input');
+    for (var i = 0, n = inputs.length; i < n; i++) {
+      if (inputs[i].type == 'file') {
+        if (inputs[i].value != inputClones[i].value) {
+          this.logger_.fine('File input value not cloned properly.  Will ' +
+                            'submit using original form.');
+          this.form_.target = innerFrameName;
+          clone = this.form_;
+          break;
+        }
+      }
+    }
+
+    this.logger_.fine('Submitting form');
+
+    /** @preserveTry */
+    try {
+      this.errorHandled_ = false;
+      clone.submit();
+      doc.close();
+
+      if (goog.userAgent.GECKO) {
+        // This tests if firefox silently fails, this can happen, for example,
+        // when the server resets the connection because of a large file upload
+        this.firefoxSilentErrorTimeout_ =
+            goog.Timer.callOnce(this.testForFirefoxSilentError_, 250, this);
+      }
+
+    } catch (e) {
+      // If submit threw an exception then it probably means the page that the
+      // code is running on the local file system and the form's action was
+      // pointing to a file that doesn't exist, causing the browser to fire an
+      // exception.
+
+      this.logger_.severe(
+          'Error when submitting form: ' + goog.debug.exposeException(e));
+
+      goog.events.unlisten(doc.getElementById(innerFrameName),
+          goog.events.EventType.LOAD, this.onIframeLoaded_, false, this);
+
+      doc.close();
+
+      this.handleError_(goog.net.ErrorCode.FILE_NOT_FOUND);
+    }
+  }
+};
+
+
+/**
+ * Handles the load event of the iframe for IE, determines if the request was
+ * successful or not, handles clean up and dispatching of appropriate events.
+ * @param {goog.events.BrowserEvent} e The browser event.
+ * @private
+ */
+goog.net.IframeIo.prototype.onIeReadyStateChange_ = function(e) {
+  if (this.iframe_.readyState == 'complete') {
+    goog.events.unlisten(this.iframe_, goog.events.EventType.READYSTATECHANGE,
+        this.onIeReadyStateChange_, false, this);
+    var doc;
+    /** @preserveTry */
+    try {
+      doc = goog.dom.getFrameContentDocument(this.iframe_);
+
+      // IE serves about:blank when it cannot load the resource while offline.
+      if (goog.userAgent.IE && doc.location == 'about:blank' &&
+          !navigator.onLine) {
+        this.handleError_(goog.net.ErrorCode.OFFLINE);
+        return;
+      }
+    } catch (ex) {
+      this.handleError_(goog.net.ErrorCode.ACCESS_DENIED);
+      return;
+    }
+    this.handleLoad_(/** @type {HTMLDocument} */(doc));
+  }
+};
+
+
+/**
+ * Handles the load event of the iframe for non-IE browsers.
+ * @param {goog.events.BrowserEvent} e The browser event.
+ * @private
+ */
+goog.net.IframeIo.prototype.onIframeLoaded_ = function(e) {
+  // In Opera, the default "about:blank" page of iframes fires an onload
+  // event that we'd like to ignore.
+  if (goog.userAgent.OPERA &&
+      this.getContentDocument_().location == 'about:blank') {
+    return;
+  }
+  goog.events.unlisten(this.getRequestIframe_(),
+      goog.events.EventType.LOAD, this.onIframeLoaded_, false, this);
+  this.handleLoad_(this.getContentDocument_());
+};
+
+
+/**
+ * Handles generic post-load
+ * @param {HTMLDocument} contentDocument The frame's document.
+ * @private
+ */
+goog.net.IframeIo.prototype.handleLoad_ = function(contentDocument) {
+  this.logger_.fine('Iframe loaded');
+
+  this.complete_ = true;
+  this.active_ = false;
+
+  var errorCode;
+
+  // Try to get the innerHTML.  If this fails then it can be an access denied
+  // error or the document may just not have a body, typical case is if there
+  // is an IE's default 404.
+  /** @preserveTry */
+  try {
+    var body = contentDocument.body;
+    this.lastContent_ = body.textContent || body.innerText;
+    this.lastContentHtml_ = body.innerHTML;
+  } catch (ex) {
+    errorCode = goog.net.ErrorCode.ACCESS_DENIED;
+  }
+
+  // Use a callback function, defined by the application, to analyse the
+  // contentDocument and determine if it is an error page.  Applications
+  // may send down markers in the document, define JS vars, or some other test.
+  var customError;
+  if (!errorCode && typeof this.errorChecker_ == 'function') {
+    customError = this.errorChecker_(contentDocument);
+    if (customError) {
+      errorCode = goog.net.ErrorCode.CUSTOM_ERROR;
+    }
+  }
+
+  this.logger_.finer('Last content: ' + this.lastContent_);
+  this.logger_.finer('Last uri: ' + this.lastUri_);
+
+  if (errorCode) {
+    this.logger_.fine('Load event occurred but failed');
+    this.handleError_(errorCode, customError);
+
+  } else {
+    this.logger_.fine('Load succeeded');
+    this.success_ = true;
+    this.lastErrorCode_ = goog.net.ErrorCode.NO_ERROR;
+    this.dispatchEvent(goog.net.EventType.COMPLETE);
+    this.dispatchEvent(goog.net.EventType.SUCCESS);
+
+    this.makeReady_();
+  }
+};
+
+
+/**
+ * Handles errors.
+ * @param {goog.net.ErrorCode} errorCode Error code.
+ * @param {Object=} opt_customError If error is CUSTOM_ERROR, this is the
+ *     client-provided custom error.
+ * @private
+ */
+goog.net.IframeIo.prototype.handleError_ = function(errorCode,
+                                                    opt_customError) {
+  if (!this.errorHandled_) {
+    this.success_ = false;
+    this.active_ = false;
+    this.complete_ = true;
+    this.lastErrorCode_ = errorCode;
+    if (errorCode == goog.net.ErrorCode.CUSTOM_ERROR) {
+      this.lastCustomError_ = opt_customError;
+    }
+    this.dispatchEvent(goog.net.EventType.COMPLETE);
+    this.dispatchEvent(goog.net.EventType.ERROR);
+
+    this.makeReady_();
+
+    this.errorHandled_ = true;
+  }
+};
+
+
+/**
+ * Dispatches an event indicating that the IframeIo instance has received a data
+ * packet via incremental loading.  The event object has a 'data' member.
+ * @param {Object} data Data.
+ * @private
+ */
+goog.net.IframeIo.prototype.handleIncrementalData_ = function(data) {
+  this.dispatchEvent(new goog.net.IframeIo.IncrementalDataEvent(data));
+};
+
+
+/**
+ * Finalizes the request, schedules the iframe for disposal, and maybe disposes
+ * the form.
+ * @private
+ */
+goog.net.IframeIo.prototype.makeReady_ = function() {
+  this.logger_.info('Ready for new requests');
+  var iframe = this.iframe_;
+  this.scheduleIframeDisposal_();
+  this.disposeForm_();
+  goog.net.xhrMonitor.pushContext(iframe);
+  try {
+    this.dispatchEvent(goog.net.EventType.READY);
+  } finally {
+    goog.net.xhrMonitor.popContext();
+  }
+};
+
+
+/**
+ * Creates an iframe to be used with a request.  We use a new iframe for each
+ * request so that requests don't create history entries.
+ * @private
+ */
+goog.net.IframeIo.prototype.createIframe_ = function() {
+  this.logger_.fine('Creating iframe');
+
+  this.iframeName_ = this.name_ + '_' + (this.nextIframeId_++).toString(36);
+
+  var iframeAttributes = {'name': this.iframeName_, 'id': this.iframeName_};
+  // Setting the source to javascript:"" is a fix to remove IE6 mixed content
+  // warnings when being used in an https page.
+  if (goog.userAgent.IE && goog.userAgent.VERSION < 7) {
+    iframeAttributes.src = 'javascript:""';
+  }
+
+  this.iframe_ = /** @type {HTMLIFrameElement} */(goog.dom.createDom(
+      'iframe', iframeAttributes));
+
+  var s = this.iframe_.style;
+  s.visibility = 'hidden';
+  s.width = s.height = '10px';
+
+  // There are reports that safari 2.0.3 has a bug where absolutely positioned
+  // iframes can't have their src set.
+  if (!goog.userAgent.WEBKIT) {
+    s.position = 'absolute';
+    s.top = s.left = '-10px';
+  } else {
+    s.marginTop = s.marginLeft = '-10px';
+  }
+};
+
+
+/**
+ * Appends the Iframe to the document body.
+ * @private
+ */
+goog.net.IframeIo.prototype.appendIframe_ = function() {
+  goog.dom.getDocument().body.appendChild(this.iframe_);
+};
+
+
+/**
+ * Schedules an iframe for disposal, async.  We can't remove the iframes in the
+ * same execution context as the response, otherwise some versions of Firefox
+ * will not detect that the response has correctly finished and the loading bar
+ * will stay active forever.
+ * @private
+ */
+goog.net.IframeIo.prototype.scheduleIframeDisposal_ = function() {
+  var iframe = this.iframe_;
+
+  // There shouldn't be a case where the iframe is null and we get to this
+  // stage, but the error reports in http://b/909448 indicate it is possible.
+  if (iframe) {
+    // NOTE(user): Stops Internet Explorer leaking the iframe object. This
+    // shouldn't be needed, since the events have all been removed, which
+    // should in theory clean up references.  Oh well...
+    iframe.onreadystatechange = null;
+    iframe.onload = null;
+    iframe.onerror = null;
+
+    this.iframesForDisposal_.push(iframe);
+  }
+
+  if (this.iframeDisposalTimer_) {
+    goog.Timer.clear(this.iframeDisposalTimer_);
+    this.iframeDisposalTimer_ = null;
+  }
+
+  if (goog.userAgent.GECKO || goog.userAgent.OPERA) {
+    // For FF and Opera, we must dispose the iframe async,
+    // but it doesn't need to be done as soon as possible.
+    // We therefore schedule it for 2s out, so as not to
+    // affect any other actions that may have been triggered by the request.
+    this.iframeDisposalTimer_ = goog.Timer.callOnce(
+        this.disposeIframes_, goog.net.IframeIo.IFRAME_DISPOSE_DELAY_MS, this);
+
+  } else {
+    // For non-Gecko browsers we dispose straight away.
+    this.disposeIframes_();
+  }
+
+  // Nullify reference
+  this.iframe_ = null;
+  this.iframeName_ = null;
+};
+
+
+/**
+ * Disposes any iframes.
+ * @private
+ */
+goog.net.IframeIo.prototype.disposeIframes_ = function() {
+  if (this.iframeDisposalTimer_) {
+    // Clear the timer
+    goog.Timer.clear(this.iframeDisposalTimer_);
+    this.iframeDisposalTimer_ = null;
+  }
+
+  var i = 0;
+  while (i < this.iframesForDisposal_.length) {
+    var iframe = this.iframesForDisposal_[i];
+    if (goog.net.xhrMonitor.isContextSafe(iframe)) {
+      this.logger_.info('Disposing iframe');
+      goog.array.removeAt(this.iframesForDisposal_, i);
+      goog.dom.removeNode(iframe);
+    } else {
+      i++;
+    }
+  }
+
+  // Not all iframes have been disposed, try again in 2s.
+  if (this.iframesForDisposal_.length != 0) {
+    this.logger_.info('Requests outstanding, waiting to dispose');
+    this.iframeDisposalTimer_ = goog.Timer.callOnce(
+        this.disposeIframes_, goog.net.IframeIo.IFRAME_DISPOSE_DELAY_MS, this);
+  }
+};
+
+
+/**
+ * Disposes of the Form.  Since IE6 leaks form nodes, this just cleans up the
+ * DOM and nullifies the instances reference so the form can be used for another
+ * request.
+ * @private
+ */
+goog.net.IframeIo.prototype.disposeForm_ = function() {
+  if (this.form_ && this.form_ == goog.net.IframeIo.form_) {
+    goog.dom.removeChildren(this.form_);
+  }
+  this.form_ = null;
+};
+
+
+/**
+ * @return {HTMLDocument} The appropriate content document.
+ * @private
+ */
+goog.net.IframeIo.prototype.getContentDocument_ = function() {
+  if (this.iframe_) {
+    return /** @type {HTMLDocument} */(goog.dom.getFrameContentDocument(
+        this.getRequestIframe_()));
+  }
+  return null;
+};
+
+
+/**
+ * @return {HTMLIFrameElement} The appropriate iframe to use for requests
+ *     (created in sendForm_).
+ * @private
+ */
+goog.net.IframeIo.prototype.getRequestIframe_ = function() {
+  if (this.iframe_) {
+    return /** @type {HTMLIFrameElement} */(goog.userAgent.IE ? this.iframe_ :
+        goog.dom.getFrameContentDocument(this.iframe_).getElementById(
+            this.iframeName_ + goog.net.IframeIo.INNER_FRAME_SUFFIX));
+  }
+  return null;
+};
+
+
+/**
+ * Tests for a silent failure by firefox that can occur when the connection is
+ * reset by the server or is made to an illegal URL.
+ * @private
+ */
+goog.net.IframeIo.prototype.testForFirefoxSilentError_ = function() {
+  if (this.active_) {
+    var doc = this.getContentDocument_();
+
+    // This is a hack to test of the document has loaded with a page that
+    // we can't access, such as a network error, that won't report onload
+    // or onerror events.
+    if (doc && !goog.reflect.canAccessProperty(doc, 'documentUri')) {
+      goog.events.unlisten(this.getRequestIframe_(),
+          goog.events.EventType.LOAD, this.onIframeLoaded_, false, this);
+
+      if (navigator.onLine) {
+        this.logger_.warning('Silent Firefox error detected');
+        this.handleError_(goog.net.ErrorCode.FF_SILENT_ERROR);
+      } else {
+        this.logger_.warning('Firefox is offline so report offline error ' +
+                             'instead of silent error');
+        this.handleError_(goog.net.ErrorCode.OFFLINE);
+      }
+      return;
+    }
+    this.firefoxSilentErrorTimeout_ =
+        goog.Timer.callOnce(this.testForFirefoxSilentError_, 250, this);
+  }
+};
+
+
+
+/**
+ * Class for representing incremental data events.
+ * @param {Object} data The data associated with the event.
+ * @extends {goog.events.Event}
+ * @constructor
+ */
+goog.net.IframeIo.IncrementalDataEvent = function(data) {
+  goog.events.Event.call(this, goog.net.EventType.INCREMENTAL_DATA);
+
+  /**
+   * The data associated with the event.
+   * @type {Object}
+   */
+  this.data = data;
+};
+goog.inherits(goog.net.IframeIo.IncrementalDataEvent, goog.events.Event);
 // Copyright 2006 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20621,7 +23622,8 @@ goog.style.getOffsetParent = function(element) {
     if (!skipStatic && (parent.scrollWidth > parent.clientWidth ||
                         parent.scrollHeight > parent.clientHeight ||
                         positionStyle == 'fixed' ||
-                        positionStyle == 'absolute')) {
+                        positionStyle == 'absolute' ||
+                        positionStyle == 'relative')) {
       return /** @type {!Element} */ (parent);
     }
   }
@@ -20666,6 +23668,9 @@ goog.style.getVisibleRectForElement = function(element) {
       visibleRect.bottom = Math.min(visibleRect.bottom,
                                     pos.y + el.clientHeight);
       visibleRect.left = Math.max(visibleRect.left, pos.x);
+      // TODO(user): We may want to check whether the current element is
+      // the document element or the body element, in case somebody sets
+      // overflow on the body element in CSS.
       inContainer = inContainer || el != scrollEl;
     }
   }
@@ -20975,7 +23980,8 @@ goog.style.getRelativePosition = function(a, b) {
 
 
 /**
- * Returns the position relative to the client viewport.
+ * Returns the position of the event or the element's border box relative to
+ * the client viewport.
  * @param {Element|Event|goog.events.Event} el Element or a mouse / touch event.
  * @return {!goog.math.Coordinate} The position.
  */
@@ -21012,11 +24018,12 @@ goog.style.getClientPosition = function(el) {
 
 
 /**
- * Sets the top and left of an element such that it will have a
- *
- * @param {Element} el The element to set page offset for.
- * @param {number|goog.math.Coordinate} x Left position or coordinate obj.
- * @param {number=} opt_y Top position.
+ * Moves an element to the given coordinates relative to the client viewport.
+ * @param {Element} el Absolutely positioned element to set page offset for.
+ *     It must be in the document.
+ * @param {number|goog.math.Coordinate} x Left position of the element's margin
+ *     box or a coordinate object.
+ * @param {number=} opt_y Top position of the element's margin box.
  */
 goog.style.setPageOffset = function(el, x, opt_y) {
   // Get current pageoffset
@@ -22116,9 +25123,6 @@ goog.provide('goog.ui.Component.State');
 
 goog.require('goog.array');
 goog.require('goog.dom');
-goog.require('goog.dom.DomHelper');
-goog.require('goog.events');
-goog.require('goog.events.Event');
 goog.require('goog.events.EventHandler');
 goog.require('goog.events.EventTarget');
 goog.require('goog.object');
@@ -22512,8 +25516,13 @@ goog.ui.Component.prototype.childIndex_ = null;
 
 /**
  * Flag used to keep track of whether a component decorated an already existing
- * element or whether it created the DOM itself.  If an element was decorated
- * dispose will remove the node from the document, it is left up to the app.
+ * element or whether it created the DOM itself.
+ *
+ * If an element is decorated, dispose will leave the node in the document.
+ * It is up to the app to remove the node.
+ *
+ * If an element was rendered, dispose will remove the node automatically.
+ *
  * @type {boolean}
  * @private
  */
@@ -22886,13 +25895,29 @@ goog.ui.Component.prototype.disposeInternal = function() {
 
 /**
  * Helper function for subclasses that gets a unique id for a given fragment,
- * this can be used by components to
- * generate unique string ids for DOM elements
+ * this can be used by components to generate unique string ids for DOM
+ * elements.
  * @param {string} idFragment A partial id.
  * @return {string} Unique element id.
  */
 goog.ui.Component.prototype.makeId = function(idFragment) {
   return this.getId() + '.' + idFragment;
+};
+
+
+/**
+ * Makes a collection of ids.  This is a convenience method for makeId.  The
+ * object's values are the id fragments and the new values are the generated
+ * ids.  The key will remain the same.
+ * @param {Object} object The object that will be used to create the ids.
+ * @return {Object} An object of id keys to generated ids.
+ */
+goog.ui.Component.prototype.makeIds = function(object) {
+  var ids = {};
+  for (var key in object) {
+    ids[key] = this.makeId(object[key]);
+  }
+  return ids;
 };
 
 
@@ -25397,7 +28422,15 @@ goog.ui.PopupBase.prototype.show_ = function() {
       // in an iframe and the deactivate fires within that iframe.
       // The active element in the top-level document will remain the iframe
       // itself.
-      var activeElement = doc.activeElement;
+      var activeElement;
+      /** @preserveTry */
+      try {
+        activeElement = doc.activeElement;
+      } catch (e) {
+        // There is an IE browser bug which can cause just the reading of
+        // document.activeElement to throw an Unspecified Error.  This
+        // may have to do with loading a popup within a hidden iframe.
+      }
       while (activeElement && activeElement.nodeName == 'IFRAME') {
         /** @preserveTry */
         try {
@@ -25430,7 +28463,7 @@ goog.ui.PopupBase.prototype.show_ = function() {
 
   // Make the popup visible.
   if (this.type_ == goog.ui.PopupBase.Type.TOGGLE_DISPLAY) {
-     this.showPopupElement();
+    this.showPopupElement();
   } else if (this.type_ == goog.ui.PopupBase.Type.MOVE_OFFSCREEN) {
     this.reposition();
   }

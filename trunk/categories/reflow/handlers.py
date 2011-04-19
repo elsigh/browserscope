@@ -92,7 +92,7 @@ def TestAcid1(request):
 
   params = {
     'page_title': page_title,
-    'params': test_set.default_params,
+    'params': test_set_params.Params('acid1', 'num_elements=300'),
     'test': test,
     'server': util.GetServer(request),
     'autorun': request.GET.get('autorun'),
@@ -148,63 +148,6 @@ def GenCss(params):
     css = ['%s { %s }' % (params['css_selector'], params['css_text'])
            for num_css_rule in range(int(params['num_css_rules']))]
   return ' '.join(css)
-
-
-#@cache_page(60*15)
-def StatsChart(request):
-  x_axis = request.GET.get('x_axis', 'num_nest')
-  test_key = request.GET.get('test')
-  test_set = all_test_sets.GetTestSet(CATEGORY)
-  try:
-    test = test_set.GetTest(test_key)
-  except KeyError:
-    test = test_set.tests[0]
-
-  url_type = request.GET.get('url_type', 'nested_anchors')
-  if url_type == 'nested_divs' or url_type == 'nested_tables':
-    x_axis = 'num_nest'
-
-  params = TEST_PAGES[url_type]['params'].copy()
-  logging.info('params %s' % params)
-
-  # seed a params array with less than all the values to construct a graph.
-  if url_type == 'nested_anchors':
-    for key, val in params.items():
-      if val == '':
-        continue
-      # Uses the last value in our array as the default for the non-X axis
-      # unless passed in the url.
-      if key != x_axis:
-        #param_val = request.GET.get(key, val[len(val) - 1])
-        param_val = request.GET.get(key, test_set.default_params[key])
-        params[key] = [param_val]
-
-  param_combos = ConstructTestPageParamCombinations(params, url_type)
-  #logging.info('param_combos: %s' % param_combos)
-
-  stats_charts = []
-  for param_combo in param_combos:
-    #logging.info('Going to get stats for %s' % location)
-    these_params = util.GetStats(request, CATEGORY, output='data',
-                                 params=param_combo, opt_tests=[test],
-                                 use_memcache=False)
-    stats = these_params['stats']
-    #logging.info('Stats came back: %s' % stats)
-    stats_charts.append(stats)
-
-  params = {
-    'x_axis': x_axis,
-    'y_axis': 'Reflow Time (ms)',
-    'x_labels': params[x_axis],
-    'test': test.key,
-    'tests': [x.key for x in test_set.tests],
-    'stats_charts': stats_charts,
-    'user_agents': stats_charts[0].keys(),
-    'param_combos': param_combos,
-    'url_type': url_type,
-    'test_pages': TEST_PAGES
-  }
-  return util.Render(request, 'templates/stats_chart.html', params, CATEGORY)
 
 
 @decorators.provide_csrf

@@ -121,7 +121,7 @@ def provide_check_csrf(func):
 
 # Leave this public so that folks can re-get csrf on bad forms.
 def add_csrf_to_request(request):
-  csrf_token = _make_csrf_key()
+  csrf_token = MakeRandomKey()
   try:
     request.session['csrf_tokens'].append(csrf_token)
   except:
@@ -131,14 +131,13 @@ def add_csrf_to_request(request):
   return request
 
 
-_MAX_CSRF_KEY = 18446744073709551616L
-def _make_csrf_key():
+def MakeRandomKey():
   # Use the system (hardware-based) random number generator if it exists.
   if hasattr(random, 'SystemRandom'):
     randrange = random.SystemRandom().randrange
   else:
  	  randrange = random.randrange
-  csrf_key = hashlib.md5('%s%s' % (randrange(0, _MAX_CSRF_KEY),
+  csrf_key = hashlib.md5('%s%s' % (randrange(0, settings.MAX_HASH_KEY),
                                    settings.SECRET_KEY)
                          ).hexdigest()
   return csrf_key
