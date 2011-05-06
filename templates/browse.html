@@ -21,9 +21,11 @@
           {{ result_parent.user_agent.pretty }}
         </td>
         <td>{{ result_parent.ip }}</td>
-        {% for result_time in result_parent.GetResultTimes %}
-          <td>{{ result_time.score }}</td>
-        {% endfor %}
+        {% with result_parent.GetResults as results %}
+          {% for test_key in test_keys %}
+            <td title="{{ test_key }}">{{ results|by_key:test_key }}</td>
+          {% endfor %}
+        {% endwith %}
       </tr>
     {% endfor %}
   </tbody>
