@@ -42,6 +42,10 @@ import settings
 from third_party import mox
 
 
+def repeat_to_length(string_to_expand, length):
+  return (string_to_expand * ((length/len(string_to_expand))+1))[:length]
+
+
 class TestModels(unittest.TestCase):
 
   def testUser(self):
@@ -70,6 +74,22 @@ class TestModels(unittest.TestCase):
     self.assertEqual(len(test_set.tests), 2)
     self.assertEqual('test_1', test_set.tests[0].key)
     self.assertEqual('test_2', test_set.tests[1].key)
+
+  def testGetTestSetFromResultStringThrowsOnLongKeys(self):
+    current_user = users.get_current_user()
+    u = models.user_test.User.get_or_insert(current_user.user_id())
+    test = models.user_test.Test(user=u, name='Fake Test',
+                                 url='http://fakeurl.com/test.html',
+                                 description='stuff')
+    test.save()
+
+    too_long_key_name = repeat_to_length('x',
+                                         models.user_test.MAX_KEY_LENGTH + 1)
+    results_str = 'test_1=0,test_2=1,%s=2' % too_long_key_name
+    test_set_category = 'usertest_%s' % test.key()
+    self.assertRaises(models.user_test.KeyTooLong,
+        models.user_test.Test.get_test_set_from_results_str,
+        test_set_category, results_str)
 
 
 class TestBasics(unittest.TestCase):

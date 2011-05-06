@@ -742,8 +742,11 @@ def Beacon(request, category_id=None):
     return http.HttpResponseBadRequest(BAD_BEACON_MSG + 'Category/Results')
 
   # Quick check for a user-api test result.
-  user_test_set = models.user_test.Test.get_test_set_from_results_str(
-      category, results_str)
+  try:
+    user_test_set = models.user_test.Test.get_test_set_from_results_str(
+        category, results_str)
+  except models.user_test.KeyTooLong:
+    return http.HttpResponseServerError(BAD_BEACON_MSG + 'KeyTooLong')
 
   # UserTest beacon.
   if user_test_set:
@@ -794,7 +797,7 @@ def Beacon(request, category_id=None):
                    namespace=RESULTS_STRING_MEMCACHE_NS)
       return http.HttpResponse(hash_string)
     else:
-      Return204(request)
+      return Return204(request)
 
 
 def Return204(request):

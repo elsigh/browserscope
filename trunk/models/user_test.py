@@ -30,6 +30,13 @@ from categories import test_set_base
 
 import settings
 
+
+MAX_KEY_LENGTH = 200
+
+class KeyTooLong(Exception):
+  """Indicates that one of the keys is too damn long."""
+  pass
+
 # This value turns out to be key for aliasing, meaning we need to be
 # sure that aliased test sets use it when defining their tests.
 MAX_VALUE = 10000
@@ -99,6 +106,12 @@ class TestMeta(db.Expando):
   @staticmethod
   def get_memcache_keyname_static(test):
     return '%s_meta' % Test.get_memcache_keyname_static(test.key())
+
+
+def ValidateTestKeys(test_keys):
+  for test_key in test_keys:
+    if len(test_key) > MAX_KEY_LENGTH:
+      raise KeyTooLong()
 
 
 class Test(db.Model):
@@ -247,6 +260,9 @@ class Test(db.Model):
 
     Returns:
       A models.user_test.TestSet instance.
+
+    Raises:
+      KeyTooLong: When any of the key names is longer than MAX_KEY_LENGTH.
     """
     category_prefix = '%s_' % Test.get_prefix()
     if category_prefix not in category:
@@ -258,6 +274,7 @@ class Test(db.Model):
 
     test_scores = [x.split('=') for x in str(results_str).split(',')]
     test_keys = sorted([x[0] for x in test_scores])
+    ValidateTestKeys(test_keys)
 
     # If it's test run #1, save what we've got for test keys and swap
     # memcache.
@@ -287,7 +304,10 @@ def update_test_keys(key, test_keys):
       test.test_keys.append(test_key)
       dirty = True
   if dirty:
-    test.save_memcache()
+    try:
+      test.save_memcache()
+    except db.BadValueError:
+      logging.info('db.BadValueError - bail.')
 
 
 def update_test_meta(key, test_scores):
@@ -343,5 +363,8 @@ def update_test_meta(key, test_scores):
     logging.info('ValueError trying to unpack malformed test_scores, bailing.')
 
   if dirty:
-    meta.save_memcache(test)
+    try:
+      meta.save_memcache(test)
+    except db.BadPropertyError:
+      logging.info('db.BadPropertyError - bail.')
 

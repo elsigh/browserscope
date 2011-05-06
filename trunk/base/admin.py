@@ -391,7 +391,7 @@ def UpdateCategory(request):
     try:
       result_stats.UpdateCategory(category, user_agent)
       return http.HttpResponse('Done with UserAgent key=%s' % user_agent_key)
-    except BadValueError:
+    except:
       return http.HttpResponse('Got a BadValueError. eff this one.')
   else:
     return http.HttpResponse('No user_agent with this key.')
