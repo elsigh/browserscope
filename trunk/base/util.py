@@ -1043,6 +1043,10 @@ def FormatStatsDataAsGviz(params, tqx):
       # they don't implement a test_set scoring algorithm.
       # TODO(elsigh): consider just populating score in get stats.
       if params['is_user_test']:
+        logging.info('display: %s' % display)
+        score = 0
+        if display:
+          score = int(display)
         # This needs to use min_value,max_value to get turned into 0-100
         display = custom_filters.group_thousands(display)
       if params['highlight']:
