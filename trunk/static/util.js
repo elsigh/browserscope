@@ -201,15 +201,27 @@ Util.reconcileClientServerUaPretty = function(httpUserAgent, userAgentPretty) {
   return reconciledUa;
 };
 
+/**
+ * @private
+ */
+Util.mungeSortableStringToNumber_ = function(str) {
+  // Remove any percent signs or decimals if it's numeric and turns 9/10 into 9.
+  str = goog.string.trim(str.toLowerCase().replace('%', '').
+      replace(/\.+/, '').replace(/\/.*/, ''));
+  if (!str) {
+    str = 0;
+  } else if (goog.string.isNumeric(str)) {
+    str = Number(str);
+  }
+  return str;
+};
+
 Util.alphaCaseInsensitiveCompare = function(a, b) {
-  // turns 9/10 into 9
-  if (a.match(/\//) && b.match(/\//)) {
-    a = a.replace(/\/.*/, '');
-    b = b.replace(/\/.*/, '');
+  a = Util.mungeSortableStringToNumber_(a);
+  b = Util.mungeSortableStringToNumber_(b);
+  if (goog.string.isNumeric(a) && goog.string.isNumeric(b)) {
     return goog.ui.TableSorter.numericSort(a, b);
   } else {
-    a = a.toLowerCase();
-    b = b.toLowerCase();
     return a > b ? 1 : a < b ? -1 : 0;
   }
 };

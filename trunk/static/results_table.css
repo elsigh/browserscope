@@ -358,11 +358,11 @@ a.bs-l-p {
   background-color: #8a8b89;
 }
 
-/* down arrow */
-.goog-tablesorter-sorted:after {
-  content: "\2193";
-}
 /* up arrow */
-.goog-tablesorter-sorted-reverse:after {
+.goog-tablesorter-sorted:after {
   content: "\2191";
+}
+/* down arrow */
+.goog-tablesorter-sorted-reverse:after {
+  content: "\2193";
 }
