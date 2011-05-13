@@ -5,8 +5,8 @@
   "results": [
     {% for user_agent in user_agents %}
       { "{{ user_agent }}": {
-        "score": "{{ stats|by_key:user_agent|by_key:"score"|scale_100_to_10 }}",
-        "score_display": "{{ stats|by_key:user_agent|by_key:"display" }}",
+        "score": "{{ stats|by_key:user_agent|by_key:"summary_score"|scale_100_to_10 }}",
+        "score_display": "{{ stats|by_key:user_agent|by_key:"summary_display" }}",
         "results": [
           {% for test in tests %}
             {"{{ test.key }}": {
