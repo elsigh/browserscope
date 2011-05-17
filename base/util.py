@@ -339,7 +339,7 @@ def GetResultUriString(request, category):
       replace = ('http://www.browserscope.org/?%s=' % results_key)
       qs = urlparse.parse_qs(urlparse.urlparse(json['longUrl']).query)
       results_uri_string = qs[results_key][0]
-  logging.info('GetResultUriString RESULTS_URI_STR: %s' % results_uri_string)
+  #logging.info('GetResultUriString RESULTS_URI_STR: %s' % results_uri_string)
   # Stupid web bot crap.
   if results_uri_string == 'None':
     results_uri_string = None
@@ -781,8 +781,7 @@ def Beacon(request, category_id=None):
       js_user_agent_v3=js_user_agent_v3)
   if not result_parent:
     msg = BAD_BEACON_MSG + 'ResultParent'
-    logging.info(msg)
-    return http.HttpResponse(msg)
+    return http.HttpResponseServerError(msg)
 
   # User tests don't need to update our recent tests list.
   if not user_test_set:
@@ -1036,6 +1035,8 @@ def FormatStatsDataAsGviz(params, tqx):
     ua_results = row_stats.get('results')
     for test in params['tests']:
       test_result = ua_results.get(test.key)
+      if not test_result:
+        continue
       score = test_result.get('score')
       display = test_result.get('display')
       p = {}

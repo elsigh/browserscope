@@ -37,6 +37,7 @@ from models.result import ResultParent
 from models.result import ResultTime
 
 from base import decorators
+from base import shardedcounter
 
 import settings
 
@@ -106,6 +107,7 @@ def UpdateDirty(request):
   else:
     logging.debug('Done with result_parent: %s', result_parent_key)
     ScheduleCategoryUpdate(result_parent_key)
+    shardedcounter.increment(category)
   return http.HttpResponse('Done.')
 
 

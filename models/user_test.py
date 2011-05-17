@@ -69,6 +69,18 @@ class TestSet(test_set_base.TestSet):
     """There's no row/summary score in a User Test."""
     return 0, ''
 
+  def ParseResults(self, results_str, ignore_key_errors=False):
+    test_scores = [x.split('=') for x in str(results_str).split(',')]
+    try:
+      for test_score in test_scores:
+        score = int(test_score[1])
+        if score > MAX_VALUE:
+          raise test_set_base.ParseResultsValueError
+    except:
+      raise test_set_base.ParseResultsValueError
+    return test_set_base.TestSet.ParseResults(self, results_str,
+                                              ignore_key_errors=False)
+
 
 # This reference model exists for storing values about the tests, like min/max.
 class TestMeta(db.Expando):
@@ -123,6 +135,7 @@ class Test(db.Model):
   description = db.TextProperty()
   sandboxid = db.StringProperty()
   meta = db.ReferenceProperty(TestMeta)
+  beacon_count = db.IntegerProperty(indexed=True)
   created = db.DateTimeProperty(auto_now_add=True)
   modified = db.DateTimeProperty(auto_now=True)
 
@@ -367,4 +380,6 @@ def update_test_meta(key, test_scores):
       meta.save_memcache(test)
     except db.BadPropertyError:
       logging.info('db.BadPropertyError - bail.')
+    except OverflowError:
+      logging.info('OverflowError - bail.')
 
