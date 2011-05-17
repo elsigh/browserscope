@@ -30,16 +30,22 @@ from categories import test_set_base
 
 import settings
 
-
+MAX_KEY_COUNT = 50
 MAX_KEY_LENGTH = 200
+# This value turns out to be key for aliasing, meaning we need to be
+# sure that aliased test sets use it when defining their tests.
+MAX_VALUE = 1000000
 
 class KeyTooLong(Exception):
   """Indicates that one of the keys is too damn long."""
   pass
 
-# This value turns out to be key for aliasing, meaning we need to be
-# sure that aliased test sets use it when defining their tests.
-MAX_VALUE = 10000
+
+class KeyTooMany(Exception):
+  """Indicates that there are too many keys to deal with."""
+  pass
+
+
 
 class User(db.Model):
   email = db.StringProperty()
@@ -121,6 +127,8 @@ class TestMeta(db.Expando):
 
 
 def ValidateTestKeys(test_keys):
+  if len(test_keys) > MAX_KEY_COUNT:
+    raise KeyTooMany()
   for test_key in test_keys:
     if len(test_key) > MAX_KEY_LENGTH:
       raise KeyTooLong()
