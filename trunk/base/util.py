@@ -505,13 +505,13 @@ def BrowseResults(request):
 
 
 def Api(request):
-  """FAQ"""
+  """API"""
 
   params = {
     'page_title': 'API',
     'section_urls': ''
   }
-  return Render(request, 'api.html', params)
+  return Render(request, 'user_test_howto.html', params)
 
 
 def Faq(request):
