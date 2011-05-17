@@ -1,0 +1,16 @@
+mapreduce:
+- name: ResultParent Counter
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: base.mapreducer.ResultParentCountSet
+    params:
+    - name: entity_kind
+      default: models.result.ResultParent
+
+- name: UserTest beacon_count update
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: base.mapreducer.TestCountSet
+    params:
+    - name: entity_kind
+      default: models.user_test.Test

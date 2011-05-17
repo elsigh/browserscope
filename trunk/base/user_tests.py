@@ -305,8 +305,10 @@ def FormatUserTestsAsGviz(request):
                  ('name', 'string', 'Test'),
                  ('description', 'string', 'Description')]
 
+  limit = request.get('limit', 100)
+
   data = []
-  tests = db.Query(models.user_test.Test).order('created').fetch(limit=100)
+  tests = db.Query(models.user_test.Test).order('created').fetch(limit=limit)
   for test in tests:
     data.append([test.created,
                  #re.sub(r'\@.+', '', test.user.email),

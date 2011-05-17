@@ -16,7 +16,7 @@
 
 """Test admin_rankers."""
 
-__author__ = 'slamm@google.com (Stephen Lamm)'
+__author__ = 'elsigh@google.com (Lindsey Simon)'
 
 
 import datetime
@@ -151,6 +151,18 @@ class TestWithData(unittest.TestCase):
     self.test.save()
 
 
+  def testBadDataRaisesException(self):
+    params = {
+      'category': self.test.get_memcache_keyname(),
+      'results': 'apple=%s,banana=2,coconut=4' %
+          str(models.user_test.MAX_VALUE + 1),
+    }
+    csrf_token = self.client.get('/get_csrf').content
+    params['csrf_token'] = csrf_token
+    response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
+    self.assertEqual(500, response.status_code)
+
+
   def saveData(self):
     params = {
       'category': self.test.get_memcache_keyname(),
@@ -228,7 +240,7 @@ class TestWithData(unittest.TestCase):
         {'category': 'usertest_%s' % self.test.key(), 'v': '3'},
         **mock_data.UNIT_TEST_UA)
     self.assertEqual(200, response.status_code)
-    self.assertEqual("google.visualization.Query.setResponse({'version':'0.6', 'reqId':'0', 'status':'OK', 'table': {cols:[{id:'ua',label:'UserAgent',type:'string'},{id:'apple',label:'apple',type:'number'},{id:'banana',label:'banana',type:'number'},{id:'coconut',label:'coconut',type:'number'},{id:'numtests',label:'# Tests',type:'number'}],rows:[{c:[{v:'other',f:'Other',p:{'className':'rt-ua-cur'}},{v:10,f:'1',p:{}},{v:10,f:'2',p:{}},{v:10,f:'4',p:{}},{v:1}]}]}});",
+    self.assertEqual("google.visualization.Query.setResponse({'version':'0.6', 'reqId':'0', 'status':'OK', 'table': {cols:[{id:'ua',label:'UserAgent',type:'string'},{id:'apple',label:'apple',type:'number'},{id:'banana',label:'banana',type:'number'},{id:'coconut',label:'coconut',type:'number'},{id:'numtests',label:'# Tests',type:'number'}],rows:[{c:[{v:'other',f:'Other',p:{'className':'rt-ua-cur'}},{v:1,f:'1',p:{}},{v:2,f:'2',p:{}},{v:4,f:'4',p:{}},{v:1}]}]}});",
         response.content)
 
 
