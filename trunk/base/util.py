@@ -747,6 +747,8 @@ def Beacon(request, category_id=None):
         category, results_str)
   except models.user_test.KeyTooLong:
     return http.HttpResponseServerError(BAD_BEACON_MSG + 'KeyTooLong')
+  except models.user_test.KeyTooMany:
+    return http.HttpResponseServerError(BAD_BEACON_MSG + 'KeyTooMany')
 
   # UserTest beacon.
   if user_test_set:

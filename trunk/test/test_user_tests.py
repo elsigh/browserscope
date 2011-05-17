@@ -151,7 +151,21 @@ class TestWithData(unittest.TestCase):
     self.test.save()
 
 
-  def testBadDataRaisesException(self):
+
+
+  def saveData(self):
+    """Other tests call this function to save simple data."""
+    params = {
+      'category': self.test.get_memcache_keyname(),
+      'results': 'apple=1,banana=2,coconut=4',
+    }
+    csrf_token = self.client.get('/get_csrf').content
+    params['csrf_token'] = csrf_token
+    response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
+    self.assertEqual(204, response.status_code)
+
+
+  def testDataValueGreateThanMaxFails(self):
     params = {
       'category': self.test.get_memcache_keyname(),
       'results': 'apple=%s,banana=2,coconut=4' %
@@ -163,15 +177,19 @@ class TestWithData(unittest.TestCase):
     self.assertEqual(500, response.status_code)
 
 
-  def saveData(self):
+  def testDataWithTooManyKeysFails(self):
+    results_list = []
+    for i in range(models.user_test.MAX_KEY_COUNT + 1):
+      results_list.append('key%s=data%s' % (i,i))
+
     params = {
       'category': self.test.get_memcache_keyname(),
-      'results': 'apple=1,banana=2,coconut=4',
+      'results': ','.join(results_list),
     }
     csrf_token = self.client.get('/get_csrf').content
     params['csrf_token'] = csrf_token
     response = self.client.get('/beacon', params, **mock_data.UNIT_TEST_UA)
-    self.assertEqual(204, response.status_code)
+    self.assertEqual(500, response.status_code)
 
 
   def testUpdateTestMeta(self):

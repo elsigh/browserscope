@@ -83,7 +83,7 @@
 
   {% if test.test_keys %}
     <p>
-      <label for="test_keys">Test Keys:</label>
+      <label for="test_keys">Test Keys ({{ test.test_keys|length }}):</label>
       <input type="hidden" name="test_keys" id="bs-test-keys-input"
         value="{{ test.test_keys|join:"," }}">
       <ol id="bs-test-keys" class="sortable">

@@ -50,8 +50,12 @@ import settings
 
 
 def TestHowto(request):
-  params = {}
+  params = {
+    'max_value': models.user_test.MAX_VALUE,
+    'max_key_count': models.user_test.MAX_KEY_COUNT
+  }
   return util.Render(request, 'user_test_howto.html', params)
+
 
 @decorators.login_required
 @decorators.provide_check_csrf
