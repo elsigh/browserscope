@@ -42,6 +42,7 @@ from base import decorators
 from base import util
 
 from third_party.gviz import gviz_api
+from third_party.gaefy.db import pager
 
 from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
@@ -278,7 +279,9 @@ def Table(request, key):
     test_keys = fields.split(',')
   else:
     test_keys = test.test_keys
-  test_set = test.get_test_set_from_test_keys(test_keys)
+
+  test_set = test.get_test_set_from_test_keys(
+      test_keys[0:models.user_test.MAX_KEY_COUNT])
 
   params = {
     'hide_nav': True,
@@ -298,29 +301,47 @@ def Index(request):
     params = {
       'height': '400px',
       'width': 'auto',
+      'page_size': 20
     }
     return util.Render(request, 'user_tests_index.html', params)
 
 
 def FormatUserTestsAsGviz(request):
+  tq = request.GET.get('tq')
   tqx = request.GET.get('tqx')
+  limit = int(request.GET.get('limit', 20))
+  bookmark = request.GET.get('bookmark')
+  logging.info('bookmark %s' % bookmark)
+
   description = [('created', 'datetime', 'Created'),
                  ('author', 'string', 'Author'),
                  ('name', 'string', 'Test'),
-                 ('description', 'string', 'Description')]
+                 ('description', 'string', 'Description'),
+                 ('beacon_count', 'number', '# Tests')]
 
-  limit = request.get('limit', 100)
+
+  query = pager.PagerQuery(
+      models.user_test.Test).order('-beacon_count').order('-created')
+  prev_bookmark, results, next_bookmark = query.fetch(limit, bookmark)
+  if prev_bookmark is None:
+    prev_bookmark = ''
+  if next_bookmark is None:
+    next_bookmark = ''
 
   data = []
-  tests = db.Query(models.user_test.Test).order('created').fetch(limit=limit)
-  for test in tests:
+  for test in results:
     data.append([test.created,
-                 #re.sub(r'\@.+', '', test.user.email),
-                 test.user.key(),
+                 re.sub(r'\@.+', '', test.user.email),
+                 #test.user.key(),
                  '<a href="%s" target="_blank">%s</a>' % (test.url, test.name),
-                 test.description])
+                 test.description,
+                 test.beacon_count])
 
-  data_table = gviz_api.DataTable(description, data)
+  custom_properties = {
+    'prev_bookmark': prev_bookmark,
+    'next_bookmark': next_bookmark
+  }
+  data_table = gviz_api.DataTable(description, data, custom_properties)
   return data_table.ToResponse(tqx=tqx)
 
 

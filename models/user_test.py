@@ -143,7 +143,7 @@ class Test(db.Model):
   description = db.TextProperty()
   sandboxid = db.StringProperty()
   meta = db.ReferenceProperty(TestMeta)
-  beacon_count = db.IntegerProperty(indexed=True)
+  beacon_count = db.IntegerProperty(indexed=True, default=0)
   created = db.DateTimeProperty(auto_now_add=True)
   modified = db.DateTimeProperty(auto_now=True)
 

@@ -18,6 +18,26 @@ indexes:
 
 - kind: Test
   properties:
+  - name: beacon_count
+  - name: created
+  - name: __key__
+    direction: desc
+
+- kind: Test
+  properties:
+  - name: beacon_count
+  - name: created
+    direction: desc
+
+- kind: Test
+  properties:
+  - name: beacon_count
+    direction: desc
+  - name: created
+    direction: desc
+
+- kind: Test
+  properties:
   - name: user
   - name: created
 
