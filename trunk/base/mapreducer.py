@@ -30,3 +30,4 @@ def TestCountSet(entity):
   entity.beacon_count = int(
       shardedcounter.get_count(entity.get_memcache_keyname()))
   yield op.db.Put(entity)
+
