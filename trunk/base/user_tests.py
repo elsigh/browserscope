@@ -374,6 +374,8 @@ def BeaconJs(request, key):
 
   params = {
     'test_key': test.key(),
+    'test_results_var': request.GET.get(
+        'test_results_var', settings.USER_TEST_RESULTS_VAR_DEFAULT),
     'csrf_token': request.session.get('csrf_token'),
     'server': util.GetServer(request),
     'sandboxid': request.GET.get('sandboxid', ''),

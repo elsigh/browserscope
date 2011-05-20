@@ -242,6 +242,10 @@ class TestWithData(unittest.TestCase):
     # There should be no sandboxid in the page.
     self.assertFalse(re.search('sandboxid', response.content))
 
+    # There test_result_var name should be the default.
+    self.assertTrue(re.search(settings.USER_TEST_RESULTS_VAR_DEFAULT,
+                               response.content))
+
     # Now test a beacon with a callback specified.
     # This is a regex test ensuring it's there in a setTimeout.
     params = {'callback': 'MyFunction', 'sandboxid': 'foobar'}
@@ -251,6 +255,17 @@ class TestWithData(unittest.TestCase):
         response.content))
     self.assertTrue(re.search("'sandboxid': '%s'" % params['sandboxid'],
         response.content))
+
+    # Now test a test_results_var specified.
+    params = {'test_results_var': 'MyFunkyVar'}
+    response = self.client.get('/user/beacon/%s' % self.test.key(), params)
+    self.assertEquals('text/javascript', response['Content-type'])
+
+    # The default should not be present, but our custom one should.
+    self.assertFalse(re.search(settings.USER_TEST_RESULTS_VAR_DEFAULT,
+                               response.content))
+    self.assertTrue(re.search('MyFunkyVar', response.content))
+
 
   def testBeaconResultsTableGvizData(self):
     self.saveData()
