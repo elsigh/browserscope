@@ -3,18 +3,18 @@
 
     var test_key = '{{ test_key }}';
     var csrf_token = '{{ csrf_token }}';
-    if (!_bTestResults) {
-      alert('var _bTestResults is empty, so no Browserscope ' +
+    if (!{{ test_results_var }}) {
+      alert('window.{{ test_results_var }} is empty, so no Browserscope ' +
             'data beacon will happen.');
       return;
     }
     var results = [];
-    for (var key in _bTestResults) {
-      var val = _bTestResults[key];
+    for (var key in {{ test_results_var }}) {
+      var val = {{ test_results_var }}[key];
       results.push(key + '=' + val);
     }
     if (!results.length) {
-      alert('var _bTestResults is empty, so no Browserscope ' +
+      alert('{{ test_results_var }} is empty, so no Browserscope ' +
             'data beacon will happen.');
       return;
     }
