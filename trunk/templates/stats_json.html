@@ -2,21 +2,15 @@
   "category": "{{ category }}",
   "category_name": "{{ category_name }}",
   "v": "{{ v }}",
-  "results": [
-    {% for user_agent in user_agents %}
-      { "{{ user_agent }}": {
-        "score": "{{ stats|by_key:user_agent|by_key:"summary_score"|scale_100_to_10 }}",
-        "score_display": "{{ stats|by_key:user_agent|by_key:"summary_display" }}",
-        "results": [
-          {% for test in tests %}
-            {"{{ test.key }}": {
-              "display": "{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"display" }}",
-              "score": "{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"score"|scale_100_to_10 }}"
-            }}{% if forloop.last %}{% else %}, {% endif %}
-          {% endfor %}
-        ]
+  "results": {{% for user_agent in user_agents %}
+      "{{ user_agent }}": {
+        "count": "{{ stats|by_key:user_agent|by_key:"total_runs"|default:0 }}",
+        "results": {{% for test in tests %}
+          "{{ test.key }}": {
+            "result": "{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"display" }}"
+          }{% if forloop.last %}{% else %}, {% endif %}
+        {% endfor %}}
       }
-    }{% if forloop.last %}{% else %}, {% endif %}
-    {% endfor %}
-  ]
+    {% if forloop.last %}{% else %}, {% endif %}
+  {% endfor %}}
 }{% if callback %});{% endif %}

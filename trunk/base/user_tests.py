@@ -309,7 +309,7 @@ def Index(request):
 def FormatUserTestsAsGviz(request):
   tq = request.GET.get('tq')
   tqx = request.GET.get('tqx')
-  limit = int(request.GET.get('limit', 20))
+  limit = int(request.GET.get('limit', 10))
   bookmark = request.GET.get('bookmark')
   logging.info('bookmark %s' % bookmark)
 
@@ -317,6 +317,7 @@ def FormatUserTestsAsGviz(request):
                  ('author', 'string', 'Author'),
                  ('name', 'string', 'Test'),
                  ('description', 'string', 'Description'),
+                 ('results', 'string', 'Results'),
                  ('beacon_count', 'number', '# Tests')]
 
 
@@ -333,8 +334,9 @@ def FormatUserTestsAsGviz(request):
     data.append([test.created,
                  re.sub(r'\@.+', '', test.user.email),
                  #test.user.key(),
-                 '<a href="%s" target="_blank">%s</a>' % (test.url, test.name),
+                 '<a href="%s">%s</a>' % (test.url, test.name),
                  test.description,
+                 '<a href="/user/tests/table/%s">Table</a>' % test.key(),
                  test.beacon_count])
 
   custom_properties = {
