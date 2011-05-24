@@ -8,7 +8,7 @@
       <th>Timestamp</th>
       <th>UA</th>
       <th>IP Address (md5)</th>
-      {% for test_key in test_keys %}
+      {% for test_key in f %}
         <th>{{ test_key }}</th>
       {% endfor %}
     </tr>
@@ -22,7 +22,7 @@
         </td>
         <td>{{ result_parent.ip }}</td>
         {% with result_parent.GetResults as results %}
-          {% for test_key in test_keys %}
+          {% for test_key in f %}
             <td title="{{ test_key }}">{{ results|by_key:test_key }}</td>
           {% endfor %}
         {% endwith %}
@@ -31,7 +31,7 @@
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="{{ test_keys|length|add:3 }}">
+      <td colspan="{{ f|length|add:3 }}">
         {% if prev_bookmark %}
           <a href="/browse?category={{ category }}&bookmark={{ prev_bookmark }}"
             >&lt; Prev</a>

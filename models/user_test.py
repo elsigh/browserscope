@@ -167,6 +167,10 @@ class Test(db.Model):
   def delete_memcache(self):
     memcache.delete(self.get_memcache_keyname())
 
+  def get_test_set(self):
+    return self.get_test_set_from_test_keys(
+        self.test_keys[0:MAX_KEY_COUNT])
+
   def get_test_set_tests_from_test_keys(self, test_keys):
     test_set_tests = []
     for test_key in test_keys:
@@ -260,7 +264,7 @@ class Test(db.Model):
   def get_test_set_from_category(category):
     test = Test.get_test_from_category(category)
     if test:
-      return test.get_test_set_from_test_keys(test.test_keys)
+      return test.get_test_set()
     else:
       return None
 

@@ -274,22 +274,14 @@ def Table(request, key):
     msg = 'No test was found with test_key %s.' % key
     return http.HttpResponseServerError(msg)
 
-  fields = request.GET.get('f')
-  if fields:
-    test_keys = fields.split(',')
-  else:
-    test_keys = test.test_keys
-
-  test_set = test.get_test_set_from_test_keys(
-      test_keys[0:models.user_test.MAX_KEY_COUNT])
-
   params = {
     'hide_nav': True,
     'hide_footer': True,
     'test': test,
   }
 
-  return util.GetResults(request, 'user_test_table.html', params, test_set)
+  return util.GetResults(request, 'user_test_table.html', params,
+                         test.get_test_set())
 
 
 def Index(request):
