@@ -62,6 +62,7 @@ bsResultsTable.prototype.load = function() {
       'ua={{ ua_params }}&' +
       'v={{ v }}&' +
       'o=gviz_data&' +
+      'f={{ f }}&' +
       'highlight={{ highlight }}&' +
       'score={{ score }}&' +
       'tqx=reqId:0';

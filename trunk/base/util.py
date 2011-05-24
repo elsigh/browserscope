@@ -398,6 +398,7 @@ def GetResults(request, template=None, params={}, test_set=None):
     'v': request.GET.get('v', 'top'),
     'output': output,
     'ua_params': request.GET.get('ua', ''),
+    'f': request.GET.get('f', ''),
     'w': request.REQUEST.get('w', ''),
     'h': request.REQUEST.get('h', ''),
     'highlight': request.REQUEST.get('highlight', ''),
@@ -498,7 +499,7 @@ def BrowseResults(request):
     'next_bookmark': next_bookmark,
     'results': results,
     'test_set': test_set,
-    'test_keys': test_keys,
+    'f': test_keys,
     'category': category,
   }
   return Render(request, 'browse.html', params)
@@ -807,15 +808,12 @@ def Return204Script(request):
   return http.HttpResponse('<html><script src="/204"></script></html>')
 
 
-def GetStats(request, test_set, output='html', opt_tests=None,
-             use_memcache=True):
+def GetStats(request, test_set, output='html'):
   """Returns the stats table.
   Args:
     request: a request object.
     test_set: a TestSet instance.
     output: Output type html or pickle or else you get a dict of params.
-    opt_tests: list of tests.
-    use_memcache: Use memcache or not.
   """
 
   category = test_set.category
@@ -825,7 +823,15 @@ def GetStats(request, test_set, output='html', opt_tests=None,
   browser_param = request.GET.get('ua')
   results_str = GetResultUriString(request, category)
 
-  visible_test_keys = [t.key for t in test_set.VisibleTests()]
+  use_memcache = True
+  override_memcache = request.GET.get('mem') == '0'
+  if override_memcache:
+    use_memcache = False
+
+  if request.GET.get('f'):
+    visible_test_keys = request.GET.get('f').split(',')
+  else:
+    visible_test_keys = [t.key for t in test_set.VisibleTests()]
 
   browsers = browser_param and browser_param.split(',') or None
   if browsers and '*' in browser_param:
@@ -856,6 +862,7 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     if category == 'summary':
       stats_data = result_stats.SummaryStatsManager.GetStats(browsers)
     else:
+      # This is the most likely scenario.
       stats_data = result_stats.CategoryStatsManager.GetStats(
           test_set, browsers, visible_test_keys, use_memcache=use_memcache)
   # If the output is pickle, we are done and need to return a string.
@@ -898,8 +905,8 @@ def GetStats(request, test_set, output='html', opt_tests=None,
       js_user_agent_v2=js_user_agent_v2,
       js_user_agent_v3=js_user_agent_v3).pretty()
 
-  logging.info('CURRENT BROWSER: "%s", "%s", "%s"' % (current_browser,
-      js_user_agent_string, current_user_agent_string))
+  #logging.info('CURRENT BROWSER: "%s", "%s", "%s"' % (current_browser,
+  #    js_user_agent_string, current_user_agent_string))
 
   # Set current_browser to one in browsers or add it if not found.
   for browser in browsers:
@@ -945,10 +952,14 @@ def GetStats(request, test_set, output='html', opt_tests=None,
     browser_stats['current_score'] = current_stats['summary_score']
     browser_stats['current_display'] = current_stats['summary_display']
 
+  tests = []
+  for test_key in visible_test_keys:
+    tests.append(test_set.GetTest(test_key))
+
   params = {
     'category': category,
     'category_name': test_set.category_name,
-    'tests': opt_tests or test_set.VisibleTests(),
+    'tests': tests,
     'is_user_test': models.user_test.Test.is_user_test_category(category),
     'v': version_level,
     'output': output,
@@ -1046,7 +1057,6 @@ def FormatStatsDataAsGviz(params, tqx):
       # they don't implement a test_set scoring algorithm.
       # TODO(elsigh): consider just populating score in get stats.
       if params['is_user_test']:
-        logging.info('display: %s' % display)
         score = 0
         if display:
           score = int(display)
