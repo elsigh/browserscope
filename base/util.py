@@ -828,10 +828,7 @@ def GetStats(request, test_set, output='html'):
   if override_memcache:
     use_memcache = False
 
-  if request.GET.get('f'):
-    visible_test_keys = request.GET.get('f').split(',')
-  else:
-    visible_test_keys = [t.key for t in test_set.VisibleTests()]
+  visible_test_keys = [t.key for t in test_set.VisibleTests()]
 
   browsers = browser_param and browser_param.split(',') or None
   if browsers and '*' in browser_param:
@@ -952,8 +949,14 @@ def GetStats(request, test_set, output='html'):
     browser_stats['current_score'] = current_stats['summary_score']
     browser_stats['current_display'] = current_stats['summary_display']
 
+  # The tests here are what determines that which we display in output.
+  # TODO(elsigh): we could shard stats memcache by test_keys.
   tests = []
-  for test_key in visible_test_keys:
+  test_keys = visible_test_keys
+  result_test_keys = request.GET.get('f')
+  if result_test_keys:
+    test_keys = result_test_keys.split(',')
+  for test_key in test_keys:
     tests.append(test_set.GetTest(test_key))
 
   params = {
