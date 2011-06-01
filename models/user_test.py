@@ -26,6 +26,7 @@ from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext import deferred
 
+from base import custom_filters
 from categories import test_set_base
 
 import settings
@@ -46,7 +47,6 @@ class KeyTooMany(Exception):
   pass
 
 
-
 class User(db.Model):
   email = db.StringProperty()
   created = db.DateTimeProperty(auto_now_add=True)
@@ -55,6 +55,16 @@ class User(db.Model):
 
 class TestSet(test_set_base.TestSet):
   def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
+    """Get a normalized score (0 to 100) and a value to output to the display.
+
+    Args:
+      test_key: a key for a test_set test.
+      raw_scores: a dict of raw_scores indexed by test keys.
+    Returns:
+      score, display_value
+          # score is from 0 to 100.
+          # display_value is the text for the cell.
+    """
     #logging.info('GetTestScoreAndDisplayValue, %s, %s' % (test_key, raw_scores))
     score = 0
     raw_score = raw_scores.get(test_key, None)
@@ -65,11 +75,12 @@ class TestSet(test_set_base.TestSet):
       if raw_score != '':
         test = Test.get_test_from_category(self.category)
         score = test.get_score_from_display(test_key, raw_score)
-        # If we don't have an interesting min/max we'll be nice and go 10.
+        # If we don't have an interesting min/max we'll be go green.
         if score == 0:
-          score = 10
+          score = 100
         #logging.info('SCOOOOORE: %s' % score)
-    return score, str(raw_score)
+    display_value = custom_filters.group_thousands(str(raw_score))
+    return score, display_value
 
   def GetRowScoreAndDisplayValue(self, results):
     """There's no row/summary score in a User Test."""
