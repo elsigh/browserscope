@@ -1029,7 +1029,7 @@ def FormatStatsDataAsGviz(params, tqx):
     if params['is_user_test'] and params['score']:
       summary_score = 80
 
-    # Start with summary score to possibly give the cell a bg color.
+    # Start with summary score to possibly give the UA cell a bg color.
     if summary_score:
       highlight_class_name = ''
       if params['highlight']:
@@ -1055,16 +1055,8 @@ def FormatStatsDataAsGviz(params, tqx):
         continue
       score = test_result.get('score')
       display = test_result.get('display')
+      #logging.info('SCORE: %s, DISPLAY: %s' % (score, display))
       p = {}
-      # User tests don't have "score" set, they only have display because
-      # they don't implement a test_set scoring algorithm.
-      # TODO(elsigh): consider just populating score in get stats.
-      if params['is_user_test']:
-        score = 0
-        if display:
-          score = int(display)
-        # This needs to use min_value,max_value to get turned into 0-100
-        display = custom_filters.group_thousands(display)
       if params['highlight']:
         score_to_base10 = custom_filters.scale_100_to_10(score)
         p = {'className': 'rt-t-s-%s' % score_to_base10}

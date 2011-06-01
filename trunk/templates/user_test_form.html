@@ -30,7 +30,8 @@
 
 {% block body %}
 
-<img src="/static/img/stethoscope.png" height="256" width="256" align="right" vspace="10" hspace="20" alt="">
+<img src="/static/img/stethoscope.png" height="256" width="256"
+  align="right" vspace="10" hspace="20" alt="">
 
 <h1>Test</h1>
 
@@ -88,7 +89,9 @@
         value="{{ test.test_keys|join:"," }}">
       <ol id="bs-test-keys" class="sortable">
         {% for test_key in test.test_keys %}
-          <li id="bs-test_key-{{ test_key }}">{{ test_key }}</li>
+          <li id="bs-test_key-{{ test_key }}">
+            {{ test_key }}
+          </li>
         {% endfor %}
       </ol>
     </p>

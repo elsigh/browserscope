@@ -273,7 +273,7 @@ class TestWithData(unittest.TestCase):
         {'category': 'usertest_%s' % self.test.key(), 'v': '3'},
         **mock_data.UNIT_TEST_UA)
     self.assertEqual(200, response.status_code)
-    self.assertEqual("google.visualization.Query.setResponse({'version':'0.6', 'reqId':'0', 'status':'OK', 'table': {cols:[{id:'ua',label:'UserAgent',type:'string'},{id:'apple',label:'apple',type:'number'},{id:'banana',label:'banana',type:'number'},{id:'coconut',label:'coconut',type:'number'},{id:'numtests',label:'# Tests',type:'number'}],rows:[{c:[{v:'other',f:'Other',p:{'className':'rt-ua-cur'}},{v:1,f:'1',p:{}},{v:2,f:'2',p:{}},{v:4,f:'4',p:{}},{v:1}]}]}});",
+    self.assertEqual("google.visualization.Query.setResponse({'version':'0.6', 'reqId':'0', 'status':'OK', 'table': {cols:[{id:'ua',label:'UserAgent',type:'string'},{id:'apple',label:'apple',type:'number'},{id:'banana',label:'banana',type:'number'},{id:'coconut',label:'coconut',type:'number'},{id:'numtests',label:'# Tests',type:'number'}],rows:[{c:[{v:'other',f:'Other',p:{'className':'rt-ua-cur'}},{v:100,f:'1',p:{}},{v:100,f:'2',p:{}},{v:100,f:'4',p:{}},{v:1}]}]}});",
         response.content)
 
 
@@ -387,17 +387,15 @@ class TestAliasedUserTest(unittest.TestCase):
     self.assertEqual(204, response.status_code)
 
   def testResultStats(self):
-    # Score is 10 because we give the first score a 10
-    # see user_test.py line 55
     stats = {
       'Other': {
          'summary_display': '',
          'total_runs': 1,
          'summary_score': 0,
          'results': {
-            'apple': {'score': 10, 'raw_score': 1, 'display': '1'},
-            'banana': {'score': 10, 'raw_score': 2, 'display': '2'},
-            'coconut': {'score': 10, 'raw_score': 4, 'display': '4'},
+            'apple': {'score': 100, 'raw_score': 1, 'display': '1'},
+            'banana': {'score': 100, 'raw_score': 2, 'display': '2'},
+            'coconut': {'score': 100, 'raw_score': 4, 'display': '4'},
          }
       },
       'total_runs': 1,
