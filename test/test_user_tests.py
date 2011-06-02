@@ -151,13 +151,11 @@ class TestWithData(unittest.TestCase):
     self.test.save()
 
 
-
-
   def saveData(self):
     """Other tests call this function to save simple data."""
     params = {
       'category': self.test.get_memcache_keyname(),
-      'results': 'apple=1,banana=2,coconut=4',
+      'results': 'apple=1,banana=20000,coconut=400000',
     }
     csrf_token = self.client.get('/get_csrf').content
     params['csrf_token'] = csrf_token
@@ -273,7 +271,8 @@ class TestWithData(unittest.TestCase):
         {'category': 'usertest_%s' % self.test.key(), 'v': '3'},
         **mock_data.UNIT_TEST_UA)
     self.assertEqual(200, response.status_code)
-    self.assertEqual("google.visualization.Query.setResponse({'version':'0.6', 'reqId':'0', 'status':'OK', 'table': {cols:[{id:'ua',label:'UserAgent',type:'string'},{id:'apple',label:'apple',type:'number'},{id:'banana',label:'banana',type:'number'},{id:'coconut',label:'coconut',type:'number'},{id:'numtests',label:'# Tests',type:'number'}],rows:[{c:[{v:'other',f:'Other',p:{'className':'rt-ua-cur'}},{v:100,f:'1',p:{}},{v:100,f:'2',p:{}},{v:100,f:'4',p:{}},{v:1}]}]}});",
+    # Note that gviz data has thousands formatted with commas.
+    self.assertEqual("google.visualization.Query.setResponse({'version':'0.6', 'reqId':'0', 'status':'OK', 'table': {cols:[{id:'ua',label:'UserAgent',type:'string'},{id:'apple',label:'apple',type:'number'},{id:'banana',label:'banana',type:'number'},{id:'coconut',label:'coconut',type:'number'},{id:'numtests',label:'# Tests',type:'number'}],rows:[{c:[{v:'other',f:'Other',p:{'className':'rt-ua-cur'}},{v:100,f:'1',p:{}},{v:100,f:'20,000',p:{}},{v:100,f:'400,000',p:{}},{v:1}]}]}});",
         response.content)
 
 
@@ -393,9 +392,9 @@ class TestAliasedUserTest(unittest.TestCase):
          'total_runs': 1,
          'summary_score': 0,
          'results': {
-            'apple': {'score': 100, 'raw_score': 1, 'display': '1'},
-            'banana': {'score': 100, 'raw_score': 2, 'display': '2'},
-            'coconut': {'score': 100, 'raw_score': 4, 'display': '4'},
+            'apple': {'score': 100, 'raw_score': 1, 'display': 1},
+            'banana': {'score': 100, 'raw_score': 2, 'display': 2},
+            'coconut': {'score': 100, 'raw_score': 4, 'display': 4},
          }
       },
       'total_runs': 1,
