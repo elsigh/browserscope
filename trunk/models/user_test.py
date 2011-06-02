@@ -79,8 +79,7 @@ class TestSet(test_set_base.TestSet):
         if score == 0:
           score = 100
         #logging.info('SCOOOOORE: %s' % score)
-    display_value = custom_filters.group_thousands(str(raw_score))
-    return score, display_value
+    return score, raw_score
 
   def GetRowScoreAndDisplayValue(self, results):
     """There's no row/summary score in a User Test."""

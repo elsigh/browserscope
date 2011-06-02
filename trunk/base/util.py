@@ -1060,6 +1060,8 @@ def FormatStatsDataAsGviz(params, tqx):
       if params['highlight']:
         score_to_base10 = custom_filters.scale_100_to_10(score)
         p = {'className': 'rt-t-s-%s' % score_to_base10}
+      if params['is_user_test']:
+        display = custom_filters.group_thousands(str(display))
       row_data.append((score, display, p))
 
     # Total runs.
