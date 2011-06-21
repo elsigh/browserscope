@@ -711,12 +711,12 @@ Util.ResultTable.prototype.init = function() {
 
 Util.ResultTable.prototype.initGvizLine = function() {
   google.load('visualization', '1',
-      {'packages': ['linechart'],
+      {'packages': ['corechart'],
        'callback': goog.bind(this.initGvizLineReady, this)});
 };
 
 Util.ResultTable.prototype.initGvizLineReady = function() {
-  url = goog.uri.utils.setParam(this.controller.url, 'o', 'gviz_data');
+  url = goog.uri.utils.setParam(this.controller.url, 'o', 'gviz_table_data');
   url = goog.uri.utils.appendParam(url, 'tqx',
       'reqId:' + Math.floor(Math.random() * 100000));
   //url = 'http://elsigh.latest.ua-profiler.appspot.com' + url;
