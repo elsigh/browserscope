@@ -36,7 +36,7 @@ var COMPILED = false;
  *
  * @const
  */
-var goog = goog || {};
+var goog = goog || {}; // Identifies this file as the Closure base.
 
 
 /**
@@ -2080,9 +2080,7 @@ goog.string.unescapeEntities = function(str) {
     // We are careful not to use a DOM if we do not have one. We use the []
     // notation so that the JSCompiler will not complain about these objects and
     // fields in the case where we have no DOM.
-    // If the string contains < then there could be a script tag in there and in
-    // that case we fall back to a non DOM solution as well.
-    if ('document' in goog.global && !goog.string.contains(str, '<')) {
+    if ('document' in goog.global) {
       return goog.string.unescapeEntitiesUsingDom_(str);
     } else {
       // Fall back on pure XML entities
@@ -2094,32 +2092,42 @@ goog.string.unescapeEntities = function(str) {
 
 
 /**
- * Unescapes an HTML string using a DOM. Don't use this function directly, it
- * should only be used by unescapeEntities. If used directly you will be
- * vulnerable to XSS attacks.
+ * Unescapes an HTML string using a DOM to resolve non-XML, non-numeric
+ * entities. This function is XSS-safe and whitespace-preserving.
  * @private
  * @param {string} str The string to unescape.
  * @return {string} The unescaped {@code str} string.
  */
 goog.string.unescapeEntitiesUsingDom_ = function(str) {
-  // Use a DIV as FF3 generates bogus markup for A > PRE.
-  var el = goog.global['document']['createElement']('div');
-  // Wrap in PRE to preserve whitespace in IE.
-  // The PRE must be part of the innerHTML markup,
-  // just setting innerHTML on a PRE element does not work.
-  // Also include a leading character since conforming HTML5
-  // UAs will strip leading newlines inside a PRE element.
-  el['innerHTML'] = '<pre>x' + str + '</pre>';
-  // Accesing the function directly triggers some virus scanners.
-  if (el['firstChild'][goog.string.NORMALIZE_FN_]) {
-    el['firstChild'][goog.string.NORMALIZE_FN_]();
-  }
-  // Remove the leading character we added.
-  str = el['firstChild']['firstChild']['nodeValue'].slice(1);
-  el['innerHTML'] = '';
-  // IE will also return non-standard newlines for TextNode.nodeValue,
-  // switching \r and \n, so canonicalize them before returning.
-  return goog.string.canonicalizeNewlines(str);
+  var seen = {'&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"'};
+  var div = goog.global['document']['createElement']('div');
+  // Match as many valid entity characters as possible. If the actual entity
+  // happens to be shorter, it will still work as innerHTML will return the
+  // trailing characters unchanged. Since the entity characters do not include
+  // open angle bracket, there is no chance of XSS from the innerHTML use.
+  // Since no whitespace is passed to innerHTML, whitespace is preserved.
+  return str.replace(goog.string.HTML_ENTITY_PATTERN_, function(s, entity) {
+    // Check for cached entity.
+    var value = seen[s];
+    if (value) {
+      return value;
+    }
+    // Check for numeric entity.
+    if (entity.charAt(0) == '#') {
+      // Prefix with 0 so that hex entities (e.g. &#x10) parse as hex numbers.
+      var n = Number('0' + entity.substr(1));
+      if (!isNaN(n)) {
+        value = String.fromCharCode(n);
+      }
+    }
+    // Fall back to innerHTML otherwise.
+    if (!value) {
+      div['innerHTML'] = s;
+      value = div['firstChild']['nodeValue'];
+    }
+    // Cache and return.
+    return seen[s] = value;
+  });
 };
 
 
@@ -2142,6 +2150,7 @@ goog.string.unescapePureXmlEntities_ = function(str) {
         return '"';
       default:
         if (entity.charAt(0) == '#') {
+          // Prefix with 0 so that hex entities (e.g. &#x10) parse as hex.
           var n = Number('0' + entity.substr(1));
           if (!isNaN(n)) {
             return String.fromCharCode(n);
@@ -2155,12 +2164,12 @@ goog.string.unescapePureXmlEntities_ = function(str) {
 
 
 /**
- * String name for the node.normalize function. Anti-virus programs use this as
- * a signature for some viruses so we need a work around (temporary).
+ * Regular expression that matches an HTML entity.
+ * See also HTML5: Tokenization / Tokenizing character references.
  * @private
- * @type {string}
+ * @type {RegExp}
  */
-goog.string.NORMALIZE_FN_ = 'normalize';
+goog.string.HTML_ENTITY_PATTERN_ = /&([^;\s<&]+);?/g;
 
 
 /**
@@ -2247,7 +2256,7 @@ goog.string.truncateMiddle = function(str, chars,
     str = goog.string.unescapeEntities(str);
   }
 
-  if (opt_trailingChars) {
+  if (opt_trailingChars && str.length > chars) {
     if (opt_trailingChars > chars) {
       opt_trailingChars = chars;
     }
@@ -2382,7 +2391,7 @@ goog.string.escapeChar = function(c) {
  * @param {string} s The string to build the map from.
  * @return {Object} The map of characters used.
  */
-// TODO(user): It seems like we should have a generic goog.array.toMap. But do
+// TODO(arv): It seems like we should have a generic goog.array.toMap. But do
 //            we want a dependency on goog.array in goog.string?
 goog.string.toMap = function(s) {
   var rv = {};
@@ -8611,6 +8620,20 @@ goog.dom.DomHelper.prototype.getAncestorByTagNameAndClass =
 
 
 /**
+ * Walks up the DOM hierarchy returning the first ancestor that has the passed
+ * class name. If the passed element matches the specified criteria, the
+ * element itself is returned.
+ * @param {Node} element The DOM node to start with.
+ * @param {?string=} opt_class The class name to match (or null/undefined to
+ *     match any node regardless of class name).
+ * @return {Node} The first ancestor that matches the passed criteria, or
+ *     null if none match.
+ */
+goog.dom.DomHelper.prototype.getAncestorByClass =
+    goog.dom.getAncestorByClass;
+
+
+/**
  * Walks up the DOM hierarchy returning the first ancestor that passes the
  * matcher function.
  * @param {Node} element The DOM node to start with.
@@ -10345,7 +10368,7 @@ goog.events.pools.getProxy;
 
 /**
  * Sets the callback function to use in the proxy.
- * @param {Function} cb The callback function to use.
+ * @param {function(string, (Event|undefined))} cb The callback function to use.
  */
 goog.events.pools.setProxyCallbackFunction;
 
@@ -10490,7 +10513,7 @@ goog.events.pools.releaseEvent;
     };
 
     goog.events.pools.getEvent = function() {
-      return /** @type {goog.events.BrowserEvent} */ (eventPool.getObject());
+      return /** @type {!goog.events.BrowserEvent} */ (eventPool.getObject());
     };
 
     goog.events.pools.releaseEvent = function(obj) {
@@ -12533,6 +12556,60 @@ goog.structs.every = function(col, f, opt_obj) {
   }
   return true;
 };
+// Copyright 2011 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Defines the collection interface.
+ *
+ */
+
+goog.provide('goog.structs.Collection');
+
+
+
+/**
+ * An interface for a collection of values.
+ * @interface
+ */
+goog.structs.Collection = function() {};
+
+
+/**
+ * @param {*} value Value to add to the collection.
+ */
+goog.structs.Collection.prototype.add;
+
+
+/**
+ * @param {*} value Value to remove from the collection.
+ */
+goog.structs.Collection.prototype.remove;
+
+
+/**
+ * @param {*} value Value to find in the tree.
+ * @return {boolean} Whether the collection contains the specified value.
+ */
+goog.structs.Collection.prototype.contains;
+
+
+/**
+ * @return {number} The number of values stored in the collection.
+ */
+goog.structs.Collection.prototype.getCount;
+
 // Copyright 2007 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13634,6 +13711,7 @@ goog.structs.Map.hasKey_ = function(obj, key) {
 goog.provide('goog.structs.Set');
 
 goog.require('goog.structs');
+goog.require('goog.structs.Collection');
 goog.require('goog.structs.Map');
 
 
@@ -13650,6 +13728,7 @@ goog.require('goog.structs.Map');
  * identify objects, every object in the set will be mutated.
  * @param {Array|Object=} opt_values Initial values to start with.
  * @constructor
+ * @implements {goog.structs.Collection}
  */
 goog.structs.Set = function(opt_values) {
   this.map_ = new goog.structs.Map;
@@ -13792,7 +13871,7 @@ goog.structs.Set.prototype.intersection = function(col) {
 
 /**
  * Returns an array containing all the elements in this set.
- * @return {Array} An array containing all the elements in this set.
+ * @return {!Array} An array containing all the elements in this set.
  */
 goog.structs.Set.prototype.getValues = function() {
   return this.map_.getValues();
@@ -16080,7 +16159,14 @@ goog.net.HttpStatus = {
   BAD_GATEWAY: 502,
   SERVICE_UNAVAILABLE: 503,
   GATEWAY_TIMEOUT: 504,
-  HTTP_VERSION_NOT_SUPPORTED: 505
+  HTTP_VERSION_NOT_SUPPORTED: 505,
+
+  /*
+   * IE returns this code for 204 due to its use of URLMon, which returns this
+   * code for 'Operation Aborted'. The status text is 'Unknown', the response
+   * headers are ''. Known to occur on IE 6 on XP through IE9 on Win7.
+   */
+  QUIRK_IE_NO_CONTENT: 1223
 };
 // Copyright 2010 The Closure Library Authors. All Rights Reserved.
 //
@@ -16730,6 +16816,9 @@ goog.net.xhrMonitor = new goog.net.XhrMonitor_();
 
 goog.provide('goog.uri.utils');
 goog.provide('goog.uri.utils.ComponentIndex');
+goog.provide('goog.uri.utils.QueryArray');
+goog.provide('goog.uri.utils.QueryValue');
+goog.provide('goog.uri.utils.StandardQueryParam');
 
 goog.require('goog.asserts');
 goog.require('goog.string');
@@ -18505,6 +18594,7 @@ goog.net.XhrIo.prototype.isSuccess = function() {
     case goog.net.HttpStatus.OK:
     case goog.net.HttpStatus.NO_CONTENT:
     case goog.net.HttpStatus.NOT_MODIFIED:
+    case goog.net.HttpStatus.QUIRK_IE_NO_CONTENT:
       return true;
 
     default:
@@ -18962,7 +19052,10 @@ goog.Uri.prototype.toString = function() {
       out.push('/');
     }
     out.push(goog.Uri.encodeSpecialChars_(
-        this.path_, goog.Uri.reDisallowedInPath_));
+        this.path_,
+        this.path_.charAt(0) == '/' ?
+            goog.Uri.reDisallowedInAbsolutePath_ :
+            goog.Uri.reDisallowedInRelativePath_));
   }
 
   var query = String(this.queryData_);
@@ -19729,11 +19822,19 @@ goog.Uri.reDisallowedInSchemeOrUserInfo_ = /[#\/\?@]/g;
 
 
 /**
- * Regular expression for characters that are disallowed in the path.
+ * Regular expression for characters that are disallowed in a relative path.
  * @type {RegExp}
  * @private
  */
-goog.Uri.reDisallowedInPath_ = /[\#\?]/g;
+goog.Uri.reDisallowedInRelativePath_ = /[\#\?:]/g;
+
+
+/**
+ * Regular expression for characters that are disallowed in an absolute path.
+ * @type {RegExp}
+ * @private
+ */
+goog.Uri.reDisallowedInAbsolutePath_ = /[\#\?]/g;
 
 
 /**
@@ -26676,13 +26777,38 @@ goog.positioning.CornerBit = {
  * @enum {number}
  */
 goog.positioning.Overflow = {
+  /** Ignore overflow */
   IGNORE: 0,
+
+  /** Try to fit horizontally in the viewport at all costs. */
   ADJUST_X: 1,
+
+  /** If the element can't fit horizontally, report positioning failure. */
   FAIL_X: 2,
+
+  /** Try to fit vertically in the viewport at all costs. */
   ADJUST_Y: 4,
+
+  /** If the element can't fit vertically, report positioning failure. */
   FAIL_Y: 8,
+
+  /** Resize the element's width to fit in the viewport. */
   RESIZE_WIDTH: 16,
-  RESIZE_HEIGHT: 32
+
+  /** Resize the element's height to fit in the viewport. */
+  RESIZE_HEIGHT: 32,
+
+  /**
+   * If the anchor goes off-screen in the x-direction, position the movable
+   * element off-screen. Otherwise, try to fit horizontally in the viewport.
+   */
+  ADJUST_X_EXCEPT_OFFSCREEN: 64 | 1,
+
+  /**
+   * If the anchor goes off-screen in the y-direction, position the movable
+   * element off-screen. Otherwise, try to fit vertically in the viewport.
+   */
+  ADJUST_Y_EXCEPT_OFFSCREEN: 128 | 4
 };
 
 
@@ -26909,7 +27035,7 @@ goog.positioning.positionAtCoordinate = function(absolutePos,
                                                    movableElementCorner);
   var elementSize = goog.style.getSize(movableElement);
   var size = opt_preferredSize ? opt_preferredSize.clone() :
-      elementSize;
+      elementSize.clone();
 
   if (opt_margin || corner != goog.positioning.Corner.TOP_LEFT) {
     if (corner & goog.positioning.CornerBit.RIGHT) {
@@ -26926,10 +27052,9 @@ goog.positioning.positionAtCoordinate = function(absolutePos,
 
   // Adjust position to fit inside viewport.
   if (opt_overflow) {
-    status = opt_viewport ? goog.positioning.adjustForViewport(absolutePos,
-                                                               size,
-                                                               opt_viewport,
-                                                               opt_overflow) :
+    status = opt_viewport ?
+        goog.positioning.adjustForViewport(
+            absolutePos, size, opt_viewport, opt_overflow) :
         goog.positioning.OverflowStatus.FAILED_OUTSIDE_VIEWPORT;
     if (status & goog.positioning.OverflowStatus.FAILED) {
       return status;
@@ -26962,6 +27087,19 @@ goog.positioning.positionAtCoordinate = function(absolutePos,
  */
 goog.positioning.adjustForViewport = function(pos, size, viewport, overflow) {
   var status = goog.positioning.OverflowStatus.NONE;
+
+  var ADJUST_X_EXCEPT_OFFSCREEN =
+      goog.positioning.Overflow.ADJUST_X_EXCEPT_OFFSCREEN;
+  var ADJUST_Y_EXCEPT_OFFSCREEN =
+      goog.positioning.Overflow.ADJUST_Y_EXCEPT_OFFSCREEN;
+  if ((overflow & ADJUST_X_EXCEPT_OFFSCREEN) == ADJUST_X_EXCEPT_OFFSCREEN &&
+      (pos.x < viewport.left || pos.x >= viewport.right)) {
+    overflow &= ~goog.positioning.Overflow.ADJUST_X;
+  }
+  if ((overflow & ADJUST_Y_EXCEPT_OFFSCREEN) == ADJUST_Y_EXCEPT_OFFSCREEN &&
+      (pos.y < viewport.top || pos.y >= viewport.bottom)) {
+    overflow &= ~goog.positioning.Overflow.ADJUST_Y;
+  }
 
   // Left edge outside viewport, try to move it.
   if (pos.x < viewport.left && overflow & goog.positioning.Overflow.ADJUST_X) {
@@ -27361,6 +27499,7 @@ goog.positioning.AbsolutePosition.prototype.reposition = function(
 
 goog.provide('goog.positioning.AnchoredViewportPosition');
 
+goog.require('goog.functions');
 goog.require('goog.math.Box');
 goog.require('goog.positioning');
 goog.require('goog.positioning.AnchoredPosition');
@@ -27408,6 +27547,18 @@ goog.inherits(goog.positioning.AnchoredViewportPosition,
 
 
 /**
+ * @return {number} A bitmask for the "last resort" overflow. Only takes affect
+ *     when {@code opt_adjusted} in the constructor is enabled.
+ * @protected
+ */
+goog.positioning.AnchoredViewportPosition.prototype.getLastResortOverflow =
+    function() {
+  return goog.positioning.Overflow.ADJUST_X |
+      goog.positioning.Overflow.ADJUST_Y;
+};
+
+
+/**
  * Repositions the movable element.
  *
  * @param {Element} movableElement Element to position.
@@ -27416,6 +27567,7 @@ goog.inherits(goog.positioning.AnchoredViewportPosition,
  * @param {goog.math.Box=} opt_margin A margin specified in pixels.
  * @param {goog.math.Size=} opt_preferredSize The preferred size of the
  *     movableElement.
+ * @override
  */
 goog.positioning.AnchoredViewportPosition.prototype.reposition = function(
     movableElement, movableCorner, opt_margin, opt_preferredSize) {
@@ -27452,8 +27604,7 @@ goog.positioning.AnchoredViewportPosition.prototype.reposition = function(
       if (this.adjust_) {
         goog.positioning.positionAtAnchor(this.element, this.corner,
             movableElement, movableCorner, null, opt_margin,
-            goog.positioning.Overflow.ADJUST_X |
-            goog.positioning.Overflow.ADJUST_Y, opt_preferredSize);
+            this.getLastResortOverflow(), opt_preferredSize);
 
       // Or display it anyway at the preferred position, if the adjust option
       // was not enabled.
@@ -28002,6 +28153,8 @@ goog.require('goog.userAgent');
  * @param {goog.ui.PopupBase.Type=} opt_type Type of popup.
  */
 goog.ui.PopupBase = function(opt_element, opt_type) {
+  goog.events.EventTarget.call(this);
+
   /**
    * An event handler to manage the events easily
    * @type {goog.events.EventHandler}

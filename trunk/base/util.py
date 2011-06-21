@@ -1060,7 +1060,7 @@ def FormatStatsDataAsGviz(params, tqx):
             custom_filters.scale_100_to_10(summary_score))
 
       # User agent here includes the summary score coloration.
-      ua_p = {'className': [ua_class_name, highlight_class_name].join(' ')}
+      ua_p = {'className': ' '.join([ua_class_name, highlight_class_name])}
       row_data.append((user_agent.lower(), user_agent, ua_p))
 
       # Summary score, optionally highlighted.
