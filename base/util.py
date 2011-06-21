@@ -443,20 +443,42 @@ def GvizTableData(request):
 
 def BrowserTimeLine(request):
   category = request.GET.get('category', 'summary')
+  user_agent_dict = {
+    'Firefox': ['2.0', '3.0', '3.5', '3.6', '4.0.1',],
+    'IE': ['6.0', '7.0', '8.0', '9.0'],
+    'Chrome': ['1.0', '2.0', '3.0', '4.0', '5.0', '6.0', '7.0', '8.0',
+               '9.0', '10.0', '11.0', '12.0'],
+    'Safari': ['3.0', '4.0', '5.0'],
+    'Opera': ['7.0', '8.0', '9.0', '9.64', '10.63', '11.11']
+  }
 
-  uas = ('Firefox 2.0', 'Firefox 3.0', 'Firefox 3.5', 'Firefox 3.6',
-         'Firefox Beta 4.0b6',
-         'IE 6.0', 'IE 7.0', 'IE 8.0',
-         'IE Platform Preview 9.0.6',
-         'Chrome 1.0', 'Chrome 2.0', 'Chrome 3.0', 'Chrome 4.0', 'Chrome 5.0',
-         'Chrome 6.0', 'Chrome 7.0', 'Chrome 8.0',
-         'Safari 3.0', 'Safari 4.0', 'Safari 5.0',
-         'Opera 7.0', 'Opera 8.0', 'Opera 9.0', 'Opera 9.64', 'Opera 10.63')
+  user_agents = []
+  for family, version_list in user_agent_dict.items():
+    for version in version_list:
+      family_version = '%s %s' % (family, version)
+      user_agents.append(family_version)
+  test_set = all_test_sets.GetTestSet(category)
+  stats = GetStats(request, test_set, output='dict', user_agents=user_agents)
+
+  timeline_stats_dict = {}
+  for family, version_list in user_agent_dict.items():
+    timeline_stats_dict[family] = []
+    for version in version_list:
+      family_version = '%s %s' % (family, version)
+      score = stats['stats'][family_version]['summary_score']
+      release_date = user_agent_release_dates.ReleaseDate(family, version)
+      timeline_stats_dict[family].append({
+          'family_version': family_version,
+          'release_date': release_date,
+          'score': score})
+
   params = {
-      'category': category,
-      'ua': request.GET.get('ua', ','.join(uas)),
-      'page_title': 'Browser Time Line',
-    }
+    'category': category,
+    'timeline_stats_dict': timeline_stats_dict,
+    'user_agents': user_agents,
+    'stats': stats,
+    'page_title': 'Browser Time Line',
+  }
   return Render(request, 'timeline.html', params)
 
 
@@ -808,19 +830,20 @@ def Return204Script(request):
   return http.HttpResponse('<html><script src="/204"></script></html>')
 
 
-def GetStats(request, test_set, output='html'):
+def GetStats(request, test_set, output='html', user_agents=[]):
   """Returns the stats table.
   Args:
     request: a request object.
     test_set: a TestSet instance.
     output: Output type html or pickle or else you get a dict of params.
+    user_agents: A list of user agents.
   """
 
   category = test_set.category
   logging.info('GetStats for %s' % category)
   version_level = request.GET.get('v', 'top')
   is_skip_static = request.GET.get('sc')  # 'sc' for skip cache
-  browser_param = request.GET.get('ua')
+  browser_param = request.GET.get('ua', ','.join(user_agents))
   results_str = GetResultUriString(request, category)
 
   use_memcache = True
@@ -1221,7 +1244,7 @@ def UpdateDatastore(request):
   #   return http.HttpResponse('All Done!')
 
   # # Do something with user_agent here.
-  # user_agent.family = 'IE Platform Preview'
+  # user_agent.family = 'Platform Preview'
   # user_agent.save()
 
   query = db.Query(models.user_test.Test)

@@ -61,6 +61,7 @@ IE,2008-08-27,8.0 Beta 2
 IE,2008-12-11,8.0 Pre-RC1
 IE,2009-01-26,8.0 RC1
 IE,2009-03-19,8.0
+IE,2011-03-14,9.0
 IE Platform Preview,2010-10-28,9.0.6
 IE Platform Preview,2009-11-17,9.0.7
 """
@@ -204,6 +205,7 @@ Opera,2009-11-23,10.10
 Opera,2010-02-11,10.50 beta 1
 Opera,2010-02-24,10.50 beta 2
 Opera,2010-10-12,10.63
+Opera,2011-05-18,11.11
 """
 
 FIREFOX_CSV = """Product,Date,Version
@@ -350,6 +352,7 @@ Firefox,2010-02,3.6.2
 Firefox,2010-03,3.6.x
 Firefox,2010-02-10,3.7a1
 Firefox,2010-03,3.7a2
+Firefox,2011-04-28,4.0.1
 Firefox Beta,2010-09,4.0b6
 Firefox Beta,2010-10,4.0b7
 """
@@ -574,6 +577,11 @@ Chrome,2010-05-25,5.0
 Chrome,2010-09-02,6.0
 Chrome,2010-10-21,7.0
 Chrome,2010-11-22,8.0
+Chrome,2011-02-03,9.0
+Chrome,2011-03-08,10.0
+Chrome,2011-04-27,11.0
+Chrome,2011-06-07,12.0
+Chrome,2011-06-09,13.0
 """
 
 CHROME_TEST = """0.2.149

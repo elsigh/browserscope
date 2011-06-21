@@ -35,7 +35,7 @@ MAX_KEY_COUNT = 100
 MAX_KEY_LENGTH = 200
 # This value turns out to be key for aliasing, meaning we need to be
 # sure that aliased test sets use it when defining their tests.
-MAX_VALUE = 1000000
+MAX_VALUE = 1000000000000
 
 class KeyTooLong(Exception):
   """Indicates that one of the keys is too damn long."""
@@ -75,9 +75,6 @@ class TestSet(test_set_base.TestSet):
       if raw_score != '':
         test = Test.get_test_from_category(self.category)
         score = test.get_score_from_display(test_key, raw_score)
-        # If we don't have an interesting min/max we'll be go green.
-        if score == 0:
-          score = 100
         #logging.info('SCOOOOORE: %s' % score)
     return score, raw_score
 
@@ -208,7 +205,7 @@ class Test(db.Model):
     meta = TestMeta.get_mem_by_test(self)
     #logging.info('get_score_from_display meta:%s' % meta)
     if not hasattr(meta, '%s_min_value' % test_key):
-      value_on_100_scale = 0
+      value_on_100_scale = 100  # Default to green if no min yet.
     else:
       test_min_value = getattr(meta, '%s_min_value' % test_key)
       test_max_value = getattr(meta, '%s_max_value' % test_key)

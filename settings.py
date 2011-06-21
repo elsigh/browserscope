@@ -25,13 +25,10 @@ USER_TEST_RESULTS_VAR_DEFAULT = '_bTestResults'
 
 APP_TITLE = 'Browserscope'
 APPEND_SLASH = False
-ADMINS = (('Lindsey Simon', 'elsigh@gmail.com'),
-          #('Stephen', 'steve.lamm@gmail.com'),
-          )
+ADMINS = (('Lindsey Simon', 'elsigh@gmail.com'))
 MANAGERS = ADMINS
 DEFAULT_FROM_EMAIL = 'elsigh@gmail.com'
 SERVER_EMAIL = 'elsigh@gmail.com'
-#DATABASE_ENGINE = 'appengine'
 TIME_ZONE = 'UTC'
 LANGUAGE_CODE = 'en-us'
 SITE_ID = 1
@@ -43,11 +40,8 @@ TEMPLATE_LOADERS = (
   'django.template.loaders.app_directories.load_template_source'
 )
 MIDDLEWARE_CLASSES = (
-  # For AppEngine AppStats.
-  #'google.appengine.ext.appstats.recording.AppStatsDjangoMiddleware',
   'django.middleware.common.CommonMiddleware',
   'django.contrib.sessions.middleware.SessionMiddleware',
-  #'base.middleware.ExceptionMiddleware',
 )
 TEMPLATE_CONTEXT_PROCESSORS = (
   'django.core.context_processors.debug'
