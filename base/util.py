@@ -451,7 +451,7 @@ def BrowserTimeLine(request):
     'Chrome': ['1.0', '2.0', '3.0', '4.0', '5.0', '6.0', '7.0', '8.0',
                '9.0', '10.0', '11.0', '12.0', '13.0'],
     'Safari': ['3.0', '4.0', '5.0'],
-    'Opera': ['7.0', '8.54', '9.0', '9.7', '10.63', '11.11']
+    'Opera': ['7.0', '8.54', '9.0', '9.64', '10.63', '11.11']
   }
 
   user_agents = []
@@ -473,6 +473,8 @@ def BrowserTimeLine(request):
           'family_version': family_version,
           'release_date': release_date,
           'score': score})
+
+  logging.info('tsd: %s' % timeline_stats_dict)
 
   params = {
     'category': category,
