@@ -10,6 +10,11 @@
 
   <div id="bs-rt-{{ category }}">
   </div>
+  {% if is_admin %}
+    <a href="/clear_memcache?category={{ category }}&v={{ v }}&continue={{ request_path|urlencode }}" class="bs-admin">clearmem</a>
+  {% else %}
+    foo
+  {% endif %}
 </div>
 
 {% ifequal output "js" %}{% else %}

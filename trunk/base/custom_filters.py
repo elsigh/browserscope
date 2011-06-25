@@ -128,5 +128,5 @@ def scale_100_to_10(value):
   if value == 0:
     return 0
   else:
-    return max(1, int(value) / 10)
+    return max(1, min(10, int(value) / 10))
 

@@ -1,0 +1,6 @@
+/* TEAM */
+  Chef: Lindsey Simon
+  Cook: Stephen Lamm
+  Producer: Steve Souders
+  Twitter: @browserscope
+  From: Bay Area, California

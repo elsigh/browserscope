@@ -79,8 +79,33 @@ class TestSet(test_set_base.TestSet):
     return score, raw_score
 
   def GetRowScoreAndDisplayValue(self, results):
-    """There's no row/summary score in a User Test."""
-    return 0, ''
+    """Get the overall score for this row of results data.
+    Args:
+      results: {
+          'test_key_1': {'score': score_1, 'raw_score': raw_score_1, ...},
+          'test_key_2': {'score': score_2, 'raw_score': raw_score_2, ...},
+          ...
+          }
+    Returns:
+      score, display_value
+          # score is from 0 to 100.
+          # display_value is the text for the cell.
+    """
+    # Right now this is only implemented as a boolean scorer.
+    #logging.info('GetRowScoreAndDisplayValue %s' % results)
+    total_tests = 0
+    total_score = 0
+    for test in self.VisibleTests():
+      if results[test.key]['raw_score'] is not None:
+        total_tests += 1
+        total_score += results[test.key]['raw_score']
+    if total_tests:
+      score = int(round(100.0 * total_score / total_tests))
+      display = '%s/%s' % (total_score, total_tests)
+    else:
+      score = 0
+      display = ''
+    return score, display
 
   def ParseResults(self, results_str, ignore_key_errors=False):
     test_scores = [x.split('=') for x in str(results_str).split(',')]
@@ -209,10 +234,11 @@ class Test(db.Model):
     else:
       test_min_value = getattr(meta, '%s_min_value' % test_key)
       test_max_value = getattr(meta, '%s_max_value' % test_key)
+      #logging.info('min: %s, max: %s' % (test_min_value, test_max_value))
       numerator = int(display) - test_min_value
       divisor = test_max_value - test_min_value
       if numerator < 1 or divisor < 1:
-        value_on_100_scale = 0
+        value_on_100_scale = 1  # Make it red
       else:
         value_on_100_scale = int((float(numerator)/float(divisor)) * 100)
     #logging.info('USER TEST get_score_from_display %s: %s, %s, %s, %s = %s' %
