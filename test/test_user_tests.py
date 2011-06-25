@@ -388,9 +388,9 @@ class TestAliasedUserTest(unittest.TestCase):
   def testResultStats(self):
     stats = {
       'Other': {
-         'summary_display': '',
+         'summary_display': '7/3',
          'total_runs': 1,
-         'summary_score': 0,
+         'summary_score': 233,
          'results': {
             'apple': {'score': 100, 'raw_score': 1, 'display': 1},
             'banana': {'score': 100, 'raw_score': 2, 'display': 2},

@@ -396,8 +396,10 @@ def GetResults(request, template=None, params={}, test_set=None):
     'server': GetServer(request),
     'results_params': '&'.join(results_params),
     'v': request.GET.get('v', 'top'),
+    'is_admin': users.is_current_user_admin(),
     'output': output,
     'ua_params': request.GET.get('ua', ''),
+    'mem': request.REQUEST.get('mem', ''),
     'f': request.GET.get('f', ''),
     'w': request.REQUEST.get('w', ''),
     'h': request.REQUEST.get('h', ''),
@@ -444,12 +446,12 @@ def GvizTableData(request):
 def BrowserTimeLine(request):
   category = request.GET.get('category', 'summary')
   user_agent_dict = {
-    'Firefox': ['2.0', '3.0', '3.5', '3.6', '4.0.1',],
+    'Firefox': ['2.0', '3.0', '3.5', '3.6', '4.0.1', '5.0'],
     'IE': ['6.0', '7.0', '8.0', '9.0'],
     'Chrome': ['1.0', '2.0', '3.0', '4.0', '5.0', '6.0', '7.0', '8.0',
-               '9.0', '10.0', '11.0', '12.0'],
+               '9.0', '10.0', '11.0', '12.0', '13.0'],
     'Safari': ['3.0', '4.0', '5.0'],
-    'Opera': ['7.0', '8.0', '9.0', '9.64', '10.63', '11.11']
+    'Opera': ['7.0', '8.54', '9.0', '9.7', '10.63', '11.11']
   }
 
   user_agents = []
@@ -849,6 +851,7 @@ def GetStats(request, test_set, output='html', user_agents=[]):
   use_memcache = True
   override_memcache = request.GET.get('mem') == '0'
   if override_memcache:
+    logging.info('Override use_memcache')
     use_memcache = False
 
   visible_test_keys = [t.key for t in test_set.VisibleTests()]
@@ -1045,15 +1048,14 @@ def FormatStatsDataAsGviz(params, tqx):
     if user_agent == params['current_user_agent']:
       ua_class_name = 'rt-ua-cur'
 
-    # This summary score is for native Browserscope tests only.
     summary_score = row_stats.get('summary_score')
-    # User tests can in fact have a summary score, it's just a simple
-    # addition / total if requested.
-    if params['is_user_test'] and params['score']:
-      summary_score = 80
+    summary_display = row_stats.get('summary_display')
+
+    if params['is_user_test'] and params['score'] == '':
+      summary_score = None
 
     # Start with summary score to possibly give the UA cell a bg color.
-    if summary_score:
+    if summary_score is not None and summary_display is not None:
       highlight_class_name = ''
       if params['highlight']:
         highlight_class_name = ('rt-t-s-%s' %
@@ -1065,7 +1067,8 @@ def FormatStatsDataAsGviz(params, tqx):
 
       # Summary score, optionally highlighted.
       score_p = {'className': highlight_class_name}
-      row_data.append((summary_score, '%s/100' % summary_score, score_p))
+      #row_data.append((summary_score, '%s/100' % summary_score, score_p))
+      row_data.append((summary_score, summary_display, score_p))
     else:
       ua_p = {'className': ua_class_name}
       row_data.append((user_agent.lower(), user_agent, ua_p))
@@ -1078,7 +1081,6 @@ def FormatStatsDataAsGviz(params, tqx):
         continue
       score = test_result.get('score')
       display = test_result.get('display')
-      #logging.info('SCORE: %s, DISPLAY: %s' % (score, display))
       p = {}
       if params['highlight']:
         score_to_base10 = custom_filters.scale_100_to_10(score)

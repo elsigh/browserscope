@@ -16,6 +16,7 @@
 from google.appengine.api import memcache
 from google.appengine.ext import db
 import random
+import time
 
 NAMESPACE = 'sc'
 
@@ -52,17 +53,24 @@ def increment(name):
   Parameters:
     name - The name of the counter
   """
-  config = GeneralCounterShardConfig.get_or_insert(name, name=name)
-  def txn():
-    index = random.randint(0, config.num_shards - 1)
-    shard_name = name + str(index)
-    counter = GeneralCounterShard.get_by_key_name(shard_name)
-    if counter is None:
-      counter = GeneralCounterShard(key_name=shard_name, name=name)
-    counter.count += 1
-    counter.put()
-  db.run_in_transaction(txn)
-  memcache.incr(name, namespace=NAMESPACE)
+  attempt = 0
+  while attempt < 3:
+    try:
+      config = GeneralCounterShardConfig.get_or_insert(name, name=name)
+      def txn():
+        index = random.randint(0, config.num_shards - 1)
+        shard_name = name + str(index)
+        counter = GeneralCounterShard.get_by_key_name(shard_name)
+        if counter is None:
+          counter = GeneralCounterShard(key_name=shard_name, name=name)
+        counter.count += 1
+        counter.put()
+      db.run_in_transaction(txn)
+      memcache.incr(name, namespace=NAMESPACE)
+      break
+    except:
+      attempt += 1
+      time.sleep(.2)
 
 
 def increase_shards(name, num):
