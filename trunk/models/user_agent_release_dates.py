@@ -23,6 +23,43 @@ import datetime
 import csv
 import logging
 
+
+#http://en.wikipedia.org/wiki/Android_version_history
+ANDROID_CSV = """Product,Date,Version
+Android,2008-09-23,1.0
+Android,2009-02-09,1.1
+Android,2009-04-30,1.5
+Android,2009-09-15,1.6
+Android,2009-10-26,2.0
+Android,2009-10-26,2.1
+Android,2010-05-20,2.2
+Android,2010-12-06,2.3
+Android,2011-02-22,3.0
+Android,2011-02-22,3.1
+Android,2011-10-10,4.0
+"""
+
+IPHONE_CSV = """Product,Date,Version
+iPhone,2008-07-11,2.0
+iPhone,2008-09-09,2.1
+iPhone,2008-11-21,2.2
+iPhone,2009-06-17,3.0
+iPhone,2009-09-09,3.1
+iPhone,2010-02-02,3.1.3
+iPhone,2010-06-21,4.0
+iPhone,2010-09-08,4.1
+iPhone,2010-11-22,4.2
+iPhone,2011-03-09,4.3
+iPhone,2011-05-04,4.3.3
+iPhone,2011-10-01,5.0
+"""
+
+IPAD_CSV = """Product,Date,Version
+iPad,2010-04-03,3.2
+iPad,2010-07-15,3.2.1
+iPad,2010-08-11,3.2.2
+"""
+
 IE_CSV = """Product,Date,Version
 IE,1995-08,1.0
 IE,1996-01,1.5
@@ -122,7 +159,10 @@ Safari,2009-08-11,4.0.3,531.9,Mac OS X
 Safari,2009-08-11,4.0.3,531.9.1,Windows
 Safari,2009-11-11,4.0.4,531.21.10,Mac OS X
 Safari,2009-11-11,4.0.4,531.21.10,Windows
+Safari,2010-06-07,4.1,533.16,Mac OS X
 Safari,2010-06-07,5.0,531.21.10,Mac OS X
+Safari,2011-04-14,5.0.5,533.21.1,Mac OS X
+Safari,2011-06-07,5.1,534.42,Mac OS X
 """
 
 OPERA_CSV = """Product,Date,Version
@@ -568,7 +608,7 @@ Chrome,2010-03-05,5.0.342.2,Dev
 """
 # NOTE - See where the list starts above a 0.2? This is a shorter
 # version of this list that is useful for the default timeline.
-CHROME_FOO_CSV ="""Product,Date,Version
+CHROME_LIMITED_CSV ="""Product,Date,Version
 Chrome,2008-09-08,0.2
 Chrome,2008-12-11,1.0
 Chrome,2009-05-24,2.0
@@ -786,7 +826,7 @@ def ParseSafariReleaseCsv(csv_data):
 releases = ParseReleaseCsv(IE_CSV)
 releases.update(ParseReleaseCsv(FIREFOX_CSV))
 releases.update(ParseReleaseCsv(OPERA_CSV))
-releases.update(ParseReleaseCsv(CHROME_FOO_CSV))
+releases.update(ParseReleaseCsv(CHROME_LIMITED_CSV))
 releases.update(ParseSafariReleaseCsv(SAFARI_CSV))
 releases.update(ParseChromeReleaseCsv(CHROME_CSV))
 def ReleaseDate(browser, version):

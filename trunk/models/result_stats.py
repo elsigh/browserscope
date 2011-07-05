@@ -29,6 +29,8 @@ from models.user_agent import UserAgent
 BROWSER_NAV = (
   # version_level, label
   ('top', 'Top Browsers'),
+  ('top-d', 'Top Desktop'),
+  ('top-m', 'Top Mobile'),
   ('0', 'Browser Families'),
   ('1', 'Major Versions'),
   ('2', 'Minor Versions'),
@@ -36,7 +38,7 @@ BROWSER_NAV = (
 )
 
 TOP_BROWSERS = (
-  'Android 2.2', 'Android 2.3',
+  'Android 2.3',
   'Chrome 11', 'Chrome 12', 'Chrome 13',
   'Firefox 3.6', 'Firefox 4', 'Firefox 5',
   'IE 8', 'IE 9',
@@ -46,13 +48,14 @@ TOP_BROWSERS = (
 )
 
 TOP_MOBILE_BROWSERS = (
-  'Android 2.2',
+  'Android 2.3',
   'Blackberry 9700',
   'iPad 4.04',
   'iPhone 3.1', 'iPhone 4.2',
   'Nokia 95',
   'Nokia 5800',
   'Opera Mobile 10.00',
+  'Opera Mobile 11.00',
   'Palm Pre 1.1',
 )
 
