@@ -2,7 +2,7 @@
 
 {% block body %}
 
-<div id="container"></div>
+<div id="bs-timeline" style="height: 600px"></div>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
 <script src="/static/highcharts.js"></script>
 <script>
@@ -10,7 +10,7 @@ var chart;
 $(document).ready(function() {
     chart = new Highcharts.Chart({
         chart: {
-          renderTo: 'container',
+          renderTo: 'bs-timeline',
           zoomType: 'x',
           type: 'spline'
         },

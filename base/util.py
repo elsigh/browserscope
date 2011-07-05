@@ -444,12 +444,12 @@ def GvizTableData(request):
 
 
 DEFAULT_TIMELINE_DICT = {
-  'Firefox': ['2.0', '3.0', '3.5', '3.6', '4.0.1', '5.0'],
-  'IE': ['6.0', '7.0', '8.0', '9.0'],
-  'Chrome': ['1.0', '2.0', '3.0', '4.0', '5.0', '6.0', '7.0', '8.0',
-             '9.0', '10.0', '11.0', '12.0', '13.0'],
-  'Safari': ['1.0', '3.1', '4.1', '5.0', '5.0.5'],
-  'Opera': ['7.0', '8.54', '9.64', '10.63', '11.11']
+  'Firefox': ['2', '3', '3.5', '3.6', '4.0.1', '5'],
+  'IE': ['6', '7', '8', '9'],
+  'Chrome': ['1', '2', '3', '4', '5', '6', '7', '8',
+             '9', '10', '11', '12', '13'],
+  'Safari': ['1', '3.1', '4.1', '5', '5.0.5'],
+  'Opera': ['7', '8.54', '9.64', '10.63', '11.11']
 }
 def BrowserTimeLine(request):
   category = request.GET.get('category', 'summary')
@@ -466,8 +466,10 @@ def BrowserTimeLine(request):
     user_agents = user_agents.split(',')
     user_agent_dict = {}
     for user_agent in user_agents:
-      (family, v1, v2, v3) = models.user_agent.parse_pretty(user_agent)
+      (family, v1, v2, v3) = (models.user_agent.UserAgent.
+                              parse_pretty(user_agent))
       if not user_agent_dict.has_key(family):
+        logging.info('Adding family: %s' % family)
         user_agent_dict[family] = []
       version = user_agent.replace('%s ' % family, '')
       user_agent_dict[family].append(version)

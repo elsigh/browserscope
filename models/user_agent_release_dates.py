@@ -22,6 +22,7 @@ TODO(slamm): Find newer release dates via browserscope data.
 import datetime
 import csv
 import logging
+import re
 
 
 #http://en.wikipedia.org/wiki/Android_version_history
@@ -785,6 +786,10 @@ def ParseReleaseCsv(csv_data):
       date_params += [1] * max(0, min(2, 3 - len(date_params)))
       date = datetime.date(*date_params)
       releases[(browser, version)] = date
+      # Adds a stripped version, i.e. 5 for 5.0.
+      if re.search('\.0$', version):
+        stripped = version.replace('.0', '')
+        releases[(browser, stripped)] = date
   return releases
 
 
@@ -820,6 +825,10 @@ def ParseSafariReleaseCsv(csv_data):
     if browser != 'Product':
       date = datetime.date(*map(int, date_str.split('-')))
       releases[(browser, version)] = date
+      # Adds a stripped version, i.e. 5 for 5.0.
+      if re.search('\.0$', version):
+        stripped = version.replace('.0', '')
+        releases[(browser, stripped)] = date
   return releases
 
 
