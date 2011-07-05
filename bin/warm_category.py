@@ -86,19 +86,6 @@ def main(argv):
 
         response = get_response_until_200(1)
 
-        extension = 'html'
-        if output == 'xhr':
-          extension = 'html'
-        elif output == 'pickle':
-          extension = 'py'
-
-        filename = ('../static_mode/%s_%s.%s' %
-                    (category, version_level, extension))
-        f = open(filename, 'w')
-        print 'Opened %s' % filename
-        html = response.read()
-        f.write(html)
-        f.close()
         print 'Done.\n'
 
 

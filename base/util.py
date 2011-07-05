@@ -443,22 +443,35 @@ def GvizTableData(request):
   return http.HttpResponse(formatted_gviz_table_data)
 
 
+DEFAULT_TIMELINE_DICT = {
+  'Firefox': ['2.0', '3.0', '3.5', '3.6', '4.0.1', '5.0'],
+  'IE': ['6.0', '7.0', '8.0', '9.0'],
+  'Chrome': ['1.0', '2.0', '3.0', '4.0', '5.0', '6.0', '7.0', '8.0',
+             '9.0', '10.0', '11.0', '12.0', '13.0'],
+  'Safari': ['1.0', '3.1', '4.1', '5.0', '5.0.5'],
+  'Opera': ['7.0', '8.54', '9.64', '10.63', '11.11']
+}
 def BrowserTimeLine(request):
   category = request.GET.get('category', 'summary')
-  user_agent_dict = {
-    'Firefox': ['2.0', '3.0', '3.5', '3.6', '4.0.1', '5.0'],
-    'IE': ['6.0', '7.0', '8.0', '9.0'],
-    'Chrome': ['1.0', '2.0', '3.0', '4.0', '5.0', '6.0', '7.0', '8.0',
-               '9.0', '10.0', '11.0', '12.0', '13.0'],
-    'Safari': ['3.0', '4.0', '5.0'],
-    'Opera': ['7.0', '8.54', '9.0', '9.64', '10.63', '11.11']
-  }
+  user_agents = request.GET.get('ua')
 
-  user_agents = []
-  for family, version_list in user_agent_dict.items():
-    for version in version_list:
-      family_version = '%s %s' % (family, version)
-      user_agents.append(family_version)
+  if not user_agents:
+    user_agents = []
+    user_agent_dict = DEFAULT_TIMELINE_DICT
+    for family, version_list in user_agent_dict.items():
+      for version in version_list:
+        family_version = '%s %s' % (family, version)
+        user_agents.append(family_version)
+  else:
+    user_agents = user_agents.split(',')
+    user_agent_dict = {}
+    for user_agent in user_agents:
+      (family, v1, v2, v3) = models.user_agent.parse_pretty(user_agent)
+      if not user_agent_dict.has_key(family):
+        user_agent_dict[family] = []
+      version = user_agent.replace('%s ' % family, '')
+      user_agent_dict[family].append(version)
+
   test_set = all_test_sets.GetTestSet(category)
   stats = GetStats(request, test_set, output='dict', user_agents=user_agents)
 
@@ -469,12 +482,16 @@ def BrowserTimeLine(request):
       family_version = '%s %s' % (family, version)
       score = stats['stats'][family_version]['summary_score']
       release_date = user_agent_release_dates.ReleaseDate(family, version)
-      timeline_stats_dict[family].append({
-          'family_version': family_version,
-          'release_date': release_date,
-          'score': score})
+      #logging.info('RELEASE DATE %s' % release_date)
+      if release_date:
+        timeline_stats_dict[family].append({
+            'family_version': family_version,
+            'release_date': release_date,
+            'score': score})
+      else:
+        logging.critical('Unable to get a release date for %s %s' %
+                     (family, version))
 
-  logging.info('tsd: %s' % timeline_stats_dict)
 
   params = {
     'category': category,

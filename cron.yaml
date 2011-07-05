@@ -2,9 +2,18 @@ cron:
 - description: Recache uncached stats.
   url: /admin/update_all_uncached_stats
   schedule: every 30 minutes
+
 - description: Reload the stats cache.
   url: /admin/update_all_stats_cache
   schedule: every 24 hours
+
+- description: Modernizr2 v1 cache warmer
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBib2KQGDA&v=1&o=gviz_data
+  schedule: every 5 minutes
+
+- description: Modernizr2 v2 cache warmer
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBib2KQGDA&v=2&o=gviz_data
+  schedule: every 5 minutes
 
 #- description: Clean up any straggling dirty ResultTime's.
 #  url: /admin/update_dirty
