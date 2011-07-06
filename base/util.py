@@ -483,6 +483,9 @@ def BrowserTimeLine(request):
     for version in version_list:
       family_version = '%s %s' % (family, version)
       score = stats['stats'][family_version]['summary_score']
+      if score == 0:
+        logging.info('Not including a score of 0.')
+        continue
       release_date = user_agent_release_dates.ReleaseDate(family, version)
       #logging.info('RELEASE DATE %s' % release_date)
       if release_date:
@@ -497,6 +500,7 @@ def BrowserTimeLine(request):
 
   params = {
     'category': category,
+    'category_name': test_set.category_name,
     'timeline_stats_dict': timeline_stats_dict,
     'user_agents': user_agents,
     'stats': stats,
