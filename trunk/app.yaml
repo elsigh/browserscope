@@ -19,8 +19,9 @@ version: 8     # 8 is the current default.
 runtime: python
 api_version: 1
 
-derived_file_type:
-- python_precompiled
+builtins:
+- remote_api: on
+- appstats: on
 
 # Magic skip configuration, do not edit.
 skip_files: |
@@ -48,12 +49,6 @@ handlers:
 
 - url: /mapreduce(/.*)?
   script: mapreduce/main.py
-  login: admin
-
-# For Bulk Up/Downloading
-- url: /remote_api
-  script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
-  login: admin
 
 # Static: Gaebar
 - url: /gaebar/static
@@ -201,10 +196,6 @@ handlers:
 - url: /_ah/queue/deferred
   script: $PYTHON_LIB/google/appengine/ext/deferred/handler.py
   login: admin
-
-# App Stats
-#- url: /stats.*
- # script: $PYTHON_LIB/google/appengine/ext/appstats/ui.py
 
 # Map anything that doesn't match to our Django bootstrapper.
 - url: /.*

@@ -57,35 +57,39 @@ document.getElementsByTagName('head')[0].appendChild(uasi_script{{ parse_service
 </script>
 
 <div>
-<form>
-<table style="margin: 1ex; padding: 1ex; border: 2px solid #AAA" cellspacing=0 cellpadding=0 class="bs-table">
-<tr>
-<td>Browser:<input type=text name=browser value="{{ search_browser }}"><br>
-<small>(e.g. Safari 3.2, Firefox 3, Chrome)</small>
-</td>
-<td>&nbsp;</td>
-<td>
+  <div style="float: right; border: 2px solid #77F; padding:1em;">
+    ? = Unconfirmed<br>
+    &#10004; = Confirmed<br>
+    <img width=13 height=13 alt=Delete
+      src="http://www.google.com/reader/ui/2513649784-icon-unsubscribe.png">
+      = Trash
+  </div>
 
-<!--<label for="unconfirmed">
-  <input name=unconfirmed id=unconfirmed type=checkbox{% if search_unconfirmed %} checked{% endif %}> unconfirmed<br>
-</label>-->
-<label for="confirmed">
-  <input name=confirmed id=confirmed type=checkbox{% if search_confirmed %} checked{% endif %}> confirmed<br>
-</label>
-<label for="changed">
-  <input name=changed id=changed type=checkbox{% if search_changed %} checked{% endif %}> changed
-</label>
-</td>
-<td>&nbsp;</td>
-<td><input type=submit name=search value="Search"></td>
-</tr>
-</form>
+  <form>
+    <table style="margin: 1ex; padding: 1ex; border: 2px solid #AAA" cellspacing=0 cellpadding=0 class="bs-table">
+      <tr>
+        <td>
+          Browser:<input type=text name=browser value="{{ search_browser }}"><br>
+          <small>(e.g. Safari 3.2, Firefox 3, Chrome)</small>
+        </td>
+        <td>&nbsp;</td>
+        <td>
 
-<div style="float: right; border: 2px solid #77F; padding:1em;">
-? = Unconfirmed<br>
-&#10004; = Confirmed<br>
-<img width=13 height=13 alt=Delete src="http://www.google.com/reader/ui/2513649784-icon-unsubscribe.png"> = Trash
-</div>
+          <!--<label for="unconfirmed">
+            <input name=unconfirmed id=unconfirmed type=checkbox{% if search_unconfirmed %} checked{% endif %}> unconfirmed<br>
+          </label>-->
+          <label for="confirmed">
+            <input name=confirmed id=confirmed type=checkbox{% if search_confirmed %} checked{% endif %}> confirmed<br>
+          </label>
+          <label for="changed">
+            <input name=changed id=changed type=checkbox{% if search_changed %} checked{% endif %}> changed
+          </label>
+        </td>
+        <td>&nbsp;</td>
+        <td><input type=submit name=search value="Search"></td>
+      </tr>
+    </table>
+  </form>
 </div>
 
 <style>
@@ -102,60 +106,71 @@ th.action-icon { text-align: center; }
 </style>
 
 <form id=ua-form>
-<table class="user-agents" border=1>
-<tr><td colspan=9><big><b>User Agents</b></big></td></tr>
-<tr>
-  <th class=action-icon>?</th>
-  <th class=action-icon>&#10004;</th>
-  <th>Change</th>
-  <th class=action-icon><img width=13 height=13 alt=Delete src="http://www.google.com/reader/ui/2513649784-icon-unsubscribe.png"></th>
-  <th>Parsed Browser</th>
-  <th><small>useragentstring.com</small></th>
-  <th><small>user-agent-string.info</small></th>
-  <th>User Agent</th>
-  <th>JS UA</th>
-</tr>
-{% for user_agent in user_agents %}
-{% with user_agent.key as ua_key %}
-<tr>
-  <td class="unconfirm"><input name=ac_{{ ua_key }} value=unconfirm
-    type=radio {% if not user_agent.confirmed %} checked{% endif %}
-    onclick="updateChangeTextBox(this);"></td>
-  <td class="confirm"><input name=ac_{{ ua_key }} value=confirm
-    type=radio {% if user_agent.confirmed %} checked{% endif %}
-    onclick="updateChangeTextBox(this);"></td>
-  <td class="change" nowrap=1><input name=ac_{{ ua_key }} value=change
-    type=radio
-    onclick="updateChangeTextBox(this);"></td><!--TODO put changed value as last parameter and possibly add 'checked'. Put changed value without textbox. Double-click to edit. -->
-  <td class="delete"><input name=ac_{{ ua_key }} value=delete
-    type=radio onclick="updateChangeTextBox(this);"></td>
-  <td id=pb_{{ ua_key }} nowrap=1>{{ user_agent.pretty }}</td>
-  <td nowrap=1 id=uasc_{{ forloop.counter }}><!-- TODO port parse service to GAE --></td>
-  <td nowrap=1 id=uasi_{{ forloop.counter }}><!-- TODO port parse service to GAE --></td>
-  <td class="wrap">
-    <small>{{ user_agent.string }}</small>
-    <!--{% for is_match, substring in user_agent.match_strings %}{% if is_match %}<span class='uamatch'>{% endif %}{{ substring}}{% if is_match %}</span>{% endif %}{% endfor %}-->
-  </td>
-  <td class="wrap">
-    <small>{{ user_agent.js_user_agent_string }}</small>
-  </td>
-</tr>
-{% endwith %}
-{% endfor %}
-</table>
-<p>
-<a href="" onclick="confirmAll(); return false;">Check Unconfirmed</a>
-&nbsp;
-<input type=reset onclick="resetAll();" value="Reset">
+  <table class="user-agents" border=1>
+    <tr>
+      <td colspan="10">
+        <big><b>User Agents</b></big>
 
-<p>
+        <small style="margin-left: 1em;">
+          <a href="?browser={{ search_browser }}&cursor={{ next_cursor }}&confirmed={{ confirmed }}"
+            >Next &rarr;</a>
+        </small>
+      </td>
+    </tr>
+    <tr>
+      <th class=action-icon>?</th>
+      <th class=action-icon>&#10004;</th>
+      <th>Change</th>
+      <th class=action-icon><img width=13 height=13 alt=Delete src="http://www.google.com/reader/ui/2513649784-icon-unsubscribe.png"></th>
+      <th>Parsed Browser</th>
+      <th><small>useragentstring.com</small></th>
+      <th><small>user-agent-string.info</small></th>
+      <th>User Agent</th>
+      <th>JS UA</th>
+      <th>Created</th>
+    </tr>
+    {% for user_agent in user_agents %}
+    {% with user_agent.key as ua_key %}
+    <tr>
+      <td class="unconfirm"><input name=ac_{{ ua_key }} value=unconfirm
+        type=radio {% if not user_agent.confirmed %} checked{% endif %}
+        onclick="updateChangeTextBox(this);"></td>
+      <td class="confirm"><input name=ac_{{ ua_key }} value=confirm
+        type=radio {% if user_agent.confirmed %} checked{% endif %}
+        onclick="updateChangeTextBox(this);"></td>
+      <td class="change" nowrap=1><input name=ac_{{ ua_key }} value=change
+        type=radio
+        onclick="updateChangeTextBox(this);"></td><!--TODO put changed value as last parameter and possibly add 'checked'. Put changed value without textbox. Double-click to edit. -->
+      <td class="delete"><input name=ac_{{ ua_key }} value=delete
+        type=radio onclick="updateChangeTextBox(this);"></td>
+      <td id=pb_{{ ua_key }} nowrap=1>{{ user_agent.pretty }}</td>
+      <td nowrap=1 id=uasc_{{ forloop.counter }}><!-- TODO port parse service to GAE --></td>
+      <td nowrap=1 id=uasi_{{ forloop.counter }}><!-- TODO port parse service to GAE --></td>
+      <td class="wrap">
+        <small>{{ user_agent.string }}</small>
+        <!--{% for is_match, substring in user_agent.match_strings %}{% if is_match %}<span class='uamatch'>{% endif %}{{ substring}}{% if is_match %}</span>{% endif %}{% endfor %}-->
+      </td>
+      <td class="wrap">
+        <small>{{ user_agent.js_user_agent_string }}</small>
+      </td>
+      <td><small>{{ user_agent.created }}</small></td>
+    </tr>
+    {% endwith %}
+    {% endfor %}
+  </table>
+  <p>
+  <a href="" onclick="confirmAll(); return false;">Confirm all</a>
+  &nbsp;
+  <input type=reset onclick="resetAll();" value="Reset">
 
-<input type=hidden name=browser value="{{ search_browser }}">
-<input type=hidden name=useragent value="{{ search_user_agent }}">
-{% if search_confirmed %}<input type=hidden name=confirmed value="1">{% endif %}
-{% if search_changed %}<input type=hidden name=changed value="1">{% endif %}
-<input type=hidden name=csrf_token value="{{ csrf_token }}">
-<input type=submit name=submit value="Submit">
+  <p>
+  <input type="hidden" name="cursor" value="{{ cursor }}">
+  <input type=hidden name=browser value="{{ search_browser }}">
+  <input type=hidden name=useragent value="{{ search_user_agent }}">
+  {% if search_confirmed %}<input type=hidden name=confirmed value="1">{% endif %}
+  {% if search_changed %}<input type=hidden name=changed value="1">{% endif %}
+  <input type=hidden name=csrf_token value="{{ csrf_token }}">
+  <input type=submit name=submit value="Submit">
 </form>
 
 

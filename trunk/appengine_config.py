@@ -2,7 +2,7 @@
 
 # Declare the Django version we need.
 from google.appengine.dist import use_library
-use_library('django', '1.1')
+use_library('django', '1.2')
 
 # Check that Django 1.0 or higher is in fact loaded.
 import django
