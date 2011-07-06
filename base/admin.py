@@ -127,7 +127,11 @@ def SubmitChanges(request):
         pass
   logging.info('Update user agents: %s' % ', '.join([ua.string for ua in update_user_agents]))
   db.put(update_user_agents)
-  return http.HttpResponse('Time to go to the next page.')
+  return http.HttpResponseRedirect(
+      '/admin/confirm-ua?browser=%s&confirmed=%s&cursor=%s' %
+      (request.REQUEST.get('browser', ''),
+       request.REQUEST.get('confirmed', ''),
+       request.REQUEST.get('cursor', '')))
 
 
 @decorators.admin_required
@@ -139,50 +143,40 @@ def ConfirmUa(request):
   confirmed = request.REQUEST.get('confirmed')
   search_confirmed = confirmed == 'on'
   search_changed = request.REQUEST.get('changed', False)
+  cursor = request.REQUEST.get('cursor', '')
+  limit = int(request.REQUEST.get('limit', 30))
 
   if 'search' in request.REQUEST:
     pass
   elif 'submit' in request.REQUEST:
     return SubmitChanges(request)
 
-  user_agents = db.Query(UserAgent)
-
+  # Build up the query.
+  query = db.Query(UserAgent)
   if search_browser != '':
     string_list = UserAgent.parse_to_string_list(search_browser)
     logging.info('string_list: %s' % string_list)
     ua_bits = ['family', 'v1', 'v2', 'v3']
     for index, item in enumerate(string_list):
       logging.info('adding %s=%s' % (ua_bits[index], item))
-      user_agents.filter('%s =' % ua_bits[index], item)
+      query.filter('%s =' % ua_bits[index], item)
 
-  user_agents.filter('confirmed =', search_confirmed)
-
-  #user_agents.order('string')
-  user_agents.order('-created')
-  user_agents.fetch(1000)
-  user_agents = user_agents[:20]
-  logging.info('UA: %s' % user_agents)
-
-  # for ua in user_agents:
-  #   match_spans = UserAgent.MatchSpans(ua.string)
-  #   ua.match_strings = []
-  #   last_pos = 0
-  #   for start, end in match_spans:
-  #     if start > last_pos:
-  #       ua.match_strings.append((False, ua.string[last_pos:start]))
-  #     ua.match_strings.append((True, ua.string[start:end]))
-  #     last_pos = end
-  #   if len(ua.string) > last_pos:
-  #     ua.match_strings.append((False, ua.string[last_pos:]))
+  query.filter('confirmed =', search_confirmed)
+  query.order('-created')
+  if cursor:
+    query.with_cursor(cursor)
+  user_agents = query.fetch(limit=limit)
 
   params = {
     'page_title': 'Confirm User-Agents',
     'user_agents': user_agents,
+    'cursor': cursor,
+    'next_cursor': query.cursor(),
     'search_browser': search_browser,
     'search_confirmed': search_confirmed,
     'search_changed': search_changed,
     'csrf_token': request.session['csrf_token'],
-    'use_parse_service': False,
+    'use_parse_service': True,
   }
   return Render(request, 'admin/confirm-ua.html', params)
 
