@@ -5,6 +5,7 @@
   "results": {{% for user_agent in user_agents %}
       "{{ user_agent }}": {
         "count": "{{ stats|by_key:user_agent|by_key:"total_runs"|default:0 }}",
+        "summary_score": "{{ stats|by_key:user_agent|by_key:"summary_score" }}",
         "results": {{% for test in tests %}
           "{{ test.key }}": {
             "result": "{{ stats|by_key:user_agent|by_key:"results"|by_key:test.key|by_key:"display" }}"

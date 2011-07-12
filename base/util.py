@@ -350,7 +350,7 @@ def GetResults(request, template=None, params={}, test_set=None):
   """This is the main results handler for returning the results table."""
 
   # Get request variables.
-  category = request.GET.get('category')
+  category = request.GET.get('category', 'summary')
   output = request.GET.get('o', 'html')
 
   if output not in VALID_STATS_OUTPUTS:
@@ -451,8 +451,7 @@ DEFAULT_TIMELINE_DICT = {
   'Safari': ['1', '3.1', '4.1', '5', '5.0.5'],
   'Opera': ['7', '8.54', '9.64', '10.63', '11.11']
 }
-def BrowserTimeLine(request):
-  category = request.GET.get('category', 'summary')
+def GetTimelineUserAgentDict(request):
   user_agents = request.GET.get('ua')
 
   if not user_agents:
@@ -473,6 +472,32 @@ def BrowserTimeLine(request):
         user_agent_dict[family] = []
       version = user_agent.replace('%s ' % family, '')
       user_agent_dict[family].append(version)
+
+  return (user_agents, user_agent_dict)
+
+
+def BrowserEvolution(request):
+  test_set = None
+  category = request.GET.get('category', 'summary')
+  test_set = all_test_sets.GetTestSet(category)
+  if not test_set:
+    return http.HttpResponseBadRequest(
+        'No test set was found for category=%s' % category)
+
+  (user_agents, user_agent_dict) = GetTimelineUserAgentDict(request)
+
+  json = GetStats(request, test_set, 'json', user_agents)
+  params = {
+    'category': category,
+    'category_name': test_set.category_name,
+    'json': json
+  }
+  return Render(request, 'evolution.html', params)
+
+
+def BrowserTimeLine(request):
+  category = request.GET.get('category', 'summary')
+  (user_agents, user_agent_dict) = GetTimelineUserAgentDict(request)
 
   test_set = all_test_sets.GetTestSet(category)
   stats = GetStats(request, test_set, output='dict', user_agents=user_agents)
@@ -857,18 +882,20 @@ def Return204Script(request):
   return http.HttpResponse('<html><script src="/204"></script></html>')
 
 
-def GetStats(request, test_set, output='html', user_agents=[]):
+def GetStats(request, test_set, output='html', user_agents=[],
+             version_level='top'):
   """Returns the stats table.
   Args:
     request: a request object.
     test_set: a TestSet instance.
     output: Output type html or pickle or else you get a dict of params.
     user_agents: A list of user agents.
+    version_level: The version level.
   """
 
   category = test_set.category
   logging.info('GetStats for %s' % category)
-  version_level = request.GET.get('v', 'top')
+  version_level = request.GET.get('v', version_level)
   is_skip_static = request.GET.get('sc')  # 'sc' for skip cache
   browser_param = request.GET.get('ua', ','.join(user_agents))
   results_str = GetResultUriString(request, category)
