@@ -1,0 +1,1029 @@
+var json = {
+  "category": "summary",
+  "category_name": "Summary",
+  "v": "top",
+  "results": {
+      "Chrome 1": {
+        "count": "460",
+        "summary_score": "71",
+        "results": {
+          "security": {
+            "result": "12/17"
+          },
+
+          "richtext2": {
+            "result": "942/1308"
+          },
+
+          "selectors": {
+            "result": "80.6%"
+          },
+
+          "network": {
+            "result": "8/14"
+          },
+
+          "acid3": {
+            "result": "78/100"
+          },
+
+          "jskb": {
+            "result": "76"
+          }
+        }
+      }
+    ,
+
+      "Chrome 2": {
+        "count": "1149",
+        "summary_score": "67",
+        "results": {
+          "security": {
+            "result": "10/16"
+          },
+
+          "richtext2": {
+            "result": ""
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "11/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "79"
+          }
+        }
+      }
+    ,
+
+      "Chrome 3": {
+        "count": "2263",
+        "summary_score": "68",
+        "results": {
+          "security": {
+            "result": "11/17"
+          },
+
+          "richtext2": {
+            "result": ""
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "11/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "80"
+          }
+        }
+      }
+    ,
+
+      "Chrome 4": {
+        "count": "6742",
+        "summary_score": "70",
+        "results": {
+          "security": {
+            "result": "13/17"
+          },
+
+          "richtext2": {
+            "result": ""
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "11/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "80"
+          }
+        }
+      }
+    ,
+
+      "Chrome 5": {
+        "count": "8889",
+        "summary_score": "79",
+        "results": {
+          "security": {
+            "result": "14/17"
+          },
+
+          "richtext2": {
+            "result": "634/1308"
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "11/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "80"
+          }
+        }
+      }
+    ,
+
+      "Chrome 6": {
+        "count": "5454",
+        "summary_score": "83",
+        "results": {
+          "security": {
+            "result": "15/17"
+          },
+
+          "richtext2": {
+            "result": "850/1308"
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "11/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "80"
+          }
+        }
+      }
+    ,
+
+      "Chrome 7": {
+        "count": "5937",
+        "summary_score": "82",
+        "results": {
+          "security": {
+            "result": "14/17"
+          },
+
+          "richtext2": {
+            "result": "869/1308"
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "11/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "81"
+          }
+        }
+      }
+    ,
+
+      "Chrome 8": {
+        "count": "3902",
+        "summary_score": "85",
+        "results": {
+          "security": {
+            "result": "14/17"
+          },
+
+          "richtext2": {
+            "result": "927/1308"
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "13/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "81"
+          }
+        }
+      }
+    ,
+
+      "Chrome 9": {
+        "count": "4860",
+        "summary_score": "85",
+        "results": {
+          "security": {
+            "result": "14/17"
+          },
+
+          "richtext2": {
+            "result": "982/1308"
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "12/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "81"
+          }
+        }
+      }
+    ,
+
+      "Chrome 10": {
+        "count": "6495",
+        "summary_score": "87",
+        "results": {
+          "security": {
+            "result": "14/17"
+          },
+
+          "richtext2": {
+            "result": "1034/1308"
+          },
+
+          "selectors": {
+            "result": "100.0%"
+          },
+
+          "network": {
+            "result": "13/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "81"
+          }
+        }
+      }
+    ,
+
+      "Chrome 11": {
+        "count": "5695",
+        "summary_score": "88",
+        "results": {
+          "security": {
+            "result": "15/17"
+          },
+
+          "richtext2": {
+            "result": "1034/1308"
+          },
+
+          "selectors": {
+            "result": "100.0%"
+          },
+
+          "network": {
+            "result": "13/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "81"
+          }
+        }
+      }
+    ,
+
+      "Chrome 12": {
+        "count": "5875",
+        "summary_score": "88",
+        "results": {
+          "security": {
+            "result": "15/17"
+          },
+
+          "richtext2": {
+            "result": "1034/1308"
+          },
+
+          "selectors": {
+            "result": "100.0%"
+          },
+
+          "network": {
+            "result": "13/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "81"
+          }
+        }
+      }
+    ,
+
+      "Chrome 13": {
+        "count": "1901",
+        "summary_score": "88",
+        "results": {
+          "security": {
+            "result": "15/17"
+          },
+
+          "richtext2": {
+            "result": "1042/1308"
+          },
+
+          "selectors": {
+            "result": "100.0%"
+          },
+
+          "network": {
+            "result": "13/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "81"
+          }
+        }
+      }
+    ,
+
+      "IE 6": {
+        "count": "1726",
+        "summary_score": "20",
+        "results": {
+          "security": {
+            "result": "2/17"
+          },
+
+          "richtext2": {
+            "result": "0/1308"
+          },
+
+          "selectors": {
+            "result": "0%"
+          },
+
+          "network": {
+            "result": "4/16"
+          },
+
+          "acid3": {
+            "result": "12/100"
+          },
+
+          "jskb": {
+            "result": "72"
+          }
+        }
+      }
+    ,
+
+      "IE 7": {
+        "count": "3868",
+        "summary_score": "21",
+        "results": {
+          "security": {
+            "result": "3/17"
+          },
+
+          "richtext2": {
+            "result": "13/1308"
+          },
+
+          "selectors": {
+            "result": "0%"
+          },
+
+          "network": {
+            "result": "4/16"
+          },
+
+          "acid3": {
+            "result": "12/100"
+          },
+
+          "jskb": {
+            "result": "74"
+          }
+        }
+      }
+    ,
+
+      "IE 8": {
+        "count": "15453",
+        "summary_score": "50",
+        "results": {
+          "security": {
+            "result": "11/17"
+          },
+
+          "richtext2": {
+            "result": "440/1308"
+          },
+
+          "selectors": {
+            "result": "58.5%"
+          },
+
+          "network": {
+            "result": "8/16"
+          },
+
+          "acid3": {
+            "result": "20/100"
+          },
+
+          "jskb": {
+            "result": "74"
+          }
+        }
+      }
+    ,
+
+      "IE 9": {
+        "count": "3025",
+        "summary_score": "71",
+        "results": {
+          "security": {
+            "result": "13/17"
+          },
+
+          "richtext2": {
+            "result": "13/1308"
+          },
+
+          "selectors": {
+            "result": "100.0%"
+          },
+
+          "network": {
+            "result": "12/16"
+          },
+
+          "acid3": {
+            "result": "95/100"
+          },
+
+          "jskb": {
+            "result": "80"
+          }
+        }
+      }
+    ,
+
+      "Opera 7": {
+        "count": "6",
+        "summary_score": "6",
+        "results": {
+          "security": {
+            "result": "3/13"
+          },
+
+          "richtext2": {
+            "result": ""
+          },
+
+          "selectors": {
+            "result": ""
+          },
+
+          "network": {
+            "result": "3/10"
+          },
+
+          "acid3": {
+            "result": ""
+          },
+
+          "jskb": {
+            "result": ""
+          }
+        }
+      }
+    ,
+
+      "Opera 8.54": {
+        "count": "16",
+        "summary_score": "22",
+        "results": {
+          "security": {
+            "result": ""
+          },
+
+          "richtext2": {
+            "result": ""
+          },
+
+          "selectors": {
+            "result": "29.2%"
+          },
+
+          "network": {
+            "result": "5/10"
+          },
+
+          "acid3": {
+            "result": ""
+          },
+
+          "jskb": {
+            "result": "73"
+          }
+        }
+      }
+    ,
+
+      "Opera 9.64": {
+        "count": "1082",
+        "summary_score": "39",
+        "results": {
+          "security": {
+            "result": "5/16"
+          },
+
+          "richtext2": {
+            "result": ""
+          },
+
+          "selectors": {
+            "result": "0%"
+          },
+
+          "network": {
+            "result": "7/16"
+          },
+
+          "acid3": {
+            "result": "85/100"
+          },
+
+          "jskb": {
+            "result": "77"
+          }
+        }
+      }
+    ,
+
+      "Opera 10.63": {
+        "count": "1350",
+        "summary_score": "68",
+        "results": {
+          "security": {
+            "result": "8/17"
+          },
+
+          "richtext2": {
+            "result": "470/1308"
+          },
+
+          "selectors": {
+            "result": "99.8%"
+          },
+
+          "network": {
+            "result": "8/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "80"
+          }
+        }
+      }
+    ,
+
+      "Opera 11.11": {
+        "count": "699",
+        "summary_score": "68",
+        "results": {
+          "security": {
+            "result": "8/17"
+          },
+
+          "richtext2": {
+            "result": "470/1308"
+          },
+
+          "selectors": {
+            "result": "99.8%"
+          },
+
+          "network": {
+            "result": "8/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "80"
+          }
+        }
+      }
+    ,
+
+      "Firefox 2": {
+        "count": "916",
+        "summary_score": "51",
+        "results": {
+          "security": {
+            "result": "10/17"
+          },
+
+          "richtext2": {
+            "result": "605/1308"
+          },
+
+          "selectors": {
+            "result": "0%"
+          },
+
+          "network": {
+            "result": "11/16"
+          },
+
+          "acid3": {
+            "result": "54/100"
+          },
+
+          "jskb": {
+            "result": "81"
+          }
+        }
+      }
+    ,
+
+      "Firefox 3": {
+        "count": "69849",
+        "summary_score": "74",
+        "results": {
+          "security": {
+            "result": "9/17"
+          },
+
+          "richtext2": {
+            "result": "530/1308"
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "13/16"
+          },
+
+          "acid3": {
+            "result": "93/100"
+          },
+
+          "jskb": {
+            "result": "81"
+          }
+        }
+      }
+    ,
+
+      "Firefox 3.5": {
+        "count": "17919",
+        "summary_score": "71",
+        "results": {
+          "security": {
+            "result": "8/17"
+          },
+
+          "richtext2": {
+            "result": "530/1308"
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "11/16"
+          },
+
+          "acid3": {
+            "result": "93/100"
+          },
+
+          "jskb": {
+            "result": "81"
+          }
+        }
+      }
+    ,
+
+      "Firefox 3.6": {
+        "count": "42594",
+        "summary_score": "75",
+        "results": {
+          "security": {
+            "result": "9/17"
+          },
+
+          "richtext2": {
+            "result": "530/1308"
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "14/16"
+          },
+
+          "acid3": {
+            "result": "94/100"
+          },
+
+          "jskb": {
+            "result": "81"
+          }
+        }
+      }
+    ,
+
+      "Firefox 4.0.1": {
+        "count": "3948",
+        "summary_score": "83",
+        "results": {
+          "security": {
+            "result": "15/17"
+          },
+
+          "richtext2": {
+            "result": "606/1308"
+          },
+
+          "selectors": {
+            "result": "100.0%"
+          },
+
+          "network": {
+            "result": "14/16"
+          },
+
+          "acid3": {
+            "result": "97/100"
+          },
+
+          "jskb": {
+            "result": "81"
+          }
+        }
+      }
+    ,
+
+      "Firefox 5": {
+        "count": "3548",
+        "summary_score": "80",
+        "results": {
+          "security": {
+            "result": "12/17"
+          },
+
+          "richtext2": {
+            "result": "611/1308"
+          },
+
+          "selectors": {
+            "result": "100.0%"
+          },
+
+          "network": {
+            "result": "14/16"
+          },
+
+          "acid3": {
+            "result": "97/100"
+          },
+
+          "jskb": {
+            "result": "81"
+          }
+        }
+      }
+    ,
+
+      "Safari 1": {
+        "count": "44",
+        "summary_score": "65",
+        "results": {
+          "security": {
+            "result": "10/17"
+          },
+
+          "richtext2": {
+            "result": ""
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "10/16"
+          },
+
+          "acid3": {
+            "result": "92/100"
+          },
+
+          "jskb": {
+            "result": "81"
+          }
+        }
+      }
+    ,
+
+      "Safari 3.1": {
+        "count": "414",
+        "summary_score": "64",
+        "results": {
+          "security": {
+            "result": "4/17"
+          },
+
+          "richtext2": {
+            "result": "645/1308"
+          },
+
+          "selectors": {
+            "result": "97.8%"
+          },
+
+          "network": {
+            "result": "7/16"
+          },
+
+          "acid3": {
+            "result": "93/100"
+          },
+
+          "jskb": {
+            "result": "78"
+          }
+        }
+      }
+    ,
+
+      "Safari 4.1": {
+        "count": "165",
+        "summary_score": "80",
+        "results": {
+          "security": {
+            "result": "13/17"
+          },
+
+          "richtext2": {
+            "result": "866/1308"
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "10/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "80"
+          }
+        }
+      }
+    ,
+
+      "Safari 5": {
+        "count": "5955",
+        "summary_score": "81",
+        "results": {
+          "security": {
+            "result": "13/17"
+          },
+
+          "richtext2": {
+            "result": "866/1308"
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "11/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "80"
+          }
+        }
+      }
+    ,
+
+      "Safari 5.0.5": {
+        "count": "628",
+        "summary_score": "81",
+        "results": {
+          "security": {
+            "result": "13/17"
+          },
+
+          "richtext2": {
+            "result": "866/1308"
+          },
+
+          "selectors": {
+            "result": "99.3%"
+          },
+
+          "network": {
+            "result": "11/16"
+          },
+
+          "acid3": {
+            "result": "100/100"
+          },
+
+          "jskb": {
+            "result": "80"
+          }
+        }
+      }
+
+  }
+};
