@@ -31,7 +31,7 @@ from categories import test_set_base
 
 import settings
 
-MAX_KEY_COUNT = 100
+MAX_KEY_COUNT = 200
 MAX_KEY_LENGTH = 200
 # This value turns out to be key for aliasing, meaning we need to be
 # sure that aliased test sets use it when defining their tests.
