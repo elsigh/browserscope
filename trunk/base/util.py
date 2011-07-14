@@ -451,40 +451,47 @@ DEFAULT_TIMELINE_DICT = {
   'Safari': ['3.1', '4.1', '5', '5.0.5'],
   'Opera': ['7', '8.54', '9.64', '10.63', '11.11']
 }
-def GetTimelineUserAgentDict(request):
-  user_agents = request.GET.get('ua')
-
-  if not user_agents:
+def GetTimelineUserAgentDict(category, version_level=None, user_agents=None):
+  if version_level:
+    user_agents = result_stats.CategoryBrowserManager.GetBrowsers(
+                      category, version_level)
+    logging.info('us: %s, %s, %s', user_agents, category, version_level)
+  if user_agents:
+    if not version_level:
+      user_agents = user_agents.split(',')
+    user_agent_dict = {}
+    for user_agent in user_agents:
+      (family, v1, v2, v3) = (models.user_agent.UserAgent.
+                              parse_pretty(user_agent))
+      if not user_agent_dict.has_key(family):
+        #logging.info('Adding family: %s' % family)
+        user_agent_dict[family] = []
+      version = user_agent.replace('%s ' % family, '')
+      user_agent_dict[family].append(version)
+  else:
     user_agents = []
     user_agent_dict = DEFAULT_TIMELINE_DICT
     for family, version_list in user_agent_dict.items():
       for version in version_list:
         family_version = '%s %s' % (family, version)
         user_agents.append(family_version)
-  else:
-    user_agents = user_agents.split(',')
-    user_agent_dict = {}
-    for user_agent in user_agents:
-      (family, v1, v2, v3) = (models.user_agent.UserAgent.
-                              parse_pretty(user_agent))
-      if not user_agent_dict.has_key(family):
-        logging.info('Adding family: %s' % family)
-        user_agent_dict[family] = []
-      version = user_agent.replace('%s ' % family, '')
-      user_agent_dict[family].append(version)
 
   return (user_agents, user_agent_dict)
 
 
 def BrowserEvolution(request):
-  test_set = None
   category = request.GET.get('category', 'summary')
+  user_agents = request.GET.get('ua')
+  version_level = request.GET.get('v')
+
+  test_set = None
   test_set = all_test_sets.GetTestSet(category)
   if not test_set:
     return http.HttpResponseBadRequest(
         'No test set was found for category=%s' % category)
 
-  (user_agents, user_agent_dict) = GetTimelineUserAgentDict(request)
+  (user_agents, user_agent_dict) = GetTimelineUserAgentDict(
+      category, version_level, user_agents)
 
   json = GetStats(request, test_set, 'json', user_agents)
   params = {
@@ -497,7 +504,7 @@ def BrowserEvolution(request):
 
 def BrowserTimeLine(request):
   category = request.GET.get('category', 'summary')
-  (user_agents, user_agent_dict) = GetTimelineUserAgentDict(request)
+  (user_agents, user_agent_dict) = GetTimelineUserAgentDict(category)
 
   test_set = all_test_sets.GetTestSet(category)
   stats = GetStats(request, test_set, output='dict', user_agents=user_agents)
