@@ -47,7 +47,7 @@ TOP_BROWSERS = (
   'Safari 5.0',
 )
 
-LATEST_DESKTOP_BROWSERS = (
+TOP_DESKTOP_BROWSERS = (
   'Android 2.3',
   'Chrome 14',
   'Firefox 5',
@@ -57,7 +57,7 @@ LATEST_DESKTOP_BROWSERS = (
   'Safari 5.0',
 )
 
-LATEST_MOBILE_BROWSERS = (
+TOP_MOBILE_BROWSERS = (
   'Android 2.3',
   'Blackberry 9700',
   'iPad 4.04',
