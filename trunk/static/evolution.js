@@ -4,27 +4,33 @@ var Viz = {
   *	@param {Array} selectedBrowsers to filter result set
   *	@param {Object} opts
   */
-  init: function(resultSet,selectedBrowsers,opts){
-
+  init: function(resultSet, selectedBrowsers, opts){
     this.containerId = opts.containerId || 'evolution';
-    this.multiLine = opts.multiLine || false;
+    this.opts = opts;
+
+    // sets the default
+    if (typeof this.opts.multiLine == 'undefined') {
+      this.opts.multiLine = false;
+    }
+
+    if (opts && opts.multiSelect) this.enableMultiSelect(resultSet);
+
     var canvas = document.getElementById(this.containerId);
     canvas.innerHTML = '';
     canvas.style.backgroundColor = Viz.Colors.backgroundColor;
     canvas.style.width = '1100px';
-    
+
     if(selectedBrowsers && selectedBrowsers.length>0){
       resultSet = this.filterBrowsers(resultSet,selectedBrowsers);
     }
 
     var selectedResults = this.buildData(resultSet);
-    var bandHeight = this.multiLine ? (selectedResults.length*26) : 0; // (26 = height of band + border)    
+    var bandHeight = this.opts.multiLine ? (selectedResults.length*26) : 0; // (26 = height of band + border)
     var height = bandHeight + 425 + 100; // (425 = ruler + main frame height), (100 padding)
 
-    canvas.style.height = (height) + 'px';    
+    canvas.style.height = (height) + 'px';
 
-    if(opts && opts.multiSelect) this.enableMultiSelect(resultSet);
-    if(opts && opts.presets) this.setPresets(resultSet,opts.presets);
+    if (opts && opts.presets) this.setPresets(resultSet,opts.presets);
 
     var r = Raphael(this.containerId, 1100, height);
     Raphael.getColor.reset();
@@ -36,7 +42,11 @@ var Viz = {
 
     //Print Text
     r.text(1051,225, endText).
-      attr({stroke:this.Colors.fontColor,'font-family':'Impact',fill:this.Colors.fontColor,'font-size':'67px'}).
+      attr({
+        stroke:this.Colors.fontColor,
+       'font-family': 'Impact',
+       fill:this.Colors.fontColor,
+      'font-size':'67px'}).
       rotate(90);
 
     /*
@@ -93,7 +103,7 @@ var Viz = {
         this.flag.animate({opacity: 0}, 300, function(){this.remove()})
       }),
     r.path('M 0,' + obj.y + ' L 10,' + (obj.y-5) + ' L 20,' + obj.y + ' L 0,' + obj.y).animate({path:'M ' + (obj.x-5) + ',' + obj.y + ' L ' + obj.x + ',' + (obj.y-5) + ' L ' + (obj.x+5) + ',' + obj.y + ' L ' + (obj.x-5) + ',' + obj.y},1250,'bounce').attr({stroke:obj.fill,fill:obj.fill});
-    r.text(0,obj.y+32,obj.browser).animate({x:obj.x+13,y:obj.y+32},1250,'bounce').attr({'stroke-opacity':'0','text-anchor':'end',fill:this.Colors.fontColor,'font-size':'13px','font-family':'Tahoma'}).rotate(-45).toFront();
+    r.text(0,obj.y+32,obj.browser).animate({x:obj.x+13,y:obj.y+32},1250,'bounce').attr({'stroke-opacity':'0','text-anchor':'end',fill:this.Colors.fontColor,'font-size':'12px','font-family':'Arial'}).rotate(-65).toFront();
     r.rect(0,(obj.y-25),1100,25).attr({'fill':obj.band,'stroke':obj.band}).toBack();
   },
   /**
@@ -107,7 +117,7 @@ var Viz = {
       var band = (i%2==0) ? Viz.Colors.band1 : Viz.Colors.band2;
       var x = result.score * 10;
       this.setScore({seprator:Viz.Colors.timelineBG,browser:result.browser, band:band, y: start, x: x, fill:result.fill,score:result.score},r);
-      if(this.multiLine)start += 25;
+      if(this.opts.multiLine)start += 25;
     }
   },
   /**
@@ -149,11 +159,13 @@ var Viz = {
   setPresets: function(results,presets){
     var pre = document.getElementById('presets');
     pre.innerHTML = '';
+    var instance = this;
     for(var p in presets){
       var li = document.createElement('li');
       li.innerHTML = p;
       li.onclick = function(){
-        Viz.init(results,presets[p])
+        window.console.log('results', results, instance.opts);
+        Viz.init(results, presets[p], instance.opts);
       }
       pre.appendChild(li);
     }
@@ -164,8 +176,9 @@ var Viz = {
   */
   enableMultiSelect: function(results){
     this.populateList(results)
+    var instance = this;
     document.getElementById('filter').onclick = function() {
-      Viz.init(results,Viz.getSelectedBrowsers());
+      Viz.init(results, Viz.getSelectedBrowsers(), instance.opts);
     }
     document.getElementById('filters').style.display = 'block';
   },
