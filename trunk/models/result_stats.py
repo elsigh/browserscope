@@ -34,27 +34,36 @@ BROWSER_NAV = (
   ('0', 'Browser Families'),
   ('1', 'Major Versions'),
   ('2', 'Minor Versions'),
-  ('3', 'All Versions')
+  ('3', 'All Versions'),
 )
 
 TOP_BROWSERS = (
   'Android 2.3',
-  'Chrome 11', 'Chrome 12', 'Chrome 13',
+  'Chrome 13', 'Chrome 14',
   'Firefox 3.6', 'Firefox 4', 'Firefox 5',
   'IE 8', 'IE 9',
   'iPhone 3.1', 'iPhone 4.2',
   'Opera 11',
-  'Safari 5.0'
+  'Safari 5.0',
 )
 
-TOP_MOBILE_BROWSERS = (
+LATEST_DESKTOP_BROWSERS = (
+  'Android 2.3',
+  'Chrome 14',
+  'Firefox 5',
+  'IE 9',
+  'iPhone 4.2',
+  'Opera 11',
+  'Safari 5.0',
+)
+
+LATEST_MOBILE_BROWSERS = (
   'Android 2.3',
   'Blackberry 9700',
   'iPad 4.04',
-  'iPhone 3.1', 'iPhone 4.2',
+  'iPhone 4.2',
   'Nokia 95',
   'Nokia 5800',
-  'Opera Mobile 10.00',
   'Opera Mobile 11.00',
   'Palm Pre 1.1',
 )
@@ -127,6 +136,10 @@ class CategoryBrowserManager(db.Model):
     """
     if version_level == 'top':
       browsers = list(TOP_BROWSERS)
+    elif version_level == 'top-d':
+      browsers = list(TOP_DESKTOP_BROWSERS)
+    elif version_level == 'top-m':
+      browsers = list(TOP_MOBILE_BROWSERS)
     else:
       # If this is an aliased UserTest (like HTML5), use its key instead.
       test_set = all_test_sets.GetTestSet(category)
