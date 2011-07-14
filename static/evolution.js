@@ -7,13 +7,26 @@ var Viz = {
   init: function(resultSet,selectedBrowsers,opts){
 
     this.containerId = opts.containerId || 'evolution';
+    this.multiLine = opts.multiLine || false;
+    var canvas = document.getElementById(this.containerId);
+    canvas.innerHTML = '';
+    canvas.style.backgroundColor = Viz.Colors.backgroundColor;
+    canvas.style.width = '1100px';
+    
+    if(selectedBrowsers && selectedBrowsers.length>0){
+      resultSet = this.filterBrowsers(resultSet,selectedBrowsers);
+    }
 
-    document.getElementById(this.containerId).innerHTML = '';
+    var selectedResults = this.buildData(resultSet);
+    var bandHeight = this.multiLine ? (selectedResults.length*26) : 0; // (26 = height of band + border)    
+    var height = bandHeight + 425 + 100; // (425 = ruler + main frame height), (100 padding)
+
+    canvas.style.height = (height) + 'px';    
 
     if(opts && opts.multiSelect) this.enableMultiSelect(resultSet);
     if(opts && opts.presets) this.setPresets(resultSet,opts.presets);
 
-    var r = Raphael(this.containerId, 1100, 610);
+    var r = Raphael(this.containerId, 1100, height);
     Raphael.getColor.reset();
     r.customAttributes.score = function(score){
       return score;
@@ -56,15 +69,6 @@ var Viz = {
       r.path('M 128.15 268.09 C 134.20 263.15 142.06 259.86 149.97 260.78 C 155.23 262.09 158.20 267.23 161.94 270.70 C 162.30 274.24 165.11 276.28 167.35 278.69 C 168.34 281.63 168.64 284.76 169.56 287.73 C 165.70 289.86 163.10 294.60 158.50 295.05 C 157.19 294.97 155.88 294.92 154.58 295.03 C 150.35 295.24 146.12 295.48 141.89 295.43 C 137.59 295.29 133.98 297.94 130.29 299.75 C 126.95 300.92 127.81 305.26 126.36 307.87 C 125.63 309.01 124.97 310.20 124.66 311.54 C 124.47 312.12 124.11 313.28 123.93 313.87 C 123.11 316.81 122.88 319.88 122.94 322.93 C 123.55 326.06 125.31 328.90 125.56 332.11 C 125.22 342.37 129.06 352.13 131.20 362.02 C 132.41 368.85 135.04 375.48 135.09 382.48 C 135.03 384.48 135.03 386.49 135.07 388.50 C 135.27 393.25 132.45 397.29 129.73 400.90 C 124.44 400.26 119.19 399.00 114.50 396.39 C 116.32 394.55 118.44 393.06 120.26 391.23 C 121.43 388.30 122.12 385.15 122.41 382.02 C 122.16 378.81 120.78 375.82 120.04 372.72 C 119.77 371.38 119.21 370.14 118.56 368.96 C 116.43 365.07 115.88 360.64 114.38 356.54 C 112.07 353.05 110.90 349.05 109.47 345.16 C 108.32 347.84 107.93 350.74 107.29 353.57 C 106.63 356.72 103.31 358.34 102.24 361.29 C 101.66 364.08 101.39 366.93 100.77 369.72 C 100.04 373.54 100.04 377.44 99.93 381.32 C 99.51 386.38 99.52 391.54 100.80 396.50 C 101.47 399.03 104.44 399.77 106.70 400.21 C 109.48 400.63 112.29 400.75 115.09 401.04 C 115.65 401.10 116.76 401.24 117.31 401.31 C 117.69 402.70 118.06 404.10 118.43 405.51 C 110.19 405.04 101.89 404.73 93.68 405.79 C 90.97 406.21 88.20 406.37 85.50 405.78 L 85.72 404.70 C 86.03 403.36 86.14 402.00 86.21 400.64 C 86.72 396.42 88.41 392.33 87.93 388.02 C 87.89 384.78 86.34 381.89 85.12 378.99 C 84.51 373.59 84.18 368.16 83.83 362.74 C 83.75 361.05 83.66 359.36 83.53 357.69 C 76.76 363.69 69.04 368.43 61.75 373.74 C 56.82 377.52 50.36 379.38 46.59 384.56 C 45.62 388.03 46.46 392.25 49.34 394.61 C 53.27 397.93 58.48 398.85 63.02 400.98 C 65.20 401.82 65.71 404.25 66.49 406.18 L 65.34 406.22 C 61.13 406.32 56.91 406.39 52.70 406.39 C 50.51 406.55 48.52 405.48 47.05 403.93 C 42.38 399.27 37.68 394.62 32.52 390.48 C 30.65 388.84 27.81 387.04 28.79 384.11 C 30.16 380.69 33.72 378.81 35.77 375.82 C 38.49 371.31 43.95 370.04 47.77 366.76 C 52.65 362.54 57.72 358.40 63.65 355.74 C 63.76 355.05 63.97 353.68 64.08 353.00 C 56.03 347.66 49.42 338.12 51.40 328.09 C 52.41 323.86 52.50 318.98 55.68 315.69 C 58.99 311.95 62.65 308.53 66.84 305.81 C 72.20 302.17 74.85 295.89 79.99 292.03 C 85.50 287.53 90.29 282.20 94.65 276.60 C 98.87 272.53 104.67 270.77 110.30 269.75 C 112.95 269.71 115.59 269.77 118.24 269.81 C 121.56 269.73 125.53 270.69 128.15 268.09 M 84.21 332.59 C 88.14 334.76 91.72 337.44 95.05 340.45 C 96.94 335.71 96.82 330.67 96.58 325.68 C 92.54 328.14 88.40 330.40 84.21 332.59 Z')
     ).attr({fill:Viz.Colors.silhouette,stroke:Viz.Colors.stroke})
 
-    if(selectedBrowsers && selectedBrowsers.length>0){
-      resultSet = this.filterBrowsers(resultSet,selectedBrowsers)
-    }
-
-    var selectedResults = this.buildData(resultSet)
-
-    //slice Array if more than 5
-    if(selectedResults.length>5)selectedResults = selectedResults.slice(0,5)
-
     this.renderScores(selectedResults,r)
   },
   /**
@@ -74,14 +78,15 @@ var Viz = {
   setScore: function(obj,r) {
     obj.fill = obj.fill || Raphael.getColor();
     r.path('M 0,' + (obj.y+1) + ' L1100,' + (obj.y)).attr({stroke:obj.seprator}).toBack()
-    r.path('M 0,' + obj.y + ' L,0,0').attr({fill:obj.fill,stroke:obj.fill,score:obj.score}).animate({path:'M ' + obj.x + ',' + obj.y + ' L ' + obj.x + ',25' + ' L ' + (obj.x+1) + ',25 L ' + (obj.x+1) + ',' + obj.y + ' L ' + obj.x + ',' + obj.y},1250,'bounce')
+    r.path('M 0,' + obj.y + ' L,0,25').attr({fill:obj.fill,stroke:obj.fill,score:obj.score}).animate({path:'M ' + obj.x + ',' + obj.y + ' L ' + obj.x + ',25' + ' L ' + (obj.x+1) + ',25 L ' + (obj.x+1) + ',' + obj.y + ' L ' + obj.x + ',' + obj.y},1250,'bounce')
     .hover(function(e){
-        var y = e.clientY + window.scrollY - document.getElementById(this.containerId).offsetTop;
+        var y = e.clientY + window.scrollY - document.getElementById(Viz.containerId).offsetTop;
+        var x = e.clientX - document.getElementById(Viz.containerId).offsetLeft + 5;
         this.flag = r.set();
         this.flag.push(
-          r.path('M ' + e.clientX + ',' + (y-10) + ' L '  + (e.clientX+13) + ',' + (y-20) + ' L '  + (e.clientX+60) + ',' + (y-20) + ' L '  + (e.clientX+60) + ',' + (y) + ' L ' + (e.clientX+13) + ',' + (y) + ' L ' + e.clientX + ',' + (y-10))
+          r.path('M ' + x + ',' + (y-10) + ' L '  + (x+13) + ',' + (y-20) + ' L '  + (x+60) + ',' + (y-20) + ' L '  + (x+60) + ',' + (y) + ' L ' + (x+13) + ',' + (y) + ' L ' + x + ',' + (y-10))
           .attr({fill:this.attrs.stroke,stroke:this.attrs.stroke}),
-          r.text(e.clientX+55,y-10,this.attrs.score+'%').attr({'stroke-opacity':'0','text-anchor':'end',fill:Viz.Colors.fontColor,'font-size':'13px'}).toFront()
+          r.text(x+55,y-10,this.attrs.score+'%').attr({'stroke-opacity':'0','text-anchor':'end',fill:Viz.Colors.fontColor,'font-size':'13px'}).toFront()
         )
       },
       function(){
@@ -102,7 +107,7 @@ var Viz = {
       var band = (i%2==0) ? Viz.Colors.band1 : Viz.Colors.band2;
       var x = result.score * 10;
       this.setScore({seprator:Viz.Colors.timelineBG,browser:result.browser, band:band, y: start, x: x, fill:result.fill,score:result.score},r);
-      start += 25;
+      if(this.multiLine)start += 25;
     }
   },
   /**
@@ -197,6 +202,7 @@ var Viz = {
     band2 : '#545454',
     link : '#2476da',
     stroke: '#111',
-    fontColor: '#fff'
+    fontColor: '#fff',
+    backgroundColor: '#363636'
   }
 };
