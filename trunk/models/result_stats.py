@@ -48,11 +48,9 @@ TOP_BROWSERS = (
 )
 
 TOP_DESKTOP_BROWSERS = (
-  'Android 2.3',
   'Chrome 14',
   'Firefox 5',
   'IE 9',
-  'iPhone 4.2',
   'Opera 11',
   'Safari 5.0',
 )
