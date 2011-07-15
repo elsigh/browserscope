@@ -26,7 +26,7 @@ var Viz = {
 
     var selectedResults = this.buildData(resultSet);
     var bandHeight = this.opts.multiLine ? (selectedResults.length*26) : 0; // (26 = height of band + border)
-    var height = bandHeight + 425 + 100; // (425 = ruler + main frame height), (100 padding)
+    var height = bandHeight + 425 + 150; // (425 = ruler + main frame height), (100 padding)
 
     canvas.style.height = (height) + 'px';
 
@@ -37,7 +37,7 @@ var Viz = {
     r.customAttributes.score = function(score){
       return score;
     }
-
+    
     var endText = opts.endText || 'HTML5 Ready';
 
     //Print Text
@@ -90,20 +90,27 @@ var Viz = {
     r.path('M 0,' + (obj.y+1) + ' L1100,' + (obj.y)).attr({stroke:obj.seprator}).toBack()
     r.path('M 0,' + obj.y + ' L,0,25').attr({fill:obj.fill,stroke:obj.fill,score:obj.score}).animate({path:'M ' + obj.x + ',' + obj.y + ' L ' + obj.x + ',25' + ' L ' + (obj.x+1) + ',25 L ' + (obj.x+1) + ',' + obj.y + ' L ' + obj.x + ',' + obj.y},1250,'bounce')
     .hover(function(e){
+    	this.next.next.attr({fill:Viz.Colors.hoverText})
         var y = e.clientY + window.scrollY - document.getElementById(Viz.containerId).offsetTop;
         var x = e.clientX - document.getElementById(Viz.containerId).offsetLeft + 5;
         this.flag = r.set();
-        this.flag.push(
-          r.path('M ' + x + ',' + (y-10) + ' L '  + (x+13) + ',' + (y-20) + ' L '  + (x+60) + ',' + (y-20) + ' L '  + (x+60) + ',' + (y) + ' L ' + (x+13) + ',' + (y) + ' L ' + x + ',' + (y-10))
-          .attr({fill:this.attrs.stroke,stroke:this.attrs.stroke}),
-          r.text(x+55,y-10,this.attrs.score+'%').attr({'stroke-opacity':'0','text-anchor':'end',fill:Viz.Colors.fontColor,'font-size':'13px'}).toFront()
-        )
+        var t = r.text(x+20,y-10, this.attrs.score+'%' + ' - ' + obj.browser).attr({'stroke-opacity':'0','text-anchor':'start',fill:Viz.Colors.fontColor,'font-size':'13px'});
+        var dims = t.getBBox();
+        var p = r.path('M ' + x + ',' + (y-10) + ' L '  + (x+13) + ',' + (y-20) + ' L '  + (x+40+dims.width) + ',' + (y-20) + ' L '  + (x+40+dims.width) + ',' + (y) + ' L ' + (x+13) + ',' + (y) + ' L ' + x + ',' + (y-10))
+          .attr({fill:this.attrs.stroke,'stroke-opacity':0});
+        t.toFront()
+        this.attr({stroke:Viz.Colors.hoverColor});
+      	this.next.attr({stroke:Viz.Colors.hoverColor,fill:Viz.Colors.hoverColor});
+        this.flag.push(p,t);
       },
       function(){
+      	this.attr({stroke:obj.fill});
+    	this.next.next.attr({fill:Viz.Colors.fontColor});
+      	this.next.attr({stroke:obj.fill,fill:obj.fill});      	
         this.flag.animate({opacity: 0}, 300, function(){this.remove()})
       }),
     r.path('M 0,' + obj.y + ' L 10,' + (obj.y-5) + ' L 20,' + obj.y + ' L 0,' + obj.y).animate({path:'M ' + (obj.x-5) + ',' + obj.y + ' L ' + obj.x + ',' + (obj.y-5) + ' L ' + (obj.x+5) + ',' + obj.y + ' L ' + (obj.x-5) + ',' + obj.y},1250,'bounce').attr({stroke:obj.fill,fill:obj.fill});
-    r.text(0,obj.y+32,obj.browser).animate({x:obj.x+13,y:obj.y+32},1250,'bounce').attr({'stroke-opacity':'0','text-anchor':'end',fill:this.Colors.fontColor,'font-size':'12px','font-family':'Arial'}).rotate(-65).toFront();
+    r.text(0,obj.y+32,obj.browser).animate({x:obj.x-25+13,y:obj.y+32},1250,'bounce').attr({'stroke-opacity':'0','text-anchor':'middle',fill:this.Colors.fontColor,'font-size':'12px','font-family':'Arial'}).rotate(-65).toFront();
     r.rect(0,(obj.y-25),1100,25).attr({'fill':obj.band,'stroke':obj.band}).toBack();
   },
   /**
@@ -216,6 +223,8 @@ var Viz = {
     link : '#2476da',
     stroke: '#111',
     fontColor: '#fff',
-    backgroundColor: '#363636'
+    backgroundColor: '#363636',
+    hoverColor: '#fff',
+    hoverText:'#7cbf00'
   }
 };
