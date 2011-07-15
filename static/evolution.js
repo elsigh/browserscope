@@ -6,21 +6,35 @@ var Viz = {
   */
   init: function(resultSet, selectedBrowsers, opts){
     this.containerId = opts.containerId || 'evolution';
-    this.opts = opts;
+    this.opts = opts || {};
+
+    this.presetsEl = document.getElementById(this.containerId + '-presets');
+    this.multiSelectEl = document.getElementById(this.containerId +
+        '-browserList');
+    this.filtersEl = document.getElementById(this.containerId + '-filters');
+    this.filterBtn = document.getElementById(this.containerId + '-filter');
+
+    // Initially hides optional elements.
+    var optEls = [this.presetsEl, this.multiSelectEl, this.filtersEl,
+        this.filterBtn];
+    for (var i = 0, optEl; optEl = optEls[i]; i++) {
+      optEl.style.display = 'none';
+    }
 
     // sets the default
     if (typeof this.opts.multiLine == 'undefined') {
       this.opts.multiLine = false;
     }
-
-    if (opts && opts.multiSelect) this.enableMultiSelect(resultSet);
+    if (this.opts.multiSelect) {
+      this.enableMultiSelect(resultSet);
+    }
 
     var canvas = document.getElementById(this.containerId);
     canvas.innerHTML = '';
     canvas.style.backgroundColor = Viz.Colors.backgroundColor;
     canvas.style.width = '1100px';
 
-    if(selectedBrowsers && selectedBrowsers.length>0){
+    if (selectedBrowsers && selectedBrowsers.length){
       resultSet = this.filterBrowsers(resultSet,selectedBrowsers);
     }
 
@@ -37,7 +51,7 @@ var Viz = {
     r.customAttributes.score = function(score){
       return score;
     }
-    
+
     var endText = opts.endText || 'HTML5 Ready';
 
     //Print Text
@@ -106,7 +120,7 @@ var Viz = {
       function(){
       	this.attr({stroke:obj.fill});
     	this.next.next.attr({fill:Viz.Colors.fontColor});
-      	this.next.attr({stroke:obj.fill,fill:obj.fill});      	
+      	this.next.attr({stroke:obj.fill,fill:obj.fill});
         this.flag.animate({opacity: 0}, 300, function(){this.remove()})
       }),
     r.path('M 0,' + obj.y + ' L 10,' + (obj.y-5) + ' L 20,' + obj.y + ' L 0,' + obj.y).animate({path:'M ' + (obj.x-5) + ',' + obj.y + ' L ' + obj.x + ',' + (obj.y-5) + ' L ' + (obj.x+5) + ',' + obj.y + ' L ' + (obj.x-5) + ',' + obj.y},1250,'bounce').attr({stroke:obj.fill,fill:obj.fill});
@@ -164,14 +178,13 @@ var Viz = {
   *	@param {Object} presets
   */
   setPresets: function(results,presets){
-    var pre = document.getElementById('presets');
+    var pre = this.presetsEl;
     pre.innerHTML = '';
     var instance = this;
     for(var p in presets){
       var li = document.createElement('li');
       li.innerHTML = p;
       li.onclick = function(){
-        window.console.log('results', results, instance.opts);
         Viz.init(results, presets[p], instance.opts);
       }
       pre.appendChild(li);
@@ -184,10 +197,11 @@ var Viz = {
   enableMultiSelect: function(results){
     this.populateList(results)
     var instance = this;
-    document.getElementById('filter').onclick = function() {
+    this.filterBtn.onclick = function() {
       Viz.init(results, Viz.getSelectedBrowsers(), instance.opts);
     }
-    document.getElementById('filters').style.display = 'block';
+    this.filterBtn.style.display = this.filtersEl.style.display =
+        this.multiSelectEl.style.display = '';
   },
   /**
   *	@return {Array}
