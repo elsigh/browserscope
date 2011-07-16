@@ -78,7 +78,7 @@ var Viz = {
     for(var i=0; i<=1000;){
       r.path('M ' + i + ',0 L' + i + ',10').attr({stroke:this.Colors.fontColor});
       r.path('M ' + i + ',25 L' + i + ',425').attr({stroke:this.Colors.fontColor,opacity:'0.2'});
-      var label = i/10 + ((i==0 || i==1000) ? '%' : '')
+      var label = (i==0 || i==1000) ? i/10 + '%' : '';
       r.text(i+7,7,label).attr({fill:this.Colors.fontColor,'font-size':'11px','text-anchor':'start'})
       i += 100;
     }
@@ -100,31 +100,47 @@ var Viz = {
   *	@param {Object} r Raphael object
   */
   setScore: function(obj,r) {
-    obj.fill = obj.fill || Raphael.getColor();
-    r.path('M 0,' + (obj.y+1) + ' L1100,' + (obj.y)).attr({stroke:obj.seprator}).toBack()
-    r.path('M 0,' + obj.y + ' L,0,25').attr({fill:obj.fill,stroke:obj.fill,score:obj.score}).animate({path:'M ' + obj.x + ',' + obj.y + ' L ' + obj.x + ',25' + ' L ' + (obj.x+1) + ',25 L ' + (obj.x+1) + ',' + obj.y + ' L ' + obj.x + ',' + obj.y},1250,'bounce')
-    .hover(function(e){
-    	this.next.next.attr({fill:Viz.Colors.hoverText})
+  	function fin(e){
         var y = e.clientY + window.scrollY - document.getElementById(Viz.containerId).offsetTop;
         var x = e.clientX - document.getElementById(Viz.containerId).offsetLeft + 5;
         this.flag = r.set();
-        var t = r.text(x+20,y-10, this.attrs.score+'%' + ' - ' + obj.browser).attr({'stroke-opacity':'0','text-anchor':'start',fill:Viz.Colors.fontColor,'font-size':'13px'});
-        var dims = t.getBBox();
-        var p = r.path('M ' + x + ',' + (y-10) + ' L '  + (x+13) + ',' + (y-20) + ' L '  + (x+40+dims.width) + ',' + (y-20) + ' L '  + (x+40+dims.width) + ',' + (y) + ' L ' + (x+13) + ',' + (y) + ' L ' + x + ',' + (y-10))
-          .attr({fill:this.attrs.stroke,'stroke-opacity':0});
-        t.toFront()
-        this.attr({stroke:Viz.Colors.hoverColor});
-      	this.next.attr({stroke:Viz.Colors.hoverColor,fill:Viz.Colors.hoverColor});
-        this.flag.push(p,t);
-      },
-      function(){
-      	this.attr({stroke:obj.fill});
-    	this.next.next.attr({fill:Viz.Colors.fontColor});
-      	this.next.attr({stroke:obj.fill,fill:obj.fill});
-        this.flag.animate({opacity: 0}, 300, function(){this.remove()})
-      }),
-    r.path('M 0,' + obj.y + ' L 10,' + (obj.y-5) + ' L 20,' + obj.y + ' L 0,' + obj.y).animate({path:'M ' + (obj.x-5) + ',' + obj.y + ' L ' + obj.x + ',' + (obj.y-5) + ' L ' + (obj.x+5) + ',' + obj.y + ' L ' + (obj.x-5) + ',' + obj.y},1250,'bounce').attr({stroke:obj.fill,fill:obj.fill});
-    r.text(0,obj.y+32,obj.browser).animate({x:obj.x-25+13,y:obj.y+32},1250,'bounce').attr({'stroke-opacity':'0','text-anchor':'middle',fill:this.Colors.fontColor,'font-size':'12px','font-family':'Arial'}).rotate(-65).toFront();
+        var score = this.attrs.score  || this.prev.attrs.score;
+        var popAttrs = {'stroke-opacity':'0','text-anchor':'start',fill:Viz.Colors.fontColor,'font-size':'13px'};
+        var txtAttrs = {fill:Viz.Colors.hoverText,'font-size':'15px'};
+        if(this.type == 'path'){
+    	    var t = r.text(x+20,y-10, score +'%' + ' - ' + obj.browser).attr(popAttrs);
+	        var dims = t.getBBox();        
+	       	var p = r.path('M ' + x + ',' + (y-10) + ' L '  + (x+13) + ',' + (y-20) + ' L '  + (x+40+dims.width) + ',' + (y-20) + ' L '  + (x+40+dims.width) + ',' + (y) + ' L ' + (x+13) + ',' + (y) + ' L ' + x + ',' + (y-10))
+          	.attr({fill:this.attrs.stroke,'stroke-opacity':0});
+        	this.attr({stroke:Viz.Colors.hoverColor,fill:Viz.Colors.hoverColor});
+	    	this.next.attr(txtAttrs);
+      	}else if(this.type == 'text'){
+        	this.prev.attr({stroke:Viz.Colors.hoverColor,fill:Viz.Colors.hoverColor});
+	    	var t = r.text(x+20,y-10, score +'%').attr(popAttrs);
+			var p = r.path('M ' + x + ',' + (y-10) + ' L '  + (x+13) + ',' + (y-20) + ' L '  + (x+60) + ',' + (y-20) + ' L '  + (x+60) + ',' + (y) + ' L ' + (x+13) + ',' + (y) + ' L ' + x + ',' + (y-10))
+			.attr({fill:obj.fill,'stroke-opacity':0});
+	    	this.attr(txtAttrs);			
+      	}
+        t.toFront();      	
+        this.flag.push(p,t);      	
+	}
+	function fout(){
+      	if(this.type == 'path'){
+      		this.attr({stroke:obj.fill,fill:obj.fill});
+      		this.next.attr({fill:Viz.Colors.fontColor,'font-size':'12px'});
+      	}else if(this.type == 'text'){
+      		this.prev.attr({stroke:obj.fill,fill:obj.fill});      	
+      		this.attr({fill:Viz.Colors.fontColor,'font-size':'12px'});
+      	}
+        this.flag.animate({opacity: 0}, 300, function(){this.remove()});
+    }
+    obj.fill = obj.fill || Raphael.getColor();
+    r.path('M 0,' + (obj.y+1) + ' L1100,' + (obj.y)).attr({stroke:obj.seprator}).toBack()
+    var scoreLine = r.set();
+    scoreLine.push(
+	    r.path('M 0,' + obj.y + ' L 5,' + (obj.y-5) + ' L,5,25' + ' L 6,25 L 6,' + (obj.y-5) + ' L 10,' + obj.y + ' L 0,' + obj.y).animate({path:'M ' + (obj.x-5) + ',' + obj.y + ' L ' + obj.x + ',' + (obj.y-5) + ' L ' + obj.x + ',25' + ' L ' + (obj.x+1) + ',25 L ' + (obj.x+1) + ',' + (obj.y-5) + ' L ' + (obj.x+5) + ',' + obj.y + ' L ' + (obj.x-5) + ',' + obj.y},1250,'bounce').attr({score:obj.score,stroke:obj.fill,fill:obj.fill}),
+    	r.text(0,obj.y+32,obj.browser).animate({x:obj.x-25+13,y:obj.y+32},1250,'bounce').attr({'stroke-opacity':'0','text-anchor':'middle',fill:this.Colors.fontColor,'font-size':'12px','font-family':'Arial',cursor:'default'}).rotate(-65).toFront()
+    ).hover(fin,fout),
     r.rect(0,(obj.y-25),1100,25).attr({'fill':obj.band,'stroke':obj.band}).toBack();
   },
   /**
