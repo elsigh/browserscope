@@ -14,3 +14,11 @@ mapreduce:
     params:
     - name: entity_kind
       default: models.user_test.Test
+
+- name: ResultParent UA denormalizer
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: base.mapreducer.ResultParentUaDeNorm
+    params:
+    - name: entity_kind
+      default: models.result.ResultParent
