@@ -65,7 +65,7 @@ class TestConfirmUa(unittest.TestCase):
         'csrf_token': self.client.get('/get_csrf').content,
         }
     response = self.client.get('/admin/confirm-ua', params)
-    self.assertEqual(200, response.status_code)
+    self.assertEqual(302, response.status_code)
     self.assertTrue(self.ua.get(self.ua.key()).confirmed)
 
 

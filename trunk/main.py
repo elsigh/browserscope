@@ -21,15 +21,15 @@ import logging
 import os
 import sys
 
-# Google App Engine imports.
-from google.appengine.ext.webapp import util
-
 # Log a message each time this module get loaded.
 logging.info('Loading %s, app version = %s',
              __name__, os.getenv('CURRENT_VERSION_ID'))
 
 # Loads the "right" version of django
 import appengine_config
+
+# Google App Engine imports.
+from google.appengine.ext.webapp import util
 
 import logging
 import django.core.handlers.wsgi

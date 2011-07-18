@@ -26,8 +26,17 @@ from mapreduce import operation as op
 def ResultParentCountSet(entity):
   shardedcounter.increment(entity.category)
 
+
 def TestCountSet(entity):
   entity.beacon_count = int(
       shardedcounter.get_count(entity.get_memcache_keyname()))
+  yield op.db.Put(entity)
+
+
+def ResultParentUaDeNorm(entity):
+  entity.user_agent_family = entity.user_agent.family
+  entity.user_agent_v1 = entity.user_agent.v1
+  entity.user_agent_v2 = entity.user_agent.v2
+  entity.user_agent_v3 = entity.user_agent.v3
   yield op.db.Put(entity)
 

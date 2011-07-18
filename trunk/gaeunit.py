@@ -68,18 +68,8 @@ import time
 import unittest
 import urlparse
 
-# Declare the Django version we need.
-from google.appengine.dist import use_library
-use_library('django', '1.1')
+import appengine_config
 
-# Fail early if we can't import Django 1.x.  Log identifying information.
-import django
-assert django.VERSION[0] >= 1, "This Django version is too old"
-
-# Must set this env var for django.
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-from django.conf import settings
-settings._target = None
 from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
 
