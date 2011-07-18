@@ -1,16 +1,19 @@
-{% extends "base.html" %}
+{% extends extends_file %}
 
 {% block body %}
 
-<div id="bs-timeline" style="height: 600px"></div>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
-<script src="/static/highcharts.js"></script>
+{% if js %}
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
+  <script src="/static/highcharts.js"></script>
+{% endif %}
+
+<div id="bs-timeline-{{ category }}" class="bs-timeline"
+  style="height:{{ h }};"></div>
 <script>
-var chart;
-$(document).ready(function() {
-    chart = new Highcharts.Chart({
+{% if js %}$(document).ready(function() {{% endif %}
+  var chart = new Highcharts.Chart({
         chart: {
-          renderTo: 'bs-timeline',
+          renderTo: 'bs-timeline-{{ category }}',
           zoomType: 'x',
           type: 'spline'
         },
@@ -74,57 +77,8 @@ $(document).ready(function() {
           {% endfor %}
         ]
     });
-
-
-});
+{% if js %}});{% endif %}
 </script>
-
-{# {{ timeline_stats_dict }} #}
-
-{% comment %}
-<script src="http://www.google.com/jsapi"></script>
-<script>
-google.load('visualization', '1', {packages: ['annotatedtimeline']});
-google.setOnLoadCallback(initialize);
-
-function initialize() {
-var query = new google.visualization.Query(
-"/timeline_data?category={{ category }}&ua={{ ua }}&v=3&o=gviz_timeline_data&tqx=reqId:0");
-query.send(draw);
-}
-
-function draw(response) {
-if (response.isError()) {
-alert('Error in query');
-}
-var data = response.getDataTable()
-
-var chart = new google.visualization.AnnotatedTimeLine(
-document.getElementById('visualization'));
-chart.draw(data, {
-{% ifequal category "summary" %}
-'min': 0, 'max': 100,
-{% endifequal %}
-'displayAnnotations': true,
-'annotationsWidth': 35,
-'displayAnnotationsFilter': true,
-'displayLegendDots': false,
-'displayLegendValues': false,
-'displayRangeSelector' : true,
-'displayZoomButtons': true,
-'legendPosition': 'newRow',
-'thickness': 2,
-'zoomStartTime': new Date(2008, 1 ,1)
-});
-}
-</script>
-
-
-<div id="visualization" style="width: 1100px; height: 600px;"
->Loading the timeline ...</div>
-
-{% endcomment %}
-
 
 {% endblock %}
 

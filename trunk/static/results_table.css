@@ -151,6 +151,12 @@ a.bs-l-p {
   text-align: right;
   white-space: nowrap;
 }
+
+/* Timeline */
+.bs-timeline {
+  width: 800px;
+}
+
 /* override JSKB and gviz table default */
 .google-visualization-table-tr-head td,
 #rt-jskb tbody td {

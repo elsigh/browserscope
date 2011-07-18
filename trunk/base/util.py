@@ -529,13 +529,19 @@ def BrowserTimeLine(request):
         logging.critical('Unable to get a release date for %s %s' %
                      (family, version))
 
-
+  extends = 'base.html'
+  if request.GET.get('o') == 'embed':
+    extends = 'blank.html'
   params = {
+    'extends_file': extends,
+    'js':  request.GET.get('js', 1),
     'category': category,
     'category_name': test_set.category_name,
     'timeline_stats_dict': timeline_stats_dict,
     'user_agents': user_agents,
     'stats': stats,
+    'h': request.GET.get('h', '600px'),
+    'w': request.GET.get('w', 'auto'),
     'page_title': 'Browser Time Line',
   }
   return Render(request, 'timeline.html', params)

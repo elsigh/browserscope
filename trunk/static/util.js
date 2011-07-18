@@ -677,6 +677,14 @@ Util.ResultTable = function(controller, el) {
     this.gvizLineEl = gvizLines[0];
   }
 
+  if (this.controller.browserFamily == 'top') {
+    this.timeline = document.createElement('div');
+    goog.dom.insertSiblingBefore(this.timeline, this.table);
+    var timelineUrl = '/timeline?o=embed&js=0' +
+        '&h=300px&w=800px&category=' + this.controller.category;
+    $(this.timeline).load(timelineUrl);
+  }
+
   /**
    * @type {Element}
    */
@@ -685,6 +693,7 @@ Util.ResultTable = function(controller, el) {
 
   this.init();
 };
+
 
 /**
  * @type {Element}
