@@ -33,6 +33,9 @@ def by_key(array, key):
     value = array[key]
   except (IndexError, TypeError, KeyError):
     value = ''
+
+  if value == 'None' or value == None:
+    value = ''
   return value
 
 

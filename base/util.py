@@ -568,13 +568,27 @@ def BrowseResults(request):
   test_set = all_test_sets.GetTestSet(category)
   test_keys = [t.key for t in test_set.VisibleTests()]
 
-  ua = request.GET.get('ua')
   bookmark = request.GET.get('bookmark')
   fetch_limit = int(request.GET.get('limit', 20))
   order = request.GET.get('order', 'desc')
+  family = request.GET.get('family', '')
+  v1 = request.GET.get('v1', '')
+  v2 = request.GET.get('v2', '')
+  v3 = request.GET.get('v3', '')
+  ua_dict = {
+    'user_agent_family': family,
+    'user_agent_v1': v1,
+    'user_agent_v2': v2,
+    'user_agent_v3': v3
+  }
 
   query = pager.PagerQuery(models.result.ResultParent, keys_only=False)
   query.filter('category =', category)
+  for key, value in ua_dict.items():
+    if value:
+      query.filter('%s =' % key, value)
+      logging.info('filter key:%s, val:%s', key, value)
+
   if order == 'desc':
     query.order('-created')
   else:
@@ -588,6 +602,7 @@ def BrowseResults(request):
     'test_set': test_set,
     'f': test_keys,
     'category': category,
+    'ua_dict': ua_dict,
   }
   return Render(request, 'browse.html', params)
 
@@ -996,6 +1011,17 @@ def GetStats(request, test_set, output='html', user_agents=[],
   #logging.info('CURRENT BROWSER: "%s", "%s", "%s"' % (current_browser,
   #    js_user_agent_string, current_user_agent_string))
 
+  # Make a dict of the user agent info
+  user_agents_dict = {}
+  for browser in browsers:
+    (family, v1, v2, v3) = (models.user_agent.UserAgent.parse_pretty(browser))
+    user_agents_dict[browser] = {
+      'family': family,
+      'v1': v1,
+      'v2': v2,
+      'v3': v3
+    }
+
   # Set current_browser to one in browsers or add it if not found.
   for browser in browsers:
     if current_browser.startswith(browser):
@@ -1060,6 +1086,7 @@ def GetStats(request, test_set, output='html', user_agents=[],
     'server': GetServer(request),
     'ua_by_param': browser_param,
     'user_agents': browsers,
+    'user_agents_dict': user_agents_dict,
     'request_path': request.get_full_path(),
     'current_user_agent': current_browser,
     'stats': stats_data,
