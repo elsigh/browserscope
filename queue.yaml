@@ -2,6 +2,8 @@ queue:
 
 - name: default
   rate: 15/s
+  retry_parameters:
+    max_backoff_seconds: 300
 
 - name: recent-tests
   rate: 7/s

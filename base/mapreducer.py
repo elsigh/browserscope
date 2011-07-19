@@ -21,6 +21,7 @@ __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 from base import shardedcounter
 from mapreduce import operation as op
+from google.appengine.ext import db
 
 
 def ResultParentCountSet(entity):
@@ -34,9 +35,18 @@ def TestCountSet(entity):
 
 
 def ResultParentUaDeNorm(entity):
-  entity.user_agent_family = entity.user_agent.family
-  entity.user_agent_v1 = entity.user_agent.v1
-  entity.user_agent_v2 = entity.user_agent.v2
-  entity.user_agent_v3 = entity.user_agent.v3
-  yield op.db.Put(entity)
+  try:
+    ua = entity.user_agent
+  except db.ReferencePropertyResolveError:
+    yield op.db.Delete(entity)
+  if (not entity.category or not entity.user_agent or
+      (entity.category == 'reflow' and entity.params_str)):
+    yield op.db.Delete(entity)
+  else:
+    entity.user_agent_string_list = entity.user_agent.get_string_list()
+    for attr in ['user_agent_family', 'user_agent_v1', 'user_agent_v2',
+                 'user_agent_v3']:
+      if hasattr(entity, attr):
+        delattr(entity, attr)
+    yield op.db.Put(entity)
 

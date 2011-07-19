@@ -128,7 +128,7 @@
             <td class="rt-tot">
               {% ifequal category "summary" %}{% else %}
                 {% if stats|by_key:user_agent|by_key:"total_runs" %}
-                  <a href="/browse?category={{ category }}&family={{ user_agents_dict|by_key:user_agent|by_key:"family" }}&v1={{ user_agents_dict|by_key:user_agent|by_key:"v1" }}&v2={{ user_agents_dict|by_key:user_agent|by_key:"v2" }}&v3={{ user_agents_dict|by_key:user_agent|by_key:"v3" }}">
+                  <a href="/browse?category={{ category }}&ua={{ user_agent }}">
                 {% endif %}
               {% endifequal %}
 

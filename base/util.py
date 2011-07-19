@@ -563,7 +563,7 @@ def BrowserTimeLineData(request):
 
 def BrowseResults(request):
   category = request.GET.get('category')
-  if not category:
+  if not category and test_set:
     return http.HttpResponseBadRequest('You must pass category=something')
   test_set = all_test_sets.GetTestSet(category)
   test_keys = [t.key for t in test_set.VisibleTests()]
@@ -571,24 +571,12 @@ def BrowseResults(request):
   bookmark = request.GET.get('bookmark')
   fetch_limit = int(request.GET.get('limit', 20))
   order = request.GET.get('order', 'desc')
-  family = request.GET.get('family', '')
-  v1 = request.GET.get('v1', '')
-  v2 = request.GET.get('v2', '')
-  v3 = request.GET.get('v3', '')
-  ua_dict = {
-    'user_agent_family': family,
-    'user_agent_v1': v1,
-    'user_agent_v2': v2,
-    'user_agent_v3': v3
-  }
+  user_agent = request.GET.get('ua', '')
 
   query = pager.PagerQuery(models.result.ResultParent, keys_only=False)
   query.filter('category =', category)
-  for key, value in ua_dict.items():
-    if value:
-      query.filter('%s =' % key, value)
-      logging.info('filter key:%s, val:%s', key, value)
-
+  if user_agent:
+    query.filter('user_agent_string_list =', user_agent)
   if order == 'desc':
     query.order('-created')
   else:
@@ -602,7 +590,7 @@ def BrowseResults(request):
     'test_set': test_set,
     'f': test_keys,
     'category': category,
-    'ua_dict': ua_dict,
+    'user_agent': user_agent,
   }
   return Render(request, 'browse.html', params)
 
