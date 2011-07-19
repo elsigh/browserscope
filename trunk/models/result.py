@@ -62,10 +62,7 @@ class ResultParent(db.Expando):
   category = db.StringProperty()
   user_agent = db.ReferenceProperty(UserAgent)
   # We also need denormalized UA properties for result parent querying.
-  user_agent_family = db.StringProperty()
-  user_agent_v1 = db.StringProperty()
-  user_agent_v2 = db.StringProperty()
-  user_agent_v3 = db.StringProperty()
+  user_agent_string_list = db.StringListProperty()
   ip = db.StringProperty()
   user = db.UserProperty(auto_current_user_add=True)
   created = db.DateTimeProperty(auto_now_add=True)
@@ -117,10 +114,7 @@ class ResultParent(db.Expando):
     parent = cls(category=test_set.category,
                  ip=ip,
                  user_agent=user_agent,
-                 user_agent_family=user_agent.family,
-                 user_agent_v1=user_agent.v1,
-                 user_agent_v2=user_agent.v2,
-                 user_agent_v3=user_agent.v3,
+                 user_agent_string_list=user_agent.get_string_list(),
                  params_str=params_str, **kwds)
     try:
       results = test_set.GetResults(results_str, ignore_key_errors=is_import)
