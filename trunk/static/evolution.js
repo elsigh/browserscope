@@ -40,7 +40,7 @@ var Viz = {
 
     var selectedResults = this.buildData(resultSet);
     var bandHeight = this.opts.multiLine ? (selectedResults.length*26) : 0; // (26 = height of band + border)
-    var height = bandHeight + 425 + 150; // (425 = ruler + main frame height), (100 padding)
+    var height = bandHeight + 425 + 150; // (425 = ruler + main frame height), (150 padding)
 
     canvas.style.height = (height) + 'px';
 
@@ -78,7 +78,11 @@ var Viz = {
     for(var i=0; i<=1000;){
       r.path('M ' + i + ',0 L' + i + ',10').attr({stroke:this.Colors.fontColor});
       r.path('M ' + i + ',25 L' + i + ',425').attr({stroke:this.Colors.fontColor,opacity:'0.2'});
-      var label = (i==0 || i==1000) ? i/10 + '%' : '';
+      if(opts.allMarkers){
+      	var label = i/10 + ((i==0 || i==1000) ? '%' : '');
+      }else{
+      	var label = (i==0 || i==1000) ? i/10 + '%' : '';      	
+      }	
       r.text(i+7,7,label).attr({fill:this.Colors.fontColor,'font-size':'11px','text-anchor':'start'})
       i += 100;
     }
@@ -139,7 +143,7 @@ var Viz = {
     var scoreLine = r.set();
     scoreLine.push(
 	    r.path('M 0,' + obj.y + ' L 5,' + (obj.y-5) + ' L,5,25' + ' L 6,25 L 6,' + (obj.y-5) + ' L 10,' + obj.y + ' L 0,' + obj.y).animate({path:'M ' + (obj.x-5) + ',' + obj.y + ' L ' + obj.x + ',' + (obj.y-5) + ' L ' + obj.x + ',25' + ' L ' + (obj.x+1) + ',25 L ' + (obj.x+1) + ',' + (obj.y-5) + ' L ' + (obj.x+5) + ',' + obj.y + ' L ' + (obj.x-5) + ',' + obj.y},1250,'bounce').attr({score:obj.score,stroke:obj.fill,fill:obj.fill}),
-    	r.text(0,obj.y+32,obj.browser).animate({x:obj.x-25+13,y:obj.y+32},1250,'bounce').attr({'stroke-opacity':'0','text-anchor':'middle',fill:this.Colors.fontColor,'font-size':'12px','font-family':'Arial',cursor:'default'}).rotate(-65).toFront()
+    	r.text(0,obj.y+10,obj.browser).animate({x:obj.x-25+13,y:obj.y+32},1250,'bounce').attr({'stroke-opacity':'0','text-anchor':'end',fill:this.Colors.fontColor,'font-size':'12px','font-family':'Arial',cursor:'default'}).rotate(285,obj.x-21,obj.y+10).toFront()
     ).hover(fin,fout),
     r.rect(0,(obj.y-25),1100,25).attr({'fill':obj.band,'stroke':obj.band}).toBack();
   },
