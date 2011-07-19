@@ -16,6 +16,22 @@ indexes:
   - name: created
     direction: desc
 
+- kind: ResultParent
+  properties:
+  - name: category
+  - name: family
+  - name: v1
+  - name: created
+    direction: desc
+
+- kind: ResultParent
+  properties:
+  - name: category
+  - name: user_agent_family
+  - name: user_agent_v1
+  - name: created
+    direction: desc
+
 - kind: Test
   properties:
   - name: beacon_count

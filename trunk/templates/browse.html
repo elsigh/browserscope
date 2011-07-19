@@ -1,7 +1,23 @@
 {% extends "base.html" %}
 
 {% block body %}
-<h2>Browse individual results: {{ category }}</h2>
+
+<h2>Browse Results :: {{ category }}</h2>
+{% if ua_dict.user_agent_family %}
+  <ul>
+    <li>Browser Family: {{ ua_dict.user_agent_family }}</li>
+    {% if ua_dict.user_agent_v1 %}
+      <li>v1: {{ ua_dict.user_agent_v1 }}</li>
+    {% endif %}
+    {% if ua_dict.user_agent_v2 %}
+      <li>v2: {{ ua_dict.user_agent_v2 }}</li>
+    {% endif %}
+    {% if ua_dict.user_agent_v3 %}
+      <li>v3: {{ ua_dict.user_agent_v3 }}</li>
+    {% endif %}
+  </ul>
+{% endif %}
+
 <table class="bs-table">
   <thead>
     <tr>
