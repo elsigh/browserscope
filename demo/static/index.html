@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Simple Browserscope Test</title>
+    <style>
+      body {
+        font: 14px/1.5 arial, sans-serif;
+      }
+      h2 {
+        border-top: 4px dotted #4291bf;
+        margin-top: 1.5em;
+        padding-top: 1.5em
+      }
+      #results-lbl {
+        display: block;
+        font-weight: bold;
+        margin-top: 20px;
+      }
+      pre {
+        margin: 0;
+        border: 2px solid #4291bf;
+        display: inline-block;
+        padding: 5px 10px;
+        font-size: 80%;
+      }
+      #contents {
+        width: 600px;
+        margin: 0 0 0 10px;
+      }
+      #bs-ua {
+        margin: 15px auto 2px;
+        border: 1px solid #ccc;
+        background: #eee;
+        padding: 10px;
+      }
+      #bs-run {
+        margin-top: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="contents">
+      <h1>Example Browserscope User Test</h1>
+      <p>
+        This page showcases the features of
+        <a href="http://www.browserscope.org/">Browserscope</a>'s
+        User Test feature.
+        If you write tests for browsers, this should give you an idea of how easy it is to beacon your results to Browserscope and display the
+        results table on your test page. For more details, refer to our
+        <a href="http://www.browserscope.org/user/tests/howto">HOWTO</a> page.
+      </p>
+
+      <!-- Inserts Browserscope UA detection -->
+      <script src="http://www.browserscope.org/ua?o=js"></script>
+      <pre><code>The UA detection message above was created by putting<br><strong>&lt;script src="http://www.browserscope.org/ua?o=js"&gt;&lt;/script&gt;</strong> on this page.</code></pre>
+
+
+      <pre><code>The results table below was created by putting<br><strong>&lt;script src="http://www.browserscope.org/user/tests/table/KEY?o=js&v=3"&gt;&lt;/script&gt;</strong> <br>on this page.<br>Note: "agt1YS1wcm9maWxlcnINCxIEVGVzdBiI59UBDA" is the test key for this test.<br>Your test keys are displayed on your <a href="http://www.browserscope.org/user/settings">settings</a> page.</code></pre>
+
+      <script src="http://www.browserscope.org/user/tests/table/agt1YS1wcm9maWxlcnINCxIEVGVzdBiI59UBDA?o=js&v=3"></script>
+
+
+
+      <h2>Beaconing data</h2>
+      <label id="results-lbl" for="results"
+        >The User Test data structure:</label>
+      <textarea id="results" name="results" cols=40 rows=7>_bTestResults = {
+  'test_one': 100,
+  'test_two': 200,
+  'test_three': 300
+};</textarea>
+      <pre><code>Play with the key/value pairs above in _bTestResults, then<br>click the button below to initiate sending the data to Browserscope.</code></pre>
+
+      <script>
+        var _bTestResults;
+        var _bRunTest = function() {
+          var textarea = document.getElementById('results');
+          var bsSend = document.getElementById('bs-send').checked;
+          if (bsSend) {
+            eval(textarea.value); // creates _bTestResults
+            _bTestBeacon();
+          } else {
+            alert('Not sending the data, the send checkbox is off.');
+          }
+        };
+      </script>
+      <script src="http://www.browserscope.org/user/tests/button?fn=_bRunTest&btn_text=Run%20the%20test"></script>
+      <pre><code>The button/checkbox combo above was created by putting<br><strong>&lt;script src="http://www.browserscope.org/user/tests/button?fn=_bRunTest&btn_text=Run%20the%20test"&gt;</strong><br>on this page.<br>If you view source on this page, you'll see a <strong>_bRunTest</strong> function as a callback.</code></pre>
+      <script>
+        // Define a little callback.
+        var _bTestBeaconCallback = function() {
+          alert('The beacon completed, and _bTestBeaconCallback was fired. ' +
+                'This page will now reload and you should see your result.');
+          window.location.href = window.location.href;
+        };
+      </script>
+      <script>
+        // Beacon the results to Browserscope.
+        var _bTestBeacon = function() {
+          var testKey = 'agt1YS1wcm9maWxlcnINCxIEVGVzdBiI59UBDA';
+          var newScript = document.createElement('script'),
+              firstScript = document.getElementsByTagName('script')[0];
+          newScript.src = 'http://www.browserscope.org/user/beacon/' + testKey;
+          firstScript.parentNode.insertBefore(newScript, firstScript);
+        };
+      </script>
+
+      <p>
+        Lastly, the _bTestBeacon function, which gets called by _bRunTest, looks
+        like this:
+      </p>
+      <pre><code>&lt;script&gt;
+// Beacon the results to Browserscope.
+var _bTestBeacon = function() {
+  var testKey = 'agt1YS1wcm9maWxlcnINCxIEVGVzdBiI59UBDA';
+  var newScript = document.createElement('script'),
+      firstScript = document.getElementsByTagName('script')[0];
+  newScript.src = 'http://www.browserscope.org/user/beacon/' + testKey;
+  firstScript.parentNode.insertBefore(newScript, firstScript);
+};&lt;/script&gt;</code></pre>
+    </div>
+  </body>
+</html>

@@ -33,12 +33,14 @@ from models import result_stats
 from models.result import ResultParent
 from models.user_agent import UserAgent
 
+from base import decorators
 from base import util
 import settings
 
 from django.template import add_to_builtins
 add_to_builtins('base.custom_filters')
 
+from mapreduce import control
 
 def UpdateRecentTests(request):
   max_recent_tests = 10
@@ -79,3 +81,14 @@ def UpdateRecentTests(request):
   #logging.info('Read recent tests: %s' %
   #    memcache.get(key=util.RECENT_TESTS_MEMCACHE_KEY))
   return http.HttpResponse('Done')
+
+
+@decorators.admin_required
+def UpdateUserTestBeaconCounts(request):
+  """Starts mapreducer.UserTestBeaconCount."""
+  mr_id = control.start_map(
+      'UserTest beacon_count update',
+      'base.mapreducer.UserTestBeaconCount',
+      'mapreduce.input_readers.DatastoreInputReader',
+      {'entity_kind': 'models.user_test.Test'})
+  return http.HttpResponse('Started MR w/ ID:%s' % mr_id)
