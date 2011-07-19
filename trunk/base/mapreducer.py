@@ -28,7 +28,7 @@ def ResultParentCountSet(entity):
   shardedcounter.increment(entity.category)
 
 
-def TestCountSet(entity):
+def UserTestBeaconCount(entity):
   entity.beacon_count = int(
       shardedcounter.get_count(entity.get_memcache_keyname()))
   yield op.db.Put(entity)
@@ -36,17 +36,17 @@ def TestCountSet(entity):
 
 def ResultParentUaDeNorm(entity):
   try:
-    ua = entity.user_agent
+    if (not entity.category or not entity.user_agent or
+        (entity.category == 'reflow' and entity.params_str)):
+      yield op.db.Delete(entity)
+    else:
+      entity.user_agent_string_list = entity.user_agent.get_string_list()
+      for attr in ['user_agent_family', 'user_agent_v1', 'user_agent_v2',
+                   'user_agent_v3']:
+        if hasattr(entity, attr):
+          delattr(entity, attr)
+      yield op.db.Put(entity)
+
   except db.ReferencePropertyResolveError:
     yield op.db.Delete(entity)
-  if (not entity.category or not entity.user_agent or
-      (entity.category == 'reflow' and entity.params_str)):
-    yield op.db.Delete(entity)
-  else:
-    entity.user_agent_string_list = entity.user_agent.get_string_list()
-    for attr in ['user_agent_family', 'user_agent_v1', 'user_agent_v2',
-                 'user_agent_v3']:
-      if hasattr(entity, attr):
-        delattr(entity, attr)
-    yield op.db.Put(entity)
 

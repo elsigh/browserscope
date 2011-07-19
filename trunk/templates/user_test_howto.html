@@ -57,20 +57,18 @@
 // and value is a numeric value from 0 through {{ max_value }}.
 // Note: You can only send a maximum of {{ max_key_count }} results in a beacon.
 var _bTestResults = {
-  'test_one': '1',
-  'test_two': '0'
+  'test_one': 1,
+  'test_two': 0
 };
 
 // Beacon the results to Browserscope.
-(function() {
-  var _bTestKey = 'CHANGE-THIS-TO-YOUR-TEST-KEY';
-  var _bScript = document.createElement('script');
-  _bScript.src = 'http://www.browserscope.org/user/beacon/' + _bTestKey;
-  _bScript.setAttribute('async', 'true');
-  var scripts = document.getElementsByTagName('script');
-  var lastScript = scripts[scripts.length - 1];
-  lastScript.parentNode.insertBefore(_bScript, lastScript);
-})();
+(function(document) {
+  var testKey = 'CHANGE-THIS-TO-YOUR-TEST-KEY';
+  var newScript = document.createElement('script'),
+      firstScript = document.getElementsByTagName('script')[0];
+  newScript.src = 'http://www.browserscope.org/user/beacon/' + testKey;
+  firstScript.parentNode.insertBefore(newScript, firstScript);
+}(document));
 &lt;/script&gt;
 </code></pre>
       <div id="bs-usertest-dontforget">

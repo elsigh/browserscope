@@ -10,7 +10,7 @@ mapreduce:
 - name: UserTest beacon_count update
   mapper:
     input_reader: mapreduce.input_readers.DatastoreInputReader
-    handler: base.mapreducer.TestCountSet
+    handler: base.mapreducer.UserTestBeaconCount
     params:
     - name: entity_kind
       default: models.user_test.Test

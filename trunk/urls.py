@@ -83,6 +83,8 @@ urlpatterns = patterns('',
 
   # Cron admin scripts
   (r'^cron/update_recent_tests$', 'base.cron.UpdateRecentTests'),
+  (r'^cron/update_test_beacon_counts$', 'base.cron.UpdateUserTestBeaconCounts'),
+
 
   (r'^_ah/queue/update-dirty', 'base.manage_dirty.UpdateDirty'),
   (r'^_ah/queue/update-category', 'base.admin.UpdateCategory'),

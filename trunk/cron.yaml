@@ -15,6 +15,9 @@ cron:
   url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBib2KQGDA&v=2&o=gviz_data
   schedule: every 5 minutes
 
+- description: Updates the UserTest beacon counts for /user/tests/index
+  url: /cron/update_test_beacon_counts
+  schedule: every 6 hours
 
 #- description: Clean up any straggling dirty ResultTime's.
 #  url: /admin/update_dirty

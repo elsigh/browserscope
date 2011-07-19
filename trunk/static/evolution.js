@@ -157,6 +157,10 @@ var Viz = {
       var result = results[i];
       var band = (i%2==0) ? Viz.Colors.band1 : Viz.Colors.band2;
       var x = result.score * 10;
+      // Don't bother rendering 0s.
+      if (x === 0) {
+        continue;
+      }
       this.setScore({seprator:Viz.Colors.timelineBG,browser:result.browser, band:band, y: start, x: x, fill:result.fill,score:result.score},r);
       if(this.opts.multiLine)start += 25;
     }
