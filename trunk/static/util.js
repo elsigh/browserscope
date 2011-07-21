@@ -519,6 +519,8 @@ Util.ResultTablesController.prototype.resetUrl = function() {
   var url = Util.ResultTablesController.generateUrl(this.category,
       this.output, this.browserFamily, this.uaUriParams, this.resultsUriParams);
   this.url = url;
+  window.history.pushState({}, this.category + ' ' + this.browserFamily,
+      url);
 };
 
 Util.ResultTablesController.prototype.hideTables = function() {
