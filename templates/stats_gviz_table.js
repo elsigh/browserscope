@@ -71,7 +71,7 @@ bsResultsTable.prototype.load = function() {
       {'sendMethod': 'scriptInjection'});
   var instance = this;
   query.send(function(response){instance.draw_(response)});
-}
+};
 
 bsResultsTable.prototype.draw_ = function(response) {
   if (response.isError()) {
@@ -94,5 +94,17 @@ bsResultsTable.prototype.draw_ = function(response) {
     'alternatingRowStyle': false,
     'cssClassNames': cssClassNames
   });
-}
+  this.drawCompareUa_();
+  this.drawSparseFilter_();
+};
+
+bsResultsTable.prototype.drawCompareUa_ = function() {
+  this.compareLink_ = document.createElement('span');
+  this.compareLink_.innerHTML = 'Compare UAs';
+  this.tableContainer_.appendChild(this.compareLink_);
+};
+
+bsResultsTable.prototype.drawSparseFilter_ = function() {
+
+};
 
