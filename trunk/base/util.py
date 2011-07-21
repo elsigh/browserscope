@@ -496,7 +496,7 @@ def BrowserEvolution(request):
   json = GetStats(request, test_set, 'json', user_agents)
   params = {
     'category': category,
-    'category_name': test_set.category_name,
+    'category_name': request.GET.get('label', test_set.category_name),
     'json': json
   }
   return Render(request, 'evolution.html', params)
