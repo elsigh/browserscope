@@ -70,12 +70,17 @@ class TestSet(test_set_base.TestSet):
     raw_score = raw_scores.get(test_key, None)
     if raw_score is None:
       raw_score = ''
-    else:
-      #logging.info('RAW_SCORE: %s' % raw_score)
-      if raw_score != '':
-        test = Test.get_test_from_category(self.category)
-        score = test.get_score_from_display(test_key, raw_score)
-        #logging.info('SCOOOOORE: %s' % score)
+
+    if raw_score != '':
+      test = Test.get_test_from_category(self.category)
+      score = test.get_score_from_display(test_key, raw_score)
+
+    #if test.is_boolean_test_key(test_key):
+    #  if score == 1:
+    #    score = 'yes'
+    #  else:
+    #    score = 'no'
+
     return score, raw_score
 
   def GetRowScoreAndDisplayValue(self, results):
@@ -224,6 +229,12 @@ class Test(db.Model):
                        test_page='%s' % self.url)
     test_set.sandboxid = self.sandboxid
     return test_set
+
+  def is_boolean_test_key(self, test_key):
+    meta = TestMeta.get_mem_by_test(self)
+    test_min_value = getattr(meta, '%s_min_value' % test_key)
+    test_max_value = getattr(meta, '%s_max_value' % test_key)
+    return test_min_value == 0 and test_max_value == 1
 
   def get_score_from_display(self, test_key, display):
     """Converts a displayed number value into a 1-100 score."""
