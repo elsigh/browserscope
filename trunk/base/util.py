@@ -302,10 +302,16 @@ def Home(request):
   if not recent_tests:
     ScheduleRecentTestsUpdate()
 
+  is_category_set = request.GET.get('category')
+  show_evolution = False
+  if is_category_set is None:
+    show_evolution = True
+
   params = {
     'page_title': 'Home',
     'message': request.GET.get('message'),
     'recent_tests': recent_tests,
+    'show_evolution': show_evolution,
   }
   return GetResults(request, template='home.html', params=params)
 
@@ -444,7 +450,7 @@ def GvizTableData(request):
 
 
 DEFAULT_TIMELINE_DICT = {
-  'Firefox': ['2', '3', '3.5', '3.6', '4.0.1', '5'],
+  'Firefox': ['2', '3', '3.5', '3.6', '4.0.1', '5', '7'],
   'IE': ['6', '7', '8', '9'],
   'Chrome': ['2', '3', '4', '5', '6', '7', '8',
              '9', '10', '11', '12', '13'],
@@ -481,6 +487,11 @@ def GetTimelineUserAgentDict(category, version_level=None, user_agents=None):
 
 def BrowserEvolution(request):
   category = request.GET.get('category', 'summary')
+  output = request.GET.get('o')
+  if output == 'embed':
+    extends_tpl = 'blank.html'
+  else:
+    extends_tpl = 'base.html'
   user_agents = request.GET.get('ua')
   version_level = request.GET.get('v')
 
@@ -497,7 +508,8 @@ def BrowserEvolution(request):
   params = {
     'category': category,
     'category_name': request.GET.get('label', test_set.category_name),
-    'json': json
+    'json': json,
+    'extends_tpl': extends_tpl
   }
   return Render(request, 'evolution.html', params)
 

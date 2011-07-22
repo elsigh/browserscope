@@ -94,8 +94,8 @@ bsResultsTable.prototype.draw_ = function(response) {
     'alternatingRowStyle': false,
     'cssClassNames': cssClassNames
   });
-  this.drawCompareUa_();
-  this.drawSparseFilter_();
+  //this.drawCompareUa_();
+  //this.drawSparseFilter_();
 };
 
 bsResultsTable.prototype.drawCompareUa_ = function() {
