@@ -157,10 +157,10 @@ function initContainer(suite, group, test, container, focused) {
     container.editor = container.body;
   }
   if (focused) {
-    container.editor.focus()
+    container.editor.focus();
   } else {
-    window.focus()
-    window.blur()
+    window.focus();
+    window.blur();
   }
 
   win = container.win;
