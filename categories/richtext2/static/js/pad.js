@@ -135,8 +135,6 @@ function deriveSelectionPoint(root, marker) {
  * angle bracket > to specify a selection [element, 0] where the element
  * doesn't otherwise have any children. Ex.: <hr {>foobarbaz<hr }>
  *
- * Explicit and implicit specification can also be mixed between the 2 points.
- * 
  * A pad string must only contain at most ONE of the above that is suitable for
  * that start or end point, respectively, and must contain either both or none.
  *
@@ -144,8 +142,9 @@ function deriveSelectionPoint(root, marker) {
  * @param group {Object} group of tests within the suite the test belongs to
  * @param test {Object} test to be run as object reference
  * @param container {Object} container descriptor as object reference
+ * @param focused {Boolean} whether the editing element should be focused
  */
-function initContainer(suite, group, test, container) {
+function initContainer(suite, group, test, container, focused) {
   var pad = getTestParameter(suite, group, test, PARAM_PAD);
   pad = canonicalizeSpaces(pad);
   pad = convertSelectionIndicators(pad);
@@ -156,6 +155,12 @@ function initContainer(suite, group, test, container) {
   } else {
     container.body.innerHTML = pad;
     container.editor = container.body;
+  }
+  if (focused) {
+    container.editor.focus()
+  } else {
+    window.focus()
+    window.blur()
   }
 
   win = container.win;

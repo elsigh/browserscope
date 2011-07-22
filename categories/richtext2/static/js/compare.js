@@ -121,12 +121,14 @@ function compareHTMLTestResultTo(expected, accepted, actual, emitFlags, result) 
   if (bestExpected == RESULT_EQUAL) {
     // Shortcut - it doesn't get any better
     result.valresult = VALRESULT_EQUAL;
-    result.selresult = SELRESULT_EQUAL;
+    result.selresult = (result.selresult == SELRESULT_CANARY) ? SELRESULT_CANARY : SELRESULT_EQUAL;
     return;
   }
 
   var bestAccepted = compareHTMLToExpectation(actual, accepted, emitFlags);
 
+  // Note that the selection result may already have been degraded if the selection went off
+  // into canary territory.
   switch (bestExpected) {
     case RESULT_SEL:
       switch (bestAccepted) {
@@ -135,7 +137,7 @@ function compareHTMLTestResultTo(expected, accepted, actual, emitFlags, result) 
           // (just not the selection there), therefore the difference
           // between expected and accepted can only lie in the selection.
           result.valresult = VALRESULT_EQUAL;
-          result.selresult = SELRESULT_ACCEPT;
+          result.selresult = (result.selresult == SELRESULT_CANARY) ? SELRESULT_CANARY : SELRESULT_ACCEPT;
           return;
 
         case RESULT_SEL:
@@ -143,7 +145,7 @@ function compareHTMLTestResultTo(expected, accepted, actual, emitFlags, result) 
           // The acceptable expectations did not yield a better result
           // -> stay with the original (i.e., comparison to 'expected') result.
           result.valresult = VALRESULT_EQUAL;
-          result.selresult = SELRESULT_DIFF;
+          result.selresult = (result.selresult == SELRESULT_CANARY) ? SELRESULT_CANARY : SELRESULT_DIFF;
           return;
       }
       break;
@@ -152,17 +154,17 @@ function compareHTMLTestResultTo(expected, accepted, actual, emitFlags, result) 
       switch (bestAccepted) {
         case RESULT_EQUAL:
           result.valresult = VALRESULT_ACCEPT;
-          result.selresult = SELRESULT_EQUAL;
+          result.selresult = (result.selresult == SELRESULT_CANARY) ? SELRESULT_CANARY : SELRESULT_EQUAL;
           return;
 
         case RESULT_SEL:
           result.valresult = VALRESULT_ACCEPT;
-          result.selresult = SELRESULT_DIFF;
+          result.selresult = (result.selresult == SELRESULT_CANARY) ? SELRESULT_CANARY : SELRESULT_DIFF;
           return;
 
         case RESULT_DIFF:
           result.valresult = VALRESULT_DIFF;
-          result.selresult = SELRESULT_NA;
+          result.selresult = (result.selresult == SELRESULT_CANARY) ? SELRESULT_CANARY : SELRESULT_NA;
           return;
       }
       break;
@@ -192,25 +194,28 @@ function verifyCanaries(container, result) {
     return false;
   }
 
-  var strBefore = str.substr(0, container.canary.length);
-  var strAfter  = str.substr(str.length - container.canary.length);
+  // Check whether there are selection markers within canary region.
+  // Add 2 extra charactars to strings length to allow for selection character(s).
+  var strBefore = str.substr(0, container.canary.length + 2);
+  var strAfter  = str.substr(str.length - container.canary.length - 2);
 
-  // Verify that the canary stretch doesn't contain any selection markers
   if (SELECTION_MARKERS.test(strBefore) || SELECTION_MARKERS.test(strAfter)) {
     str = str.replace(SELECTION_MARKERS, '');
+    result.output = result.bodyOuterHTML;
+    
     if (str.length < 2 * container.canary.length) {
       result.valresult = VALRESULT_CANARY;
       result.selresult = SELRESULT_NA;
-      result.output = result.bodyOuterHTML;
       return false;
     }
-
+    
     // Selection escaped contentEditable element, but HTML may still be ok.
     result.selresult = SELRESULT_CANARY;
-    strBefore = str.substr(0, container.canary.length);
-    strAfter  = str.substr(str.length - container.canary.length);
   }
 
+  // After removing selection markers (if any), check whether canary is undamaged.
+  strBefore = str.substr(0, container.canary.length);
+  strAfter  = str.substr(str.length - container.canary.length);
   if (strBefore !== container.canary || strAfter !== container.canary) {
     result.valresult = VALRESULT_CANARY;
     result.selresult = SELRESULT_NA;
@@ -255,7 +260,7 @@ function compareHTMLTestResult(suite, group, test, container, result) {
   var tagCmp = compareHTMLToExpectation(openingTag, container.tagOpen, emitFlags);
 
   if (tagCmp == RESULT_EQUAL) {
-    result.output = result.innerHTML;
+    result.output = (result.selresult == SELRESULT_CANARY) ? result.bodyOuterHTML : result.innerHTML;
     compareHTMLTestResultTo(
         getTestParameter(suite, group, test, PARAM_EXPECTED),
         getTestParameter(suite, group, test, PARAM_ACCEPT),
@@ -263,7 +268,7 @@ function compareHTMLTestResult(suite, group, test, container, result) {
         emitFlags,
         result)
   } else {
-    result.output = result.outerHTML;
+    result.output = (result.selresult == SELRESULT_CANARY) ? result.bodyOuterHTML : result.outerHTML;
     compareHTMLTestResultTo(
         getContainerParameter(suite, group, test, container, PARAM_EXPECTED_OUTER),
         getContainerParameter(suite, group, test, container, PARAM_ACCEPT_OUTER),

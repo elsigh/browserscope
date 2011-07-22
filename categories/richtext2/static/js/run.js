@@ -107,7 +107,7 @@ function initVariables() {
  * @param container {Object} container descriptor as object reference
  * @see variables.js for RESULT... values
  */
-function runSingleTest(suite, group, test, container) {
+function runSingleTest(suite, group, test, container, focused) {
   var result = {
     valscore: 0,
     selscore: 0,
@@ -118,7 +118,7 @@ function runSingleTest(suite, group, test, container) {
 
   // 1.) Populate the editor element with the initial test setup HTML.
   try {
-    initContainer(suite, group, test, container);
+    initContainer(suite, group, test, container, focused);
   } catch(ex) {
     result.valresult = VALRESULT_SETUP_EXCEPTION;
     result.selresult = SELRESULT_NA;
@@ -225,6 +225,7 @@ function initTestSuiteResults(suite) {
     if (!cls)
       continue;
 
+    results[suiteID][clsID] = {};
     results[suiteID][clsID] = {
         count: 0,
         valscore: 0,
@@ -249,6 +250,7 @@ function initTestSuiteResults(suite) {
             valresult: VALRESULT_NOT_RUN,
             selresult: SELRESULT_NOT_RUN
         };
+
         for (var cntIdx = 0; cntIdx < containers.length; ++cntIdx) {
           var cntID = containers[cntIdx].id;
 
@@ -257,7 +259,18 @@ function initTestSuiteResults(suite) {
             selscore: 0,
             valresult: VALRESULT_NOT_RUN,
             selresult: SELRESULT_NOT_RUN,
-            output: ''
+          };
+          
+          for (var focusIdx = 0; focusIdx < focusArr.length; ++focusIdx) {
+            var focusID = focusArr[focusIdx];
+
+            results[suiteID][clsID][test.id][cntID][focusID] = {
+              valscore: 0,
+              selscore: 0,
+              valresult: VALRESULT_NOT_RUN,
+              selresult: SELRESULT_NOT_RUN,
+              output: ''
+            };
           }
         }
       }
@@ -301,17 +314,35 @@ function runTestSuite(suite) {
         for (var cntIdx = 0; cntIdx < containers.length; ++cntIdx) {
           var container = containers[cntIdx];
           var cntID = container.id;
+          var containerValscore = 1;
+          var containerSelscore = 1;
+          var containerValresult = VALRESULT_EQUAL;
+          var containerSelresult = SELRESULT_EQUAL;
 
-          var result = runSingleTest(suite, group, test, container);
+          for (var focusIdx = 0; focusIdx < focusArr.length; ++focusIdx) {
+            var focusID = focusArr[focusIdx];
 
-          results[suiteID][clsID][test.id][cntID] = result;
+            var result = runSingleTest(suite, group, test, container, focusID == 'focused');
 
-          valscore = Math.min(valscore, result.valscore);
-          selscore = Math.min(selscore, result.selscore);
-          valresult = Math.min(valresult, result.valresult);
-          selresult = Math.min(selresult, result.selresult);
+            results[suiteID][clsID][test.id][cntID][focusID] = result;
 
-          resetContainer(container);
+            containerValscore = Math.min(containerValscore, result.valscore);
+            containerSelscore = Math.min(containerSelscore, result.selscore);
+            containerValresult = Math.min(containerValresult, result.valresult);
+            containerSelresult = Math.min(containerSelresult, result.selresult);
+
+            valscore = Math.min(valscore, result.valscore);
+            selscore = Math.min(selscore, result.selscore);
+            valresult = Math.min(valresult, result.valresult);
+            selresult = Math.min(selresult, result.selresult);
+
+            resetContainer(container);
+          }
+
+          results[suiteID][clsID][test.id][cntID].valscore = containerValscore;
+          results[suiteID][clsID][test.id][cntID].selscore = containerSelscore;
+          results[suiteID][clsID][test.id][cntID].valresult = containerValresult;
+          results[suiteID][clsID][test.id][cntID].selresult = containerSelresult;
         }          
 
         results[suiteID][clsID][test.id].valscore = valscore;

@@ -43,15 +43,15 @@ var SELALLCHILDREN_UNSUPPORTED = 'UNSUPPORTED selection.selectAllChildren()';
 var UNSUPPORTED = '<i>false</i> (UNSUPPORTED)';
 
 // HTML comparison result contants.
-var VALRESULT_NOT_RUN                = 0;  // test hasn't been run yet
-var VALRESULT_SETUP_EXCEPTION        = 1;
-var VALRESULT_EXECUTION_EXCEPTION    = 2;
-var VALRESULT_VERIFICATION_EXCEPTION = 3;
-var VALRESULT_UNSUPPORTED            = 4;
+var VALRESULT_NOT_RUN                = 0;  // Test hasn't been run yet.
+var VALRESULT_SETUP_EXCEPTION        = 1;  // Exception was thrown during test setup.
+var VALRESULT_EXECUTION_EXCEPTION    = 2;  // Exception was thrown during test execution.
+var VALRESULT_VERIFICATION_EXCEPTION = 3;  // Exception was thrown during result verification.
+var VALRESULT_UNSUPPORTED            = 4;  // Editing command is unsupported.
 var VALRESULT_CANARY                 = 5;  // HTML changes bled into the canary.
-var VALRESULT_DIFF                   = 6;
+var VALRESULT_DIFF                   = 6;  // Result differs from expectations.
 var VALRESULT_ACCEPT                 = 7;  // HTML technically correct, but not ideal.
-var VALRESULT_EQUAL                  = 8;
+var VALRESULT_EQUAL                  = 8;  // Result is equal to ideal expectations.
 
 var VALOUTPUT = [  // IMPORTANT: this array MUST be coordinated with the values above!!
     {css: 'grey',        output: '???',    title: 'The test has not been run yet.'},                                            // VALRESULT_NOT_RUN
@@ -66,24 +66,21 @@ var VALOUTPUT = [  // IMPORTANT: this array MUST be coordinated with the values 
 ]
 
 // Selection comparison result contants.
-var SELRESULT_NOT_RUN = 0;  // test hasn't been run yet
-var SELRESULT_CANARY  = 1;  // selection escapes the contentEditable element
-var SELRESULT_DIFF    = 2;
-var SELRESULT_NA      = 3;
+var SELRESULT_NOT_RUN = 0;  // Test hasn't been run yet.
+var SELRESULT_CANARY  = 1;  // Selection escapes the contentEditable element.
+var SELRESULT_DIFF    = 2;  // Selection result shows differences from expectation.
+var SELRESULT_NA      = 3;  // Selection result is meaningless.
 var SELRESULT_ACCEPT  = 4;  // Selection is acceptable, but not ideal.
-var SELRESULT_EQUAL   = 5;
+var SELRESULT_EQUAL   = 5;  // Selection is equal to expectations.
 
 var SELOUTPUT = [  // IMPORTANT: this array MUST be coordinated with the values above!!
-    {css: 'grey',   output: 'grey',   title: 'The test has not been run yet.'},                           // SELRESULT_NOT_RUN
+    {css: 'grey',   output: '???',   title: 'The test has not been run yet.'},                           // SELRESULT_NOT_RUN
     {css: 'canary', output: 'CANARY', title: 'The selection escaped the contentEditable boundary!'},      // SELRESULT_CANARY
     {css: 'fail',   output: 'FAIL',   title: 'The selection differs from the expectation(s).'},           // SELRESULT_DIFF   
     {css: 'na',     output: 'N/A',    title: 'The correctness of the selection could not be verified.'},  // SELRESULT_NA     
     {css: 'accept', output: 'ACC.',   title: 'The selection is technically correct, but sub-optimal.'},   // SELRESULT_ACCEPT 
     {css: 'pass',   output: 'PASS',   title: 'The selection matches the expectation.'}                    // SELRESULT_EQUAL  
 ];
-
-// RegExp for selection markers
-var SELECTION_MARKERS = /[\[\]\{\}\|\^]/;
 
 // Special attributes used to mark selections within elements that otherwise
 // have no children. Important: attribute name MUST be lower case!
@@ -129,6 +126,7 @@ var IDOUT_STATUSSEL  = '_:sel:';  // per container
 var IDOUT_PAD        = '_:pad';   // per test
 var IDOUT_EXPECTED   = '_:exp';   // per test
 var IDOUT_ACTUAL     = '_:act:';  // per container
+var IDOUT_FOCUS      = '_:foc:';  // per test + unfocused/focused
 
 // Output strings to use for yes/no/NA
 var OUTSTR_YES = '&#x25CF;'; 
@@ -142,6 +140,9 @@ var HTMLTAG_INNER = 'I:';
 
 // What to use for the canary
 var CANARY = 'CAN<br>ARY';
+
+// RegExp for selection markers
+var SELECTION_MARKERS = /[\]\[^{}|]/g;
 
 // Containers for tests, and their associated DOM elements:
 // iframe, win, doc, body, elem
@@ -212,6 +213,9 @@ var colorShades = ['Lo', 'Hi'];
 // Classes of tests
 var testClassIDs = ['Finalized', 'RFC', 'Proposed'];
 var testClassCount = testClassIDs.length;
+
+// Focused/unfocused helper array
+var focusArr = ['unfocused', 'focused'];
 
 // Dictionary storing the detailed test results.
 var results = {

@@ -68,11 +68,16 @@
       //                     .selscore                 selection score (0 or 1)
       //                     .valresult                value result (integer, see variables.js)
       //                     .selresult                selection result (integer, see variables.js)
-      //                     .output                   output string (mainly for use by the online version)
-      //                     .innerHTML                inner HTML of the testing container (<div> or <body>) after the test
-      //                     .outerHTML                outer HTML of the testing container (<div> or <body>) after the test
-      //                     .bodyInnerHTML            inner HTML of the <body> after the test
-      //                     .bodyOuterHTML            outer HTML of the <body> after the test
+      //                     ['unfocused'/'focused']       whether the editing container is focused or not
+      //                         .valscore                 value score (0 or 1)
+      //                         .selscore                 selection score (0 or 1)
+      //                         .valresult                value result (integer, see variables.js)
+      //                         .selresult                selection result (integer, see variables.js)
+      //                         .output                   output string (mainly for use by the online version)
+      //                         .innerHTML                inner HTML of the testing container (<div> or <body>) after the test
+      //                         .outerHTML                outer HTML of the testing container (<div> or <body>) after the test
+      //                         .bodyInnerHTML            inner HTML of the <body> after the test
+      //                         .bodyOuterHTML            outer HTML of the <body> after the test
       //
       // *)    <suite ID>:      a 1-3 character ID, e.g. UNAPPLY_TESTS.id, or 'U' (both referring the same suite)
       // **)   <class ID>:      one of 'Proposed', 'RFC' or 'Finalized'
@@ -86,9 +91,9 @@
             results[UNAPPLY_TESTS.id].valscore + " had correct HTML, and\n" +
             results[UNAPPLY_TESTS.id].selscore + " had a correct result selection\n(in all testing containers)." +
             "\n\n" +
-            "Test RTE2-U_B_B-1_SW results with a contenteditable <body>:\n" +
-            results['U']['Proposed']['B_B-1_SW']['body'].valscore + " points for the value result, and\n" +
-            results['U']['Proposed']['B_B-1_SW']['body'].selscore + " points for the selection" +
+            "Test RTE2-U_B_B-1_SW results with a contenteditable, unfocused <body>:\n" +
+            results['U']['Proposed']['B_B-1_SW']['body']['unfocused'].valscore + " points for the value result, and\n" +
+            results['U']['Proposed']['B_B-1_SW']['body']['unfocused'].selscore + " points for the selection" +
             ""
       );
     }
