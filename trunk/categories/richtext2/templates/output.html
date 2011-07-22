@@ -73,6 +73,7 @@
         <TH TITLE="check Style">S</TH>
         {% endifnotequal %}{% endifnotequal %}
         <TH TITLE="Testing HTML Element">Env.</TH>
+        <TH TITLE="Editing container has focus?">Focus</TH>
         {% ifnotequal s.id.0 "S" %}{% comment %} Don't output HTML status column for selection tests. {% endcomment %}
         <TH TITLE="State of the test">Status</TH>
         {% endifnotequal %}
@@ -87,45 +88,78 @@
     </THEAD>
     <TBODY>
       {% for g in pv %}{% for t in g.tests %}
-      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:dM" CLASS="{% cycle 'lo' 'lo' 'lo' 'hi' 'hi' 'hi' as shade %}">
-        <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:tid"><A CLASS="idLabel" NAME="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}" HREF="#{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}">{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}</A></TD>
-        <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cmd">&nbsp;</TD>
-        <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:val">&nbsp;</TD>
+      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:dM:unfocused" CLASS="{% cycle 'hi' 'lo' as shade %}">
+        <TD ROWSPAN=6 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:tid"><A CLASS="idLabel" NAME="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}" HREF="#{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}">{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}</A></TD>
+        <TD ROWSPAN=6 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cmd">&nbsp;</TD>
+        <TD ROWSPAN=6 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:val">&nbsp;</TD>
         {% ifnotequal s.id.0 "S" %}{% ifnotequal s.id.0 "Q" %}{% comment %} Don't output attribute and style columns for selection and "queryCommand..." tests. {% endcomment %}
-        <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:att" ALIGN="CENTER">&nbsp;</TD>
-        <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sty" ALIGN="CENTER">&nbsp;</TD>
+        <TD ROWSPAN=6 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:att" ALIGN="CENTER">&nbsp;</TD>
+        <TD ROWSPAN=6 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sty" ALIGN="CENTER">&nbsp;</TD>
         {% endifnotequal %}{% endifnotequal %}
-        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cnt:dM" TITLE="designMode=&quot;on&quot;" ALIGN="CENTER">dM</TD>
+        <TD ROWSPAN=2 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cnt:dM" TITLE="designMode=&quot;on&quot;" ALIGN="CENTER">dM</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:foc:dM:unfocused" TITLE="unfocused" ALIGN="CENTER">&#x25CB;</TD>
         {% ifnotequal s.id.0 "S" %}
-        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta:dM" ALIGN="CENTER">NONE</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta:dM:unfocused" ALIGN="CENTER">NONE</TD>
         {% endifnotequal %}
         {% ifnotequal s.id.0 "Q" %}
-        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sel:dM" ALIGN="CENTER">NONE</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sel:dM:unfocused" ALIGN="CENTER">NONE</TD>
         {% endifnotequal %}
-        <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:pad">&nbsp;</TD>
-        <TD ROWSPAN=3 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:exp">&nbsp;</TD>
-        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:act:dM"><I>Processing...</I></TD>
-        <TD ROWSPAN=3>{{ t.desc|default:"&nbsp;" }}</TD>
+        <TD ROWSPAN=6 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:pad">&nbsp;</TD>
+        <TD ROWSPAN=6 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:exp">&nbsp;</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:act:dM:unfocused"><I>Processing...</I></TD>
+        <TD ROWSPAN=6>{{ t.desc|default:"&nbsp;" }}</TD>
       </TR>
-      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:body" CLASS="{% cycle shade %}">
-        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cnt:body" TITLE="&lt;body contentEditable=&quot;true&quot;&gt;" ALIGN="CENTER">body</TD>
+      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:dM:focused" CLASS="{% cycle shade %}">
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:foc:dM:focused" TITLE="focused" ALIGN="CENTER">&#x25CF;</TD>
         {% ifnotequal s.id.0 "S" %}
-        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta:body" ALIGN="CENTER">NONE</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta:dM:focused" ALIGN="CENTER">NONE</TD>
         {% endifnotequal %}
         {% ifnotequal s.id.0 "Q" %}
-        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sel:body" ALIGN="CENTER">NONE</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sel:dM:focused" ALIGN="CENTER">NONE</TD>
         {% endifnotequal %}
-        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:act:body"><I>Processing...</I></TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:act:dM:focused"><I>Processing...</I></TD>
       </TR>
-      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:div" CLASS="{% cycle shade %}">
-        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cnt:div" TITLE="&lt;div contentEditable=&quot;true&quot;&gt;" ALIGN="CENTER">div</TD>
+      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:body:unfocused" CLASS="{% cycle shade %}">
+        <TD ROWSPAN=2 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cnt:body" TITLE="&lt;body contentEditable=&quot;true&quot;&gt;" ALIGN="CENTER">body</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:foc:body:unfocused" TITLE="unfocused" ALIGN="CENTER">&#x25CB;</TD>
         {% ifnotequal s.id.0 "S" %}
-        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta:div" ALIGN="CENTER">NONE</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta:body:unfocused" ALIGN="CENTER">NONE</TD>
         {% endifnotequal %}
         {% ifnotequal s.id.0 "Q" %}
-        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sel:div" ALIGN="CENTER">NONE</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sel:body:unfocused" ALIGN="CENTER">NONE</TD>
         {% endifnotequal %}
-        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:act:div"><I>Processing...</I></TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:act:body:unfocused"><I>Processing...</I></TD>
+      </TR>
+      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:body:focused" CLASS="{% cycle shade %}">
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:foc:body:focused" TITLE="unfocused" ALIGN="CENTER">&#x25CF;</TD>
+        {% ifnotequal s.id.0 "S" %}
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta:body:focused" ALIGN="CENTER">NONE</TD>
+        {% endifnotequal %}
+        {% ifnotequal s.id.0 "Q" %}
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sel:body:focused" ALIGN="CENTER">NONE</TD>
+        {% endifnotequal %}
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:act:body:focused"><I>Processing...</I></TD>
+      </TR>
+      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:div:unfocused" CLASS="{% cycle shade %}">
+        <TD ROWSPAN=2 ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:cnt:div" TITLE="&lt;div contentEditable=&quot;true&quot;&gt;" ALIGN="CENTER">div</TD>
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:foc:div:unfocused" TITLE="unfocused" ALIGN="CENTER">&#x25CB;</TD>
+        {% ifnotequal s.id.0 "S" %}
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta:div:unfocused" ALIGN="CENTER">NONE</TD>
+        {% endifnotequal %}
+        {% ifnotequal s.id.0 "Q" %}
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sel:div:unfocused" ALIGN="CENTER">NONE</TD>
+        {% endifnotequal %}
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:act:div:unfocused"><I>Processing...</I></TD>
+      </TR>
+      <TR ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:TR:div:focused" CLASS="{% cycle shade %}">
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:foc:div:focused" TITLE="unfocused" ALIGN="CENTER">&#x25CF;</TD>
+        {% ifnotequal s.id.0 "S" %}
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sta:div:focused" ALIGN="CENTER">NONE</TD>
+        {% endifnotequal %}
+        {% ifnotequal s.id.0 "Q" %}
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:sel:div:focused" ALIGN="CENTER">NONE</TD>
+        {% endifnotequal %}
+        <TD ID="{{ commonIDPrefix }}-{{ s.id }}_{{ t.id }}_:act:div:focused"><I>Processing...</I></TD>
       </TR>
       {% endfor %}{% endfor %}
     </TBODY>

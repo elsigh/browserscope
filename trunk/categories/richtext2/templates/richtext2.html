@@ -92,16 +92,18 @@
       e.parentNode.removeChild(e);
       e = document.getElementById('iframe-div');
       e.parentNode.removeChild(e);
+      e = document.getElementById('hr');
+      e.parentNode.removeChild(e);
     }
     {% endautoescape %}
   </script>  
 </head> 
 
 <body onload="runTests()">
-  {% include "richtext2/templates/output.html" %}
-  <hr>
   <iframe name="iframe-dM" id="iframe-dM" src="static/editable-dM.html"></iframe>
   <iframe name="iframe-body" id="iframe-body" src="static/editable-body.html"></iframe>
   <iframe name="iframe-div" id="iframe-div" src="static/editable-div.html"></iframe>
+  <hr id="hr">
+  {% include "richtext2/templates/output.html" %}
 </body> 
 </html>

@@ -309,92 +309,125 @@ function outputTestResults(suite, clsID, group, test) {
   setTD(trID + IDOUT_EXPECTED, expectedOutput);
 
   // Iterate over the individual container results
-  for (var cntIdx = 0; cntIdx < containers.length; ++cntIdx) {
-    var cntID = containers[cntIdx].id;
-    var cntTD = document.getElementById(trID + IDOUT_CONTAINER + cntID);
-    var cntResult = testResult[cntID];
-    var cntValOut = VALOUTPUT[cntResult.valresult];
-    var cntSelOut = SELOUTPUT[cntResult.selresult];
-    var cssVal = cntValOut.css;
-    var cssSel = (!suiteChecksSelOnly || cntResult.selresult != SELRESULT_NA) ? cntSelOut.css : cssVal;
-    var cssCnt = cssVal;
+  for (var containerIdx = 0; containerIdx < containers.length; ++containerIdx) {
+    var containerID = containers[containerIdx].id;
+    var containerTD = document.getElementById(trID + IDOUT_CONTAINER + containerID);
+    var containerResult = testResult[containerID];
+    var containerValOut = VALOUTPUT[containerResult.valresult];
+    var containerSelOut = SELOUTPUT[containerResult.selresult];
+    var containerValCSS = containerValOut.css;
+    var containerSelCSS = (!suiteChecksSelOnly || containerResult.selresult != SELRESULT_NA) ? containerSelOut.css : containerValCSS;
+    var containerCSS = containerValCSS;
 
-    // Fill in result status cell ("PASS", "ACC.", "FAIL", "EXC.", etc.)
-    setTD(trID + IDOUT_STATUSVAL + cntID, cntValOut.output, cntValOut.title, cssVal);
-    
-    // Fill in selection status cell ("PASS", "ACC.", "FAIL", "N/A")
-    setTD(trID + IDOUT_STATUSSEL + cntID, cntSelOut.output, cntSelOut.title, cssSel);
-
-    // Fill in actual result
-    switch (cntResult.valresult) {
+    switch (containerResult.valresult) {
       case VALRESULT_SETUP_EXCEPTION:
-        setTD(trID + IDOUT_ACTUAL + cntID,
-              SETUP_EXCEPTION + '(mouseover)',
-              escapeOutput(cntResult.output),
-              cssVal);
-        break;
-
       case VALRESULT_EXECUTION_EXCEPTION:
-        setTD(trID + IDOUT_ACTUAL + cntID,
-              EXECUTION_EXCEPTION + '(mouseover)',
-              escapeOutput(cntResult.output.toString()),
-              cssVal);
-        break;
-
       case VALRESULT_VERIFICATION_EXCEPTION:
-        setTD(trID + IDOUT_ACTUAL + cntID,
-              VERIFICATION_EXCEPTION + '(mouseover)',
-              escapeOutput(cntResult.output.toString()),
-              cssVal);
-        break;
-
       case VALRESULT_UNSUPPORTED:
-        setTD(trID + IDOUT_ACTUAL + cntID,
-              escapeOutput(cntResult.output),
-              '',
-              cssVal);
-        break;
-
       case VALRESULT_CANARY:
-        setTD(trID + IDOUT_ACTUAL + cntID,
-              highlightSelectionMarkersAndTextNodes(escapeOutput(cntResult.output)),
-              '',
-              cssVal);
         break;
 
       case VALRESULT_DIFF:
       case VALRESULT_ACCEPT:
       case VALRESULT_EQUAL:
-        if (!testUsesHTML) {
-          setTD(trID + IDOUT_ACTUAL + cntID,
-                formatValueOrString(cntResult.output),
-                '',
-                cssVal);
-        } else if (cntResult.selresult == SELRESULT_CANARY) {
-          cssCnt = suiteChecksSelOnly ? cssSel : cssVal;
-          setTD(trID + IDOUT_ACTUAL + cntID, 
-                highlightSelectionMarkersAndTextNodes(escapeOutput(cntResult.output)),
-                '',
-                cssCnt);
-        } else {
-          cssCnt = suiteChecksSelOnly ? cssSel : cssVal;
-          setTD(trID + IDOUT_ACTUAL + cntID, 
-                formatActualResult(suite, group, test, cntResult.output),
-                '',
-                cssCnt);
-        }
+        containerCSS = (testUsesHTML && suiteChecksSelOnly) ? containerSelCSS : containerValCSS;
         break;
 
       default:
-        cssCnt = 'exception';
-        setTD(trID + IDOUT_ACTUAL + cntID,
-              INTERNAL_ERR + 'UNKNOWN RESULT VALUE',
-              '',
-              cssCnt);
+        containerCSS = 'exception';
     }
 
-    if (cntTD) {
-      cntTD.className = cssCnt;
+    // Output results for both unfocused and focused
+    for (var focusIdx = 0; focusIdx < focusArr.length; ++focusIdx) {
+      var focusID = focusArr[focusIdx];
+      var focusTD = document.getElementById(trID + IDOUT_FOCUS + containerID + ':' + focusID);
+      var focusResult = containerResult[focusID];
+      var focusValOut = VALOUTPUT[focusResult.valresult];
+      var focusSelOut = SELOUTPUT[focusResult.selresult];
+      var focusValCSS = focusValOut.css;
+      var focusSelCSS = (!suiteChecksSelOnly || focusResult.selresult != SELRESULT_NA) ? focusSelOut.css : focusValCSS;
+      var focusCSS = focusValCSS;
+
+      // Fill in result status cell ("PASS", "ACC.", "FAIL", "EXC.", etc.)
+      setTD(trID + IDOUT_STATUSVAL + containerID + ':' + focusID, focusValOut.output, focusValOut.title, focusValCSS);
+      
+      // Fill in selection status cell ("PASS", "ACC.", "FAIL", "N/A")
+      setTD(trID + IDOUT_STATUSSEL + containerID + ':' + focusID, focusSelOut.output, focusSelOut.title, focusSelCSS);
+
+      // Fill in actual result
+      switch (focusResult.valresult) {
+        case VALRESULT_SETUP_EXCEPTION:
+          setTD(trID + IDOUT_ACTUAL + containerID + ':' + focusID,
+                SETUP_EXCEPTION + '(mouseover)',
+                escapeOutput(focusResult.output),
+                focusValCSS);
+          break;
+  
+        case VALRESULT_EXECUTION_EXCEPTION:
+          setTD(trID + IDOUT_ACTUAL + containerID + ':' + focusID,
+                EXECUTION_EXCEPTION + '(mouseover)',
+                escapeOutput(focusResult.output.toString()),
+                focusValCSS);
+          break;
+  
+        case VALRESULT_VERIFICATION_EXCEPTION:
+          setTD(trID + IDOUT_ACTUAL + containerID + ':' + focusID,
+                VERIFICATION_EXCEPTION + '(mouseover)',
+                escapeOutput(focusResult.output.toString()),
+                focusValCSS);
+          break;
+  
+        case VALRESULT_UNSUPPORTED:
+          setTD(trID + IDOUT_ACTUAL + containerID + ':' + focusID,
+                escapeOutput(focusResult.output),
+                '',
+                focusValCSS);
+          break;
+  
+        case VALRESULT_CANARY:
+          setTD(trID + IDOUT_ACTUAL + containerID + ':' + focusID,
+                highlightSelectionMarkersAndTextNodes(escapeOutput(focusResult.output)),
+                '',
+                focusValCSS);
+          break;
+  
+        case VALRESULT_DIFF:
+        case VALRESULT_ACCEPT:
+        case VALRESULT_EQUAL:
+          if (!testUsesHTML) {
+            setTD(trID + IDOUT_ACTUAL + containerID + ':' + focusID,
+                  formatValueOrString(focusResult.output),
+                  '',
+                  focusValCSS);
+          } else if (focusResult.selresult == SELRESULT_CANARY) {
+            focusCSS = suiteChecksSelOnly ? focusSelCSS : focusValCSS;
+            setTD(trID + IDOUT_ACTUAL + containerID + ':' + focusID, 
+                  highlightSelectionMarkersAndTextNodes(escapeOutput(focusResult.output)),
+                  '',
+                  focusCSS);
+          } else {
+            focusCSS = suiteChecksSelOnly ? focusSelCSS : focusValCSS;
+            setTD(trID + IDOUT_ACTUAL + containerID + ':' + focusID, 
+                  formatActualResult(suite, group, test, focusResult.output),
+                  '',
+                  focusCSS);
+          }
+          break;
+  
+        default:
+          focusCSS = 'exception';
+          setTD(trID + IDOUT_ACTUAL + containerID + ':' + focusID,
+              INTERNAL_ERR + 'UNKNOWN RESULT VALUE',
+              '',
+              focusCSS);
+      }
+      
+      if (focusTD) {
+        focusTD.className = focusCSS;
+      }
+    }
+    if (containerTD) {
+      containerTD.className = containerCSS;
     }
   }          
 }
