@@ -38,32 +38,32 @@ BROWSER_NAV = (
 )
 
 TOP_BROWSERS = (
-  'Android 2.3',
+  'Android 2.3', 'Android 3.1',
   'Chrome 13', 'Chrome 14',
-  'Firefox 3.6', 'Firefox 4', 'Firefox 5',
+  'Firefox 5', 'Firefox 6', 'Firefox Beta 7',
   'IE 8', 'IE 9',
   'iPhone 3.1', 'iPhone 4.2',
+  'RockMelt 0.9',
   'Opera 11',
   'Safari 5.0',
 )
 
 TOP_DESKTOP_BROWSERS = (
-  'Chrome 14',
-  'Firefox 5',
+  'Chrome 13',
+  'Firefox Beta 7.0',
   'IE 9',
   'Opera 11',
   'Safari 5.0',
 )
 
 TOP_MOBILE_BROWSERS = (
-  'Android 2.3',
-  'Blackberry 9700',
-  'iPad 4.04',
+  'Android 3.1',
+  'Blackberry 7',
   'iPhone 4.2',
-  'Nokia 95',
-  'Nokia 5800',
-  'Opera Mobile 11.00',
-  'Palm Pre 1.1',
+  'IE Mobile 7.11',
+  'Nokia 950',
+  'Opera Mobile 11.10',
+  'Palm webOS 2.1',
 )
 
 class CategoryBrowserManager(db.Model):

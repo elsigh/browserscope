@@ -515,12 +515,18 @@ Util.ResultTablesController.prototype.setBrowserFamily = function(
   this.updateTableDisplay();
 };
 
+Util.ResultTablesController.prototype.firstPushStateHappened_ = false;
 Util.ResultTablesController.prototype.resetUrl = function() {
   var url = Util.ResultTablesController.generateUrl(this.category,
       this.output, this.browserFamily, this.uaUriParams, this.resultsUriParams);
   this.url = url;
-  window.history.pushState({}, this.category + ' ' + this.browserFamily,
-      url);
+  // Ignore the first call here so that / doesn't become another url.
+  if (this.firstPushStateHappened_) {
+    window.history.pushState({}, this.category + ' ' + this.browserFamily,
+        url.replace('results?', '?').replace('&o=xhr', ''));
+  } else {
+    this.firstPushStateHappened_ = true;
+  }
 };
 
 Util.ResultTablesController.prototype.hideTables = function() {

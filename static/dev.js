@@ -13378,6 +13378,64 @@ goog.iter.product = function(var_args) {
 
   return iter;
 };
+
+
+/**
+ * Create an iterator to cycle over the iterable's elements indefinitely.
+ * For example, ([1, 2, 3]) would return : 1, 2, 3, 1, 2, 3, ...
+ * @see: http://docs.python.org/library/itertools.html#itertools.cycle.
+ * @param {!goog.iter.Iterable} iterable The iterable object.
+ * @return {!goog.iter.Iterator} An iterator that iterates indefinitely over
+ * the values in {@code iterable}.
+ */
+goog.iter.cycle = function(iterable) {
+
+  var baseIterator = goog.iter.toIterator(iterable);
+
+  // We maintain a cache to store the iterable elements as we iterate
+  // over them. The cache is used to return elements once we have
+  // iterated over the iterable once.
+  var cache = [];
+  var cacheIndex = 0;
+
+  var iter = new goog.iter.Iterator();
+
+  // This flag is set after the iterable is iterated over once
+  var useCache = false;
+
+  iter.next = function() {
+    var returnElement = null;
+
+    // Pull elements off the original iterator if not using cache
+    if (!useCache) {
+
+      try {
+        // Return the element from the iterable
+        returnElement = baseIterator.next();
+        cache.push(returnElement);
+        return returnElement;
+      } catch (e) {
+        // If an exception other than StopIteration is thrown
+        // or if there are no elements to iterate over (the iterable was empty)
+        // throw an exception
+        if (e != goog.iter.StopIteration || goog.array.isEmpty(cache)) {
+          throw e;
+        }
+        // set useCache to true after we know that a 'StopIteration' exception
+        // was thrown and the cache is not empty (to handle the 'empty iterable'
+        // use case)
+        useCache = true;
+      }
+    }
+
+    returnElement = cache[cacheIndex];
+    cacheIndex = (cacheIndex + 1) % cache.length;
+
+    return returnElement;
+  };
+
+  return iter;
+};
 // Copyright 2006 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15325,6 +15383,32 @@ goog.debug.Logger.getLogger = function(name) {
 
 
 /**
+ * Logs a message to profiling tools, if available.
+ * {@see http://code.google.com/webtoolkit/speedtracer/logging-api.html}
+ * {@see http://msdn.microsoft.com/en-us/library/dd433074(VS.85).aspx}
+ * @param {string} msg The message to log.
+ */
+goog.debug.Logger.logToProfilers = function(msg) {
+  // Using goog.global, as loggers might be used in window-less contexts.
+  if (goog.global['console']) {
+    if (goog.global['console']['timeStamp']) {
+      // Logs a message to Firebug, Web Inspector, SpeedTracer, etc.
+      goog.global['console']['timeStamp'](msg);
+    } else if (goog.global['console']['markTimeline']) {
+      // TODO(user): markTimeline is deprecated. Drop this else clause entirely
+      // after Chrome M14 hits stable.
+      goog.global['console']['markTimeline'](msg);
+    }
+  }
+
+  if (goog.global['msWriteProfilerMark']) {
+    // Logs a message to the Microsoft profiler
+    goog.global['msWriteProfilerMark'](msg);
+  }
+};
+
+
+/**
  * Gets the name of this logger.
  * @return {string} The name of this logger.
  */
@@ -15605,25 +15689,12 @@ goog.debug.Logger.prototype.logRecord = function(logRecord) {
 
 
 /**
- * Logs the message to speed tracer, if it is available.
- * {@see http://code.google.com/webtoolkit/speedtracer/logging-api.html}
- * @param {string} msg The message to log.
- * @private
- */
-goog.debug.Logger.prototype.logToSpeedTracer_ = function(msg) {
-  if (goog.global['console'] && goog.global['console']['markTimeline']) {
-    goog.global['console']['markTimeline'](msg);
-  }
-};
-
-
-/**
  * Log a LogRecord.
  * @param {goog.debug.LogRecord} logRecord A log record to log.
  * @private
  */
 goog.debug.Logger.prototype.doLogRecord_ = function(logRecord) {
-  this.logToSpeedTracer_('log:' + logRecord.getMessage());
+  goog.debug.Logger.logToProfilers('log:' + logRecord.getMessage());
   if (goog.debug.Logger.ENABLE_HIERARCHY) {
     var target = this;
     while (target) {
@@ -23589,7 +23660,7 @@ goog.style.getStyle = function(element, property) {
 /**
  * Retrieves a computed style value of a node. It returns empty string if the
  * value cannot be computed (which will be the case in Internet Explorer) or
- * "none" if the property requested is a SVG one and it has not been
+ * "none" if the property requested is an SVG one and it has not been
  * explicitly set (firefox and webkit).
  *
  * @param {Element} element Element to get style of.
@@ -24363,12 +24434,12 @@ goog.style.setWidth = function(element, width) {
  * Gets the height and width of an element, even if its display is none.
  * Specifically, this returns the height and width of the border box,
  * irrespective of the box model in effect.
- * @param {Element} element Element to get width of.
+ * @param {Element} element Element to get size of.
  * @return {!goog.math.Size} Object with width/height properties.
  */
 goog.style.getSize = function(element) {
   if (goog.style.getStyle_(element, 'display') != 'none') {
-    return new goog.math.Size(element.offsetWidth, element.offsetHeight);
+    return goog.style.getSizeWithDisplay_(element);
   }
 
   var style = element.style;
@@ -24380,14 +24451,39 @@ goog.style.getSize = function(element) {
   style.position = 'absolute';
   style.display = 'inline';
 
-  var originalWidth = element.offsetWidth;
-  var originalHeight = element.offsetHeight;
+  var size = goog.style.getSizeWithDisplay_(element);
 
   style.display = originalDisplay;
   style.position = originalPosition;
   style.visibility = originalVisibility;
 
-  return new goog.math.Size(originalWidth, originalHeight);
+  return size;
+};
+
+
+/**
+ * Gets the height and with of an element when the display is not none.
+ * @param {Element} element Element to get size of.
+ * @return {!goog.math.Size} Object with width/height properties.
+ * @private
+ */
+goog.style.getSizeWithDisplay_ = function(element) {
+  var offsetWidth = element.offsetWidth;
+  var offsetHeight = element.offsetHeight;
+  var webkitOffsetsZero =
+      goog.userAgent.WEBKIT && !offsetWidth && !offsetHeight;
+  if ((!goog.isDef(offsetWidth) || webkitOffsetsZero) &&
+      element.getBoundingClientRect) {
+    // Fall back to calling getBoundingClientRect when offsetWidth or
+    // offsetHeight are not defined, or when they are zero in WebKit browsers.
+    // This makes sure that we return for the correct size for SVG elements, but
+    // will still return 0 on Webkit prior to 534.8, see
+    // http://trac.webkit.org/changeset/67252.
+    var clientRect = goog.style.getBoundingClientRect_(element);
+    return new goog.math.Size(clientRect.right - clientRect.left,
+        clientRect.bottom - clientRect.top);
+  }
+  return new goog.math.Size(offsetWidth, offsetHeight);
 };
 
 
