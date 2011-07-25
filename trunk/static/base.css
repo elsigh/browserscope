@@ -405,6 +405,9 @@ html>body .goog-inline-block {
 }
 
 /** Home Page **/
+.bs-timeline {
+  width: 800px;
+}
 #bs-home-recent-c {
   border-bottom: 1px solid #666;
   float: right;

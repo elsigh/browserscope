@@ -112,6 +112,11 @@ a.bs-l-p {
 /**
  * Results Table
  */
+.rt-link {
+  text-decoration: underline;
+  cursor: pointer;
+  color: #4291BF;
+}
 .rt-static {
   padding: 5px 10px 0 8px;
   font-size: 95%;
@@ -151,10 +156,57 @@ a.bs-l-p {
   text-align: right;
   white-space: nowrap;
 }
+.rt-row-over td {
+  background-color: #E7E9F9;
+}
 
-/* Timeline */
-.bs-timeline {
-  width: 800px;
+.rt-compare-cb {
+  margin-right: .5em;
+  position: relative;
+  top: -0.2em;
+}
+.rt-compare-cb,
+.rt-compare-undo,
+.rt-compare-btn,
+.rt-compare .rt-compare-link,
+.rt-compare-active .rt-compare-link {
+  display: none;
+}
+.rt-compare .rt-compare-cb,
+.rt-compare .rt-compare-btn,
+.rt-compare-active .rt-compare-undo {
+  display: inline-block;
+}
+.rt-compare-active tr.rt-row {
+  display: none;
+}
+.rt-compare-active tr.rt-row[data-compare-ua="1"] {
+  display: block;
+  display: table-row;
+}
+
+.rt-filter-link,
+.rt-filter-btn,
+.rt-filter-undo {
+  margin-left: 1.5em;
+}
+.rt-filter-input {
+  width: 1.5em;
+}
+.rt-filter-btn,
+.rt-filter-input,
+.rt-filter-undo,
+.rt-filter .rt-filter-link,
+.rt-filter-active tr[data-filter="1"],
+.rt-filter-active .rt-filter-link {
+  display: none;
+}
+.rt-filter-active .rt-filter-undo {
+  display: inline;
+}
+.rt-filter .rt-filter-btn,
+.rt-filter .rt-filter-input {
+  display: inline-block;
 }
 
 /* override JSKB and gviz table default */

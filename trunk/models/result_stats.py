@@ -50,10 +50,10 @@ TOP_BROWSERS = (
 
 TOP_DESKTOP_BROWSERS = (
   'Chrome 13',
-  'Firefox Beta 7.0',
+  'Firefox 5',
   'IE 9',
   'Opera 11',
-  'Safari 5.0',
+  'Safari 5',
 )
 
 TOP_MOBILE_BROWSERS = (
