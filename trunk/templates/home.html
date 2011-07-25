@@ -52,20 +52,6 @@
         browserscope for your own tests</a>
     </p>
   </div>
-
-  {% if show_evolution %}
-    <h3>Modernizr2's Browserscope data viz</h3>
-    <div id="bs-evolution"></div>
-    <em>
-      Credits:
-      <a href="http://www.modernizr.com/">modernizr.com</a>
-      &amp;
-      <a href="http://twitter.com/#!/nihar_k">Nihar Kabinittal</a>
-      &dash;
-      <a href="/user/tests/table/agt1YS1wcm9maWxlcnINCxIEVGVzdBib2KQGDA?score=1&highlight=1&v=2"
-        >modernizr2 results table</a>
-    </em>
-  {% endif %}
 </div>
 
 
@@ -99,6 +85,19 @@
     {% endfor %}
   </ul>
 </div>
+
+
+{% if show_evolution %}
+  <h2>Featured UserTest: <a href="http://www.modernizr.com/">Modernizr2</a></h2>
+  <div id="bs-evolution"></div>
+  <em>
+    DataViz Credits:
+    <a href="http://twitter.com/#!/nihar_k">Nihar Kabinittal</a>
+    &dash;
+    <a href="/user/tests/table/agt1YS1wcm9maWxlcnINCxIEVGVzdBib2KQGDA?score=1&highlight=1&v=2"
+      >complete results table</a>
+  </em>
+{% endif %}
 
 
 {% ifequal build "production" %}
@@ -142,7 +141,7 @@
     var evolutionEl = document.getElementById('bs-evolution');
     if (evolutionEl) {
       var evolUrl =
-          '/evolution?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBib2KQGDA&v=top-d&label=HTML5%20Ready&o=embed';
+          '/evolution?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBib2KQGDA&v=top-d-e&label=HTML5%20Ready&o=embed';
       //evolUrl = '/evolution?o=embed';
       jQuery('#bs-evolution').load(evolUrl);
     }
