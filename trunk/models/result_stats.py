@@ -57,7 +57,7 @@ TOP_DESKTOP_BROWSERS = (
   'Safari 5',
 )
 
-TOP_DESKTOP_EDGE = (
+TOP_DESKTOP_EDGE_BROWSERS = (
   'Chrome 14',
   'Firefox Beta 7',
   'IE Platform Preview 10',
@@ -147,6 +147,8 @@ class CategoryBrowserManager(db.Model):
       browsers = list(TOP_DESKTOP_BROWSERS)
     elif version_level == 'top-m':
       browsers = list(TOP_MOBILE_BROWSERS)
+    elif version_level == 'top-d-e':
+      browsers = list(TOP_DESKTOP_EDGE_BROWSERS)
     else:
       # If this is an aliased UserTest (like HTML5), use its key instead.
       test_set = all_test_sets.GetTestSet(category)
