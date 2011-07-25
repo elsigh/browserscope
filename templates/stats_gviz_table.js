@@ -100,10 +100,13 @@ bsResultsTable.prototype.draw_ = function(response) {
     return;
   }
 
-  this.resultsCells_ = this.tableContainer_.querySelectorAll(
-      '.rt-row td:last-child');
-  this.drawCompareUaUi_();
-  this.drawSparseFilter_();
+  var that = this;
+  window.setTimeout(function() {
+    that.resultsCells_ = that.tableContainer_.querySelectorAll(
+        '.rt-row td:last-child');
+    that.drawCompareUaUi_();
+    that.drawSparseFilter_();
+  }, 200);
 };
 
 bsResultsTable.prototype.drawCompareUaUi_ = function() {
