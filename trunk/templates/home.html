@@ -88,15 +88,22 @@
 
 
 {% if show_evolution %}
-  <h2>Featured UserTest: <a href="http://www.modernizr.com/">Modernizr2</a></h2>
+  <h2>
+    Featured UserTest: <a href="http://www.modernizr.com/">Modernizr2</a>
+  </h2>
   <div id="bs-evolution"></div>
-  <em>
-    DataViz Credits:
+  <small>
+    <a id="bs-evolution-permalink"
+      href="/evolution?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBib2KQGDA&v=top-d-e&label=HTML5%20Ready"
+      >permalink</a>
+    &nbsp;
+    <em>DataViz Credits:
     <a href="http://twitter.com/#!/nihar_k">Nihar Kabinittal</a>
     &dash;
     <a href="/user/tests/table/agt1YS1wcm9maWxlcnINCxIEVGVzdBib2KQGDA?score=1&highlight=1&v=2"
       >complete results table</a>
-  </em>
+    </em>
+  </small>
 {% endif %}
 
 
@@ -140,9 +147,8 @@
 
     var evolutionEl = document.getElementById('bs-evolution');
     if (evolutionEl) {
-      var evolUrl =
-          '/evolution?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBib2KQGDA&v=top-d-e&label=HTML5%20Ready&o=embed';
-      //evolUrl = '/evolution?o=embed';
+      var evolUrl = document.getElementById('bs-evolution-permalink').href +
+          '&o=embed';
       jQuery('#bs-evolution').load(evolUrl);
     }
   })();
