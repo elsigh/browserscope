@@ -119,7 +119,7 @@ bsResultsTable.prototype.drawCompareUaUi_ = function() {
     row.setAttribute('data-compare-ua', this.checked ? '1' : '0');
   };
   for (var i = 0, uaCell; uaCell = uaCells[i]; i++) {
-    var uaString = uaCell.innerText;
+    var uaString = uaCell.innerText || uaCell.textContent;
     uaCell.parentNode.setAttribute('data-ua', uaString);
     var cb = cbClone.cloneNode(true);
     cb.id = 'rt-compare-cb-' + i;
@@ -170,7 +170,7 @@ bsResultsTable.prototype.drawCompareUaUi_ = function() {
 bsResultsTable.prototype.drawSparseFilter_ = function() {
   // Add result links and set count data attr.
   for (var i = 0, cell; cell = this.resultsCells_[i]; i++) {
-    var resultCount = cell.innerText;
+    var resultCount = cell.innerText || cell.textContent;
     cell.setAttribute('data-count', resultCount);
     var uaString = cell.parentNode.getAttribute('data-ua');
     cell.innerHTML = '<a href="//{{ server }}/browse?' +
