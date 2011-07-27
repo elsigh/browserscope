@@ -402,6 +402,7 @@ def GetResults(request, template=None, params={}, test_set=None):
     'server': GetServer(request),
     'results_params': '&'.join(results_params),
     'v': request.GET.get('v', 'top'),
+    'browser_nav': result_stats.BROWSER_NAV,
     'is_admin': users.is_current_user_admin(),
     'output': output,
     'ua_params': request.GET.get('ua', ''),

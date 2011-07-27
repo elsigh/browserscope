@@ -8,12 +8,27 @@
     <p>{{ test.description }}</p>
   {% endif %}
 
-  <div id="bs-rt-{{ category }}">
+  <div id="bs-rt-{{ category }}-tools" class="rt-tools" style="display:none">
+    {% if browser_nav %}
+      <select id="bs-rt-{{ category }}-v" name="v">
+        {% for version, version_label in browser_nav %}
+            <option
+              value="{{ version }}"
+              {% ifequal v version %}selected="selected"{% endifequal %}
+              >{{ version_label }}</option>
+        {% endfor %}
+      </select>
+    {% endif %}
+    <span id="bs-rt-{{ category }}-tools-dyn"
+      class="rt-tools-dyn"></span>
   </div>
+  <div id="bs-rt-{{ category }}"></div>
   {% if is_admin %}
     <a href="/clear_memcache?category={{ category }}&v={{ v }}&continue={{ request_path|urlencode }}" class="bs-admin">clearmem</a>
   {% endif %}
 </div>
+<img src="//www.browserscope.org/static/img/loading.gif"
+  style="display:none">
 
 {% ifequal output "js" %}{% else %}
   <script>

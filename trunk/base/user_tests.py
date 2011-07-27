@@ -310,7 +310,6 @@ def FormatUserTestsAsGviz(request):
   tqx = request.GET.get('tqx')
   limit = int(request.GET.get('limit', 10))
   bookmark = request.GET.get('bookmark')
-  logging.info('bookmark %s' % bookmark)
 
   description = [('created', 'datetime', 'Created'),
                  ('author', 'string', 'Author'),
@@ -320,8 +319,10 @@ def FormatUserTestsAsGviz(request):
                  ('beacon_count', 'number', '# Tests')]
 
 
-  query = pager.PagerQuery(
-      models.user_test.Test).order('-beacon_count').order('-created')
+  query = (pager.PagerQuery(models.user_test.Test).
+       filter('deleted =', False).
+       order('-beacon_count').
+       order('-created'))
   prev_bookmark, results, next_bookmark = query.fetch(limit, bookmark)
   if prev_bookmark is None:
     prev_bookmark = ''
