@@ -22,3 +22,11 @@ mapreduce:
     params:
     - name: entity_kind
       default: models.result.ResultParent
+
+- name: UserTest Deleted False
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: base.mapreducer.UserTestDeletedFalse
+    params:
+    - name: entity_kind
+      default: models.user_test.Test

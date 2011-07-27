@@ -75,6 +75,9 @@ def Settings(request):
       email=current_user.email())
   tests = db.Query(models.user_test.Test)
   tests.filter('user', user)
+  # Only admins can see deleted tests.
+  if not users.is_current_user_admin():
+    tests.filter('deleted', False)
   tests.order('created')
   if tests.count() == 0:
     tests = None
@@ -139,6 +142,10 @@ def TestEdit(request, key):
         test.name = request.REQUEST.get('name')
         test.url = request.REQUEST.get('url')
         test.description = request.REQUEST.get('description')
+        deleted = request.REQUEST.get('deleted')
+        if deleted == '1':
+          test.deleted = True
+        logging.info('deleted: %s' % test.deleted)
         if request.REQUEST.get('sandboxid'):
           test.sandboxid = request.REQUEST.get('sandboxid')
         test.test_keys = request.REQUEST.get('test_keys').split(',')
