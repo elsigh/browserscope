@@ -141,9 +141,11 @@ var Viz = {
     obj.fill = obj.fill || Raphael.getColor();
     r.path('M 0,' + (obj.y+1) + ' L1100,' + (obj.y)).attr({stroke:obj.seprator}).toBack()
     var scoreLine = r.set();
+    var browserName = obj.browser;
+    browserName = browserName.replace('IE Platform Preview', 'IE Preview');
     scoreLine.push(
 	    r.path('M 0,' + obj.y + ' L 5,' + (obj.y-5) + ' L,5,25' + ' L 6,25 L 6,' + (obj.y-5) + ' L 10,' + obj.y + ' L 0,' + obj.y).animate({path:'M ' + (obj.x-5) + ',' + obj.y + ' L ' + obj.x + ',' + (obj.y-5) + ' L ' + obj.x + ',25' + ' L ' + (obj.x+1) + ',25 L ' + (obj.x+1) + ',' + (obj.y-5) + ' L ' + (obj.x+5) + ',' + obj.y + ' L ' + (obj.x-5) + ',' + obj.y},1250,'bounce').attr({score:obj.score,stroke:obj.fill,fill:obj.fill}),
-    	r.text(0,obj.y+10,obj.browser).animate({x:obj.x-25+13,y:obj.y+32},1250,'bounce').attr({'stroke-opacity':'0','text-anchor':'end',fill:this.Colors.fontColor,'font-size':'12px','font-family':'Arial',cursor:'default'}).rotate(285,obj.x-21,obj.y+10).toFront()
+    	r.text(0,obj.y+10,browserName).animate({x:obj.x-25+13,y:obj.y+32},1250,'bounce').attr({'stroke-opacity':'0','text-anchor':'end',fill:this.Colors.fontColor,'font-size':'12px','font-family':'Arial',cursor:'default'}).rotate(285,obj.x-21,obj.y+10).toFront()
     ).hover(fin,fout),
     r.rect(0,(obj.y-25),1100,25).attr({'fill':obj.band,'stroke':obj.band}).toBack();
   },

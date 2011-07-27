@@ -3,6 +3,11 @@
   margin: 0;
   float: left;
 }
+.bs-admin {
+  font-size: 80%;
+  color: darkred !important;
+  text-decoration: none;
+}
 .bs-usertest #bs-logo {
   float: none;
 }
@@ -158,6 +163,16 @@ a.bs-l-p {
 }
 .rt-row-over td {
   background-color: #E7E9F9;
+}
+
+.rt-tools {
+  padding: 5px;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-bottom: 0;
+}
+.rt-tools-dyn {
+  margin-left: 1em;
 }
 
 .rt-compare-cb {
@@ -317,7 +332,7 @@ a.bs-l-p {
   color: #666;
 }
 .rt-loading {
-  background: url(/static/img/loading.gif) 50% 25% no-repeat;
+  background: url(//www.browserscope.org//static/img/loading.gif) 50% 25% no-repeat;
 }
 
 

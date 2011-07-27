@@ -46,6 +46,14 @@ indexes:
 - kind: Test
   properties:
   - name: deleted
+  - name: beacon_count
+    direction: desc
+  - name: created
+    direction: desc
+
+- kind: Test
+  properties:
+  - name: deleted
   - name: user
   - name: created
 
