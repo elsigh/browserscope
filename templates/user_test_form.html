@@ -42,6 +42,7 @@
   </div>
 {% endif %}
 
+
 {% if error_msg %}
   <div style="border: 2px outset darkred; display:inline-block; padding: 5px 10px; color:darkred">
     <strong>Error saving your test: "{{ error_msg }}"</strong>
@@ -53,6 +54,17 @@
   <input type="hidden" id="sandboxid" name="sandboxid" size="20"
       max="{{ max_sandboxid_len }}"
       value="{% if test %}{{ test.sandboxid }}{% else %}{{ sandboxid }}{% endif %}">
+
+  {% if test %}
+    {% if is_admin %}
+      <p>
+        Deleted: {{ test.deleted }}
+      </p>
+    {% endif %}
+    <input id="bs-user-test-deleted" type="hidden" name="deleted"
+      {% if test.deleted %}value="1"{% endif %}>
+  {% endif %}
+
   <p>
     <label for="name">Test Name:</label>
       <input type="text" id="name" name="name" size="30"
@@ -99,6 +111,10 @@
 
   <p>
     <input type="submit" value="Save" class="bs-btn">
+    {% if test %}
+      <input id="bs-user-test-del" type="submit" value="Delete"
+        class="bs-btn bs-btn-del">
+    {% endif %}
   </p>
 </form>
 
@@ -135,6 +151,15 @@ jQuery('.sortable').each(function(i, el) {
       li.remove();
     });
   });
+});
+jQuery('#bs-user-test-del').click(function(e) {
+  var confirm = window.confirm(
+      'Are you really sure you want to delete your test?');
+  if (!confirm) {
+    e.preventDefault();
+    return;
+  }
+  jQuery('#bs-user-test-deleted').val('1');
 });
 </script>
 

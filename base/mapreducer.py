@@ -33,6 +33,10 @@ def UserTestBeaconCount(entity):
       shardedcounter.get_count(entity.get_memcache_keyname()))
   yield op.db.Put(entity)
 
+def UserTestDeletedFalse(entity):
+  entity.deleted = False
+  yield op.db.Put(entity)
+
 
 def ResultParentUaDeNorm(entity):
   try:

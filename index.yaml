@@ -45,6 +45,12 @@ indexes:
 
 - kind: Test
   properties:
+  - name: deleted
+  - name: user
+  - name: created
+
+- kind: Test
+  properties:
   - name: user
   - name: created
 
