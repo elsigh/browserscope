@@ -16,15 +16,18 @@
   You should test that URL to make sure it works. =)
 </p>
 
-{% if webpagetest_responses %}
-  {% for response in webpagetest_responses %}
-    <h4>
-      <a href="{{ response.data.userUrl }}"
-        >Test {{ response.data.testId }} Results</a>
-    </h4>
-    <strong>Raw response: </strong><code>{{ response }}</code>
-    <br>
-  {% endfor %}
+{% if webpagetests %}
+  <ul>
+    {% for location,response in webpagetests.items %}
+      <li>
+        <h4>
+          <a href="{{ response.data.userUrl }}"
+            >{{ location }} Results</a>
+        </h4>
+        <strong>Raw response: </strong><code>{{ response }}</code>
+      </li>
+    {% endfor %}
+  </ul>
 {% else %}
   <h3>Sorry, something went wrong with our WebPagetest.org integration.</h3>
 {% endif %}
