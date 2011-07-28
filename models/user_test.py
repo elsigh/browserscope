@@ -75,12 +75,7 @@ class TestSet(test_set_base.TestSet):
       test = Test.get_test_from_category(self.category)
       score = test.get_score_from_display(test_key, raw_score)
 
-    #if test.is_boolean_test_key(test_key):
-    #  if score == 1:
-    #    score = 'yes'
-    #  else:
-    #    score = 'no'
-
+    logging.info('score: %s, display: %s', score, raw_score)
     return score, raw_score
 
   def GetRowScoreAndDisplayValue(self, results):
@@ -235,27 +230,33 @@ class Test(db.Model):
     meta = TestMeta.get_mem_by_test(self)
     test_min_value = getattr(meta, '%s_min_value' % test_key)
     test_max_value = getattr(meta, '%s_max_value' % test_key)
-    return test_min_value == 0 and test_max_value == 1
+    return test_min_value == 0 or test_max_value == 1
 
   def get_score_from_display(self, test_key, display):
     """Converts a displayed number value into a 1-100 score."""
     meta = TestMeta.get_mem_by_test(self)
-    #logging.info('get_score_from_display meta:%s' % meta)
+    logging.info('display: %s, get_score_from_display meta:%s', display, meta)
     if not hasattr(meta, '%s_min_value' % test_key):
       value_on_100_scale = 100  # Default to green if no min yet.
     else:
+      numerator = divisor = 0
       test_min_value = getattr(meta, '%s_min_value' % test_key)
       test_max_value = getattr(meta, '%s_max_value' % test_key)
       #logging.info('min: %s, max: %s' % (test_min_value, test_max_value))
-      numerator = int(display) - test_min_value
-      divisor = test_max_value - test_min_value
-      if numerator < 1 or divisor < 1:
-        value_on_100_scale = 1  # Make it red
+
+      # Boolean tests get straight up 100 or 0.
+      if test_max_value == 1 or test_min_value == 0:
+        if display == 1:
+          value_on_100_scale = 100
+        else:
+          value_on_100_scale = 1
       else:
-        value_on_100_scale = int((float(numerator)/float(divisor)) * 100)
-    #logging.info('USER TEST get_score_from_display %s: %s, %s, %s, %s = %s' %
-    #             (display, test_min_value, test_max_value, numerator, divisor,
-    #              value_on_100_scale))
+        numerator = int(display) - test_min_value
+        divisor = test_max_value - test_min_value
+        if numerator < 1 or divisor < 1:
+          value_on_100_scale = 1  # Make it red
+        else:
+          value_on_100_scale = int((float(numerator)/float(divisor)) * 100)
     return value_on_100_scale
 
   @staticmethod

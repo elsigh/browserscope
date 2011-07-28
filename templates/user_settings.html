@@ -28,9 +28,9 @@
           <th></th>
           <th>_bTestKey</th>
           <th>Name</th>
+          <th>Description</th>
           <th>Test URL</th>
           <th>Sandbox ID</th>
-          <th>Description</th>
           <th># Tests<br><small>updates hourly</small></th>
           <th>Outputs</th>
           <th>WebpageTest</th>
@@ -51,11 +51,11 @@
                 <span class="bs-admin">[deleted]</span>
               {% endif %}
             </td>
+            <td>{{ test.description }}</td>
             <td>
               <a href="{{ test.url }}" target="_blank">{{ test.url }}</a>
             </td>
             <td>{{ test.sandboxid }}</td>
-            <td>{{ test.description }}</td>
             <td>{{ test.beacon_count }}</td>
             <td>
               <a href="/browse?category=usertest_{{ test.key }}"
@@ -70,7 +70,7 @@
                 You've used your free run.
               {% else %}
                 <a href="/user/tests/webpagetest/{{ test.key }}"
-                  class="bs-btn">Test in IE 6-9 &amp; Chrome</a>
+                  class="bs-btn">in IE 6-9</a>
               {% endif %}
           </tr>
         {% endfor %}

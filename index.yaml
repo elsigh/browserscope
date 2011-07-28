@@ -62,6 +62,12 @@ indexes:
   - name: user
   - name: created
 
+- kind: Test
+  properties:
+  - name: user
+  - name: created
+    direction: desc
+
 - kind: UserAgent
   properties:
   - name: confirmed
