@@ -82,7 +82,7 @@ def Settings(request):
   # Only admins can see deleted tests.
   if not users.is_current_user_admin():
     tests.filter('deleted', False)
-  tests.order('created')
+  tests.order('-created')
   if tests.count() == 0:
     tests = None
 
