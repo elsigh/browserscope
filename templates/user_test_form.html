@@ -72,11 +72,12 @@
   </p>
 
   <p>
-    <label for="url">URL:</label>
+    <label for="url">Test URL:</label>
     <input type="text" id="url" name="url" size="50"
       value="{% if test %}{{ test.url }}{% else %}http://{% endif %}">
     &nbsp;<span style="font-size:90%; color: #aaa;"
-      >used for referrer checking</span>
+      >used for <a href="http://www.webpagetest.org/"
+      >WebPagetest.org</a> &amp; referrer checking</span>
   </p>
 
   <!--

@@ -44,6 +44,7 @@ urlpatterns = patterns('',
   (r'^user/tests/table/(.+)$', 'base.user_tests.Table'),
   (r'^user/tests/howto$', 'base.user_tests.TestHowto'),
   (r'^user/tests/raw/(.+)$', 'base.user_tests.RawTestData'),
+  (r'^user/tests/webpagetest/(.+)$', 'base.user_tests.WebPagetest'),
   (r'^user/tests/index$', 'base.user_tests.Index'),
 
   # Admin functionality
