@@ -19,6 +19,7 @@
 __author__ = 'elsigh@google.com (Lindsey Simon)'
 
 
+import cgi
 import hashlib
 import logging
 import random
@@ -337,7 +338,7 @@ def WebPagetest(request, key):
 
   # Help users autorun their tests by adding autorun=1 to the test url.
   test_url_parts = list(urlparse.urlparse(test.url))
-  test_url_query = dict(urlparse.parse_qsl(test_url_parts[4]))
+  test_url_query = dict(cgi.parse_qsl(test_url_parts[4]))
   test_url_query.update({'autorun': '1'})
   test_url_parts[4] = urllib.urlencode(test_url_query)
   test_url = urlparse.urlunparse(test_url_parts)
@@ -347,18 +348,17 @@ def WebPagetest(request, key):
                      (WEBPAGETEST_URL, test_url,
                       urllib.quote('elsigh@gmail.com')))
 
-  webpagetest_responses = []
+  webpagetests = {}
   # See http://goo.gl/EfK1r for WebPagetest instructions.
   for location in WEBPAGETEST_LOCATIONS:
     url = '%s&location=%s' % (webpagetest_url, location)
     response = urlfetch.fetch(url)
     json = simplejson.loads(response.content)
-    webpagetest_responses.append(json)
+    webpagetests[location] = json
 
-  logging.info('webpagetest_responses %s', webpagetest_responses)
   params = {
     'test': test,
-    'webpagetest_responses': webpagetest_responses
+    'webpagetests': webpagetests
   }
   return util.Render(request, 'user_test_webpagetest.html', params)
 
