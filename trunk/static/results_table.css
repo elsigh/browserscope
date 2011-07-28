@@ -196,7 +196,6 @@ a.bs-l-p {
   display: none;
 }
 .rt-compare-active tr.rt-row[data-compare-ua="1"] {
-  display: block;
   display: table-row;
 }
 

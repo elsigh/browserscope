@@ -369,9 +369,12 @@ def UpdateCategory(request):
   if not category:
     logging.info('cron.UserAgentGroup: No category')
     return http.HttpResponse('No category')
-  if not all_test_sets.GetTestSet(category):
+
+  test_set = all_test_sets.GetTestSet(category)
+  if not test_set:
     logging.info('cron.UserAgentGroup: Bad category: %s', category)
     return http.HttpResponse('Bad category: %s' % category)
+
   if not user_agent_key:
     logging.info('cron.UserAgentGroup: No key')
     return http.HttpResponse('No key')

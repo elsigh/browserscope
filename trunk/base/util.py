@@ -1385,7 +1385,6 @@ def datastore_deferred(test_set, user_test_key, test_keys, user_agent):
         test_scores.append([test_key, display])
     #logging.info(' -- TEST_SCORES: %s' % test_scores)
     models.user_test.update_test_meta(user_test_key, test_scores)
-    #deferred.defer(models.user_test.update_test_meta, test.key(), test_scores)
 
 
 @decorators.admin_required
