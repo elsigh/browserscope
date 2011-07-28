@@ -1,9 +1,9 @@
+
 {% spaceless %}
 // This script is included in stats_gviz_table.html and stats_table.js
-
 var bsResultsTable = function(id, opt_doUaDetect) {
-  var doUaDetect = typeof opt_doUaDetect != 'undefined' ?
-      opt_doUaDetect : true;
+  var doUaDetect = (typeof opt_doUaDetect != 'undefined' ?
+      opt_doUaDetect : true);
 
   this.tableContainer_ = document.getElementById(id);
   this.container_ = this.tableContainer_.parentNode;
@@ -14,10 +14,11 @@ var bsResultsTable = function(id, opt_doUaDetect) {
   // ua detection
   if (doUaDetect &&
       !(document.getElementById(bsResultsTable.UA_DETECT_ID))) {
-  var script = document.createElement('script');
-  script.src = '//{{ server }}/ua?o=js';
-  script.id = bsResultsTable.UA_DETECT_ID;
-  this.tableContainer_.parentNode.appendChild(script);
+    var script = document.createElement('script');
+    script.src = '//{{ server }}/ua?o=js';
+    script.id = bsResultsTable.UA_DETECT_ID;
+    this.tableContainer_.parentNode.appendChild(script);
+  }
 
   // jsapi - load it only once
   if (!document.getElementById(bsResultsTable.JSAPI_ID)) {
@@ -280,4 +281,3 @@ bsUtil.removeClass = function(el, className) {
   }
 };
 {% endspaceless %}
-
