@@ -242,7 +242,7 @@ class Test(db.Model):
       numerator = divisor = 0
       test_min_value = getattr(meta, '%s_min_value' % test_key)
       test_max_value = getattr(meta, '%s_max_value' % test_key)
-      #logging.info('min: %s, max: %s' % (test_min_value, test_max_value))
+      logging.info('min: %s, max: %s' % (test_min_value, test_max_value))
 
       # Boolean tests get straight up 100 or 0.
       if test_max_value == 1 or test_min_value == 0:

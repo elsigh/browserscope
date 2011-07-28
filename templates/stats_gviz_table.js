@@ -100,7 +100,7 @@ bsResultsTable.prototype.draw_ = function(response) {
           'from Browserscope.');
   }
   bsUtil.removeClass(this.tableContainer_, 'rt-loading');
-  var dataTable = new google.visualization.Table(this.tableContainer_);
+  this.dataTable_ = new google.visualization.Table(this.tableContainer_);
   var data = response.getDataTable();
   var cssClassNames = {
     headerRow: '',
@@ -109,7 +109,7 @@ bsResultsTable.prototype.draw_ = function(response) {
     tableRow: 'rt-row',
     frozenColumns: 1
   };
-  dataTable.draw(data, {
+  this.dataTable_.draw(data, {
     {% if w %}'width': '{{ w }}',{% endif %}
     {% if h %}'height': '{{ h }}',{% endif %}
     'alternatingRowStyle': false,
@@ -191,8 +191,14 @@ bsResultsTable.prototype.drawCompareUaUi_ = function() {
   this.compareBtn_.appendChild(document.createTextNode('Compare'));
   this.compareBtn_.className = 'rt-compare-btn';
   this.compareBtn_.onclick = function(e) {
-    bsUtil.addClass(that.container_, 'rt-compare-active');
     bsUtil.removeClass(that.container_, 'rt-compare');
+    bsUtil.addClass(that.container_, 'rt-compare-active');
+    var rows = that.tableContainer_.querySelectorAll('tr');
+    // force reflow sad :(
+    // was necessary in Chrome 13
+    for (var i = 0, row; row = rows[i]; i++) {
+      row.className = row.className;
+    }
   };
   this.toolsDynContainer_.appendChild(this.compareBtn_);
 
