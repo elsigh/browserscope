@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<img id="bs-user-settings-steth" src="/static/img/stethoscope.png"
+  height="150" width="150" align="right" vspace="10" hspace="20" alt="">
+
+<h2>
+  WebPagetest.org Results for
+  <a href="{{ test.url }}&autorun=1">your test</a>
+</h2>
+
+<p>
+  Note: Browserscope adds <code>&autorun=1</code> to your Test URL
+  in order to help you automatically run your test under this condition.
+  You should test that URL to make sure it works. =)
+</p>
+
+{% if webpagetest_responses %}
+  {% for response in webpagetest_responses %}
+    <h4>
+      <a href="{{ response.data.userUrl }}"
+        >Test {{ response.data.testId }} Results</a>
+    </h4>
+    <strong>Raw response: </strong><code>{{ response }}</code>
+    <br>
+  {% endfor %}
+{% else %}
+  <h3>Sorry, something went wrong with our WebPagetest.org integration.</h3>
+{% endif %}
+
+
+{% endblock %}

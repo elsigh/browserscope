@@ -28,11 +28,12 @@
           <th></th>
           <th>_bTestKey</th>
           <th>Name</th>
-          <th>URL</th>
+          <th>Test URL</th>
           <th>Sandbox ID</th>
           <th>Description</th>
           <th># Tests<br><small>updates hourly</small></th>
           <th>Outputs</th>
+          <th>WebpageTest</th>
         </tr>
       </thead>
       <tbody>
@@ -64,6 +65,13 @@
               <a href="/user/tests/table/{{ test.key }}?v=3&o=csv">CSV</a>
               <a href="/user/tests/table/{{ test.key }}?v=3&o=json">JSON</a>
             </td>
+            <td>
+              {% if test.webpagetest %}
+                You've used your free run.
+              {% else %}
+                <a href="/user/tests/webpagetest/{{ test.key }}"
+                  class="bs-btn">Test in IE 6-9 &amp; Chrome</a>
+              {% endif %}
           </tr>
         {% endfor %}
       </tbody>

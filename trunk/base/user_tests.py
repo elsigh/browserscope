@@ -24,6 +24,8 @@ import logging
 import random
 import re
 import time
+import urllib
+import urlparse
 
 from google.appengine.api import users
 from google.appengine.api import datastore_errors
@@ -36,6 +38,7 @@ import django
 from django import http
 from django import shortcuts
 from django.template import loader, Context
+from django.utils import simplejson
 
 import models.user_test
 from base import decorators
@@ -303,6 +306,62 @@ def Index(request):
       'page_size': 20
     }
     return util.Render(request, 'user_tests_index.html', params)
+
+
+# Note this is *not* checked in.
+WEBPAGETEST_KEY = ''
+try:
+ import settings_webpagetest
+ WEBPAGETEST_KEY = settings_webpagetest.KEY
+except:
+  pass
+WEBPAGETEST_URL = ('http://www.webpagetest.org/runtest.php?k=%s'
+                   '&noopt=1&noimages=1&noheaders=1&f=json' % WEBPAGETEST_KEY)
+WEBPAGETEST_STATUS_URL = 'http://www.webpagetest.org/testStatus.php?f=xml&test='
+WEBPAGETEST_LOCATIONS_URL = 'http://www.webpagetest.org/getLocations.php?f=xml'
+WEBPAGETEST_LOCATIONS = ('Dulles_IE6', 'Dulles_IE7', 'Dulles_IE8',
+                         'Dulles_IE9')
+
+@decorators.login_required
+def WebPagetest(request, key):
+  """Sends an API request to run one's test page on WebPagetest.org."""
+  test = models.user_test.Test.get_mem(key)
+  if not test:
+    msg = 'No test was found with test_key %s.' % key
+    return http.HttpResponseServerError(msg)
+
+  current_user = users.get_current_user()
+  if (test.user.key().name() != current_user.user_id() and not
+        users.is_current_user_admin()):
+      return http.HttpResponse('You can\'t play with tests you don\'t own')
+
+  # Help users autorun their tests by adding autorun=1 to the test url.
+  test_url_parts = list(urlparse.urlparse(test.url))
+  test_url_query = dict(urlparse.parse_qsl(test_url_parts[4]))
+  test_url_query.update({'autorun': '1'})
+  test_url_parts[4] = urllib.urlencode(test_url_query)
+  test_url = urlparse.urlunparse(test_url_parts)
+
+  # TODO(elsigh): callback url.
+  webpagetest_url = ('%s&url=%s&notify=%s' %
+                     (WEBPAGETEST_URL, test_url,
+                      urllib.quote('elsigh@gmail.com')))
+
+  webpagetest_responses = []
+  # See http://goo.gl/EfK1r for WebPagetest instructions.
+  for location in WEBPAGETEST_LOCATIONS:
+    url = '%s&location=%s' % (webpagetest_url, location)
+    response = urlfetch.fetch(url)
+    json = simplejson.loads(response.content)
+    webpagetest_responses.append(json)
+
+  logging.info('webpagetest_responses %s', webpagetest_responses)
+  params = {
+    'test': test,
+    'webpagetest_responses': webpagetest_responses
+  }
+  return util.Render(request, 'user_test_webpagetest.html', params)
+
 
 
 def FormatUserTestsAsGviz(request):

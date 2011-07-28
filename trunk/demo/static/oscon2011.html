@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+  <h1>Browserscope OSCON 2011 Demo</h1>
+
+  <h2>Embed <a href="http://ua-parser.appspot.com/">UA-Parser</a>:</h2>
+  <div style="background: #ccc; padding: 5px; font-family: Courier">
+    <script src="http://www.browserscope.org/ua?o=js"></script>
+  </div>
+
+  <!-- A Simple Test Function: _bRunTest -->
+  <script>
+    // Browserscope expects you to use a variable with this name.
+    var _bTestResults = {};
+
+    var _bRunTest = function() {
+      _bTestResults['innerText'] = has('innerText');
+      _bTestResults['textContent'] = has('textContent');
+      _bTestResults['addEventListener'] = has('addEventListener');
+      _bTestResults['attachEvent'] = has('attachEvent');
+      var bsSend = document.getElementById('bs-send').checked;
+      if (bsSend) {
+        _bTestBeacon();
+      } else {
+        alert('Not sending the data, the send checkbox is off.' + _bTestResults);
+      }
+    };
+
+    // Beacon the results to Browserscope.
+    var _bTestBeacon = function() {
+      var testKey = 'agt1YS1wcm9maWxlcnINCxIEVGVzdBjWx50HDA';
+      var newScript = document.createElement('script'),
+          firstScript = document.getElementsByTagName('script')[0];
+      newScript.src = 'http://www.browserscope.org/user/beacon/' + testKey;
+      firstScript.parentNode.insertBefore(newScript, firstScript);
+    };
+
+    // Defines a little callback.
+    var _bTestBeaconCallback = function() {
+      alert('The beacon completed!');
+    };
+
+    var has = function(prop) {
+      var el = document.createElement('div');
+      return typeof(div[prop]) != 'undefined';
+    }
+
+  </script>
+
+  <h2>The Run Button</h2>
+  <script src="http://www.browserscope.org/user/tests/button?fn=_bRunTest&btn_text=Run%20My%20Test"></script>
+
+</html>

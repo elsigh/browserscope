@@ -1,7 +1,9 @@
 {% spaceless %}
 // This script is included in stats_gviz_table.html and stats_table.js
 
-var bsResultsTable = function(id) {
+var bsResultsTable = function(id, opt_doUaDetect) {
+  var doUaDetect = typeof opt_doUaDetect != 'undefined' ?
+      opt_doUaDetect : true;
 
   this.tableContainer_ = document.getElementById(id);
   this.container_ = this.tableContainer_.parentNode;
@@ -10,9 +12,11 @@ var bsResultsTable = function(id) {
   this.browserFamilySelect_ = document.getElementById(id + '-v');
 
   // ua detection
+  if (doUaDetect &&
+      !(document.getElementById(bsResultsTable.UA_DETECT_ID))) {
   var script = document.createElement('script');
   script.src = '//{{ server }}/ua?o=js';
-  script.id = 'bs-ua-script';
+  script.id = bsResultsTable.UA_DETECT_ID;
   this.tableContainer_.parentNode.appendChild(script);
 
   // jsapi - load it only once
@@ -41,10 +45,10 @@ var bsResultsTable = function(id) {
   } else {
     this.load();
   }
-
 };
 
 bsResultsTable.JSAPI_ID = 'bs-jsapi';
+bsResultsTable.UA_DETECT_ID = 'bs-ua-script';
 
 bsResultsTable.prototype.loadGvizTableApi = function() {
   var instance = this;
