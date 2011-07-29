@@ -379,7 +379,7 @@ function outputTestResults(suite, clsID, group, test) {
   
         case VALRESULT_UNSUPPORTED:
           setTD(trID + IDOUT_ACTUAL + containerID + ':' + focusID,
-                escapeOutput(focusResult.output),
+                focusResult.output,
                 '',
                 focusValCSS);
           break;
