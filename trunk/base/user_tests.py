@@ -317,7 +317,8 @@ try:
 except:
   pass
 WEBPAGETEST_URL = ('http://www.webpagetest.org/runtest.php?k=%s'
-                   '&noopt=1&noimages=1&noheaders=1&f=json' % WEBPAGETEST_KEY)
+                   '&fvonly=1&noopt=1&noimages=1&noheaders=1&f=json' %
+                   WEBPAGETEST_KEY)
 WEBPAGETEST_STATUS_URL = 'http://www.webpagetest.org/testStatus.php?f=xml&test='
 WEBPAGETEST_LOCATIONS_URL = 'http://www.webpagetest.org/getLocations.php?f=xml'
 WEBPAGETEST_LOCATIONS = ('Dulles_IE6', 'Dulles_IE7', 'Dulles_IE8',
