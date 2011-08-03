@@ -6,7 +6,8 @@
   <img src="/static/img/stethoscope.png" height="256" width="256"
     align="right" vspace="10" hspace="20" alt="">
 
-  <h1>User Tests HOWTO</h1>
+  <h1>API | User Tests HOWTO</h1>
+  <a href="#urlparams">See URL configuration parameters</a>
   <p>
     Browserscope wants to help you store and aggregate your browser test
     data.
@@ -111,11 +112,14 @@ var _bTestResults = {
     <li>
       You can embed your results table in a blog post or on your site using a
       script tag or an iframe.
-      <pre><code>&lt;script
+      <pre id="urlparams"><code>&lt;script
   src="http://www.browserscope.org/user/tests/table/YOUR-TEST-ID?o=js"&gt;&lt;/script&gt;
 
 Parameters:
-  v=0: Shows the "Top Browsers" list. (DEFAULT)
+  v=top: Shows the "Top Browsers" list. (DEFAULT)
+  v=top-d: Shows the "Top Desktop Browsers" list.
+  v=top-d-e: Shows the "Top Desktop Edge Browsers" list.
+  v=top-m: Shows the "Top Mobile Browsers" list.
   v=1: Shows the browser families.
   v=2: Shows the minor browser versions.
   v=3: Shows all browser versions.
