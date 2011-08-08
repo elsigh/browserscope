@@ -10,6 +10,9 @@
     }
     var results = [];
     for (var key in {{ test_results_var }}) {
+      if (!{{ test_results_var }}.hasOwnProperty(key)) {
+        continue;
+      }
       var val = {{ test_results_var }}[key];
       results.push(key + '=' + val);
     }
@@ -58,6 +61,9 @@
     var jsUa = uap.getJsUaOverrides();
     if (jsUa) {
       for (var key in jsUa) {
+        if (!jsUa.hasOwnProperty(key)) {
+          continue;
+        }
         var input = iframeDoc.createElement('input');
         input.type = 'hidden';
         input.name = key;
