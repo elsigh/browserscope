@@ -1,4 +1,4 @@
-(function() {
+(function(window) {
     {{ js_ua_override|safe }}
 
     /**
@@ -139,4 +139,4 @@
     {% if callback %}
       window.setTimeout({{ callback }}, 50);
     {% endif %}
-})();
+})(this);

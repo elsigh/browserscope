@@ -15,6 +15,14 @@ cron:
   url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBib2KQGDA&v=2&o=gviz_data
   schedule: every 5 minutes
 
+- description: HasCan v2 cache warmer
+  url: gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiG3-0GDA&v=2&o=gviz_data
+  schedule: every 2 minutes
+
+- description: HasCan v3 cache warmer
+  url: gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiG3-0GDA&v=3&o=gviz_data
+  schedule: every 2 minutes
+
 - description: Updates the UserTest beacon counts for /user/tests/index
   url: /cron/update_test_beacon_counts
   schedule: every 6 hours
