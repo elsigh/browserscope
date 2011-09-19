@@ -35,45 +35,37 @@ BROWSER_NAV = (
   ('0', 'Browser Families'),
   ('1', 'Major Versions'),
   ('2', 'Minor Versions'),
-  ('3', 'All Versions'),
-)
-
-TOP_BROWSERS = (
-  'Android 2.3', 'Android 3.1',
-  'Chrome 13', 'Chrome 14',
-  'Firefox 5', 'Firefox 6', 'Firefox Beta 7',
-  'IE 8', 'IE 9',
-  'iPhone 3.1', 'iPhone 4.2',
-  'RockMelt 0.9',
-  'Opera 11',
-  'Safari 5.1',
+  ('3', 'All Versions')
 )
 
 TOP_DESKTOP_BROWSERS = (
-  'Chrome 13',
-  'Firefox 5',
-  'IE 9',
-  'Opera 11',
-  'Safari 5',
+  'Chrome 14',
+  'Firefox 5', 'Firefox 6', 'Firefox Beta 7',
+  'IE 8', 'IE 9',
+  'Opera 11.5',
+  'RockMelt 0.9',
+  'Safari 5.1'
 )
 
 TOP_DESKTOP_EDGE_BROWSERS = (
-  'Chrome 14',
-  'Firefox Beta 7',
-  'IE Platform Preview 10',
+  'Chrome 15', 'Chrome 16',
+  'Firefox Beta 7', 'Firefox Beta 8',
+  'IE Platform Preview 10', 'IE 10',
   'Opera 12',
-  'Safari 5.1.1',
+  'Safari 5.1.1'
 )
 
 TOP_MOBILE_BROWSERS = (
-  'Android 3.1',
+  'Android 2.3', 'Android 3',
   'Blackberry 7',
-  'iPhone 4.2',
-  'IE Mobile 7.11',
+  'IE Mobile 7', 'IE Mobile 9',
+  'iPhone 3.1', 'iPhone 4',
   'Nokia 950',
-  'Opera Mobile 11.10',
-  'Palm webOS 2.1',
+  'Opera Mobile 11',
+  'Palm webOS 2.1', 'Palm webOS 2.2'
 )
+
+TOP_BROWSERS = TOP_DESKTOP_BROWSERS + TOP_DESKTOP_EDGE_BROWSERS + TOP_MOBILE_BROWSERS
 
 class CategoryBrowserManager(db.Model):
   """Track the browsers that belong in each category/version level."""
