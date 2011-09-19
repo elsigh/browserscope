@@ -46,7 +46,7 @@ TOP_BROWSERS = (
   'iPhone 3.1', 'iPhone 4.2',
   'RockMelt 0.9',
   'Opera 11',
-  'Safari 5.0',
+  'Safari 5.1',
 )
 
 TOP_DESKTOP_BROWSERS = (
@@ -62,7 +62,7 @@ TOP_DESKTOP_EDGE_BROWSERS = (
   'Firefox Beta 7',
   'IE Platform Preview 10',
   'Opera 12',
-  'Safari 5.1',
+  'Safari 5.1.1',
 )
 
 TOP_MOBILE_BROWSERS = (
