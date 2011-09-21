@@ -27,9 +27,9 @@ window.onload = doTest;
 
 <p>
 This page tries to find the maximum number of connections a browser will open.
-It does this by opening two images from each of 30 different hostnames (<code>[1-30].{{ resource_cgi_base }}</code>).
+It does this by opening images from different hostnames (<code>[1-6].{{ resource_cgi_base }}</code>).
 Each image takes {{ sleep }} seconds to load.
-The most connections that can be measured is 60 (2 images x 30 hostnames).
+The most connections that can be measured is 60.
 Therefore, browsers that support more than 60 open connections will be shown as just 60.
 
 <p id="img-c"></p>
@@ -38,11 +38,12 @@ Therefore, browsers that support more than 60 open connections will be shown as 
   var imgC = document.getElementById('img-c');
   var img = document.createElement('img');
   for (var i = 1; i <= 30; i++) {
+    var addr = (i % 5) + 1;  // aka number of resource-cgi backends -1
     for (var j = 1; j <=2; j++) {
       var clone = img.cloneNode(true);
       clone.id = 'img' + i + '-' + j;
       clone.onload = countImage;
-      clone.src = 'http://' + i + '.{{ resource_cgi_base }}?type=gif&' +
+      clone.src = 'http://' + addr + '.{{ resource_cgi_base }}?type=gif&' +
           'sleep={{ sleep }}&n=' + j + '&t={{ epoch }}';
       imgC.appendChild(clone);
     }
