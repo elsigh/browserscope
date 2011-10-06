@@ -49,7 +49,7 @@ TOP_DESKTOP_BROWSERS = (
 
 TOP_DESKTOP_EDGE_BROWSERS = (
   'Chrome 15', 'Chrome 16',
-  'Firefox Beta 8', 'Firefox Beta 9'
+  'Firefox Beta 8', 'Firefox Beta 9',
   'IE Platform Preview 10', 'IE 10',
   'Opera 12',
   'Safari 5.1.1'
