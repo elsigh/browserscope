@@ -32,6 +32,7 @@ BROWSER_NAV = (
   ('top-d', 'Top Desktop'),
   ('top-m', 'Top Mobile'),
   ('top-d-e', 'Top Desktop Edge'),
+  ('top-all', 'Top Browsers(all)'),
   ('0', 'Browser Families'),
   ('1', 'Major Versions'),
   ('2', 'Minor Versions'),
@@ -42,7 +43,7 @@ TOP_DESKTOP_BROWSERS = (
   'Chrome 14',
   'Firefox 6', 'Firefox 7',
   'IE 8', 'IE 9',
-  'Opera 11.5',
+  'Opera 11.50',
   'RockMelt 0.9',
   'Safari 5.1'
 )
