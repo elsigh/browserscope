@@ -36,7 +36,7 @@ def About(request):
     <a href="http://www.adambarth.com/">Adam Barth</a>,
     <a href="http://www.collinjackson.com/">Collin Jackson</a>,
     <a href="http://www.google.com/profiles/meacer">Mustafa Acer</a>,
-    and <a href="http://linshunghuang.googlepages.com/">David Lin-Shung Huang</a>."""
+    and <a href="http://www.linshunghuang.com/">David Lin-Shung Huang</a>."""
   return util.About(request, CATEGORY, overview=overview)
 
 
