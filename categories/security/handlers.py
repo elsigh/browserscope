@@ -96,18 +96,6 @@ def OriginHeaderTest(request):
     response.write('<html>FAIL</html>')
   return response
 
-def SetSts(request):
-  if request.is_secure():
-    response = HttpResponsePermanentRedirect('http://ua-profiler.appspot.com/security/test/test-sts')
-    response['Strict-Transport-Security'] = 'max-age=5'
-    return response
-
-def TestSts(request):
-  if request.is_secure():
-    return HttpResponsePermanentRedirect('http://www.browserscope.org/security/static/sts-pass.html')
-  else:
-    return HttpResponsePermanentRedirect('http://www.browserscope.org/security/static/sts-fail.html')
-
 def XContentSecurityPolicyTest(request):
   response = HttpResponse()
   response['X-Content-Security-Policy']="allow 'self'"

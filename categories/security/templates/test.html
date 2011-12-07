@@ -235,7 +235,7 @@
     runAjaxTest('Origin header', 'test/originheader', function(xmlhttp) {
       return xmlhttp.responseText.match(/PASS/);
     });
-    var stsCallback = runIframeTest('Strict Transport Security', "https://ua-profiler.appspot.com/security/test/set-sts");
+    var stsCallback = runIframeTest('Strict Transport Security', "https://www.pwdhash.com/browserscope/set-sts.php");
     var stsFrame = document.getElementById('Strict Transport Security');
     observe(stsFrame, 'load', function () {
       var html = frameDocument(stsFrame).documentElement.innerHTML;
