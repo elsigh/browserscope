@@ -181,8 +181,6 @@ urlpatterns = patterns('',
   (r'^security/test/xframe$', 'categories.security.handlers.XFrameOptionsTest'),
   (r'^security/test/xcontenttype$', 'categories.security.handlers.XContentTypeOptionsTest'),
   (r'^security/test/originheader$', 'categories.security.handlers.OriginHeaderTest'),
-  (r'^security/test/set-sts$', 'categories.security.handlers.SetSts'),
-  (r'^security/test/test-sts$', 'categories.security.handlers.TestSts'),
   (r'^security/test/xss-frame-victim$', 'categories.security.handlers.ReflectedXSSVictim'),
   (r'^security/test/csp$', 'categories.security.handlers.XContentSecurityPolicyTest'),
 
