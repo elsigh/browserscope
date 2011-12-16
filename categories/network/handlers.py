@@ -37,8 +37,8 @@ CATEGORY = 'network'
 TEST_PAGE = '/%s/frameset' % CATEGORY
 
 #RESOURCE_CGI_BASE = 'cuzillion.com/bin/resource.cgi'
-RESOURCE_CGI_BASE = 'cgi.browserscope.net/cgi-bin/resource.cgi'
-#RESOURCE_CGI_BASE = 'resource-cgi.appspot.com'
+#RESOURCE_CGI_BASE = 'cgi.browserscope.net/cgi-bin/resource.cgi'
+RESOURCE_CGI_BASE = 'resource-cgi-hr.appspot.com'
 
 RESOURCE_CGI = '1.%s' % RESOURCE_CGI_BASE
 RESOURCE_CGI2 = '2.%s' % RESOURCE_CGI_BASE
@@ -272,6 +272,7 @@ def MaxConnections(request):
   latency = request.COOKIES.get('latency', 9)
   sleep = max(6, min(9, int(4 * round((int(latency) + 500.0) / 1000.0))))
 
+  sleep = 2
   params = {
     'page_title': 'Performance Max Connections Test',
     'resource_cgi_base': RESOURCE_CGI_BASE,

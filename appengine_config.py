@@ -13,3 +13,5 @@ import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'  # settings.py must exist etc.
 from django.conf import settings
 settings._target = None
+
+#remoteapi_CUSTOM_ENVIRONMENT_AUTHENTICATION = ('HTTP_X_APPENGINE_INBOUND_APPID', ['ua-profiler'])

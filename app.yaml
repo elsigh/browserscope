@@ -14,14 +14,14 @@
 #
 # Author elsigh@google.com (Lindsey Simon)
 
-application: ua-profiler
-version: 11    # 11 is the current default.
+application: ua-profiler-hrd
+version: 1    # 1 is the current default.
 runtime: python
 api_version: 1
 
 builtins:
 - remote_api: on
-- appstats: on
+- appstats: off
 
 # Magic skip configuration, do not edit.
 skip_files: |

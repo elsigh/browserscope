@@ -18,6 +18,7 @@
       {% for test_key in f %}
         <th>{{ test_key }}</th>
       {% endfor %}
+      <th>UA string</th>
     </tr>
   </thead>
   <tbody>
@@ -33,6 +34,9 @@
             <td title="{{ test_key }}">{{ results|by_key:test_key }}</td>
           {% endfor %}
         {% endwith %}
+        <td>
+          {{ result_parent.user_agent.string }}
+        </td>
       </tr>
     {% endfor %}
   </tbody>
