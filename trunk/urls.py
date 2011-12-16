@@ -80,7 +80,8 @@ urlpatterns = patterns('',
   (r'^admin/ua_test', 'base.ua.ParseTest'),
   (r'^admin/test_task_queue', 'gaeunit_test.TaskHandler'),
   (r'^admin/getdirty', 'base.admin.GetDirty'),
-
+  (r'^admin/update_ua_string_list',
+    'base.admin.UpdateUserAgentStringListInResultParentForBrowse'),
 
   # Cron admin scripts
   (r'^cron/update_recent_tests$', 'base.cron.UpdateRecentTests'),

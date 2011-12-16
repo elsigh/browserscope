@@ -485,3 +485,38 @@ def UpdateAllStatsCache(request, batch_size=UPDATE_ALL_BATCH_SIZE,
 
 def UpdateAllUncachedStats(request, batch_size=UPDATE_ALL_UNCACHED_BATCH_SIZE):
   return UpdateAllStatsCache(request, batch_size, is_uncached_update=True)
+
+
+
+def UpdateUserAgentStringListInResultParentForBrowse(request):
+    """Browse results uses this list and it can be out of sync."""
+    ua_string = request.REQUEST.get('ua')
+    category = request.REQUEST.get('category')
+
+    family, v1, v2, v3 = UserAgent.parse_pretty(ua_string)
+    logging.info('family %s, v1 %s, v2 %s, v3 %s' % (family, v1, v2, v3))
+    user_agent = db.Query(UserAgent)
+    user_agent.filter('family =', family)
+    user_agent.filter('v1 =', v1)
+    user_agent.filter('v2 =', v2)
+    user_agent.filter('v3 =', v3)
+
+    logging.info('UA COUNT: %s' % user_agent.count())
+    user_agents = user_agent.fetch(1000)
+    for user_agent in user_agents:
+      logging.info('-----------------------')
+      string_list = user_agent.get_string_list()
+      logging.info('UA: %s, %s', (user_agent.key(), string_list))
+      parents = db.Query(ResultParent)
+      parents.filter('user_agent =', user_agent.key())
+      if category:
+        parents.filter('category =', category)
+
+      logging.info('PARENTS COUNT: %s' % parents.count())
+      for parent in parents.fetch(1000):
+        logging.info('PARENT: %s' % parent.key())
+        parent.user_agent_string_list = string_list
+        parent.put()
+
+    return http.HttpResponse('All done MF')
+

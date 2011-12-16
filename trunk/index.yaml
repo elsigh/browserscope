@@ -23,6 +23,11 @@ indexes:
   - name: created
     direction: desc
 
+- kind: ResultParent
+  properties:
+  - name: user_agent
+  - name: user_agent_string_list
+
 - kind: Test
   properties:
   - name: beacon_count

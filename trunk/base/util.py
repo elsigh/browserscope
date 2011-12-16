@@ -313,7 +313,8 @@ def Home(request):
     'recent_tests': recent_tests,
     'show_evolution': show_evolution,
   }
-  return GetResults(request, template='home.html', params=params, sparse=True)
+  return GetResults(request, template='home.html', params=params,
+                    do_sparse_filter=True)
 
 
 def GetResultUriString(request, category):
@@ -352,7 +353,8 @@ def GetResultUriString(request, category):
   return results_uri_string
 
 
-def GetResults(request, template=None, params={}, test_set=None, sparse=False):
+def GetResults(request, template=None, params={}, test_set=None,
+               do_sparse_filter=False):
   """This is the main results handler for returning the results table."""
 
   # Get request variables.
@@ -421,7 +423,8 @@ def GetResults(request, template=None, params={}, test_set=None, sparse=False):
     t = loader.get_template('stats_gviz_table.html')
     stats_table = t.render(Context(params))
   else:
-    stats_table = GetStats(request, test_set, output, sparse=sparse)
+    stats_table = GetStats(request, test_set, output,
+                           do_sparse_filter=do_sparse_filter)
 
   params['stats_table'] = stats_table
 
@@ -912,7 +915,7 @@ def Return204Script(request):
 
 SPARSE_GAP_COUNT = 2
 def GetStats(request, test_set, output='html', user_agents=[],
-             version_level='top', sparse=False):
+             version_level='top', do_sparse_filter=False):
   """Returns the stats table.
   Args:
     request: a request object.
@@ -920,7 +923,7 @@ def GetStats(request, test_set, output='html', user_agents=[],
     output: Output type html or pickle or else you get a dict of params.
     user_agents: A list of user agents.
     version_level: The version level.
-    sparse: If true, don't return sparse results.
+    do_sparse_filter: If true, don't return sparse results.
   """
 
   category = test_set.category
@@ -975,7 +978,8 @@ def GetStats(request, test_set, output='html', user_agents=[],
     return pickle.dumps(stats_data)
 
   # Eliminate sparse results.
-  if sparse and settings.BUILD == 'production':
+  if (do_sparse_filter and settings.BUILD == 'production' and
+      category == 'sumary' and version_level == 'top'):
     for ua_key, ua_res in stats_data.items():
       if ua_key is not 'total_runs':
         if ua_res['total_runs'] < 5:
