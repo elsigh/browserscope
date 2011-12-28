@@ -99,7 +99,7 @@ def OriginHeaderTest(request):
 def XContentSecurityPolicyTest(request):
   response = HttpResponse()
   response['X-Content-Security-Policy']="allow 'self'"
-  response['X-WebKit-Content-Security-Policy']="allow 'self'"
+  response['X-WebKit-CSP']="allow 'self'"
   response.write('''
   <html>
   <body>
