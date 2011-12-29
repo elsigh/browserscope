@@ -11,6 +11,9 @@ assert django.VERSION[0] >= 1, "This Django version is too old"
 # Initialize Django configuration.
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'  # settings.py must exist etc.
+
+
+
 from django.conf import settings
 settings._target = None
 

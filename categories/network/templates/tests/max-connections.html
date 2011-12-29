@@ -11,7 +11,7 @@ var t_start = Number(new Date());
 var gUnderTwiceSleep = 0;
 function countImage() {
 	var t_done = Number(new Date());
-	if ( t_done - t_start < {{ sleep }}*1000*5 ) {
+	if ( t_done - t_start < {{ sleep }}*1000*2 ) {
 		gUnderTwiceSleep++;
 	}
 	console.log('countImage', this);

@@ -395,6 +395,9 @@ Firefox,2010-02-10,3.7a1
 Firefox,2010-03,3.7a2
 Firefox,2011-04-28,4.0.1
 Firefox,2011-06-21,5.0
+Firefox,2011-08-16,6.0
+Firefox,2011-09-27,7.0
+Firefox,2011-11-08,8.0
 Firefox Beta,2010-09,4.0b6
 Firefox Beta,2010-10,4.0b7
 """
