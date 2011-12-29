@@ -98,8 +98,8 @@ def OriginHeaderTest(request):
 
 def XContentSecurityPolicyTest(request):
   response = HttpResponse()
-  response['X-Content-Security-Policy']="allow 'self'"
-  response['X-WebKit-CSP']="allow 'self'"
+  response['X-Content-Security-Policy']="default-src 'self'"
+  response['X-WebKit-CSP']="default-src 'self'"
   response.write('''
   <html>
   <body>
