@@ -14,8 +14,8 @@
 #
 # Author elsigh@google.com (Lindsey Simon)
 
-application: ua-profiler-hrd
-version: 1    # 1 is the current default.
+application: ua-profiler
+version: 12    # 12 is the current default.
 runtime: python
 api_version: 1
 
