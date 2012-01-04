@@ -164,6 +164,7 @@ Safari,2010-06-07,4.1,533.16,Mac OS X
 Safari,2010-06-07,5.0,531.21.10,Mac OS X
 Safari,2011-04-14,5.0.5,533.21.1,Mac OS X
 Safari,2011-06-07,5.1,534.42,Mac OS X
+Safari,2011-12-01,5.1.3,534.42,Mac OS X
 """
 
 OPERA_CSV = """Product,Date,Version
@@ -246,7 +247,8 @@ Opera,2009-11-23,10.10
 Opera,2010-02-11,10.50 beta 1
 Opera,2010-02-24,10.50 beta 2
 Opera,2010-10-12,10.63
-Opera,2011-05-18,11.11
+Opera,2011-07-11,11.5
+Opera,2011-12-06,11.6
 """
 
 FIREFOX_CSV = """Product,Date,Version
@@ -398,8 +400,11 @@ Firefox,2011-06-21,5.0
 Firefox,2011-08-16,6.0
 Firefox,2011-09-27,7.0
 Firefox,2011-11-08,8.0
+Firefox,2011-12-20,9.0
+Firefox,2011-12-22,9.0.01
 Firefox Beta,2010-09,4.0b6
 Firefox Beta,2010-10,4.0b7
+Firefox Beta,2011-12,10.0
 """
 
 
@@ -627,6 +632,11 @@ Chrome,2011-03-08,10.0
 Chrome,2011-04-27,11.0
 Chrome,2011-06-07,12.0
 Chrome,2011-06-09,13.0
+Chrome,2011-06-09,14.0
+Chrome,2011-06-09,15.0
+Chrome,2011-12-13,16.0
+Chrome,2011-12-06,17.0
+Chrome,2011-12-13,18.0
 """
 
 CHROME_TEST = """0.2.149
