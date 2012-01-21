@@ -54,12 +54,22 @@ def Faq(request):
   """Network Performance FAQ"""
 
   params = {
-    'page_title': 'Performance FAQ',
+    'page_title': 'Network Performance FAQ',
     'resource_cgi_base': RESOURCE_CGI_BASE,
     'resource_cgi': RESOURCE_CGI,
     'resource_cgi2': RESOURCE_CGI2,
   }
   return util.Render(request, 'templates/faq.html', params, CATEGORY)
+
+
+def PerformanceTiming(request):
+  """PerformanceTiming"""
+
+  params = {
+    'page_title': 'Performance Timing Test',
+  }
+  return util.Render(request, 'templates/tests/performance_timing.html', params,
+                     CATEGORY)
 
 
 def CacheExpires(request):

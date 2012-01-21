@@ -16,7 +16,8 @@
 
 application: ua-profiler
 version: 12    # 12 is the current default.
-runtime: python
+runtime: python27
+threadsafe: no
 api_version: 1
 
 builtins:
