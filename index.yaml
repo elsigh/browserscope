@@ -23,7 +23,6 @@ indexes:
   - name: created
     direction: desc
 
-
 - kind: Test
   properties:
   - name: beacon_count

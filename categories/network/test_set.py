@@ -71,6 +71,9 @@ class BooleanNetworkTest(NetworkTest):
 
 _TESTS = (
   # key, name, url_name, score_type, doc
+  BooleanNetworkTest(
+    'performancetiming', 'PerfTiming', 'performance-timing',
+    '''This test determines if the browser has the Web Performance Timing properties available.'''),
   NetworkTest(
     'latency', 'Check Latency', 'latency',
     '''This isn't actually a test.
