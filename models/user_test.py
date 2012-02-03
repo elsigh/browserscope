@@ -75,7 +75,7 @@ class TestSet(test_set_base.TestSet):
       test = Test.get_test_from_category(self.category)
       score = test.get_score_from_display(test_key, raw_score)
 
-    logging.info('score: %s, display: %s', score, raw_score)
+    #logging.info('score: %s, display: %s', score, raw_score)
     return score, raw_score
 
   def GetRowScoreAndDisplayValue(self, results):
@@ -235,14 +235,14 @@ class Test(db.Model):
   def get_score_from_display(self, test_key, display):
     """Converts a displayed number value into a 1-100 score."""
     meta = TestMeta.get_mem_by_test(self)
-    logging.info('display: %s, get_score_from_display meta:%s', display, meta)
+    #logging.info('display: %s, get_score_from_display meta:%s', display, meta)
     if not hasattr(meta, '%s_min_value' % test_key):
       value_on_100_scale = 100  # Default to green if no min yet.
     else:
       numerator = divisor = 0
       test_min_value = getattr(meta, '%s_min_value' % test_key)
       test_max_value = getattr(meta, '%s_max_value' % test_key)
-      logging.info('min: %s, max: %s' % (test_min_value, test_max_value))
+      #logging.info('min: %s, max: %s' % (test_min_value, test_max_value))
 
       # Boolean tests get straight up 100 or 0.
       if test_max_value == 1 or test_min_value == 0:
