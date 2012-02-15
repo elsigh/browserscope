@@ -59,6 +59,7 @@ TOP_DESKTOP_EDGE_BROWSERS = (
 TOP_MOBILE_BROWSERS = (
   'Android 2.3', 'Android 3',
   'Blackberry 7',
+  'Chrome Mobile 16',
   'IE Mobile 7', 'IE Mobile 9',
   'iPhone 3.1', 'iPhone 4',
   'Nokia 950',

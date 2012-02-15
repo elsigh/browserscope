@@ -303,8 +303,9 @@ def Home(request):
     ScheduleRecentTestsUpdate()
 
   is_category_set = request.GET.get('category')
+  is_ua_set = request.GET.get('ua')
   show_evolution = False
-  if is_category_set is None:
+  if is_category_set is None and is_ua_set is None:
     show_evolution = True
 
   params = {
