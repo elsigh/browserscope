@@ -685,7 +685,8 @@ Util.ResultTable = function(controller, el) {
     this.gvizLineEl = gvizLines[0];
   }
 
-  if (this.controller.browserFamily == 'top') {
+  if (this.controller.browserFamily == 'top' &&
+      !goog.uri.utils.getParamValue(window.location.href, 'ua')) {
     this.timeline = document.createElement('div');
     goog.dom.insertSiblingBefore(this.timeline, this.table);
     var timelineUrl = '/timeline?o=embed&js=0' +

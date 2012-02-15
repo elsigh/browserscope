@@ -170,10 +170,10 @@ This test measures if a redirect for the page is cached when it has a future exp
 (See the link prefetch description in this <a href="http://developer.mozilla.org/en/Link_prefetching_FAQ">MDC FAQ</a>
 and in a working draft of the <a href="http://www.whatwg.org/specs/web-apps/current-work/#link-type10">HTML 5</a> spec.)
 Prefetch is an easy way for web developers to download resources they know the user will need in the future.'''),
-  BooleanNetworkTest(
-    'gzip', 'Compression Supported', 'gzip',
-    '''Compressing text responses typically reduces the number of bytes transmitted by approximately 70%.
-This test measures if the browser sends an <code>Accept-Encoding</code> header announcing support for compression.'''),
+#   BooleanNetworkTest(
+#     'gzip', 'Compression Supported', 'gzip',
+#     '''Compressing text responses typically reduces the number of bytes transmitted by approximately 70%.
+# This test measures if the browser sends an <code>Accept-Encoding</code> header announcing support for compression.'''),
   BooleanNetworkTest(
     'du', 'data: URLs', 'data-urls',
     '''A "data:" URL (aka an inline image), is a technique for embedding other resources directly into the main HTML document.
