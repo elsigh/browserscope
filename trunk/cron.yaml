@@ -17,7 +17,42 @@ cron:
 
 - description: HasCan v3 cache warmer
   url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiG3-0GDA&v=3&o=gviz_data
+  schedule: every 5 minutes
+
+- description: CSS3
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBidzawNDA&v=top&o=gviz_data
   schedule: every 1 minutes
+
+- description: CSS3
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBidzawNDA&v=1&o=gviz_data
+  schedule: every 1 minutes
+
+- description: CSS3
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBidzawNDA&v=2&o=gviz_data
+  schedule: every 1 minutes
+
+- description: CSS3
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBidzawNDA&v=3&o=gviz_data
+  schedule: every 1 minutes
+
+
+- description: Ringmark
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiwoq8ODA&v=top&o=gviz_data
+  schedule: every 1 minutes
+
+- description: Ringmark
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiwoq8ODA&v=1&o=gviz_data
+  schedule: every 1 minutes
+
+- description: Ringmark
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiwoq8ODA&v=2&o=gviz_data
+  schedule: every 1 minutes
+
+- description: Ringmark
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiwoq8ODA&v=3&o=gviz_data
+  schedule: every 1 minutes
+
+
 
 - description: Updates the UserTest beacon counts for /user/tests/index
   url: /cron/update_test_beacon_counts
