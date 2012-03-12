@@ -43,7 +43,7 @@ TOP_DESKTOP_BROWSERS = (
   'Chrome 16',
   'Firefox 8', 'Firefox 9',
   'IE 8', 'IE 9',
-  'Opera 11.6',
+  'Opera 11',
   'RockMelt 0.9',
   'Safari 5.1'
 )
@@ -57,14 +57,13 @@ TOP_DESKTOP_EDGE_BROWSERS = (
 )
 
 TOP_MOBILE_BROWSERS = (
-  'Android 2.3', 'Android 3',
+  'Android 2.3', 'Android 4',
   'Blackberry 7',
   'Chrome Mobile 16',
-  'IE Mobile 7', 'IE Mobile 9',
-  'iPhone 3.1', 'iPhone 4',
+  'IE Mobile 9',
+  'iPhone 4', 'iPhone 5',
   'Nokia 950',
-  'Opera Mobile 11',
-  'Palm webOS 2.1', 'Palm webOS 2.2'
+  'Opera Mobile 11'
 )
 
 TOP_BROWSERS = TOP_DESKTOP_BROWSERS + TOP_DESKTOP_EDGE_BROWSERS + TOP_MOBILE_BROWSERS
