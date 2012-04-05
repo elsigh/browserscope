@@ -1,0 +1,131 @@
+#!/usr/bin/python2.4
+#
+# Copyright 2009 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the 'License')
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an 'AS IS' BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""HTML5 Tests Definitions."""
+
+import logging
+
+from categories import test_set_base
+from models import user_test
+
+_CATEGORY = 'ringmark'
+
+# Ringmark's User Test record.
+_USER_TEST_CATEGORY = 'usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiwoq8ODA'
+
+_TEST_URL = 'www.facebook.com/ringmark'
+
+class RingmarkTest(test_set_base.TestBase):
+
+  def __init__(self, key, name, doc):
+    """Initialze a benchmark test.
+
+    Args:
+      key: key for this in dict's
+      name: a human readable label for display
+      url_name: the name used in the url
+      doc: a description of the test
+    """
+    test_set_base.TestBase.__init__(
+        self,
+        key=key,
+        name=name,
+        url=None,
+        doc=doc,
+        min_value=0,
+        max_value=user_test.MAX_VALUE)
+
+_TESTS = (
+  RingmarkTest('animationtiming', 'Animation Timing', ''),
+  RingmarkTest('appcache', 'App Cache', ''),
+)
+
+
+class RingmarkTestSet(test_set_base.TestSet):
+  def __init__(self):
+    test_set_base.TestSet.__init__(self,
+      category=_CATEGORY,
+      category_name='Ringmark',
+      summary_doc='Ringmark test.',
+      tests=_TESTS,
+      test_page=_TEST_URL)
+    self.user_test_category = _USER_TEST_CATEGORY
+
+
+  def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
+    """Get a normalized score (0 to 100) and a value to output to the display.
+
+    Args:
+      test_key: a key for a test_set test.
+      raw_scores: a dict of raw_scores indexed by test keys.
+    Returns:
+      score, display_value
+          # score is from 0 to 100.
+          # display_value is the text for the cell.
+    """
+    test = self.GetTest(test_key)
+    test_score = raw_scores[test_key]
+    if test_key == 'Bonus points':
+      if test_score > 0:
+        score = 100
+        display = test_score
+      else:
+        score = 0
+        display = ''
+      logging.info('Bonus points: %s, %s %s' % (test_score, score, display))
+    else:
+      if test_score > 0:
+        score = int(round(float(test_score / float('%d.0' % test.out_of_total)) * 100))
+        display = '%s/%s' % (test_score, test.out_of_total)
+      else:
+        score = 0
+        display = ''
+      logging.info('%s: %s, %s %s' % (test_key, test_score, score, display))
+
+    return score, display
+
+
+  def GetRowScoreAndDisplayValue(self, results):
+    """Get the overall score for this row of results data.
+
+    Args:
+      results: {
+          'test_key_1': {'score': score_1, 'raw_score': raw_score_1, ...},
+          'test_key_2': {'score': score_2, 'raw_score': raw_score_2, ...},
+          ...
+          }
+    Returns:
+      score, display_value
+          # score is from 0 to 100.
+          # display_value is the text for the cell.
+    """
+    PERFECT_SCORE = 300
+    total_score = 0
+    for test_key, result in results.items():
+      logging.info('rowscore for %s, raw: %s, score:%s' % (test_key, result['raw_score'], result['score']))
+      if result['score']:
+        total_score += result['raw_score']
+
+    if total_score > 0:
+      score = int(round(float(total_score / float('%d.0' % PERFECT_SCORE)) * 100))
+      display = '%s/%s' % (total_score, PERFECT_SCORE)
+    else:
+      score = 0
+      display = ''
+    return score, display
+
+
+TEST_SET = RingmarkTestSet()

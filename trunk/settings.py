@@ -63,7 +63,7 @@ SESSION_ENGINE = 'django_ae_utils.sessions.backends.datastore'
 CATEGORIES = ['security', 'richtext2', 'selectors', 'network', 'acid3', 'jskb']
 # If a category is in this list it will not be visible in the nav, but
 # data for the category will save in prod to the main rankers.
-CATEGORIES_BETA = ['reflow', 'cookies', 'html5', 'history', 'richtext']
+CATEGORIES_BETA = ['ringmark', 'reflow', 'html5']
 
 STATIC_CATEGORIES = []
 # Where we'll read the static files from (can be a local path or a url).
