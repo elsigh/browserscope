@@ -204,8 +204,10 @@ def GetRankers(test_browsers, params_str=None, use_insert=False):
     # If this is an aliased UserTest (like HTML5), use its key instead.
     if test.test_set.user_test_category is not None:
       category = test.test_set.user_test_category
+      #logging.info('GetRankers Special Category: %s:%s' % (category, test.key))
 
     key_name = RankerKeyName(category, test.key, browser, params_str)
+    #logging.info('RankerKeyName: %s' % key_name)
     key_names.append(key_name)
     ranker_classes[key_name] = RankerClass(test.min_value, test.max_value)
   existing_rankers = RankerCacher.CacheGet(key_names, ranker_classes)
@@ -215,6 +217,7 @@ def GetRankers(test_browsers, params_str=None, use_insert=False):
                for key_name in key_names]
   else:
     rankers = [existing_rankers.get(k, None) for k in key_names]
+  logging.info('Rankers: %s' % rankers)
   return rankers
 
 
