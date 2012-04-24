@@ -5,23 +5,131 @@
   <h1>{{ page_title }}</h1>
 
   <p>
-    The HTML5 test is a collection put together by Niels Leenheer and hosted
-    on his website <a href="http://rakaz.nl/">rakaz.nl</a>.
+    Ringmark is a browser test suite for building apps on the mobile web.  You use it by going to <a href="http://www.rng.io" target="_blank">http://www.rng.io/</a> on your mobile phone or tablet.  
   </p>
+   
+   <p>
+    To participate in Ringmark&#39;s development, join the <a href="http://www.coremob.org/" target="_blank">Core Mobile Web Platform Community Group in the W3C</a>.
+  </p>
+  
+  <h2>Ring Methodology</h2>
   <p>
-    Niels is using
-    the User Test feature of browserscope to store the results, and because
-    they are so compelling, they are now shown as a Browserscope category and
-    factored into the Summary results.
+    The core concept behind Ringmark is based around the question of &quot;what do developers need?&quot;
   </p>
-
-  <iframe
-    src="http://rakaz.nl/2010/06/html5-test-updated-how-well-does-your-browser-support-html5-now.html"
-    width="80%"
-    height="400"></iframe>
-
-  <div>
-    <em>http://rakaz.nl/2010/06/html5-test-updated-how-well-does-your-browser-support-html5-now.html</em>
-  </div>
+  
+  <p>
+    Specifically, Ringmark is comprised of tests of core functionality that web developers need in order to build their apps on mobile. For example, orientation lock, which is important for games. Another example is camera functionality for social apps.
+  </p>
+  
+  <p>
+    You can think of the rings as straightforward software versioning. Ring 0 represents the base functionality that most mobile phone have today. Ring 1 represents what functionality is needed to unlock the most common apps that developers want to build; specifically, 2D games, music and video apps, and camera apps.
+  </p>
+  
+  <p>
+    From there on, each subsequent ring represents a slice of features that will unlock the next generation of mobile web apps, based on developer necessity. For example, we expect Ring 2 to include upcoming technology like WebRTC and WebGL.
+  </p>
+  
+  <h2>Ring 0</h2>
+  <p>
+    First, we&#39;re establishing a baseline of functionality. With this baseline, developers can understand what functionality is immediately available for their web apps. Consolidating around that baseline can set a common ground for all mobile web browsers going forward and provide a clear and definitive understanding of the market size of the mobile web for a particular app.
+  
+    At a high level, Ring 0 is the intersection of functionality offered by iOS5 and Android 2.2 Froyo, which represents the majority of the smartphone market today.
+  
+    Apps that can be built on Ring 0 devices include content apps like the New York Times, Washington Post Social Reader, and Flixster; games that have a low amount of animating sprites like Words with Friends, Skyscaper City, Poker; music apps like AudioVroom and SoundCloud; and ecommerce apps like Amazon. But these are just a small sample--Ring 0 contains an exhaustive list of features. We encourage you to run Ringmark, scroll down the page, and see what’s included.
+  </p>
+  
+  
+  <h2>Ring 1</h2>
+  <p>
+    The next Ring is focused on enabling as many developers to build their apps as possible, while keeping the feature scope as small as possible. The scope was determined by surveying most popular types of apps that are being built on mobile devices today. Other considerations are also accounted for, like ease of implementation for browser vendors and the degree to which the feature spec is baked.
+  </p>
+  
+  <p>  
+    By enabling Ring 1, we believe that we could enable web developers to build eight or nine out of every ten of the most popular apps that are created today.
+  </p>
+  
+  <p>
+    The major categories of apps that developers are building today and which we’ve included in Ring 1 are 2D games, audio and video apps, and camera apps. Examples of each include 2D games like Angry Birds and Where&#39;s My Water?; audio and video apps like Netflix, Hulu, Spotify, and Turntable; and camera apps like Twitter, Facebook, Instagram, and Foodspotting.
+  </p>
+    
+  <p>
+    Here are the main features that we’re targeting and will be made available in Ring 1, in roughly prioritized order. More tests will be integrated and the prioritization updated, as the W3C Core Mobile Community Group makes its recommendations and there&#39;s better understanding of how each feature should work.
+  </p>
+    
+  <ul>
+    <li>Accelerated canvas</li>
+    <li>DRM (audio and video)</li>
+    <li>Audio element*, mp3 codec*, and audio mixing (ability to play more than one audio file at the same time)</li>
+    <li>Camera (File APIs, Blob, Media capture input, XMLHTTPRequest 2, “accept” and “multiple” form attributes)</li>
+    <li>Orientation lock and device orientation event (device motion)</li>
+    <li>Multi-touch*</li>
+    <li>Session history management*</li>
+    <li>Overflow scrolling*</li>
+    <li>Web workers (Basic support—non-shared web workers)</li>
+    <li>Network Information API</li>
+    <li>navigator.onLine support*</li>
+    <li>Indexed DB</li>
+    <li>WOFF (Web Open Font Format)</li>
+    <li>HTML5 form features</li>
+    <ul>
+      <li>email, tel, url, search, number, datetime, datetime-local</li>
+     <li>placeholder, maxlength, accept and multiple</li>
+     <li>progress, output</li>
+    </ul>
+    <li>Non-prefixed Ring 0 features</li>
+  </ul> 
+  
+  <p>
+    <em>* denotes features that are already available in Android versions Gingerbread (2.3) and above, and iOS 5.</em>
+  </p>
+  
+  <p>
+    Ringmark doesn&#39;t only test if a feature is available--it tests if the feature is actually implemented well. That&#39;s why it goes above and beyond basic feature tests and is tests edge cases developers hit.
+  </p>
+  
+  <p>
+    One area that isn&#39;t covered is performance testing. Going forward we plan to tackle this challenge, which is particularly prevalent for games, where some experiences require the ability to test performance for physics, drawing (canvas performance), and garbage collection pauses.
+  </p>
+  
+  <p>
+    Let&#39;s dive into each feature and outline why it&#39;s important for Ring 1.
+  </p>
+  
+  <h2>Ring 2</h2>
+  <p>
+    While Ring 1 is primarily focused on enabling mobile apps that are already being built today, Ring 2 is organized to unlock the rest of the most popular apps, as well as new functionality that will enable developers to build entirely new types of apps on mobile.
+  </p>
+  
+  <p>
+    The concepts in Ring 2 are very new and we expect them to change substantially over the next year.
+  </p>
+  
+  <p>
+    Here are some features that Ring 2 targets.
+  </p>
+  
+  <ul>
+    <li>WebGL</li>
+    <li>Adaptive streaming (video and audio)</li>
+    <li>Web notifications</li>
+    <li>Audio API</li>
+    <li>WebSockets</li>
+    <li>Form validation</li>
+    <li>The rest of the HTML5 form elements</li>
+    <li>Sandbox attribute for IFrames</li>
+    <li>getUserMedia section from WebRTC 1.0</li>
+    <li>Navigation Timing API</li>
+    <li>SVG</li>
+  </ul>
+  
+  <p>
+    We believe this class of features will enable the final portion of market share for apps being built today, including 3D games. It will also unlock new possibilities for rich apps like augmented reality, real-time multiplayer games, and more nascent categories.
+  </p>
+  
+  <h2>Participate</h2>
+  
+  <p>
+    To learn more about Ringmark, visit <a href="http://www.rng.io/about" target="_blank">www.rng.io/about</a>.  To participate in Ringmark&#39;s development, join the <a href="http://www.coremob.org/" target="_blank">Core Mobile Web Platform Community Group in the W3C</a>.
+  </p>
 
 {% endblock %}

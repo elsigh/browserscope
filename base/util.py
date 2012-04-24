@@ -1096,6 +1096,7 @@ def GetStats(request, test_set, output='html', user_agents=[],
   params = {
     'category': category,
     'category_name': test_set.category_name,
+    'user_test_category': test_set.user_test_category,
     'tests': tests,
     'is_user_test': models.user_test.Test.is_user_test_category(category),
     'v': version_level,
