@@ -37,19 +37,19 @@ cron:
 
 
 - description: Ringmark
-  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiwoq8ODA&v=top&o=gviz_data
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBj_rusPDA&v=top&o=gviz_data
   schedule: every 1 minutes
 
 - description: Ringmark
-  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiwoq8ODA&v=1&o=gviz_data
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBj_rusPDA&v=1&o=gviz_data
   schedule: every 1 minutes
 
 - description: Ringmark
-  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiwoq8ODA&v=2&o=gviz_data
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBj_rusPDA&v=2&o=gviz_data
   schedule: every 1 minutes
 
 - description: Ringmark
-  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiwoq8ODA&v=3&o=gviz_data
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBj_rusPDA&v=3&o=gviz_data
   schedule: every 1 minutes
 
 

@@ -227,6 +227,7 @@ class TestSet(object):
           test_key_1: raw_score_1,
           test_key_2: raw_score_2,
           ...}
+      # num scores is a dictionary of test_key: num_scores
       num_scores: {
           test_key_1: num_scores_1,
           test_key_2: num_scores_2,
@@ -255,7 +256,8 @@ class TestSet(object):
     total_runs = 0
     for test_key in test_keys:
       if num_scores:
-        total_runs = max(total_runs, num_scores[test_key])
+        total_runs = max(total_runs, self.GetTotalRunsForTestKey(test_key,
+                                                                 num_scores))
       raw_score = raw_scores.get(test_key)
       if (self.IsBooleanTest(test_key) and
           self.user_test_category is None):
@@ -282,6 +284,11 @@ class TestSet(object):
     if num_scores is not None:
       stats['total_runs'] = total_runs
     return stats
+
+
+  def GetTotalRunsForTestKey(self, test_key, num_scores):
+      return num_scores[test_key]
+
 
   def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
     """Get a normalized score (0 to 100) and a value to output to the display.

@@ -157,6 +157,9 @@ urlpatterns = patterns('',
   (r'^network/stats', 'categories.network.handlers.Stats'),
   (r'^network/loader', 'categories.network.bulkloader.ResultLoader'),
 
+  # Ringmark URLs
+  (r'ringmark/about$', 'categories.ringmark.handlers.About'),
+
   # Acid3 Test URLs
   (r'acid3/about$', 'categories.acid3.handlers.About'),
   (r'acid3/support-a.png$', 'categories.acid3.handlers.SupportAPng'),

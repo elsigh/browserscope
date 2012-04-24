@@ -24,7 +24,7 @@ from models import user_test
 _CATEGORY = 'ringmark'
 
 # Ringmark's User Test record.
-_USER_TEST_CATEGORY = 'usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiwoq8ODA'
+_USER_TEST_CATEGORY = 'usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBj_rusPDA'
 
 _TEST_URL = 'http://www.rng.io'
 
@@ -98,15 +98,15 @@ _TESTS = [
 ]
 
 # Ring 0
-for key in ['appcache',  'canvas', 'csscolor', 'csscolor-standard', 'cssbackground', 'css3dtransforms', 'css2-1selectors', 'cssminmax', 'cssoverflow', 'cssanimation', 'csstext', 'csstransforms', 'csstransitions', 'cssui', 'cssvalues', 'dataurl', 'geolocation', 'viewport', 'doctype', 'json', 'postmessage', 'progress', 'prompts', 'selector', 'video', 'webstorage', 'network', 'visibilitystate']:
+for key in ['appcache',  'canvas', 'csscolor', 'csscolor-standard', 'cssbackground', 'css3dtransforms', 'css2-1selectors', 'cssminmax', 'cssanimation', 'csstext', 'csstransforms', 'csstransitions', 'cssui', 'cssvalues', 'dataurl', 'geolocation', 'viewport', 'doctype', 'json', 'postmessage', 'progress', 'prompts', 'selector', 'video', 'webstorage']:
   _TESTS.append(Ring1RingmarkTest(key))
 
 # Ring 1
-for key in ['audio-multi', 'blobbuilder', 'cssanimation-standard', 'cssmediaqueries', 'cssoverflow-standard', 'cssbackground-standard', 'cssposition', 'csstransforms-standard', 'csstransitions-standard', 'cssui-standard', 'webworkers', 'deviceorientation', 'filesaver', 'filewriter', 'xhr2', 'hashchange', 'formdata', 'touchevents', 'forms', 'history', 'html-media-capture', 'indexeddb', 'indexeddb-standard', 'multitouch', 'offline', 'track', 'filereader', 'filesystem']:
+for key in ['audio-multi', 'blobbuilder', 'cssanimation-standard', 'cssmediaqueries', 'cssoverflow', 'cssoverflow-standard', 'cssbackground-standard', 'cssposition', 'csstransforms-standard', 'csstransitions-standard', 'cssui-standard', 'webworkers', 'deviceorientation', 'filesaver', 'filewriter', 'xhr2', 'hashchange', 'formdata', 'touchevents', 'forms', 'history', 'html-media-capture', 'indexeddb', 'indexeddb-standard', 'multitouch', 'offline', 'track', 'filereader', 'filesystem', 'network']:
   _TESTS.append(Ring2RingmarkTest(key))
 
-# Ring 3
-for key in ['animationtiming', 'canvas-3d', 'canvas-3d-standard', 'css-unspecified',  'cssimages', 'cssimages-standard', 'cssfont', 'cssflexbox', 'cssflexbox-standard', 'csscanvas', 'cssborderimage', 'dataset', 'fullscreen', 'html5', 'iframe', 'svg', 'svganimation', 'svginline', 'navigationtiming', 'sharedworkers', 'webrtc', 'notifications', 'vibration', 'masking']:
+# Ring 2
+for key in ['animationtiming', 'canvas-3d', 'canvas-3d-standard', 'css-unspecified',  'cssimages', 'cssimages-standard', 'cssfont', 'cssflexbox', 'cssflexbox-standard', 'csscanvas', 'cssborderimage', 'dataset', 'fullscreen', 'html5', 'iframe', 'svg', 'svganimation', 'svginline', 'navigationtiming', 'sharedworkers', 'webrtc', 'notifications', 'vibration', 'masking', 'visibilitystate']:
   _TESTS.append(Ring3RingmarkTest(key))
 
 
@@ -119,6 +119,17 @@ class RingmarkTestSet(test_set_base.TestSet):
       tests=_TESTS,
       test_page=_TEST_URL)
     self.user_test_category = _USER_TEST_CATEGORY
+
+
+  def GetTotalRunsForTestKey(self, test_key, num_scores):
+    #logging.info('ringmark GetTestScoreAndDisplayValue %s, %s' %
+    #             (test_key, num_scores))
+    category_tests = self.GetTestsByCategory(test_key)
+    total_runs = 0
+    for category_test in category_tests:
+        total_runs = max(total_runs, num_scores[category_test.key])
+    return total_runs
+
 
   def GetTestScoreAndDisplayValue(self, test_key, raw_scores):
     """Get a normalized score (0 to 100) and a value to output to the display.
@@ -157,6 +168,7 @@ class RingmarkTestSet(test_set_base.TestSet):
   def GetTestsByCategory(self, category):
     logging.info('GetTestsByCategory %s', category)
     return [test for test in self.tests if test.CATEGORY == category]
+
 
   def GetRowScoreAndDisplayValue(self, results):
     """Get the overall score for this row of results data.
