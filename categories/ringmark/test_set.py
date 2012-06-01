@@ -1,6 +1,6 @@
 #!/usr/bin/python2.4
 #
-# Copyright 2009 Google Inc.
+# Copyright 20012 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the 'License')
 # you may not use this file except in compliance with the License.
@@ -74,40 +74,37 @@ class IndividualRingmarkTest(RingmarkTest):
         is_hidden_stat=True)
 
 
+class Ring0RingmarkTest(IndividualRingmarkTest):
+  CATEGORY = 'ring0'
+
 class Ring1RingmarkTest(IndividualRingmarkTest):
   CATEGORY = 'ring1'
 
 class Ring2RingmarkTest(IndividualRingmarkTest):
   CATEGORY = 'ring2'
 
-class Ring3RingmarkTest(IndividualRingmarkTest):
-  CATEGORY = 'ring3'
 
-
-CATEGORIES = sorted(['ring1', 'ring2', 'ring3'])
+CATEGORIES = sorted(['ring0', 'ring1', 'ring2'])
 
 
 _TESTS = [
   # key, name, doc
-  CategoryRingmarkTest('ring1', 'Ring 1',
-  ''),
-  CategoryRingmarkTest('ring2', 'Ring 2',
-  ''),
-  CategoryRingmarkTest('ring3', 'Ring 3',
-  ''),
+  CategoryRingmarkTest('ring0', 'Ring 0', ''),
+  CategoryRingmarkTest('ring1', 'Ring 1', ''),
+  CategoryRingmarkTest('ring2', 'Ring 2', ''),
 ]
 
 # Ring 0
 for key in ['appcache',  'canvas', 'csscolor', 'csscolor-standard', 'cssbackground', 'css3dtransforms', 'css2-1selectors', 'cssminmax', 'cssanimation', 'csstext', 'csstransforms', 'csstransitions', 'cssui', 'cssvalues', 'dataurl', 'geolocation', 'viewport', 'doctype', 'json', 'postmessage', 'progress', 'prompts', 'selector', 'video', 'webstorage']:
-  _TESTS.append(Ring1RingmarkTest(key))
+  _TESTS.append(Ring0RingmarkTest(key))
 
 # Ring 1
 for key in ['audio-multi', 'blobbuilder', 'cssanimation-standard', 'cssmediaqueries', 'cssoverflow', 'cssoverflow-standard', 'cssbackground-standard', 'cssposition', 'csstransforms-standard', 'csstransitions-standard', 'cssui-standard', 'webworkers', 'deviceorientation', 'filesaver', 'filewriter', 'xhr2', 'hashchange', 'formdata', 'touchevents', 'forms', 'history', 'html-media-capture', 'indexeddb', 'indexeddb-standard', 'multitouch', 'offline', 'track', 'filereader', 'filesystem', 'network']:
-  _TESTS.append(Ring2RingmarkTest(key))
+  _TESTS.append(Ring1RingmarkTest(key))
 
 # Ring 2
 for key in ['animationtiming', 'canvas-3d', 'canvas-3d-standard', 'css-unspecified',  'cssimages', 'cssimages-standard', 'cssfont', 'cssflexbox', 'cssflexbox-standard', 'csscanvas', 'cssborderimage', 'dataset', 'fullscreen', 'html5', 'iframe', 'svg', 'svganimation', 'svginline', 'navigationtiming', 'sharedworkers', 'webrtc', 'notifications', 'vibration', 'masking', 'visibilitystate']:
-  _TESTS.append(Ring3RingmarkTest(key))
+  _TESTS.append(Ring2RingmarkTest(key))
 
 
 class RingmarkTestSet(test_set_base.TestSet):

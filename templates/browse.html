@@ -44,11 +44,11 @@
     <tr>
       <td colspan="{{ f|length|add:3 }}">
         {% if prev_bookmark %}
-          <a href="/browse?category={{ category }}&bookmark={{ prev_bookmark }}"
+          <a href="/browse?category={{ category }}{% if user_agent %}&ua={{user_agent}}{% endif %}{% if limit %}&limit={{limit}}{% endif %}&bookmark={{prev_bookmark}}"
             >&lt; Prev</a>
         {% endif %}
         {% if next_bookmark %}
-          <a href="/browse?category={{ category }}&bookmark={{ next_bookmark }}"
+          <a href="/browse?category={{ category }}{% if user_agent %}&ua={{user_agent}}{% endif %}{% if limit %}&limit={{limit}}{% endif %}&bookmark={{ next_bookmark }}"
             >Next &gt;</a>
         {% endif %}
       </td>

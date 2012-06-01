@@ -82,13 +82,13 @@ var _bTestResults = {
       <div style="margin-top: 1em">
         You can execute a callback Javascript function after the
         results data is sent to Browserscope by adding the following
-        parameter to _bScript.src:<br>
-        <code><pre>_bScript.src += '?callback=YOUR-FUNCTION-NAME';</pre></code>
+        parameter to newScript.src:<br>
+        <code><pre>newScript.src += '?callback=YOUR-FUNCTION-NAME';</pre></code>
       </div>
       <div style="margin-top: 1em">
         You can bypass Browserscope's IP throttling feature (while testing) by
-        adding the the following parameter to _bScript.src:<br>
-        <code><pre>_bScript.src += '?sandboxid=YOUR-SANDBOX-ID';</pre></code>
+        adding the the following parameter to newScript.src:<br>
+        <code><pre>newScript.src += '?sandboxid=YOUR-SANDBOX-ID';</pre></code>
         <em style="font-size:85%">
           Just remember not to publish this widely and/or change it after
           you're done testing so that no one can corrupt your dataset.
@@ -96,8 +96,8 @@ var _bTestResults = {
       </div>
       <div style="margin-top: 1em">
         You can specify a window variable name other than _bTestResults
-        by adding the following parameter to _bScript.src:<br>
-        <code><pre>_bScript.src += '?test_results_var=YOUR-VAR-NAME';</pre></code>
+        by adding the following parameter to newScript.src:<br>
+        <code><pre>newScript.src += '?test_results_var=YOUR-VAR-NAME';</pre></code>
       </div>
     </li>
     <li>

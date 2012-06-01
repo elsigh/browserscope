@@ -608,6 +608,7 @@ def BrowseResults(request):
     'f': test_keys,
     'category': category,
     'user_agent': user_agent,
+    'limit': fetch_limit,
   }
   return Render(request, 'browse.html', params)
 
