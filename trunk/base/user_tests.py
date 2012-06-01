@@ -56,6 +56,7 @@ import settings
 
 def TestHowto(request):
   params = {
+    'page_title': 'API | User Tests HOWTO',
     'max_value': models.user_test.MAX_VALUE,
     'max_key_count': models.user_test.MAX_KEY_COUNT
   }
