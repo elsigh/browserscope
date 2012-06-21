@@ -1,0 +1,70 @@
+{% extends "simple.html" %}
+
+{% block body %}
+<h1>Performance Timing Test</h1>
+
+<script src="http://{{ resource_cgi }}?headers=1&t={{ epoch }}"
+        type="text/javascript"></script>
+
+<div id="results">&nbsp;</div>
+
+<script>
+function doTest() {
+  var performanceIsPresent = 0;
+  if (window.performance) {
+    if (window.performance.navigation && window.performance.timing) {
+      performanceIsPresent = 1;
+    }
+  }
+
+  document.getElementById('performance').innerHTML = window.performance ?
+      '<span style="color:green">PASS</span>' :
+      '<span style="color:red">FAIL</span>';
+
+  document.getElementById('navigation').innerHTML =
+      window.performance && window.performance.navigation ?
+      '<span style="color:green">PASS</span>' :
+      '<span style="color:red">FAIL</span>';
+
+  document.getElementById('timing').innerHTML =
+      window.performance && window.performance.timing ?
+      '<span style="color:green">PASS</span>' :
+      '<span style="color:red">FAIL</span>';
+
+
+  if (parent.saveResult) {
+    parent.saveResult('performancetiming', performanceIsPresent);
+  }
+}
+window.onload = doTest;
+</script>
+<p>
+  This test checks that the browser has the Web Performance Timing spec properties available.
+  It does not test whether they have the proper values.
+</p>
+
+<table border="1">
+  <thead>
+    <tr>
+      <th>Result</th>
+      <th>Test</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td id="performance"></td>
+      <td>window.performance</td>
+    </tr>
+    <tr>
+      <td id="navigation"></td>
+      <td>window.performance.navigation</td>
+    </tr>
+    <tr>
+      <td id="timing"></td>
+      <td>window.performance.timing</td>
+    </tr>
+  </tbody>
+</table>
+
+
+{% endblock %}
