@@ -24,6 +24,7 @@ import hashlib
 import logging
 import random
 import re
+import sys
 import time
 import urllib
 import urlparse
@@ -141,30 +142,34 @@ def TestEdit(request, key):
     else:
       user = models.user_test.User.get_by_key_name(current_user.user_id())
 
-    try:
-      # edit
-      if test:
-        test.name = request.REQUEST.get('name')
-        test.url = request.REQUEST.get('url')
-        test.description = request.REQUEST.get('description')
-        deleted = request.REQUEST.get('deleted')
-        if deleted == '1':
-          test.deleted = True
-        logging.info('deleted: %s' % test.deleted)
-        if request.REQUEST.get('sandboxid'):
-          test.sandboxid = request.REQUEST.get('sandboxid')
+
+    # edit
+    if test:
+      test.name = request.REQUEST.get('name')
+      test.url = request.REQUEST.get('url')
+      test.description = request.REQUEST.get('description')
+      deleted = request.REQUEST.get('deleted')
+      if deleted == '1':
+        test.deleted = True
+      logging.info('deleted: %s' % test.deleted)
+      if request.REQUEST.get('sandboxid'):
+        test.sandboxid = request.REQUEST.get('sandboxid')
+
+      if request.REQUEST.get('test_keys'):
         test.test_keys = request.REQUEST.get('test_keys').split(',')
-      # create
-      else:
-        meta = models.user_test.TestMeta().save()
-        test = models.user_test.Test(
-                   user=user,
-                   name=request.REQUEST.get('name'),
-                   url=request.REQUEST.get('url'),
-                   description=request.REQUEST.get('description'),
-                   sandboxid=request.REQUEST.get('sandboxid',
-                                                 _get_random_sandboxid()),
-                   meta=meta)
+    # create
+    else:
+      meta = models.user_test.TestMeta().save()
+      test = models.user_test.Test(
+          user=user,
+          name=request.REQUEST.get('name'),
+          url=request.REQUEST.get('url'),
+          description=request.REQUEST.get('description'),
+          sandboxid=request.REQUEST.get('sandboxid',
+              _get_random_sandboxid()),
+          meta=meta)
+
+    try:
       test.save()
       test.add_memcache()
 
@@ -191,7 +196,7 @@ def TestEdit(request, key):
     # Do not try to catch / variable-ize this exception, it breaks in
     # production.
     except:
-      error_msg = 'Something did not quite work there, very sorry.'
+      error_msg = sys.exc_info()[0]
       logging.info(error_msg)
       if api_key:
         return http.HttpResponseServerError(error_msg)
