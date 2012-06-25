@@ -15,3 +15,17 @@ indexes:
   - name: category
   - name: created
     direction: desc
+
+- kind: Test
+  properties:
+  - name: deleted
+  - name: beacon_count
+    direction: desc
+  - name: created
+    direction: desc
+
+- kind: Test
+  properties:
+  - name: user
+  - name: created
+    direction: desc
