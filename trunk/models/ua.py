@@ -148,7 +148,7 @@ COMMENT_PARSERS = (
     CommentParser(pattern=r'^MSIE ([.\d]+)', product='IE', product_version=1, priority=-3),
     CommentParser('WOW64', platform='32-bit application running on 64-bit processor'), # IE only?
     CommentParser('Win64; x64', cpu='64-bit processor (AMD)'),
-    CommentParser('Win64; IA54', cpu='64-bit processor (Intel)'),
+    CommentParser('Win64; IA64', cpu='64-bit processor (Intel)'),
     CommentParser('Tablet PC', platform='Tablet services are installed'),
     CommentParser('SV1', security='IE 6 with enhanced security features'),
     CommentParser('Avant Browser', product='Avant', product_version='1', priority=5),  # version is bogus; should this be IE instead?
