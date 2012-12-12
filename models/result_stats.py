@@ -40,28 +40,26 @@ BROWSER_NAV = (
 )
 
 TOP_DESKTOP_BROWSERS = (
-  'Chrome 20',
-  'Firefox 14',
-  'IE 8', 'IE 9',
-  'Opera 12',
-  'RockMelt 0.9',
-  'Safari 5.1'
+  'Chrome 23',
+  'Firefox 17',
+  'IE 8', 'IE 9', 'IE 10'
+  'Opera 12.11',
+  'Safari 6.0.2'
 )
 
 TOP_DESKTOP_EDGE_BROWSERS = (
-  'Chrome 19', 'Chrome 20',
-  'Firefox Beta 15',
-  'IE Platform Preview 10', 'IE 10',
-  'Opera 12.0.1',
-  'Safari 5.2'
+  'Chrome 24', 'Chrome 25',
+  'Firefox Beta 18', 'Firefox Beta 20'
+  'Opera 12.12',
+  'Safari 6.0.3'
 )
 
 TOP_MOBILE_BROWSERS = (
   'Android 2.3', 'Android 4',
   'Blackberry 7',
-  'Chrome Mobile 16',
+  'Chrome Mobile 18',
   'IEMobile 9',
-  'iPhone 4', 'iPhone 5',
+  'iPhone 5', 'iPhone 6',
   'Nokia 950',
   'Opera Mobile 12'
 )
