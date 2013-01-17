@@ -35,23 +35,17 @@ cron:
   url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBidzawNDA&v=3&o=gviz_data
   schedule: every 1 minutes
 
-
-- description: Ringmark
-  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBj_rusPDA&v=top&o=gviz_data
+- description: Souders redirect test
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBjA7vEBDA?v=1&o=gviz_data
   schedule: every 5 minutes
 
-- description: Ringmark
-  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBj_rusPDA&v=1&o=gviz_data
+- description: Souders redirect test
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBjA7vEBDA?v=2&o=gviz_data
   schedule: every 5 minutes
 
-- description: Ringmark
-  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBj_rusPDA&v=2&o=gviz_data
-  schedule: every 5 minutes
-
-- description: Ringmark
-  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBj_rusPDA&v=3&o=gviz_data
-  schedule: every 5 minutes
-
+- description: Souders redirect test
+  url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBjA7vEBDA?v=3&o=gviz_data
+  schedule: every 1 minutes
 
 - description: Ringmark New
   url: /gviz_table_data?category=usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiwoq8ODA&v=top&o=gviz_data
