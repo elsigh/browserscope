@@ -40,16 +40,16 @@ BROWSER_NAV = (
 )
 
 TOP_DESKTOP_BROWSERS = (
-  'Chrome 23',
-  'Firefox 17',
-  'IE 8', 'IE 9', 'IE 10'
+  'Chrome 24',
+  'Firefox 18',
+  'IE 8', 'IE 9', 'IE 10',
   'Opera 12.11',
   'Safari 6.0.2'
 )
 
 TOP_DESKTOP_EDGE_BROWSERS = (
-  'Chrome 24', 'Chrome 25',
-  'Firefox Beta 18', 'Firefox Beta 20'
+  'Chrome 25', 'Chrome 26',
+  'Firefox 19', 'Firefox 20', 'Firefox 21',
   'Opera 12.12',
   'Safari 6.0.3'
 )
