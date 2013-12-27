@@ -685,6 +685,7 @@ Util.ResultTable = function(controller, el) {
     this.gvizLineEl = gvizLines[0];
   }
 
+  /*
   if (this.controller.browserFamily == 'top' &&
       !goog.uri.utils.getParamValue(window.location.href, 'ua')) {
     this.timeline = document.createElement('div');
@@ -693,6 +694,7 @@ Util.ResultTable = function(controller, el) {
         '&h=300px&w=800px&category=' + this.controller.category;
     $(this.timeline).load(timelineUrl);
   }
+  */
 
   /**
    * @type {Element}

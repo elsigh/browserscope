@@ -249,9 +249,11 @@ class TestSet(object):
           }
       }
     """
-    logging.info('test_set_base.GetStats: category=%s, test_keys=%s, '
-                 'raw_scores=%s, num_scores=%s',
-                 self.category, test_keys, raw_scores, num_scores)
+    # elsigh turning down logging.
+    #logging.info('test_set_base.GetStats: category=%s, test_keys=%s, '
+    #             'raw_scores=%s, num_scores=%s',
+    #             self.category, test_keys, raw_scores, num_scores)
+
     results = {}
     total_runs = 0
     for test_key in test_keys:
