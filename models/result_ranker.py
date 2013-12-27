@@ -217,7 +217,7 @@ def GetRankers(test_browsers, params_str=None, use_insert=False):
                for key_name in key_names]
   else:
     rankers = [existing_rankers.get(k, None) for k in key_names]
-  logging.info('Rankers: %s' % rankers)
+  #logging.info('Rankers: %s' % rankers)
   return rankers
 
 
