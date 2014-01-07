@@ -438,3 +438,7 @@ a.bs-l-p {
 .goog-tablesorter-sorted-reverse:after {
   content: "\2193";
 }
+
+.bs-rt .google-visualization-table-page-numbers {
+  display: none;
+}
