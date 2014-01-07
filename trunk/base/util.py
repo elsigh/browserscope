@@ -26,6 +26,7 @@ import pickle
 import random
 import re
 import sys
+from threading import Timer
 import time
 import urllib
 import urlparse
@@ -37,6 +38,8 @@ from google.appengine.api.labs import taskqueue
 
 from google.appengine.ext import deferred
 from google.appengine.ext import db
+
+from google.appengine.runtime import DeadlineExceededError
 
 import django
 from django import http
@@ -439,6 +442,11 @@ def GetResults(request, template=None, params={}, test_set=None,
 
 def GvizTableData(request):
   """Returns a string formatted for consumption by a Google Viz table."""
+  def throw_deadline():
+    logging.info('MANUAL THROW!! DeadlineExceededError DeadlineExceededError')
+    raise DeadlineExceededError
+  t = Timer(15.0, throw_deadline)
+
   test_set = None
   category = request.GET.get('category')
   if not category:
