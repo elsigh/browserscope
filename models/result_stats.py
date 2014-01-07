@@ -469,10 +469,12 @@ class CategoryStatsManager(object):
       memcache.set_multi(stats, **memcache_params)
       logging.info('Whew, made it.')
 
-    if use_memcache and dirty:
-      logging.info('result_stats.GetStats saving memcache %s' % stats)
-      memcache.set_multi(stats, **memcache_params)
     stats['total_runs'] = total_runs
+
+    if use_memcache and dirty:
+      logging.info('result_stats.GetStats saving all stats to memcache.')
+      memcache.set_multi(stats, **memcache_params)
+
     return stats
 
   @classmethod
