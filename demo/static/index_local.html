@@ -41,24 +41,24 @@
   </head>
   <body>
     <div id="contents">
-      <h1>Example Browserscope User Test</h1>
+      <h1>Example Browserscope User Test LOCAL</h1>
       <p>
         This page showcases the features of
-        <a href="http://localhost:8084/">Browserscope</a>'s
+        <a href="http://localhost:8081/">Browserscope</a>'s
         User Test feature.
         If you write tests for browsers, this should give you an idea of how easy it is to beacon your results to Browserscope and display the
         results table on your test page. For more details, refer to our
-        <a href="http://localhost:8084/user/tests/howto">HOWTO</a> page.
+        <a href="http://localhost:8081/user/tests/howto">HOWTO</a> page.
       </p>
 
       <!-- Inserts Browserscope UA detection -->
-      <script src="http://localhost:8084/ua?o=js"></script>
-      <pre><code>The UA detection message above was created by putting<br><strong>&lt;script src="http://localhost:8084/ua?o=js"&gt;&lt;/script&gt;</strong> on this page.</code></pre>
+      <script src="http://localhost:8081/ua?o=js"></script>
+      <pre><code>The UA detection message above was created by putting<br><strong>&lt;script src="http://localhost:8081/ua?o=js"&gt;&lt;/script&gt;</strong> on this page.</code></pre>
 
 
-      <pre><code>The results table below was created by putting<br><strong>&lt;script src="http://localhost:8084/user/tests/table/KEY?o=js&v=3"&gt;&lt;/script&gt;</strong> <br>on this page.<br>Note: "agt1YS1wcm9maWxlcnIKCxIEVGVzdBgHDA" is the test key for this test.<br>Your test keys are displayed on your <a href="http://localhost:8084/user/settings">settings</a> page.</code></pre>
+      <pre><code>The results table below was created by putting<br><strong>&lt;script src="http://localhost:8081/user/tests/table/KEY?o=js&v=3"&gt;&lt;/script&gt;</strong> <br>on this page.<br>Note: "agt1YS1wcm9maWxlcnIKCxIEVGVzdBgHDA" is the test key for this test.<br>Your test keys are displayed on your <a href="http://localhost:8081/user/settings">settings</a> page.</code></pre>
 
-      <script src="http://localhost:8084/user/tests/table/agt1YS1wcm9maWxlcnIKCxIEVGVzdBgHDA?o=js&v=3&highlight=1&mem=0"></script>
+      <script src="http://localhost:8081/user/tests/table/ag9kZXZ-dWEtcHJvZmlsZXJyEQsSBFRlc3QYgICAgICAwAgM?o=js&v=3&highlight=1&mem=0"></script>
 
 
       <h2>Beaconing data</h2>
@@ -84,8 +84,8 @@
           }
         };
       </script>
-      <script src="http://localhost:8084/user/tests/button?fn=_bRunTest&btn_text=Run%20the%20test"></script>
-      <pre><code>The button/checkbox combo above was created by putting<br><strong>&lt;script src="http://localhost:8084/user/tests/button?fn=_bRunTest&btn_text=Run%20the%20test"&gt;</strong><br>on this page.<br>If you view source on this page, you'll see a <strong>_bRunTest</strong> function as a callback.</code></pre>
+      <script src="http://localhost:8081/user/tests/button?fn=_bRunTest&btn_text=Run%20the%20test"></script>
+      <pre><code>The button/checkbox combo above was created by putting<br><strong>&lt;script src="http://localhost:8081/user/tests/button?fn=_bRunTest&btn_text=Run%20the%20test"&gt;</strong><br>on this page.<br>If you view source on this page, you'll see a <strong>_bRunTest</strong> function as a callback.</code></pre>
       <script>
         // Define a little callback.
         var _bTestBeaconCallback = function() {
@@ -97,10 +97,10 @@
       <script>
         // Beacon the results to Browserscope.
         var _bTestBeacon = function() {
-          var testKey = 'agt1YS1wcm9maWxlcnIKCxIEVGVzdBgHDA';
+          var testKey = 'ag9kZXZ-dWEtcHJvZmlsZXJyEQsSBFRlc3QYgICAgICAwAgM';
           var newScript = document.createElement('script'),
               firstScript = document.getElementsByTagName('script')[0];
-          newScript.src = 'http://localhost:8084/user/beacon/' + testKey;
+          newScript.src = 'http://localhost:8081/user/beacon/' + testKey;
           firstScript.parentNode.insertBefore(newScript, firstScript);
         };
       </script>
@@ -112,10 +112,10 @@
       <pre><code>&lt;script&gt;
 // Beacon the results to Browserscope.
 var _bTestBeacon = function() {
-  var testKey = 'agt1YS1wcm9maWxlcnIKCxIEVGVzdBgHDA';
+  var testKey = 'ag9kZXZ-dWEtcHJvZmlsZXJyEQsSBFRlc3QYgICAgICAwAgM';
   var newScript = document.createElement('script'),
       firstScript = document.getElementsByTagName('script')[0];
-  newScript.src = 'http://localhost:8084/user/beacon/' + testKey;
+  newScript.src = 'http://localhost:8081/user/beacon/' + testKey;
   firstScript.parentNode.insertBefore(newScript, firstScript);
 };&lt;/script&gt;</code></pre>
     </div>

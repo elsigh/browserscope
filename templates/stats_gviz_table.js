@@ -10,6 +10,7 @@ var bsResultsTable = function(id, opt_doUaDetect) {
   this.toolsContainer_ = document.getElementById(id + '-tools');
   this.toolsDynContainer_ = document.getElementById(id + '-tools-dyn');
   this.browserFamilySelect_ = document.getElementById(id + '-v');
+  this.currentPageIndex_ = 0;
 
   // ua detection
   if (doUaDetect &&
@@ -61,10 +62,13 @@ bsResultsTable.prototype.loadGvizTableApi = function() {
         });
 };
 
-bsResultsTable.prototype.getDataUrl = function(family) {
+bsResultsTable.prototype.getDataUrl = function(family, opt_offset) {
+  var offset = opt_offset || '';
   return '//{{ server }}/gviz_table_data?' +
       'category={{ category }}&' +
       'ua={{ ua_params }}&' +
+      'ua_o=' + offset + '&' +
+      'ua_l={{ browser_limit }}&' +
       'v=' + family + '&' +
       'o=gviz_data&' +
       'mem={{ mem }}&' +
@@ -72,6 +76,41 @@ bsResultsTable.prototype.getDataUrl = function(family) {
       'highlight={{ highlight }}&' +
       'score={{ score }}&' +
       'tqx=reqId:0';
+};
+
+bsResultsTable.prototype.handlePage = function(properties) {
+  var family = 3;  // Only called when v=3
+  var localTableNewPage = properties['page']; // 1, -1 or 0
+  var newPage = 0;
+  //window.console.log(this.currentPageIndex_,localTableNewPage )
+  if (localTableNewPage != 0) {
+    newPage = this.currentPageIndex_ + localTableNewPage;
+  }
+
+  if (newPage == this.currentPageIndex_) {
+    return;
+
+  } else if (this.data_ &&
+             this.data_.getNumberOfRows() < Number('{{ browser_limit }}')) {
+    return;
+
+  } else {
+    this.currentPageIndex_ = newPage;
+  }
+
+  var newIndex = newPage * Number('{{ browser_limit }}');
+
+  bsUtil.addClass(this.tableContainer_, 'rt-loading');
+  this.toolsContainer_.style.display = 'none';
+  this.toolsDynContainer_.innerHTML = '';
+  this.builtCompareUaUi_ = false;
+  this.drawn_ = false;
+  this.tableContainer_.innerHTML = 'Loading more Browserscope results data ...';
+  var dataUrl = this.getDataUrl(family, newIndex);
+  var query = new google.visualization.Query(dataUrl,
+      {'sendMethod': 'scriptInjection'});
+  var instance = this;
+  query.send(function(response){instance.draw_(response, family)});
 };
 
 bsResultsTable.prototype.load = function(family) {
@@ -85,44 +124,55 @@ bsResultsTable.prototype.load = function(family) {
   var query = new google.visualization.Query(dataUrl,
       {'sendMethod': 'scriptInjection'});
   var instance = this;
-  query.send(function(response){instance.draw_(response)});
+  query.send(function(response){instance.draw_(response, family)});
 };
 
-bsResultsTable.prototype.draw_ = function(response) {
+bsResultsTable.prototype.draw_ = function(response, family) {
   // This idempotency crap is for Opera which somehow got draw called twice.
   if (this.drawn_) {
     return;
   }
   this.drawn_ = true;
 
+  bsUtil.removeClass(this.tableContainer_, 'rt-loading');
   if (response.isError()) {
     alert('Sorry but there was an error getting the results data ' +
           'from Browserscope.');
+    return;
   }
-  bsUtil.removeClass(this.tableContainer_, 'rt-loading');
+
   this.dataTable_ = new google.visualization.Table(this.tableContainer_);
-  var data = response.getDataTable();
+  this.data_ = response.getDataTable();
   var cssClassNames = {
     headerRow: '',
-    hoverTableRow: 'rt-row rt-row-over',
+    //hoverTableRow: 'rt-row rt-row-over',
     selectedTableRow: 'rt-row rt-row-sel',
     tableRow: 'rt-row',
     frozenColumns: 1
   };
-  this.dataTable_.draw(data, {
+  this.dataTable_.draw(this.data_, {
     {% if w %}'width': '{{ w }}',{% endif %}
     {% if h %}'height': '{{ h }}',{% endif %}
     'alternatingRowStyle': false,
-    'cssClassNames': cssClassNames
+    'showRowNumber': false,
+    'cssClassNames': cssClassNames,
+    'page': family == '3' ? 'event' : 'disable',
+    'pageSize': Number('{{ browser_limit }}'),
+    'pagingButtonsConfiguration': 'both'
+  });
+
+  var addListener = google.visualization.events.addListener;
+  var instance = this;
+  addListener(this.dataTable_, 'page', function(properties) {
+    instance.handlePage(properties);
   });
 
   if (this.toolsContainer_.style.display != 'block') {
     this.toolsContainer_.style.display = 'block';
-    var that = this;
     this.browserFamilySelect_.onchange = function(e) {
-      var browserFamilyValue = that.browserFamilySelect_.options[
-          that.browserFamilySelect_.options.selectedIndex].value;
-      that.load(browserFamilyValue);
+      var browserFamilyValue = instance.browserFamilySelect_.options[
+          instance.browserFamilySelect_.options.selectedIndex].value;
+      instance.load(browserFamilyValue);
     };
   }
 
@@ -131,12 +181,11 @@ bsResultsTable.prototype.draw_ = function(response) {
     return;
   }
 
-  var that = this;
   window.setTimeout(function() {
-    that.resultsCells_ = that.tableContainer_.querySelectorAll(
+    instance.resultsCells_ = instance.tableContainer_.querySelectorAll(
         '.rt-row td:last-child');
-    that.drawCompareUaUi_();
-    that.drawSparseFilter_();
+    instance.drawCompareUaUi_();
+    instance.drawSparseFilter_();
   }, 300);
 };
 

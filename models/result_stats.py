@@ -40,18 +40,16 @@ BROWSER_NAV = (
 )
 
 TOP_DESKTOP_BROWSERS = (
-  'Chrome 24',
-  'Firefox 18',
+  'Chrome 32',
+  'Firefox 26',
   'IE 8', 'IE 9', 'IE 10',
-  'Opera 12.11',
-  'Safari 6.0.2'
+  'Safari 7.0.1'
 )
 
 TOP_DESKTOP_EDGE_BROWSERS = (
-  'Chrome 25', 'Chrome 26',
-  'Firefox 19', 'Firefox 20', 'Firefox 21',
-  'Opera 12.12',
-  'Safari 6.0.3'
+  'Chrome 34', 'Chrome 33',
+  'Firefox 27',
+  'Safari 7.0.1'
 )
 
 TOP_MOBILE_BROWSERS = (
@@ -59,10 +57,10 @@ TOP_MOBILE_BROWSERS = (
   'Blackberry 7',
   'Chrome Mobile 18',
   'IEMobile 9',
-  'iPhone 5', 'iPhone 6',
-  'Nokia 950',
-  'Opera Mobile 12'
+  'iPhone 6', 'iPhone 7'
 )
+
+BROWSER_LIMIT = 10
 
 TOP_BROWSERS = TOP_DESKTOP_BROWSERS + TOP_DESKTOP_EDGE_BROWSERS + TOP_MOBILE_BROWSERS
 
@@ -123,12 +121,15 @@ class CategoryBrowserManager(db.Model):
       memcache.set_multi(memcache_mapping, namespace=cls.MEMCACHE_NAMESPACE)
 
   @classmethod
-  def GetBrowsers(cls, category, version_level):
+  def GetBrowsers(cls, category, version_level,
+                  browser_offset=0, browser_limit=BROWSER_LIMIT):
     """Get all the browsers for a version level.
 
     Args:
       category: a category string like 'network' or 'reflow'.
       version_level: 'top', 0 (family), 1 (major), 2 (minor), 3 (3rd)
+      browser_limit: # of browsers to return, max (for version_level=3).
+      browser_offset: Offset for where to start in browser list (for version_level=3).
     Returns:
       ['Firefox 3.1', 'Safari 4.0', 'Safari 4.5', ...]
     """
@@ -152,7 +153,18 @@ class CategoryBrowserManager(db.Model):
         manager = cls.get_by_key_name(key_name)
         browsers = manager and manager.browsers or []
         memcache.set(key_name, browsers, namespace=cls.MEMCACHE_NAMESPACE)
-    return browsers
+
+    # We only apply offset and limit when v=3.
+    browser_list = None
+    if version_level == '3':
+      end_index = browser_offset + browser_limit
+      logging.info('OFFSET INDEXES: %s:%s' % (browser_offset,end_index))
+      browser_list = browsers[browser_offset:end_index]
+    else:
+      browser_list = browsers
+
+    logging.info('Browser list length: %s' % len(browser_list))
+    return browser_list
 
   @classmethod
   def GetAllBrowsers(cls, category):

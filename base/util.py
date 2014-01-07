@@ -404,6 +404,7 @@ def GetResults(request, template=None, params={}, test_set=None,
     'results_params': '&'.join(results_params),
     'v': request.GET.get('v', 'top'),
     'browser_nav': result_stats.BROWSER_NAV,
+    'browser_limit': result_stats.BROWSER_LIMIT,
     'is_admin': users.is_current_user_admin(),
     'output': output,
     'ua_params': request.GET.get('ua', ''),
@@ -931,6 +932,19 @@ def GetStats(request, test_set, output='html', user_agents=[],
   version_level = request.GET.get('v', version_level)
   is_skip_static = request.GET.get('sc')  # 'sc' for skip cache
   browser_param = request.GET.get('ua', ','.join(user_agents))
+
+  browser_offset = request.GET.get('ua_o', 0)
+  if browser_offset == '':
+    browser_offset = 0
+  else:
+    browser_offset = int(browser_offset)
+  browser_limit = request.GET.get('ua_l', result_stats.BROWSER_LIMIT)
+  if browser_limit == '':
+    browser_limit = result_stats.BROWSER_LIMIT
+  else:
+    browser_limit = int(browser_limit)
+  logging.info('BROWSR_OFFSET: %s, LIMIT: %s' % (browser_offset, browser_limit))
+
   results_str = GetResultUriString(request, category)
 
   use_memcache = True
@@ -966,7 +980,7 @@ def GetStats(request, test_set, output='html', user_agents=[],
   else:
     if not browsers:
       browsers = result_stats.CategoryBrowserManager.GetBrowsers(
-          category, version_level)
+          category, version_level, browser_offset, browser_limit)
     if category == 'summary':
       stats_data = result_stats.SummaryStatsManager.GetStats(browsers)
     else:
@@ -979,7 +993,7 @@ def GetStats(request, test_set, output='html', user_agents=[],
 
   # Eliminate sparse results.
   if (do_sparse_filter and settings.BUILD == 'production' and
-      category == 'sumary' and version_level == 'top'):
+      category == 'summary' and version_level == 'top'):
     for ua_key, ua_res in stats_data.items():
       if ua_key is not 'total_runs':
         if ua_res['total_runs'] < 5:
