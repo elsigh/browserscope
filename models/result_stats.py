@@ -60,7 +60,7 @@ TOP_MOBILE_BROWSERS = (
   'iPhone 6', 'iPhone 7'
 )
 
-BROWSER_LIMIT = 10
+BROWSER_LIMIT = 30
 
 TOP_BROWSERS = TOP_DESKTOP_BROWSERS + TOP_DESKTOP_EDGE_BROWSERS + TOP_MOBILE_BROWSERS
 
@@ -154,9 +154,9 @@ class CategoryBrowserManager(db.Model):
         browsers = manager and manager.browsers or []
         memcache.set(key_name, browsers, namespace=cls.MEMCACHE_NAMESPACE)
 
-    # We only apply offset and limit when v=3.
+    # We only apply offset and limit when v=1,2,3.
     browser_list = None
-    if version_level == '3':
+    if version_level == '1' or version_level == '2' or version_level == '3':
       end_index = browser_offset + browser_limit
       logging.info('OFFSET INDEXES: %s:%s' % (browser_offset,end_index))
       browser_list = browsers[browser_offset:end_index]

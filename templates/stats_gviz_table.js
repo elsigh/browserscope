@@ -79,19 +79,16 @@ bsResultsTable.prototype.getDataUrl = function(family, opt_offset) {
 };
 
 bsResultsTable.prototype.handlePage = function(properties) {
+  //console.log('handlePage', properties)
   var family = 3;  // Only called when v=3
   var localTableNewPage = properties['page']; // 1, -1 or 0
   var newPage = 0;
-  //window.console.log(this.currentPageIndex_,localTableNewPage )
+
   if (localTableNewPage != 0) {
     newPage = this.currentPageIndex_ + localTableNewPage;
   }
 
   if (newPage == this.currentPageIndex_) {
-    return;
-
-  } else if (this.data_ &&
-             this.data_.getNumberOfRows() < Number('{{ browser_limit }}')) {
     return;
 
   } else {
@@ -101,10 +98,7 @@ bsResultsTable.prototype.handlePage = function(properties) {
   var newIndex = newPage * Number('{{ browser_limit }}');
 
   bsUtil.addClass(this.tableContainer_, 'rt-loading');
-  this.toolsContainer_.style.display = 'none';
-  this.toolsDynContainer_.innerHTML = '';
-  this.builtCompareUaUi_ = false;
-  this.drawn_ = false;
+
   this.tableContainer_.innerHTML = 'Loading more Browserscope results data ...';
   var dataUrl = this.getDataUrl(family, newIndex);
   var query = new google.visualization.Query(dataUrl,
@@ -113,12 +107,13 @@ bsResultsTable.prototype.handlePage = function(properties) {
   query.send(function(response){instance.draw_(response, family)});
 };
 
+
 bsResultsTable.prototype.load = function(family) {
   bsUtil.addClass(this.tableContainer_, 'rt-loading');
   this.toolsContainer_.style.display = 'none';
   this.toolsDynContainer_.innerHTML = '';
   this.builtCompareUaUi_ = false;
-  this.drawn_ = false;
+  this.vizTable_ = null;
   this.tableContainer_.innerHTML = 'Loading Browserscope results data ...';
   var dataUrl = this.getDataUrl(family);
   var query = new google.visualization.Query(dataUrl,
@@ -127,12 +122,8 @@ bsResultsTable.prototype.load = function(family) {
   query.send(function(response){instance.draw_(response, family)});
 };
 
+
 bsResultsTable.prototype.draw_ = function(response, family) {
-  // This idempotency crap is for Opera which somehow got draw called twice.
-  if (this.drawn_) {
-    return;
-  }
-  this.drawn_ = true;
 
   bsUtil.removeClass(this.tableContainer_, 'rt-loading');
   if (response.isError()) {
@@ -141,8 +132,52 @@ bsResultsTable.prototype.draw_ = function(response, family) {
     return;
   }
 
-  this.dataTable_ = new google.visualization.Table(this.tableContainer_);
-  this.data_ = response.getDataTable();
+  if (!this.dataTable_) {
+    this.vizTable_ = new google.visualization.Table(this.tableContainer_);
+    this.dataTable_ = response.getDataTable();
+    this.lastPageDataTable_ = this.dataTable_;
+
+    var addListener = google.visualization.events.addListener;
+    var instance = this;
+    addListener(this.vizTable_, 'page', function(properties) {
+      instance.handlePage(properties);
+    });
+
+    if (this.toolsContainer_.style.display != 'block') {
+      this.toolsContainer_.style.display = 'block';
+      this.browserFamilySelect_.onchange = function(e) {
+        var browserFamilyValue = instance.browserFamilySelect_.options[
+            instance.browserFamilySelect_.options.selectedIndex].value;
+        instance.load(browserFamilyValue);
+      };
+    }
+
+    // Bail before more interesting UI enhancements if old UA.
+    if (!document.querySelectorAll) {
+      return;
+    }
+
+    window.setTimeout(function() {
+      instance.resultsCells_ = instance.tableContainer_.querySelectorAll(
+          '.rt-row td:last-child');
+      instance.drawCompareUaUi_();
+      instance.drawSparseFilter_();
+    }, 300);
+
+
+  // Merge new data into table.
+  } else {
+    this.lastPageDataTable_ = response.getDataTable();
+    var currentJson = JSON.parse(this.dataTable_.toJSON());
+    var newJson = JSON.parse(this.lastPageDataTable_.toJSON());
+    for (var i = 0, row; row = newJson['rows'][i]; i++) {
+      currentJson['rows'].push(row)
+    }
+    this.vizTable_.clearChart();
+
+    this.dataTable_ = new google.visualization.DataTable(currentJson);
+  }
+
   var cssClassNames = {
     headerRow: '',
     //hoverTableRow: 'rt-row rt-row-over',
@@ -150,43 +185,31 @@ bsResultsTable.prototype.draw_ = function(response, family) {
     tableRow: 'rt-row',
     frozenColumns: 1
   };
-  this.dataTable_.draw(this.data_, {
+
+  var tableOptions = {
     {% if w %}'width': '{{ w }}',{% endif %}
     {% if h %}'height': '{{ h }}',{% endif %}
     'alternatingRowStyle': false,
     'showRowNumber': false,
     'cssClassNames': cssClassNames,
-    'page': family == '3' ? 'event' : 'disable',
-    'pageSize': Number('{{ browser_limit }}'),
+    'page': (family == '1' || family == '2' || family == '3') ?
+        'event' : 'disable',
+    //'pageSize': Number('{{ browser_limit }}'),
     'pagingButtonsConfiguration': 'both'
-  });
+  };
 
-  var addListener = google.visualization.events.addListener;
-  var instance = this;
-  addListener(this.dataTable_, 'page', function(properties) {
-    instance.handlePage(properties);
-  });
+  this.vizTable_.draw(this.dataTable_, tableOptions);
 
-  if (this.toolsContainer_.style.display != 'block') {
-    this.toolsContainer_.style.display = 'block';
-    this.browserFamilySelect_.onchange = function(e) {
-      var browserFamilyValue = instance.browserFamilySelect_.options[
-          instance.browserFamilySelect_.options.selectedIndex].value;
-      instance.load(browserFamilyValue);
-    };
+  // Hide the next button maybe.
+  if (this.lastPageDataTable_ &&
+      this.lastPageDataTable_.getNumberOfRows() <
+          Number('{{ browser_limit }}')) {
+    var pageEl = document.querySelector(
+        '.google-visualization-table-div-page');
+    if (pageEl) {
+      pageEl.style.display = 'none';
+    }
   }
-
-  // Bail before more interesting UI enhancements if old UA.
-  if (!document.querySelectorAll) {
-    return;
-  }
-
-  window.setTimeout(function() {
-    instance.resultsCells_ = instance.tableContainer_.querySelectorAll(
-        '.rt-row td:last-child');
-    instance.drawCompareUaUi_();
-    instance.drawSparseFilter_();
-  }, 300);
 };
 
 bsResultsTable.prototype.buildCompareUaUi_ = function() {
