@@ -439,6 +439,23 @@ a.bs-l-p {
   content: "\2193";
 }
 
-.bs-rt .google-visualization-table-page-numbers {
+.bs-rt .google-visualization-table-page-numbers,
+.bs-rt .charts-custom-button-collapse-right[role="button"] {
   display: none;
 }
+
+.bs-rt .charts-custom-button-collapse-left .charts-custom-button-inner-box {
+  border-left: 1px solid #aaa;
+}
+
+.bs-rt .charts-custom-button-collapse-left img {
+  -webkit-transform: rotate(90deg);
+  transform: rotate(90deg);
+}
+
+.bs-rt .charts-custom-button-collapse-left .charts-custom-button-inner-box::before {
+  content: 'more results ';
+  display: inline-block;
+  margin-right: 0.5em;
+}
+
