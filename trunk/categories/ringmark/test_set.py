@@ -24,7 +24,7 @@ from models import user_test
 _CATEGORY = 'ringmark'
 
 # Ringmark's User Test record.
-_USER_TEST_CATEGORY = 'usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBj_rusPDA'
+_USER_TEST_CATEGORY = 'usertest_agt1YS1wcm9maWxlcnINCxIEVGVzdBiS1dcRDA'
 
 _TEST_URL = 'http://www.rng.io'
 
