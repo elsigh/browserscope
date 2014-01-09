@@ -154,9 +154,9 @@ class CategoryBrowserManager(db.Model):
         browsers = manager and manager.browsers or []
         memcache.set(key_name, browsers, namespace=cls.MEMCACHE_NAMESPACE)
 
-    # We only apply offset and limit when v=1,2,3.
+    # We only apply offset and limit when v=1,2,3 and this is a usertest.
     browser_list = None
-    if version_level == '1' or version_level == '2' or version_level == '3':
+    if 'usertest' in category and version_level in ['1', '2', '3']:
       end_index = browser_offset + browser_limit
       logging.info('OFFSET INDEXES: %s:%s' % (browser_offset,end_index))
       browser_list = browsers[browser_offset:end_index]
