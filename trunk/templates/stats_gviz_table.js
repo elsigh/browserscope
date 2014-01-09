@@ -63,6 +63,7 @@ bsResultsTable.prototype.loadGvizTableApi = function() {
 };
 
 bsResultsTable.prototype.getDataUrl = function(family, opt_offset) {
+  this.family_ = family;
   var offset = opt_offset || '';
   return '//{{ server }}/gviz_table_data?' +
       'category={{ category }}&' +
@@ -80,7 +81,7 @@ bsResultsTable.prototype.getDataUrl = function(family, opt_offset) {
 
 bsResultsTable.prototype.handlePage = function(properties) {
   //console.log('handlePage', properties)
-  var family = 3;  // Only called when v=3
+  var family = this.family_;
   var localTableNewPage = properties['page']; // 1, -1 or 0
   var newPage = 0;
 
@@ -110,11 +111,12 @@ bsResultsTable.prototype.handlePage = function(properties) {
 
 bsResultsTable.prototype.load = function(family) {
   bsUtil.addClass(this.tableContainer_, 'rt-loading');
-  this.toolsContainer_.style.display = 'none';
-  this.toolsDynContainer_.innerHTML = '';
-  this.builtCompareUaUi_ = false;
-  this.vizTable_ = null;
   this.tableContainer_.innerHTML = 'Loading Browserscope results data ...';
+
+  if (this.dataTable_) {
+    this.dataTable_.removeRows(0, this.dataTable_.getNumberOfRows());
+  }
+
   var dataUrl = this.getDataUrl(family);
   var query = new google.visualization.Query(dataUrl,
       {'sendMethod': 'scriptInjection'});
@@ -132,7 +134,7 @@ bsResultsTable.prototype.draw_ = function(response, family) {
     return;
   }
 
-  if (!this.dataTable_) {
+  if (!this.vizTable_) {
     this.vizTable_ = new google.visualization.Table(this.tableContainer_);
     this.dataTable_ = response.getDataTable();
     this.lastPageDataTable_ = this.dataTable_;
@@ -194,7 +196,7 @@ bsResultsTable.prototype.draw_ = function(response, family) {
     'cssClassNames': cssClassNames,
     'page': (family == '1' || family == '2' || family == '3') ?
         'event' : 'disable',
-    //'pageSize': Number('{{ browser_limit }}'),
+    'pageSize': 5000,
     'pagingButtonsConfiguration': 'both'
   };
 
