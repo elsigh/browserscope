@@ -75,25 +75,25 @@ class IndividualRingmarkTest(RingmarkTest):
 
 
 class Ring0RingmarkTest(IndividualRingmarkTest):
-    CATEGORY = 'ring0'
+    CATEGORY = 'ring:0'
 
 
 class Ring1RingmarkTest(IndividualRingmarkTest):
-    CATEGORY = 'ring1'
+    CATEGORY = 'ring:1'
 
 
 class Ring2RingmarkTest(IndividualRingmarkTest):
-    CATEGORY = 'ring2'
+    CATEGORY = 'ring:2'
 
 
-CATEGORIES = sorted(['ring0', 'ring1', 'ring2'])
+CATEGORIES = sorted(['ring:0', 'ring:1', 'ring:2'])
 
 
 _TESTS = [
     # key, name, doc
-    CategoryRingmarkTest('ring0', 'Ring 0', ''),
-    CategoryRingmarkTest('ring1', 'Ring 1', ''),
-    CategoryRingmarkTest('ring2', 'Ring 2', ''),
+    CategoryRingmarkTest('ring:0', 'Ring 0', ''),
+    CategoryRingmarkTest('ring:1', 'Ring 1', ''),
+    CategoryRingmarkTest('ring:2', 'Ring 2', ''),
 ]
 
 # Ring 0
