@@ -214,8 +214,9 @@ class TestSet(object):
         medians[test.key], num_scores[test.key] = ranker.GetMedianAndNumScores()
       else:
         medians[test.key], num_scores[test.key] = None, 0
-    #logging.info('GetMediansAndNumScores: category=%s, medians=%s, '
-    #             'num_scores=%s' % (self.category, medians, num_scores))
+    #logging.info('test_set_base.GetMediansAndNumScores: category=%s, '
+    #             'medians=%s, num_scores=%s' %
+    #             (self.category, medians, num_scores))
     return medians, num_scores
 
   def GetStats(self, test_keys, raw_scores, num_scores=None):
