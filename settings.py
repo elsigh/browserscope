@@ -36,26 +36,26 @@ USE_I18N = False
 SECRET_KEY = 'browserscopeisnawtverysekkrit'
 SESSION_COOKIE_NAME = APP_TITLE
 TEMPLATE_LOADERS = (
-  'django.template.loaders.filesystem.load_template_source',
-  'django.template.loaders.app_directories.load_template_source'
+    'django.template.loaders.filesystem.load_template_source',
+    'django.template.loaders.app_directories.load_template_source'
 )
 MIDDLEWARE_CLASSES = (
-  'django.middleware.common.CommonMiddleware',
-  'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
 )
 TEMPLATE_CONTEXT_PROCESSORS = (
-  'django.core.context_processors.debug'
+    'django.core.context_processors.debug'
 )
 ROOT_URLCONF = 'urls'
 ROOT_PATH = os.path.dirname(__file__)
 TEMPLATE_DIRS = (
-  os.path.join(ROOT_PATH, 'templates'),
-  os.path.join(ROOT_PATH, 'categories'),
-  os.path.join(ROOT_PATH, 'static_mode'),
+    os.path.join(ROOT_PATH, 'templates'),
+    os.path.join(ROOT_PATH, 'categories'),
+    os.path.join(ROOT_PATH, 'static_mode'),
 )
 INSTALLED_APPS = (
-  #'appengine_django',
-  'django.contrib.sessions',
+    #'appengine_django',
+    'django.contrib.sessions',
 )
 SESSION_ENGINE = 'django_ae_utils.sessions.backends.datastore'
 
@@ -85,12 +85,12 @@ DEBUG = False
 BUILD = 'production'
 SERVER_SOFTWARE = os.getenv('SERVER_SOFTWARE')
 if (SERVER_SOFTWARE is not None and 'Dev' in SERVER_SOFTWARE):
-  BUILD = 'development'
-  DEBUG = True
+    BUILD = 'development'
+    DEBUG = True
 #BUILD = 'production'
 
 # Logged in admins should get to see stack traces.
 if users.is_current_user_admin():
-  DEBUG = True
+    DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
