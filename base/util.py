@@ -591,6 +591,7 @@ def BrowseResults(request):
     return http.HttpResponseBadRequest('You must pass category=something')
   test_set = all_test_sets.GetTestSet(category)
   test_keys = [t.key for t in test_set.VisibleTests()]
+  logging.info('Browse %s, %s' % (test_set, test_keys))
 
   bookmark = request.GET.get('bookmark')
   fetch_limit = int(request.GET.get('limit', 20))
@@ -598,7 +599,7 @@ def BrowseResults(request):
   user_agent = request.GET.get('ua', '')
 
   query = pager.PagerQuery(models.result.ResultParent, keys_only=False)
-  query.filter('category =', category)
+  query.filter('category =', test_set.user_test_category or category)
   if user_agent:
     query.filter('user_agent_string_list =', user_agent)
   if order == 'desc':
@@ -951,7 +952,7 @@ def GetStats(request, test_set, output='html', user_agents=[],
     browser_limit = result_stats.BROWSER_LIMIT
   else:
     browser_limit = int(browser_limit)
-  logging.info('BROWSR_OFFSET: %s, LIMIT: %s' % (browser_offset, browser_limit))
+  #logging.info('UA_OFFSET: %s, LIMIT: %s' % (browser_offset, browser_limit))
 
   results_str = GetResultUriString(request, category)
 

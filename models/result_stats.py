@@ -42,22 +42,21 @@ BROWSER_NAV = (
 TOP_DESKTOP_BROWSERS = (
   'Chrome 32',
   'Firefox 26',
-  'IE 8', 'IE 9', 'IE 10',
+  'IE 9', 'IE 10', 'IE 11',
   'Safari 7.0.1'
 )
 
 TOP_DESKTOP_EDGE_BROWSERS = (
-  'Chrome 34', 'Chrome 33',
-  'Firefox 27',
-  'Safari 7.0.1'
+  'Chrome 34',
+  'Firefox 27'
 )
 
 TOP_MOBILE_BROWSERS = (
   'Android 2.3', 'Android 4',
   'Blackberry 7',
   'Chrome Mobile 18',
-  'IEMobile 9',
-  'iPhone 6', 'iPhone 7'
+  'IEMobile 9', 'IEMobile 10',
+  'iPhone 7'
 )
 
 BROWSER_LIMIT = 25
@@ -156,7 +155,9 @@ class CategoryBrowserManager(db.Model):
 
     # We only apply offset and limit when v=1,2,3 and this is a usertest.
     browser_list = None
-    if 'usertest' in category and version_level in ['1', '2', '3']:
+    if ('usertest' in category and
+        test_set.user_test_category is None and
+        version_level in ['1', '2', '3']):
       end_index = browser_offset + browser_limit
       logging.info('OFFSET INDEXES: %s:%s' % (browser_offset,end_index))
       browser_list = browsers[browser_offset:end_index]
