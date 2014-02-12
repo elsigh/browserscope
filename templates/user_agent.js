@@ -11,12 +11,7 @@
   var el = document.createElement('div');
   el.id = 'bs-ua';
   el.innerHTML = 'Browserscope thinks you are using ' +
-     '<strong>' + reconciledUa + '</strong>' +
-     '&nbsp;&nbsp;<a ' +
-       'href="http://code.google.com/p/ua-parser/issues/entry?template=' +
-       'UA%20Parsing%20Is%20Incorrect&comment=' + reconciledUa + ' is ' +
-       'not correct for {{ current_ua_string }}"' +
-       'target="_blank">No?</a>';
+     '<strong>' + reconciledUa + '</strong>';
   var script = document.getElementById('bs-ua-script');
   if (!script) {
     var scripts = document.getElementsByTagName('script');

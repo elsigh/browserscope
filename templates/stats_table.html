@@ -174,9 +174,11 @@
         We think you're using
         <strong id="bs-cur-ua-{{ category }}">{{ current_user_agent }}</strong>
       </span>
+      <!--
       <a
         href="http://code.google.com/p/ua-parser/issues/entry?template=UA%20Parsing%20Is%20Incorrect&comment={{ current_ua.pretty }} is not correct for {{ current_ua_string }}"
         target="_blank">No?</a>
+      -->
     </span>
 
     {% if stats|by_key:"total_runs" %}
