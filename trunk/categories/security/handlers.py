@@ -100,6 +100,7 @@ def XContentSecurityPolicyTest(request):
   response = HttpResponse()
   response['X-Content-Security-Policy']="default-src 'self'"
   response['X-WebKit-CSP']="default-src 'self'"
+  response['Content-Security-Policy']="default-src 'self'"
   response.write('''
   <html>
   <body>
