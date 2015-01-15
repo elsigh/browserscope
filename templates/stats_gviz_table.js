@@ -183,7 +183,7 @@ bsResultsTable.prototype.draw_ = function(response, family) {
   var cssClassNames = {
     headerRow: '',
     //hoverTableRow: 'rt-row rt-row-over',
-    selectedTableRow: 'rt-row rt-row-sel',
+    selectedTableRow: 'rt-row-sel',
     tableRow: 'rt-row',
     frozenColumns: 1
   };

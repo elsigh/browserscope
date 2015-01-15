@@ -121,7 +121,7 @@ class CategoryBrowserManager(db.Model):
 
     @classmethod
     def GetBrowsers(cls, category, version_level,
-                                    browser_offset=0, browser_limit=BROWSER_LIMIT):
+                    browser_offset=0, browser_limit=BROWSER_LIMIT):
         """Get all the browsers for a version level.
 
         Args:
@@ -132,6 +132,7 @@ class CategoryBrowserManager(db.Model):
         Returns:
             ['Firefox 3.1', 'Safari 4.0', 'Safari 4.5', ...]
         """
+        test_set = None
         if version_level == 'top':
             browsers = list(TOP_BROWSERS)
         elif version_level == 'top-d':
@@ -155,7 +156,7 @@ class CategoryBrowserManager(db.Model):
 
         # We only apply offset and limit when v=1,2,3 and this is a usertest.
         browser_list = None
-        if ('usertest' in category and
+        if ('usertest' in category and test_set and
                 test_set.user_test_category is None and
                 version_level in ['1', '2', '3']):
             end_index = browser_offset + browser_limit
