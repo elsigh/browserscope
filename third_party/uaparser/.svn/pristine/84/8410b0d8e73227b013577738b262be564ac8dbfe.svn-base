@@ -1,0 +1,35 @@
+OS parsing functionality has been added. This has required certain changes to user_agent_parser's interface.
+
+RELEVANT CHANGES:
+
+There are now multiple parsing methods in the user_agent_parser module.
+
+The old Parse method is still present for backwards compatibility.
+
+The new methods to be used are, as appropriate: ParseAll, ParseOS, ParseUserAgent, and ParseDevice.
+
+Note that ParseDevice is currently incomplete.
+
+ParseUserAgent is named as such due to the possibility of adding a ParseBrowser method in the future, which could more correctly (more strictly) identify only browsers (e.g. iPhone not parsed as a browser as it currently is).
+
+The old Parse method returned a tuple of the parsed bits. The new Parse* methods return flat dictionaries of the parsed bits.
+
+Javascript override bits must be (optional) keyworded arguments in the new Parse* methods.
+
+There are now multiple pretty printing methods. Pretty is left for backwards compatibility.
+
+Pretty* can be used with each corresponding Parse* such that the result of Parse* is just "double asterixed" into Pretty* e.g. PrettyOS(**os_result)
+
+ok great bye :)
+
+- Sean
+
+           |
+         \ _ /
+       -= (_) =-
+         /   \         _\/_
+           |           //o\  _\/_
+    _____ _ __ __ ____ _ | __/o\\ _
+  =-=-_-__=_-= _=_=-=_,-'|"'""-|-,_
+   =- _=-=- -_=-=_,-"          |
+   . =- =- -=.--"

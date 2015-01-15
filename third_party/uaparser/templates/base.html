@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head>
+  <title>
+    {% if page_title %}
+      {{ page_title }} -
+    {% endif %}
+    {{ app_title }}
+  </title>
+  <meta charset="utf8">
+  <meta name="keywords" content="">
+  {% ifequal chromeframe_enabled "1" %}
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  {% endifequal %}
+
+
+    <!-- Mobile viewport optimization http://goo.gl/b9SaQ -->
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+  <link
+    rel="stylesheet"
+    href="{{ "base.css"|resource_path }}"
+    type="text/css">
+  {% block style %}{% endblock %}
+  {% block head %}{% endblock %}
+</head>
+
+<body>
+  <h1 id="uap-logo" class="">
+    <a href="/" target="_top"><span>{{ app_title }}</span></a>
+  </h1>
+  <div id="uap-nav">
+    <div class="g-unit g-first">
+      <div class="g-c">
+        <ul id="uap-nav-cats" class="g-section uap-compact uap-list-horz">
+        {% for tuple in app_categories %}
+          <li>
+            <a href="/{{ tuple|by_key:0 }}/test" target="_top">{{ tuple|by_key:1 }}</a>
+          </li>
+        {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="g-unit">
+      <div id="uap-nav-sub" class="g-c">
+
+        {% if user %}
+          <span>{{ user.nickname }}</span>
+        {% endif %}
+
+        <a href="/faq" target="_top">FAQ</a>
+
+        {% if user %}
+          <a href="{{ sign_out }}" target="_top" >Sign Out</a>
+        {% else %}
+          <a href="{{ sign_in }}" target="_top" >Sign In</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+
+  <div id="uap-body">
+    {% ifequal request_path_lastbit "about" %}
+      <a
+        href="/{{ app_category }}/test"
+        class="uap-bc"
+        target="_top">Go to the {{ app_category_name }} Tests</a>
+    {% endifequal %}
+
+    {% block body %}{% endblock %}
+  </div>
+
+  {% if hide_footer %}{% else %}
+    <div id="uap-foot">
+      <a href="/" target="_top">Home</a> |
+      <a href="http://code.google.com/p/ua-parser/source/checkout" target="_top">Code</a> |
+      <a href="http://code.google.com/p/ua-parser/issues/list" target="_top">Submit a Bug</a>
+    </div>
+  {% endif %}
+
+  {% ifequal build "production" %}
+    <script>
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script>
+    try {
+    var pageTracker = _gat._getTracker("UA-9733170-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+  {% endifequal %}
+</body>
+
+</html>
+

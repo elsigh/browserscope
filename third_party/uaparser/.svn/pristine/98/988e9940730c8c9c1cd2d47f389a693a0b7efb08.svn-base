@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+{% if ua_parsed %}
+  <h3>
+    Parsed result:
+  </h3>
+  <div>
+  
+    <!-- TABLE FOR USER AGENT RESULT -->
+    
+    <table class="uap-table">
+      <thead>
+        <tr>
+          <th>
+            Browser Family
+          </th>
+          <th>
+            v1
+          </th>
+          <th>
+            v2
+          </th>
+          <th>
+            v3
+          </th>
+          <th>
+            Display
+          </th>
+          <th>
+            Browser UA string
+          </th>
+          {% if js_ua %}
+            <th>
+              JS UA string
+            </th>
+          {% endif %}
+          {% if js_user_agent_family %}
+            <th>
+              JS Family Name
+            </th>
+          {% endif %}
+          {% if js_user_agent_v1 %}
+            <th>
+              JS v1
+            </th>
+          {% endif %}
+          {% if js_user_agent_v2 %}
+            <th>
+              JS v2
+            </th>
+          {% endif %}
+          {% if js_user_agent_v3 %}
+            <th>
+              JS v3
+            </th>
+          {% endif %}
+        </tr>
+        <tr>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            {{ ua_parsed.family }}
+          </td>
+          <td>
+            {{ ua_parsed.v1 }}
+          </td>
+          <td>
+            {{ ua_parsed.v2 }}
+          </td>
+          <td>
+            {{ ua_parsed.v3 }}
+          </td>
+          <td>
+            {{ ua_parsed.prettyUA }}
+          </td>
+          <td class="wrap">
+            {{ ua_parsed.string }}
+          </td>
+          {% if js_ua %}
+            <td class="wrap">
+              {{ js_ua }}
+            </td>
+          {% endif %}
+          {% if js_user_agent_family %}
+            <td>
+              {{ js_user_agent_family }}
+            </td>
+          {% endif %}
+          {% if js_user_agent_v1 %}
+            <td>
+              {{ js_user_agent_v1 }}
+            </td>
+          {% endif %}
+          {% if js_user_agent_v2 %}
+            <td>
+              {{ js_user_agent_v2 }}
+            </td>
+          {% endif %}
+          {% if js_user_agent_v3 %}
+            <td>
+              {{ js_user_agent_v3 }}
+            </td>
+          {% endif %}
+        </tr>
+      </tbody>
+    </table>
+    
+      <a
+    href="http://code.google.com/p/browserscope/issues/entry?template=UA Parsing Is Incorrect&comment=I am using: WHAT_BROWSER_YOU_ARE_USING%0D%0A%0D%0ABrowserscope got it wrong - {{ ua_parsed.pretty }} is not {{ ua_parsed.string }}{% if js_ua %} and with js_string {{ js_ua }}{% endif %}{% if js_user_agent_family %} and js_user_agent_family {{ js_user_agent_family }}{% endif %}{% if js_user_agent_v1 %} and js_user_agent_v1 {{ js_user_agent_v1 }}{% endif %}{% if js_user_agent_v2 %} and js_user_agent_v2 {{ js_user_agent_v2 }}{% endif %}{% if js_user_agent_v3 %} and js_user_agent_v3 {{ js_user_agent_v3 }}{% endif %}"
+    target="_blank">Is this wrong?</a>
+    
+    <!-- TABLE FOR OS RESULT -->
+    
+    <table class="uap-table">
+      <thead>
+        <tr>
+          <th>
+            Operating System
+          </th>
+          <th>
+            v1
+          </th>
+          <th>
+            v2
+          </th>
+          <th>
+            v3
+          </th>
+          <th>
+            v4
+          </th>
+          <th>
+            Display
+          </th>
+          <th>
+            Browser UA string
+          </th>
+          {% if js_ua %}
+            <th>
+              JS UA string
+            </th>
+          {% endif %}
+        </tr>
+        <tr>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            {{ ua_parsed.os }}
+          </td>
+          <td>
+            {{ ua_parsed.os_v1 }}
+          </td>
+          <td>
+            {{ ua_parsed.os_v2 }}
+          </td>
+          <td>
+            {{ ua_parsed.os_v3 }}
+          </td>
+          <td>
+            {{ ua_parsed.os_v4 }}
+          </td>
+          <td>
+            {{ ua_parsed.prettyOS }}
+          </td>
+          <td class="wrap">
+            {{ ua_parsed.string }}
+          </td>
+          {% if js_ua %}
+            <td class="wrap">
+              {{ js_ua }}
+            </td>
+          {% endif %}
+        </tr>
+      </tbody>
+    </table>
+    
+    <a
+    href="http://code.google.com/p/browserscope/issues/entry?template=OS Parsing Is Incorrect&comment=I am running: WHAT_OS_ARE_YOU_RUNNING%0D%0A%0D%0ABrowserscope got it wrong - {{ ua_parsed.pretty }} is not {{ ua_parsed.string }}{% if js_ua %} and with js_string {{ js_ua }}{% endif %}"
+    target="_blank">Is this wrong?</a>
+  </div>
+{% endif %}
+
+<h2>Test the UserAgent parser</h2>
+<form action="/ua" method="post">
+  <label for="ua-string">Browser UserAgent string</label>
+  <div>
+    <textarea name="ua" id="ua-string"
+      cols="50" rows="4">{{ ua }}</textarea>
+    {% if ua %}
+      <em>Automatically filled in w/ your current browser info.</em>
+    {% endif %}
+  </div>
+
+  <label for="ua-string">
+    Javascript UserAgent string
+  </label>
+  <div>
+    <textarea name="js_ua" id="js-ua-string"
+      cols="50" rows="4">{% if js_ua %}{{ js_ua }}{% endif %}</textarea>
+  </div>
+  <a href="#" id="js-ua-string-toggle">Click to show</a>
+
+  <label for="ua-string">
+    Javascript UserAgent override
+  </label>
+  <div>
+    <input name="js_user_agent_family" id="js-ua-family"
+      type="text" size="20"
+      value="{% if js_user_agent_family %}{{ js_user_agent_family }}{% endif %}">
+    <input name="js_user_agent_v1" id="js-ua-v1"
+      type="text" size="1"
+      value="{% if js_user_agent_v1 %}{{ js_user_agent_v1 }}{% endif %}"
+      >.<input
+    name="js_user_agent_v2" id="js-ua-v2"
+      type="text" size="1"
+      value="{% if js_user_agent_v2 %}{{ js_user_agent_v2 }}{% endif %}"
+      >.<input
+    name="js_user_agent_v3" id="js-ua-v3"
+      type="text" size="1"
+      value="{% if js_user_agent_v3 %}{{ js_user_agent_v3 }}{% endif %}">
+    <em>
+      Filled in when our JS code detects something like IE Document Mode
+      weirdness.
+    </em>
+  </div>
+
+  <div class="uap-submit-c">
+    <input type="submit" class="bs-btn" value="Submit">
+  </div>
+</form>
+
+<script src="/js_override"></script>
+
+
+
+<script>
+  // js ua string toggle
+  (function() {
+	  var jsUa = document.getElementById('js-ua-string');
+	  jsUa.style.display = 'none';
+	  jsUa.setAttribute('disabled', 'disabled');
+	  
+	  var jsUaToggle = document.getElementById('js-ua-string-toggle');
+	  jsUaToggle.onclick = function() {
+	  	if( jsUa.style.display == 'none' ) {
+	  	  jsUa.style.display = 'block';
+	  	  console.log(jsUa);
+	  	  jsUa.removeAttribute('disabled');
+	  	  this.innerHTML = '<a href="#" id="js-ua-string-toggle">Click to hide</a>';
+	  	}
+	  	else {
+	  	  jsUa.style.display = 'none';
+	  	  jsUa.setAttribute('disabled', 'disabled');
+	  	  this.innerHTML = '<a href="#" id="js-ua-string-toggle">Click to show</a>';
+	  	  console.log('heyyyyo!');
+	  	}
+	  }
+   }())
+  // JS UA string.
+  var jsUaStringEl = document.getElementById('js-ua-string');
+  if (!jsUaStringEl.value) {
+    jsUaStringEl.value = navigator.userAgent;
+  }
+
+  // JS UA overrides.
+  var jsUa = uap.getJsUaOverrides();
+  if (jsUa) {
+    var jsUaFamilyEl = document.getElementById('js-ua-family');
+    var jsUaV1El = document.getElementById('js-ua-v1');
+    var jsUaV2El = document.getElementById('js-ua-v2');
+    var jsUaV3El = document.getElementById('js-ua-v3');
+    if (!jsUaFamilyEl.value) {
+      jsUaFamilyEl.value = jsUa['js_user_agent_family'];
+    }
+    if (!jsUaV1El.value) {
+      jsUaV1El.value = jsUa['js_user_agent_v1'];
+    }
+    if (!jsUaV2El.value) {
+      jsUaV2El.value = jsUa['js_user_agent_v2'];
+    }
+    if (!jsUaV3El.value) {
+      jsUaV3El.value = jsUa['js_user_agent_v3'];
+    }
+  }
+</script>
+
+
+{% endblock %}
