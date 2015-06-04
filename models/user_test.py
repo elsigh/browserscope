@@ -167,6 +167,7 @@ def ValidateTestKeys(test_keys):
 
 
 class Test(db.Model):
+  master_slave_key = db.StringProperty()
   user = db.Reference(User)
   name = db.StringProperty(required=True)
   test_keys = db.StringListProperty()

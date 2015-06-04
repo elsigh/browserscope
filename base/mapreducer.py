@@ -38,6 +38,11 @@ def UserTestDeletedFalse(entity):
   yield op.db.Put(entity)
 
 
+def SaveMasterSlaveKey(entity):
+  entity.master_slave_key = '%s' % entity.key()
+  yield op.db.Put(entity)
+
+
 def ResultParentUaDeNorm(entity):
   try:
     if (not entity.category or not entity.user_agent or
