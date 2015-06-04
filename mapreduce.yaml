@@ -30,3 +30,27 @@ mapreduce:
     params:
     - name: entity_kind
       default: models.user_test.Test
+
+- name: Save master slave keys - UserTests
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: base.mapreducer.SaveMasterSlaveKey
+    params:
+    - name: entity_kind
+      default: models.user_test.Test
+
+- name: Save master slave keys - UserTestSet
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: base.mapreducer.SaveMasterSlaveKey
+    params:
+    - name: entity_kind
+      default: models.user_test.TestSet
+
+- name: Save master slave keys - Users
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: base.mapreducer.SaveMasterSlaveKey
+    params:
+    - name: entity_kind
+      default: models.user_test.User
