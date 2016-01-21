@@ -67,7 +67,7 @@ var _bTestResults = {
   var testKey = 'CHANGE-THIS-TO-YOUR-TEST-KEY';
   var newScript = document.createElement('script'),
       firstScript = document.getElementsByTagName('script')[0];
-  newScript.src = 'http://www.browserscope.org/user/beacon/' + testKey;
+  newScript.src = 'https://www.browserscope.org/user/beacon/' + testKey;
   firstScript.parentNode.insertBefore(newScript, firstScript);
 }(document));
 &lt;/script&gt;
@@ -113,7 +113,7 @@ var _bTestResults = {
       You can embed your results table in a blog post or on your site using a
       script tag or an iframe.
       <pre id="urlparams"><code>&lt;script
-  src="http://www.browserscope.org/user/tests/table/YOUR-TEST-ID?o=js"&gt;&lt;/script&gt;
+  src="https://www.browserscope.org/user/tests/table/YOUR-TEST-ID?o=js"&gt;&lt;/script&gt;
 
 Parameters:
   v=top: Shows the "Top Browsers" list. (DEFAULT)
@@ -152,7 +152,7 @@ Parameters:
       Grab your API key from the <a href="/user/settings">settings</a> page.
       You should then be able to create tests programmatically
       with a GET or a POST request, like:
-<pre><code>/user/tests/create?api_key=YOUR-API-KEY&amp;name=Some test name&amp;description=A longer description&amp;url=http://yourtest.com/page.html</code></pre>
+<pre><code>/user/tests/create?api_key=YOUR-API-KEY&amp;name=Some test name&amp;description=A longer description&amp;url=https://yourtest.example.com/page.html</code></pre>
     </li>
     <li>
       The response, if everything is successful, is a JSON string with the
@@ -163,7 +163,7 @@ Parameters:
 
   <h3>We want your feedback!</h3>
   <p>
-    <a href="http://groups.google.com/group/browserscope"
+    <a href="https://groups.google.com/group/browserscope"
       >Please send any feedback and ideas about these features to
       the Google Group</a>
   </p>
