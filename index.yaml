@@ -29,3 +29,10 @@ indexes:
   - name: user
   - name: created
     direction: desc
+
+- kind: Test
+  properties:
+  - name: deleted
+  - name: user
+  - name: created
+    direction: desc
