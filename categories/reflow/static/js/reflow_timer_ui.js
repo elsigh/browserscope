@@ -974,7 +974,7 @@ var aa=function(){var a="",c;if(O&&u.opera){var b=u.opera.version;a=typeof b=="f
   style.color = '#333';
   anchor.appendChild(document.createTextNode('Reflow Timer'));
   anchor.target = '_blank';
-  anchor.href = 'http://www.browserscope.org/reflow/';
+  anchor.href = 'https://www.browserscope.org/reflow/';
   header.appendChild(anchor);
   container.appendChild(header);
 

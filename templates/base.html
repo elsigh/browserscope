@@ -10,24 +10,21 @@
     {% endif %}
     {{ app_title }}
   </title>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta charset="utf-8">
   <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    content="width=device-width, initial-scale=1">
   <meta name="keywords" content="Browser, profiler, css, html, javascript, html5, benchmark, test suite">
   {% ifequal chromeframe_enabled "1" %}
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
   {% endifequal %}
   <!--<meta http-equiv="X-UA-Compatible" content="IE=edge">-->
   <link type="text/plain" rel="author" href="/humans.txt">
-  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
   <link
     rel="stylesheet"
-    href="{{ "base.css"|resource_path }}"
-    type="text/css">
+    href="{{ "base.css"|resource_path }}">
   <link
     rel="stylesheet"
-    href="{{ "results_table.css"|resource_path }}"
-    type="text/css">
+    href="{{ "results_table.css"|resource_path }}">
   {% block style %}{% endblock %}
   {% block head %}{% endblock %}
 </head>
@@ -94,18 +91,18 @@
   {% if hide_footer %}{% else %}
     <div id="bs-foot">
       <a rel="license"
-         href="http://creativecommons.org/publicdomain/zero/1.0/">
-        <img src="http://i.creativecommons.org/p/zero/1.0/80x15.png" style="border-style: none;" alt="CC0" /></a> |
+         href="https://creativecommons.org/publicdomain/zero/1.0/">
+        <img src="https://licensebuttons.net/p/zero/1.0/80x15.png" style="border-style: none;" alt="CC0" /></a> |
       <a href="/" target="_top">Home</a> |
       <a href="/faq" target="_top">FAQ</a> |
       <a href="/api" target="_top">API</a> |
       <a href="/ua" target="_top">UA Parser</a> |
       <a href="/news" target="_top">News</a> |
       <a href="/browsers" target="_top">Browser Resources</a> |
-      <a href="http://code.google.com/p/browserscope/source/checkout" target="_top">Code</a> |
-      <a href="http://code.google.com/p/browserscope/issues/list" target="_top">Submit a Bug</a> |
-      <a href="http://code.google.com/p/browserscope/downloads" target="_top">Downloads</a> |
-      <a href="http://groups.google.com/group/browserscope" target="_top">Mailing List</a> |
+      <a href="https://github.com/elsigh/browserscope" target="_top">Code</a> |
+      <a href="https://github.com/elsigh/browserscope/issues" target="_top">Submit a Bug</a> |
+      <a href="https://github.com/elsigh/browserscope/releases" target="_top">Downloads</a> |
+      <a href="https://groups.google.com/group/browserscope" target="_top">Mailing List</a> |
       <a href="mailto:browserscope@googlegroups.com" target="_top">Contact</a>
     </div>
   {% endif %}
@@ -118,9 +115,7 @@
 
       (function() {
         var ga = document.createElement('script');
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' :
-            'http://www') + '.google-analytics.com/ga.js';
-        ga.setAttribute('async', 'true');
+        ga.src = 'https://ssl.google-analytics.com/ga.js';
         document.documentElement.firstChild.appendChild(ga);
       })();
     </script>

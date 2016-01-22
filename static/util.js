@@ -1250,7 +1250,7 @@ Util.TestDriver.prototype.onBeaconCompleteAutorun_ = function(e) {
     window.top.location.href = nextUrl;
 
     /*else {
-      var longUrl = 'http://www.browserscope.org/?' + this.uriResults;
+      var longUrl = 'https://www.browserscope.org/?' + this.uriResults;
       var req = window['googleapis']['newRequest']('urlshortener.url.insert',
           {'resource': {'longUrl': longUrl},
            'key': Util.TestDriver.GOOGLE_API_KEY});

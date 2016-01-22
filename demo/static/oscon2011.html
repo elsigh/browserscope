@@ -4,7 +4,7 @@
 
   <h2>Embed <a href="http://ua-parser.appspot.com/">UA-Parser</a>:</h2>
   <div style="background: #ccc; padding: 5px; font-family: Courier">
-    <script src="http://www.browserscope.org/ua?o=js"></script>
+    <script src="https://www.browserscope.org/ua?o=js"></script>
   </div>
 
   <!-- A Simple Test Function: _bRunTest -->
@@ -30,7 +30,7 @@
       var testKey = 'agt1YS1wcm9maWxlcnINCxIEVGVzdBjWx50HDA';
       var newScript = document.createElement('script'),
           firstScript = document.getElementsByTagName('script')[0];
-      newScript.src = 'http://www.browserscope.org/user/beacon/' + testKey;
+      newScript.src = 'https://www.browserscope.org/user/beacon/' + testKey;
       firstScript.parentNode.insertBefore(newScript, firstScript);
     };
 
@@ -47,6 +47,6 @@
   </script>
 
   <h2>The Run Button</h2>
-  <script src="http://www.browserscope.org/user/tests/button?fn=_bRunTest&btn_text=Run%20My%20Test"></script>
+  <script src="https://www.browserscope.org/user/tests/button?fn=_bRunTest&btn_text=Run%20My%20Test"></script>
 
 </html>
