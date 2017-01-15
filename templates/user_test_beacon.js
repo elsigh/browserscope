@@ -97,7 +97,7 @@
     iframeDoc.close();
 
     var form = iframeDoc.createElement('form');
-    form.action = 'http://{{ server }}/beacon/{{ test_key }}';
+    form.action = 'https://{{ server }}/beacon/{{ test_key }}';
     form.method = 'post';
     var inputs = {
       'test_key': test_key,
